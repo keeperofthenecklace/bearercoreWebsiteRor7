@@ -11,7 +11,7 @@ export default class extends Controller {
           }
         })
       },
-      { threshold: 0.12 }
+      { threshold: 0, rootMargin: "0px 0px -40px 0px" }
     )
 
     this.element.querySelectorAll(".reveal").forEach((el) => {
