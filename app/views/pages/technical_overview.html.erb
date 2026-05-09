@@ -1,5 +1,6 @@
-<%# ─── NAV (shared structure) ─────────────────────────────────────────────── %>
-<nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100">
+<%# ─── NAV ─────────────────────────────────────────────────────────────────── %>
+<nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
+     data-controller="nav">
   <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 
     <a href="/" class="flex items-center gap-3">
@@ -19,18 +20,31 @@
       </a>
     </div>
 
-    <button class="md:hidden" style="color: #0C1B38;">
+    <button class="md:hidden p-2" style="color: #0C1B38;"
+            data-action="nav#toggle">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
       </svg>
     </button>
   </div>
+
+  <%# Mobile menu %>
+  <div class="hidden" data-nav-target="menu">
+    <div class="flex flex-col gap-4 px-6 pb-5 pt-2 border-t border-gray-100 bg-white">
+      <a href="/technical-overview" class="text-sm font-semibold" style="color: #C9A84C;">Technical Overview</a>
+      <a href="/#access"            class="text-sm font-medium" style="color: #0C1B38;">Central Bank Access</a>
+      <a href="/#contact"
+         class="text-sm font-semibold px-5 py-2 rounded-full text-center transition-all"
+         style="background: #C9A84C; color: #0C1B38;">
+        Contact Our Governors' Desk
+      </a>
+    </div>
+  </div>
 </nav>
 
 
 <%# ─── PAGE HEADER ────────────────────────────────────────────────────────── %>
-<section class="bg-white border-b border-gray-100"
-         style="padding-top: 120px; padding-bottom: 64px;">
+<section class="bg-white border-b border-gray-100" style="padding-top: 120px; padding-bottom: 64px;">
   <div class="max-w-4xl mx-auto px-6 text-center">
     <div class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C9A84C;">Technical Overview</div>
     <h1 class="font-serif-display text-4xl md:text-5xl font-bold mb-5" style="color: #0C1B38; letter-spacing: -0.02em;">
@@ -39,19 +53,16 @@
     <p class="text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
       For Central Bank IT teams and implementation partners. A complete view of the cryptographic, operational, and compliance architecture underpinning bearerCORE.
     </p>
-    <div class="flex items-center justify-center gap-4 mt-8">
-      <a href="/docs"
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+      <a href="mailto:governors@bearercore.com?subject=Platform%20Documentation%20Request"
          class="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold transition-all hover:opacity-90"
          style="background: #0C1B38; color: white;">
-        Platform Documentation
+        Request Full Documentation
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
         </svg>
       </a>
-      <a href="/"
-         class="text-sm text-gray-400 hover:text-gray-600 transition-colors">
-        ← Back to home
-      </a>
+      <a href="/" class="text-sm text-gray-400 hover:text-gray-600 transition-colors">← Back to home</a>
     </div>
   </div>
 </section>
@@ -60,130 +71,541 @@
 <%# ─── PITCH QUOTE ────────────────────────────────────────────────────────── %>
 <section style="background: linear-gradient(135deg, #0C1B38 0%, #152545 100%);" class="py-20 px-6">
   <div class="max-w-4xl mx-auto text-center">
-    <div class="text-xs font-semibold tracking-widest uppercase mb-6" style="color: #C9A84C;">The Platform</div>
+    <div class="text-xs font-semibold tracking-widest uppercase mb-6" style="color: #C9A84C;">Design Philosophy</div>
     <blockquote class="text-2xl md:text-3xl font-light text-white leading-relaxed mb-10">
       "A robust digital currency platform designed for ease-of-use and low-literacy inclusion, enabling instant peer-to-peer transfers using existing monetary principles."
     </blockquote>
     <div class="w-16 h-px mx-auto" style="background: #C9A84C; opacity: 0.4;"></div>
+    <p class="text-gray-400 text-sm mt-8 max-w-2xl mx-auto leading-relaxed">
+      bearerCORE™ bridges the physical familiarity of banknotes with the security and programmability of digital infrastructure — giving Central Banks full monetary sovereignty without requiring consumers or commercial banks to manage cryptographic key material.
+    </p>
   </div>
 </section>
 
 
-<%# ─── CORE CAPABILITIES GRID ─────────────────────────────────────────────── %>
-<section class="py-20 px-6 bg-white">
-  <div class="max-w-6xl mx-auto">
+<%# ─── HYBRID ARCHITECTURE ────────────────────────────────────────────────── %>
+<section class="py-20 px-6 bg-white" data-controller="fade-in">
+  <div class="max-w-5xl mx-auto">
     <div class="text-center mb-14">
-      <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Core Capabilities</div>
-      <h2 class="font-serif-display text-3xl md:text-4xl font-bold" style="color: #0C1B38;">Built for Monetary Sovereignty</h2>
+      <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">System Design</div>
+      <h2 class="font-serif-display text-3xl md:text-4xl font-bold reveal" style="color: #0C1B38;">Hybrid CBDC Architecture</h2>
+      <p class="text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed reveal reveal-delay-1">
+        bearerCORE combines a bearer instrument layer with a sovereign registry and settlement corridor — delivering the offline capability of physical cash with the auditability of a digital ledger.
+      </p>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-      <div class="rounded-2xl p-7 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
-        <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-5" style="background: rgba(12,27,56,0.07);">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #0C1B38;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-          </svg>
-        </div>
-        <div class="text-xs font-semibold tracking-widest mb-2" style="color: #C9A84C;">PRIVACY</div>
-        <h3 class="text-base font-bold mb-3" style="color: #0C1B38;">No account tracking, just digital cash</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">CVIB banknotes carry cryptographic identity without exposing user data. Bearer instruments — like physical cash — by design.</p>
+      <div class="rounded-2xl p-8 reveal reveal-delay-1" style="background: linear-gradient(135deg, #0C1B38 0%, #152545 100%);">
+        <div class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C9A84C;">Layer 1</div>
+        <h3 class="text-lg font-bold text-white mb-3">Representation Layer</h3>
+        <p class="text-gray-300 text-sm leading-relaxed">CVIB PNG banknotes — self-contained bearer instruments with embedded Ed25519 signatures, AES-256-GCM vault encryption, QR codes, and Code 128 barcodes. Transferable via email, SFTP, USB, NFC, or Bluetooth.</p>
       </div>
 
-      <div class="rounded-2xl p-7 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
-        <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-5" style="background: rgba(12,27,56,0.07);">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #0C1B38;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-          </svg>
-        </div>
-        <div class="text-xs font-semibold tracking-widest mb-2" style="color: #C9A84C;">SIMPLICITY</div>
-        <h3 class="text-base font-bold mb-3" style="color: #0C1B38;">Designed for every user</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">Offline-capable, low-bandwidth, and accessible to unbanked and low-literacy users across urban and rural Africa.</p>
+      <div class="rounded-2xl p-8 border border-gray-100 shadow-sm reveal reveal-delay-2">
+        <div class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C9A84C;">Layer 2</div>
+        <h3 class="text-lg font-bold mb-3" style="color: #0C1B38;">Registry Layer</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Rails 7.1 API — validation registry, issuance authorisation engine, FX corridor manager, and governance platform. Enforces duplicate detection, state transitions, and immutable audit logs via append-only ValidationEvent records.</p>
       </div>
 
-      <div class="rounded-2xl p-7 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
-        <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-5" style="background: rgba(12,27,56,0.07);">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #0C1B38;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-          </svg>
-        </div>
-        <div class="text-xs font-semibold tracking-widest mb-2" style="color: #C9A84C;">COMPLIANCE</div>
-        <h3 class="text-base font-bold mb-3" style="color: #0C1B38;">Architected for Central Bank standards</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">Ed25519-signed issuance, AES-256-GCM vault encryption, full audit trails, and governance voting built in from day one.</p>
+      <div class="rounded-2xl p-8 border border-gray-100 shadow-sm reveal reveal-delay-3">
+        <div class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C9A84C;">Layer 3</div>
+        <h3 class="text-lg font-bold mb-3" style="color: #0C1B38;">Corridor Layer</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Distributed ledger — 54 bilateral AU member corridors for inter-central-bank settlement. Real-time FX rate resolution, LiquidityLock reserve backing, SHA-256 Merkle tree integrity, and PAPSS / RTGS gateway integration.</p>
       </div>
 
-      <div class="rounded-2xl p-7 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
-        <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-5" style="background: rgba(12,27,56,0.07);">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #0C1B38;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
+    </div>
+
+    <%# Two-component callout %>
+    <div class="mt-10 rounded-2xl border border-gray-100 shadow-sm overflow-hidden reveal">
+      <div class="grid grid-cols-1 md:grid-cols-2">
+        <div class="p-8 border-b md:border-b-0 md:border-r border-gray-100">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(12,27,56,0.08);">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" style="color: #0C1B38;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/>
+              </svg>
+            </div>
+            <div class="text-xs font-semibold tracking-widest uppercase" style="color: #C9A84C;">Component 1</div>
+          </div>
+          <h4 class="font-bold text-base mb-2" style="color: #0C1B38;">Qt6 Desktop Application</h4>
+          <p class="text-gray-500 text-sm leading-relaxed mb-3">Runs on Central Bank workstations (macOS ARM64). Mints, cryptographically signs, and delivers CVIB banknote files to commercial banks via email or SFTP.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs px-2 py-1 rounded-full font-mono" style="background: rgba(12,27,56,0.06); color: #0C1B38;">Qt6 / C++17</span>
+            <span class="text-xs px-2 py-1 rounded-full font-mono" style="background: rgba(12,27,56,0.06); color: #0C1B38;">libsodium</span>
+            <span class="text-xs px-2 py-1 rounded-full font-mono" style="background: rgba(12,27,56,0.06); color: #0C1B38;">Crypto++</span>
+            <span class="text-xs px-2 py-1 rounded-full font-mono" style="background: rgba(12,27,56,0.06); color: #0C1B38;">OpenSSL 3</span>
+          </div>
         </div>
-        <div class="text-xs font-semibold tracking-widest mb-2" style="color: #C9A84C;">INDEPENDENCE</div>
-        <h3 class="text-base font-bold mb-3" style="color: #0C1B38;">Works outside banking walls</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">No SWIFT dependency. No correspondent bank required. Sovereign infrastructure that a Central Bank owns and controls end-to-end.</p>
+        <div class="p-8">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(201,168,76,0.12);">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+            <div class="text-xs font-semibold tracking-widest uppercase" style="color: #C9A84C;">Component 2</div>
+          </div>
+          <h4 class="font-bold text-base mb-2" style="color: #0C1B38;">Rails 7.1 API Backend</h4>
+          <p class="text-gray-500 text-sm leading-relaxed mb-3">Cloud-hosted sovereign infrastructure. Handles validation, registry, issuance authorisation, FX corridors, governance, and audit exports. OAuth2 via Doorkeeper, background jobs via Sidekiq.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs px-2 py-1 rounded-full font-mono" style="background: rgba(201,168,76,0.1); color: #0C1B38;">Ruby 3.3.6</span>
+            <span class="text-xs px-2 py-1 rounded-full font-mono" style="background: rgba(201,168,76,0.1); color: #0C1B38;">Rails 7.1</span>
+            <span class="text-xs px-2 py-1 rounded-full font-mono" style="background: rgba(201,168,76,0.1); color: #0C1B38;">PostgreSQL</span>
+            <span class="text-xs px-2 py-1 rounded-full font-mono" style="background: rgba(201,168,76,0.1); color: #0C1B38;">Sidekiq</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<%# ─── CVIB BEARER INSTRUMENT ─────────────────────────────────────────────── %>
+<section class="py-20 px-6" style="background: #F8F9FC;">
+  <div class="max-w-5xl mx-auto" data-controller="fade-in">
+    <div class="text-center mb-14">
+      <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Core Instrument</div>
+      <h2 class="font-serif-display text-3xl md:text-4xl font-bold reveal" style="color: #0C1B38;">The CVIB Banknote</h2>
+      <p class="text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed reveal reveal-delay-1">
+        CVIB — Cryptographic Visual Image Banknote — is a PNG file that behaves exactly like physical cash. Possession of the file constitutes ownership. No bank account required.
+      </p>
+    </div>
+
+    <%# Properties grid %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
+
+      <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm reveal reveal-delay-1">
+        <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Bearer Format</div>
+        <p class="text-gray-600 text-sm leading-relaxed">File possession = ownership. No account balance, no ledger entry, no identity disclosure required to hold a CVIB note — identical to physical cash.</p>
       </div>
 
+      <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm reveal reveal-delay-1">
+        <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Visual Authenticity</div>
+        <p class="text-gray-600 text-sm leading-relaxed">Rendered with denomination graphics, Central Bank branding, serial number printed on face, 55×55 px encrypted QR code, and Code 128 barcode.</p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm reveal reveal-delay-2">
+        <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Ed25519 Signature</div>
+        <p class="text-gray-600 text-sm leading-relaxed">Every note is digitally signed by the issuing Central Bank's primary key. Any party holding the public key can verify authenticity — offline, without platform access.</p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm reveal reveal-delay-2">
+        <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Embedded Metadata</div>
+        <p class="text-gray-600 text-sm leading-relaxed">Serial number, denomination, issuer, timestamps, holder ID, manifest hash — all stored in the PNG iTXt chunk as zlib-compressed <code class="text-xs">key=value</code> pairs.</p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm reveal reveal-delay-3">
+        <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Vault Encryption</div>
+        <p class="text-gray-600 text-sm leading-relaxed">Sensitive mint data is AES-256-GCM encrypted inside the PNG. The note can be publicly inspected; the vault payload requires the Central Bank's decryption key.</p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm reveal reveal-delay-3">
+        <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">DLT Anchoring</div>
+        <p class="text-gray-600 text-sm leading-relaxed">Every CVIB note is registered on the distributed ledger at issuance. State changes — transfer, redemption, burn — are anchored as immutable events.</p>
+      </div>
+
+    </div>
+
+    <%# Lifecycle strip %>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-7 reveal">
+      <div class="text-xs font-semibold tracking-widest uppercase mb-5" style="color: #C9A84C;">Note Lifecycle States</div>
+      <div class="flex flex-wrap items-center gap-2">
+        <% ["MINTED", "ISSUED", "TRANSFERRED", "REDEEMED", "BURNED"].each_with_index do |state, i| %>
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1.5 rounded-full text-xs font-semibold font-mono
+              <%= i == 0 ? 'text-white' : (i == 4 ? 'text-white' : '') %>"
+              style="<%= i == 0 ? 'background: #0C1B38;' : (i == 4 ? 'background: #7f1d1d; opacity: 0.85;' : 'background: rgba(201,168,76,0.15); color: #0C1B38;') %>">
+              <%= state %>
+            </span>
+            <% if i < 4 %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
     </div>
   </div>
 </section>
 
 
 <%# ─── CRYPTOGRAPHIC STACK ────────────────────────────────────────────────── %>
-<section class="py-20 px-6" style="background: #F8F9FC;">
-  <div class="max-w-5xl mx-auto">
+<section class="py-20 px-6 bg-white">
+  <div class="max-w-5xl mx-auto" data-controller="fade-in">
     <div class="text-center mb-12">
       <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Security Architecture</div>
-      <h2 class="font-serif-display text-3xl font-bold" style="color: #0C1B38;">Cryptographic Stack</h2>
+      <h2 class="font-serif-display text-3xl md:text-4xl font-bold reveal" style="color: #0C1B38;">Cryptographic Stack</h2>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-      <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-start gap-5">
-        <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style="background: rgba(201,168,76,0.12);">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-          </svg>
-        </div>
-        <div>
-          <div class="font-bold text-sm mb-1" style="color: #0C1B38;">Ed25519 Digital Signatures</div>
-          <p class="text-gray-500 text-sm leading-relaxed">Every CVIB banknote is signed by the issuing Central Bank using libsodium Ed25519. Signature is embedded in the PNG iTXt chunk and verified on ingest.</p>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-start gap-5">
-        <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style="background: rgba(201,168,76,0.12);">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-          </svg>
-        </div>
-        <div>
-          <div class="font-bold text-sm mb-1" style="color: #0C1B38;">AES-256-GCM Vault Encryption</div>
-          <p class="text-gray-500 text-sm leading-relaxed">Mint data is encrypted at rest in per-note vaults. Key, IV, and ciphertext are embedded in the PNG. Decryption requires the Central Bank vault key.</p>
+      <div class="rounded-2xl p-7 border border-gray-100 shadow-sm reveal reveal-delay-1">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style="background: rgba(201,168,76,0.12);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm mb-1" style="color: #0C1B38;">Ed25519 · Issuance Signing</div>
+            <div class="text-xs font-mono text-gray-400 mb-3">IETF RFC 8037 · 128-bit security · libsodium</div>
+            <p class="text-gray-500 text-sm leading-relaxed">Every CVIB note is signed by the issuing Central Bank using libsodium Ed25519. The 32-byte public key can be published in a government gazette. Signature verification requires no platform access — any party can confirm authenticity independently. Private keys are server-side only; the Qt desktop client never generates keys, only verifies.</p>
+          </div>
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-start gap-5">
-        <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style="background: rgba(201,168,76,0.12);">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
-          </svg>
-        </div>
-        <div>
-          <div class="font-bold text-sm mb-1" style="color: #0C1B38;">Immutable Audit Ledger</div>
-          <p class="text-gray-500 text-sm leading-relaxed">Every action against a ValidationSession generates an append-only ValidationEvent record. Exportable as signed logs for regulatory review.</p>
+      <div class="rounded-2xl p-7 border border-gray-100 shadow-sm reveal reveal-delay-1">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style="background: rgba(201,168,76,0.12);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm mb-1" style="color: #0C1B38;">AES-256-GCM · Vault Encryption</div>
+            <div class="text-xs font-mono text-gray-400 mb-3">Authenticated encryption · Crypto++ AutoSeededRandomPool</div>
+            <p class="text-gray-500 text-sm leading-relaxed">Mint data is encrypted at rest per note. Key, IV, and ciphertext (<code class="text-xs">encKey</code>, <code class="text-xs">encIv</code>, <code class="text-xs">ciphermint</code>) are stored as hex strings in the PNG iTXt chunk. The note can transit public channels; the vault payload is inaccessible without the Central Bank's vault key.</p>
+          </div>
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-start gap-5">
-        <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style="background: rgba(201,168,76,0.12);">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-          </svg>
+      <div class="rounded-2xl p-7 border border-gray-100 shadow-sm reveal reveal-delay-2">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style="background: rgba(201,168,76,0.12);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm mb-1" style="color: #0C1B38;">AES-128-GCM · QR Payload</div>
+            <div class="text-xs font-mono text-gray-400 mb-3">zlib compress → AES-GCM encrypt → Base64URL encode</div>
+            <p class="text-gray-500 text-sm leading-relaxed">Each 55×55 px QR code encodes a 6-field compact JSON payload (transaction ID, entities, timestamp, serial, amount), zlib-compressed and AES-128-GCM encrypted, rendered as a Base64URL string under 350 characters. Decryption requires the QR shared key.</p>
+          </div>
         </div>
-        <div>
-          <div class="font-bold text-sm mb-1" style="color: #0C1B38;">On-Chain Governance</div>
-          <p class="text-gray-500 text-sm leading-relaxed">Policy changes, FX corridor updates, and issuance authorizations are governed by GovernanceProposal / GovernanceVote — fully auditable by all participants.</p>
+      </div>
+
+      <div class="rounded-2xl p-7 border border-gray-100 shadow-sm reveal reveal-delay-2">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style="background: rgba(201,168,76,0.12);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm mb-1" style="color: #0C1B38;">SHA-256 · Manifest &amp; Blockchain</div>
+            <div class="text-xs font-mono text-gray-400 mb-3">Merkle tree · Unique Mint Hash IDs · double-spend prevention</div>
+            <p class="text-gray-500 text-sm leading-relaxed">Every batch produces a SHA-256 manifest hash covering all note payloads. The distributed ledger builds a Merkle tree of these hashes, anchoring each block's integrity. Duplicate detection compares Unique Mint Hash IDs before any note enters the registry.</p>
+          </div>
         </div>
+      </div>
+
+    </div>
+
+    <%# Authenticity proof steps %>
+    <div class="mt-10 rounded-2xl border border-gray-100 shadow-sm p-8 reveal">
+      <div class="text-xs font-semibold tracking-widest uppercase mb-6" style="color: #C9A84C;">Offline Authenticity Verification — Four Steps</div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <% [
+          ["01", "Extract Metadata", "Read PNG iTXt 'Comment' chunk; zlib-decompress; parse key=value pairs"],
+          ["02", "Reconstruct Payload", "Concatenate serialNumber + denomination + asset_code + issued_at + batch_id in canonical form"],
+          ["03", "Verify Signature", "Verify issuer_sig against the canonical payload using the Central Bank's published Ed25519 public key"],
+          ["04", "Check Registry", "Cross-reference serial against the national CVIB registry to confirm the note has not been redeemed or burned"]
+        ].each do |step, title, desc| %>
+          <div>
+            <div class="font-mono text-xs mb-2" style="color: #C9A84C;"><%= step %></div>
+            <div class="font-bold text-sm mb-2" style="color: #0C1B38;"><%= title %></div>
+            <p class="text-gray-500 text-xs leading-relaxed"><%= desc %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<%# ─── MINTING PIPELINE ────────────────────────────────────────────────────── %>
+<section class="py-20 px-6" style="background: linear-gradient(135deg, #0C1B38 0%, #152545 100%);">
+  <div class="max-w-5xl mx-auto" data-controller="fade-in">
+    <div class="text-center mb-14">
+      <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Issuance</div>
+      <h2 class="font-serif-display text-3xl md:text-4xl font-bold text-white reveal">CVIB Minting Pipeline</h2>
+      <p class="text-gray-400 mt-4 max-w-xl mx-auto leading-relaxed reveal reveal-delay-1">
+        End-to-end issuance from governance authorisation to commercial bank delivery — executed on the Central Bank's Qt6 desktop workstation.
+      </p>
+    </div>
+
+    <div class="space-y-3">
+      <% [
+        ["Authorize Package", "Governance-gated issuance request. Rails API returns batch_id and note payloads after Four-Eyes dual-operator approval.", "POST /issuance_authorizations/{auth_code}/cvib_batches"],
+        ["Load Template", "Denomination blank image loaded from Central Bank asset library. Denomination value rendered onto image in national currency."],
+        ["Serial Number Generation", "Pattern-based unique serial number generated per note. Embedded visually on the note face and in metadata."],
+        ["Embed Metadata", "All note fields written to PNG iTXt 'Comment' chunk as zlib-compressed key=value pairs: serial, denomination, issuer, timestamps, signature, manifest hash."],
+        ["Generate QR + Barcode", "55×55 px AES-128-GCM encrypted QR code overlaid. Code 128 barcode encodes ISO3166:serial:position:height:holderId."],
+        ["Apply CBDC Mode", "Production mode: full size, no watermarks. Sandbox/Pilot/Specimen: 70% size, diagonal 'SPECIMEN' watermark, red border — below legal tender threshold."],
+        ["Package &amp; Deliver", "ZIP of PNGs + manifest.json built; SHA-256 manifest hash confirmed with Rails API. Bundle delivered to commercial bank via encrypted email or SFTP.", "POST /cvib_batches/{batch_id}/confirm_manifest"]
+      ].each_with_index do |(title, desc, endpoint), i| %>
+        <div class="flex items-start gap-5 rounded-2xl p-6 reveal"
+             style="background: rgba(255,255,255,0.05);">
+          <div class="w-9 h-9 rounded-lg flex-shrink-0 flex items-center justify-center font-bold text-sm font-mono"
+               style="background: rgba(201,168,76,0.2); color: #C9A84C;">
+            <%= '%02d' % (i + 1) %>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-bold text-sm text-white mb-1"><%= title.html_safe %></div>
+            <p class="text-gray-400 text-sm leading-relaxed"><%= desc %></p>
+            <% if endpoint %>
+              <code class="block mt-2 text-xs font-mono" style="color: #C9A84C; opacity: 0.8;"><%= endpoint %></code>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+
+<%# ─── VALIDATION PIPELINE ────────────────────────────────────────────────── %>
+<section class="py-20 px-6" style="background: #F8F9FC;">
+  <div class="max-w-5xl mx-auto" data-controller="fade-in">
+    <div class="text-center mb-14">
+      <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Validation Desk</div>
+      <h2 class="font-serif-display text-3xl md:text-4xl font-bold reveal" style="color: #0C1B38;">Five-Stage Validation Pipeline</h2>
+      <p class="text-gray-500 mt-4 max-w-xl mx-auto leading-relaxed reveal reveal-delay-1">
+        Every inbound CVIB note traverses five mandatory stages before registry acceptance. Triggered server-side via a single API call.
+      </p>
+      <code class="block mt-3 text-xs font-mono reveal reveal-delay-2" style="color: #C9A84C;">POST /api/v2/validation/pipeline/run</code>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-5 gap-4">
+      <% [
+        ["Format Detection", "Magic bytes check: PNG (89 50 4E 47) or JPEG (FF D8). Never file extension.", "1"],
+        ["Metadata Extraction", "iTXt 'Comment' chunk read. zlib-decompressed if comp_flag=1. key=value pairs parsed.", "2"],
+        ["Duplicate Check", "Serial cross-referenced against the CVIB Registry. Unique Mint Hash ID match rejects replay attacks.", "3"],
+        ["Signature Verification", "Ed25519 issuer_sig verified against canonical payload using stored IssuerKey.", "4"],
+        ["Registry Admission", "ValidationSession created, ValidationEvent audit entry written. State transitions to ISSUED.", "5"]
+      ].each do |title, desc, step| %>
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm text-center reveal">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm mx-auto mb-4"
+               style="background: #0C1B38;">
+            <%= step %>
+          </div>
+          <div class="font-bold text-sm mb-2" style="color: #0C1B38;"><%= title %></div>
+          <p class="text-gray-500 text-xs leading-relaxed"><%= desc %></p>
+        </div>
+      <% end %>
+    </div>
+
+    <%# Validation actions %>
+    <div class="mt-10 bg-white rounded-2xl border border-gray-100 shadow-sm p-7 reveal">
+      <div class="text-xs font-semibold tracking-widest uppercase mb-5" style="color: #C9A84C;">Post-Validation Actions</div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <% [
+          ["Approve", "/api/v2/validation/approve"],
+          ["Reject", "/api/v2/validation/reject"],
+          ["Freeze", "/api/v2/validation/freeze"],
+          ["Flag", "/api/v2/validation/flag"]
+        ].each do |action, path| %>
+          <div class="rounded-xl p-3 text-center" style="background: rgba(12,27,56,0.04);">
+            <div class="font-bold text-sm mb-1" style="color: #0C1B38;"><%= action %></div>
+            <code class="text-xs font-mono text-gray-400"><%= path %></code>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<%# ─── GOVERNANCE & MONETARY CONTROLS ─────────────────────────────────────── %>
+<section class="py-20 px-6 bg-white">
+  <div class="max-w-5xl mx-auto" data-controller="fade-in">
+    <div class="text-center mb-14">
+      <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Governance</div>
+      <h2 class="font-serif-display text-3xl md:text-4xl font-bold reveal" style="color: #0C1B38;">Sovereign Monetary Controls</h2>
+      <p class="text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed reveal reveal-delay-1">
+        All monetary supply actions require on-chain governance votes with quorum thresholds — mirroring the legal and institutional safeguards Central Banks apply to physical currency issuance.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+      <div class="rounded-2xl p-8 border border-gray-100 shadow-sm reveal reveal-delay-1">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(201,168,76,0.12);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+          </div>
+          <div class="font-bold text-base" style="color: #0C1B38;">Supply Expansion — Issuance</div>
+        </div>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <div class="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0" style="background: #C9A84C;"></div>
+            <p class="text-gray-500 text-sm leading-relaxed"><strong class="text-gray-700">Issuance Cap:</strong> Governance-set ceiling per corridor. Raising the cap requires ≥3/5 board seats — analogous to the statutory limit on banknote printing.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0" style="background: #C9A84C;"></div>
+            <p class="text-gray-500 text-sm leading-relaxed"><strong class="text-gray-700">100% Reserve Backing:</strong> Every issuance must be backed by an ACTIVE LiquidityLock — the digital equivalent of backing banknotes with gold reserves.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0" style="background: #C9A84C;"></div>
+            <p class="text-gray-500 text-sm leading-relaxed"><strong class="text-gray-700">Four-Eyes Approval:</strong> Dual-operator authentication required. No single authority can create new money unilaterally.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl p-8 border border-gray-100 shadow-sm reveal reveal-delay-2">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(201,168,76,0.12);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/>
+            </svg>
+          </div>
+          <div class="font-bold text-base" style="color: #0C1B38;">Supply Contraction — Burn</div>
+        </div>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <div class="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0" style="background: #C9A84C;"></div>
+            <p class="text-gray-500 text-sm leading-relaxed"><strong class="text-gray-700">≥67% Governance Quorum:</strong> Highest threshold in the system — mirrors the physical dual-custodian requirement for note destruction.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0" style="background: #C9A84C;"></div>
+            <p class="text-gray-500 text-sm leading-relaxed"><strong class="text-gray-700">Governor + Deputy Dual Signature:</strong> Both principals must authenticate simultaneously before any burn executes.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0" style="background: #C9A84C;"></div>
+            <p class="text-gray-500 text-sm leading-relaxed"><strong class="text-gray-700">DLT Destruction Seal:</strong> Permanent on-chain record proves supply reduction is irreversible. Circulating supply updates in real time.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <%# Sovereignty rule %>
+    <div class="rounded-2xl p-7 reveal" style="background: linear-gradient(135deg, #0C1B38 0%, #152545 100%);">
+      <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Sovereign Authority Rule</div>
+      <p class="text-white text-sm leading-relaxed max-w-3xl">
+        Every participating Central Bank holds the exclusive cryptographic authority to mint CVIB digital banknotes denominated in its own national unit of account. No node can unilaterally issue the currency of another member nation. Legal accountability is therefore unambiguous: the issuing Central Bank is always the sovereign authority, and its Ed25519 signing key is the cryptographic proof of that authority.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<%# ─── OFFLINE-FIRST & FINANCIAL INCLUSION ────────────────────────────────── %>
+<section class="py-20 px-6" style="background: #F8F9FC;">
+  <div class="max-w-5xl mx-auto" data-controller="fade-in">
+    <div class="text-center mb-14">
+      <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Inclusion by Design</div>
+      <h2 class="font-serif-display text-3xl md:text-4xl font-bold reveal" style="color: #0C1B38;">Offline-First by Design</h2>
+      <p class="text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed reveal reveal-delay-1">
+        Because a CVIB note is a file, it can be transferred via any channel that can move data — encrypted email, SFTP, Bluetooth, NFC, USB, or SD card. A decisive advantage across the 54 African Union corridors where connectivity is intermittent.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+      <% [
+        ["No Bank Account", "File possession = ownership. No account, no identity disclosure required to hold a CVIB note.", "reveal reveal-delay-1"],
+        ["No Smartphone", "CVIB files transfer via USB, SD card, NFC, Bluetooth, email, or SMS attachment — any data transport.", "reveal reveal-delay-2"],
+        ["No Internet", "Fully offline capable. Registry sync happens retroactively when connectivity returns.", "reveal reveal-delay-2"],
+        ["Low Financial Literacy", "Visual banknote format — recognisable denomination graphic, serial number printed on face.", "reveal reveal-delay-3"],
+        ["Informal Economy", "Bearer instrument — no identity linkage required to hold. Linkage only at point of redemption.", "reveal reveal-delay-3"],
+        ["Rural Agents", "CVIB bundle delivered via SFTP/email. Agents distribute notes to customers with zero real-time connectivity.", "reveal reveal-delay-4"]
+      ].each do |title, desc, reveal_class| %>
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm <%= reveal_class %>">
+          <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;"><%= title %></div>
+          <p class="text-gray-600 text-sm leading-relaxed"><%= desc %></p>
+        </div>
+      <% end %>
+    </div>
+
+    <%# Case study %>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 reveal">
+      <div class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C9A84C;">Field Case Study</div>
+      <blockquote class="text-gray-600 leading-relaxed text-sm max-w-3xl">
+        In a rural corridor village with no mobile network, a farmer receives payment of 5,000 NGN in CVIB notes transferred via a merchant's tablet over local Bluetooth. The farmer holds the CVIB files on a USB drive. Three weeks later, at the nearest town market, a CVIB-enabled terminal verifies the Ed25519 signature offline and accepts the notes. The farmer has participated in the digital monetary system without ever having a bank account, internet connection, or smartphone.
+      </blockquote>
+      <div class="mt-4 text-xs text-gray-400 italic">bearerCORE™ Platform Manual, April 2026 — TowerPoint Group</div>
+    </div>
+  </div>
+</section>
+
+
+<%# ─── KEY PERFORMANCE INDICATORS ─────────────────────────────────────────── %>
+<section class="py-20 px-6 bg-white">
+  <div class="max-w-4xl mx-auto" data-controller="fade-in">
+    <div class="text-center mb-12">
+      <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Specifications</div>
+      <h2 class="font-serif-display text-3xl font-bold reveal" style="color: #0C1B38;">Platform Specifications</h2>
+    </div>
+
+    <div class="rounded-2xl border border-gray-100 shadow-sm overflow-hidden reveal">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr style="background: #0C1B38;">
+              <th class="text-left px-6 py-4 text-xs font-semibold tracking-widest uppercase text-white opacity-70" style="width: 35%;">Metric</th>
+              <th class="text-left px-6 py-4 text-xs font-semibold tracking-widest uppercase text-white opacity-70" style="width: 25%;">Value</th>
+              <th class="text-left px-6 py-4 text-xs font-semibold tracking-widest uppercase text-white opacity-70">Notes</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            <% [
+              ["Supported corridors", "54", "All African Union member bilateral pairs"],
+              ["Cryptographic algorithm", "Ed25519", "IETF RFC 8037 — 128-bit security level"],
+              ["Vault encryption", "AES-256-GCM", "Authenticated encryption for mint data bundles"],
+              ["QR encryption", "AES-128-GCM", "zlib-compressed compact payload, Base64URL, <350 chars"],
+              ["Governance quorum", "≥ 67%", "Minimum board vote threshold for supply changes"],
+              ["Four-Eyes requirement", "2 operators", "All monetary actions require dual authorisation"],
+              ["Note lifecycle states", "5", "MINTED → ISSUED → TRANSFERRED → REDEEMED → BURNED"],
+              ["API version", "v2", "RESTful JSON; OAuth2 via Doorkeeper"],
+              ["Backend stack", "Rails 7.1 / Ruby 3.3.6", "PostgreSQL + Sidekiq + Redis"],
+              ["Desktop client", "Qt6 / C++", "macOS ARM64; libsodium + Crypto++ + OpenSSL 3"],
+              ["CVIB format", "PNG iTXt", "zlib-compressed key=value metadata, magic bytes 89 50 4E 47"],
+              ["Ed25519 key size", "32 bytes", "Server-side only — never exported to desktop client"],
+            ].each_with_index do |(metric, value, note), i| %>
+              <tr style="background: <%= i.odd? ? 'rgba(248,249,252,0.6)' : 'white' %>">
+                <td class="px-6 py-4 font-medium" style="color: #0C1B38;"><%= metric %></td>
+                <td class="px-6 py-4 font-mono text-sm" style="color: #C9A84C;"><%= value %></td>
+                <td class="px-6 py-4 text-gray-500"><%= note %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<%# ─── CROSS-BORDER CORRIDORS ─────────────────────────────────────────────── %>
+<section class="py-20 px-6" style="background: linear-gradient(135deg, #0C1B38 0%, #152545 100%);">
+  <div class="max-w-5xl mx-auto" data-controller="fade-in">
+    <div class="text-center mb-14">
+      <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Cross-Border</div>
+      <h2 class="font-serif-display text-3xl md:text-4xl font-bold text-white reveal">54 Active Corridors</h2>
+      <p class="text-gray-400 mt-4 max-w-xl mx-auto leading-relaxed reveal reveal-delay-1">
+        Bilateral liquidity corridors between African Union member Central Banks enable instant cross-border CVIB transfers with real-time FX settlement — without SWIFT or correspondent bank dependency.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+      <div class="rounded-2xl p-7 reveal reveal-delay-1" style="background: rgba(255,255,255,0.07);">
+        <div class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C9A84C;">Corridor Architecture</div>
+        <p class="text-gray-300 text-sm leading-relaxed">Each corridor is a bilateral pair backed by a mutual LiquidityLock. The source Central Bank locks reserves; the target Central Bank self-mints its own currency against that lock — preserving sovereign control while enabling regional integration.</p>
+      </div>
+
+      <div class="rounded-2xl p-7 reveal reveal-delay-2" style="background: rgba(255,255,255,0.07);">
+        <div class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C9A84C;">FX Rate Resolution</div>
+        <p class="text-gray-300 text-sm leading-relaxed">Real-time FX rates resolved via CorridorRate governance table. Rate changes require governance vote. Each transfer's FX exposure is tracked per corridor for risk management dashboards.</p>
+      </div>
+
+      <div class="rounded-2xl p-7 reveal reveal-delay-3" style="background: rgba(255,255,255,0.07);">
+        <div class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C9A84C;">Regional Interoperability</div>
+        <p class="text-gray-300 text-sm leading-relaxed">Native integration with PAPSS (Pan-African Payment and Settlement System) and RTGS rails. Enabling instant cross-border clearing while maintaining local sovereign control over each currency.</p>
       </div>
 
     </div>
@@ -191,19 +613,21 @@
 </section>
 
 
-<%# ─── CTA BACK TO HOME ───────────────────────────────────────────────────── %>
-<section class="py-20 px-6 bg-white border-t border-gray-100">
+<%# ─── CTA ────────────────────────────────────────────────────────────────── %>
+<section class="py-24 px-6 bg-white border-t border-gray-100">
   <div class="max-w-xl mx-auto text-center">
-    <h2 class="font-serif-display text-2xl font-bold mb-4" style="color: #0C1B38;">Ready to brief your Governor?</h2>
-    <p class="text-gray-500 mb-8">Schedule a private session with our team and receive the full technical dossier for your jurisdiction.</p>
+    <div class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C9A84C;">Restricted Access</div>
+    <h2 class="font-serif-display text-3xl font-bold mb-4" style="color: #0C1B38;">Ready to brief your Governor?</h2>
+    <p class="text-gray-500 mb-8 leading-relaxed">Schedule a private session with our team and receive the full technical dossier — including API specifications, security assessment, and integration roadmap — for your jurisdiction.</p>
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
       <a href="mailto:governors@bearercore.com?subject=Governor%27s%20Briefing%20Request"
-         class="inline-flex items-center gap-3 px-8 py-4 rounded-full text-base font-semibold transition-all hover:opacity-90"
+         class="btn-gold inline-flex items-center gap-3 px-8 py-4 rounded-full text-base font-semibold"
          style="background: #C9A84C; color: #0C1B38;">
-        Request a Briefing
+        Request a Governor's Briefing
       </a>
       <a href="/" class="text-sm text-gray-400 hover:text-gray-600 transition-colors">← Back to home</a>
     </div>
+    <p class="mt-8 text-xs text-gray-300 tracking-wide uppercase">Classification: Restricted — Central Bank Use Only</p>
   </div>
 </section>
 
@@ -220,17 +644,17 @@
         <span class="hidden sm:block text-gray-200 mx-2">|</span>
         <span class="hidden sm:block text-xs text-gray-400 tracking-wide uppercase">Sovereign Payment Infrastructure</span>
       </div>
-      <div class="flex items-center gap-8 text-sm text-gray-400">
-        <a href="/technical-overview" class="hover:text-gray-700 transition-colors">Technical Overview</a>
-        <a href="/docs"               class="hover:text-gray-700 transition-colors">Docs</a>
+      <div class="flex items-center gap-6 text-sm text-gray-400">
+        <a href="/technical-overview" class="hover:text-gray-700 transition-colors font-medium" style="color: #C9A84C;">Technical Overview</a>
         <a href="/privacy"            class="hover:text-gray-700 transition-colors">Privacy</a>
         <a href="/terms"              class="hover:text-gray-700 transition-colors">Terms</a>
         <a href="/#contact"           class="hover:text-gray-700 transition-colors">Contact</a>
+        <a href="https://towerpointgroup.com" class="hover:text-gray-700 transition-colors">TowerPoint Group</a>
       </div>
     </div>
     <div class="mt-6 pt-6 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-gray-300">
-      <span>&copy; <%= Date.current.year %> bearerCORE. All rights reserved.</span>
-      <span>Qt6 · Ruby on Rails 7.1 · Ed25519 · AES-256-GCM</span>
+      <span>&copy; <%= Date.current.year %> bearerCORE™ · TowerPoint Group. All rights reserved.</span>
+      <span>Qt6 · Ruby on Rails 7.1 · Ed25519 · AES-256-GCM · PAPSS</span>
     </div>
   </div>
 </footer>
