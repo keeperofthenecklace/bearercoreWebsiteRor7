@@ -44,7 +44,19 @@ set :bundle_jobs, 2
 # DEPLOY TASKS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+before 'deploy:assets:precompile', 'deploy:tailwind_build'
+
 namespace :deploy do
+  task :tailwind_build do
+    on roles(:web) do
+      within release_path do
+        with rails_env: fetch(:rails_env) do
+          execute :bundle, 'exec rails tailwindcss:build'
+        end
+      end
+    end
+  end
+
   desc "Ensure bundler is configured correctly"
   task :prepare_bundle do
     on roles(:app) do
