@@ -2,6 +2,8 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   connect() {
+    const elements = this.element.querySelectorAll(".reveal")
+
     this.observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -14,7 +16,8 @@ export default class extends Controller {
       { threshold: 0, rootMargin: "0px 0px -40px 0px" }
     )
 
-    this.element.querySelectorAll(".reveal").forEach((el) => {
+    elements.forEach((el) => {
+      el.classList.add("reveal-ready")
       this.observer.observe(el)
     })
   }

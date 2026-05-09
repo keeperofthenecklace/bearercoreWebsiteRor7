@@ -15,7 +15,9 @@
 }
 
 /* ── Scroll-reveal fade-in ──────────────────────────────────────────────── */
-.reveal {
+/* .reveal is visible by default — JS adds .reveal-ready to hide it,       */
+/* then .is-visible to show it. Content is never invisible without JS.      */
+.reveal.reveal-ready {
   opacity: 0;
   transform: translateY(28px);
   transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
