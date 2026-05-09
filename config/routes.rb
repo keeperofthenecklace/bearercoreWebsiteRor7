@@ -2,7 +2,9 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   root "pages#home"
-  get "technical-overview", to: "pages#technical_overview"
+  get  "technical-overview", to: "pages#technical_overview"
+
+  resources :briefing_requests, only: [:create]
 
   get "docs",                       to: "docs#index"
   get "docs/corridor-ops",          to: "docs#corridor_ops"

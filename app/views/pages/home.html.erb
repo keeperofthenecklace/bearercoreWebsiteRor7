@@ -1,3 +1,138 @@
+<%# ─── MODAL SCOPE — wraps page so all CTA buttons can trigger modal#open ─── %>
+<div data-controller="modal">
+
+<%# ══════════════════════════════════════════════════════════════════════════ %>
+<%# MODAL OVERLAY                                                              %>
+<%# ══════════════════════════════════════════════════════════════════════════ %>
+<div class="fixed inset-0 z-[200] hidden flex items-center justify-center p-4"
+     style="background: rgba(12,27,56,0.6); backdrop-filter: blur(4px);"
+     data-modal-target="overlay"
+     data-action="click->modal#closeOnBackdrop">
+
+  <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+       style="box-shadow: 0 24px 80px rgba(12,27,56,0.22);">
+
+    <%# Header %>
+    <div class="px-8 pt-8 pb-6 border-b border-gray-100">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: #C9A84C;">Restricted Access</div>
+          <h2 class="text-xl font-bold" style="color: #0C1B38; letter-spacing: -0.01em;">
+            Request a Sovereign Briefing
+          </h2>
+        </div>
+        <button class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                data-action="modal#close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <%# ── FORM STATE ─────────────────────────────────────────────────────── %>
+    <div data-modal-target="formState">
+      <%= form_with url: briefing_requests_path, method: :post,
+                    data: { action: "submit->modal#submit" },
+                    class: "px-8 py-6" do |f| %>
+
+        <div class="space-y-4">
+
+          <div>
+            <%= f.label :name, "Full Name", class: "block text-xs font-semibold uppercase tracking-widest mb-1.5", style: "color: #0C1B38;" %>
+            <%= f.text_field :name,
+                  placeholder: "H.E. John Mensah",
+                  required: true,
+                  class: "w-full px-4 py-3 text-sm border rounded-xl outline-none transition-all",
+                  style: "border-color: #E5E7EB; color: #0C1B38;",
+                  onfocus: "this.style.borderColor='#C9A84C'; this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.12)'",
+                  onblur:  "this.style.borderColor='#E5E7EB'; this.style.boxShadow='none'" %>
+          </div>
+
+          <div>
+            <%= f.label :title, "Official Title", class: "block text-xs font-semibold uppercase tracking-widest mb-1.5", style: "color: #0C1B38;" %>
+            <%= f.text_field :title,
+                  placeholder: "Governor, Central Bank of Ghana",
+                  required: true,
+                  class: "w-full px-4 py-3 text-sm border rounded-xl outline-none transition-all",
+                  style: "border-color: #E5E7EB; color: #0C1B38;",
+                  onfocus: "this.style.borderColor='#C9A84C'; this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.12)'",
+                  onblur:  "this.style.borderColor='#E5E7EB'; this.style.boxShadow='none'" %>
+          </div>
+
+          <div>
+            <%= f.label :institution, "Central Bank / Institution", class: "block text-xs font-semibold uppercase tracking-widest mb-1.5", style: "color: #0C1B38;" %>
+            <%= f.text_field :institution,
+                  placeholder: "Bank of Ghana",
+                  required: true,
+                  class: "w-full px-4 py-3 text-sm border rounded-xl outline-none transition-all",
+                  style: "border-color: #E5E7EB; color: #0C1B38;",
+                  onfocus: "this.style.borderColor='#C9A84C'; this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.12)'",
+                  onblur:  "this.style.borderColor='#E5E7EB'; this.style.boxShadow='none'" %>
+          </div>
+
+          <div>
+            <%= f.label :email, "Work Email", class: "block text-xs font-semibold uppercase tracking-widest mb-1.5", style: "color: #0C1B38;" %>
+            <%= f.email_field :email,
+                  placeholder: "governor@centralbank.gov",
+                  required: true,
+                  class: "w-full px-4 py-3 text-sm border rounded-xl outline-none transition-all",
+                  style: "border-color: #E5E7EB; color: #0C1B38;",
+                  onfocus: "this.style.borderColor='#C9A84C'; this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.12)'",
+                  onblur:  "this.style.borderColor='#E5E7EB'; this.style.boxShadow='none'" %>
+          </div>
+
+        </div>
+
+        <%# Error message %>
+        <p class="hidden mt-3 text-sm text-red-600" data-modal-target="errorMsg"></p>
+
+        <button type="submit"
+                class="w-full mt-6 py-3.5 rounded-xl text-sm font-semibold transition-all"
+                style="background: #C9A84C; color: #0C1B38;"
+                data-modal-target="submitBtn">
+          Submit Briefing Request
+        </button>
+
+      <% end %>
+
+      <%# Footer %>
+      <div class="px-8 pb-6 pt-0">
+        <p class="text-xs text-center text-gray-400 leading-relaxed">
+          Processed through a secure, encrypted channel.
+          No third-party trackers. No marketing communications.
+        </p>
+      </div>
+    </div>
+
+    <%# ── SUCCESS STATE (hidden until form submitted) ─────────────────────── %>
+    <div class="hidden px-8 py-12 text-center" data-modal-target="successState">
+      <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-6"
+           style="background: rgba(201,168,76,0.12);">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <h3 class="text-lg font-bold mb-3" style="color: #0C1B38;">Request Received</h3>
+      <p class="text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">
+        Your request for a Sovereign Briefing has been received. Our protocol team will
+        reach out shortly to coordinate a secure session.
+      </p>
+      <p class="text-xs text-gray-400 mt-4">
+        A confirmation has been sent to your work email.
+      </p>
+      <button class="mt-8 text-sm font-medium transition-colors hover:opacity-70"
+              style="color: #C9A84C;"
+              data-action="modal#close">
+        Close
+      </button>
+    </div>
+
+  </div>
+</div>
+<%# /MODAL %>
+
+
 <%# ─── NAV ─────────────────────────────────────────────────────────────────── %>
 <nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
      data-controller="nav">
@@ -11,11 +146,11 @@
     <div class="hidden md:flex items-center gap-8">
       <a href="/technical-overview" class="text-sm font-medium hover:opacity-70 transition-colors" style="color: #0C1B38;">Technical Overview</a>
       <a href="/technical-overview" class="text-sm font-medium hover:opacity-70 transition-colors" style="color: #0C1B38;">Central Bank Access</a>
-      <a href="mailto:governors@bearercore.com?subject=Briefing%20Request"
-         class="btn-gold text-sm font-semibold px-5 py-2 rounded-full"
-         style="background: #C9A84C; color: #0C1B38;">
+      <button class="btn-gold text-sm font-semibold px-5 py-2 rounded-full"
+              style="background: #C9A84C; color: #0C1B38;"
+              data-action="modal#open">
         Request a Briefing
-      </a>
+      </button>
     </div>
     <button class="md:hidden p-1" style="color: #0C1B38;"
             data-action="nav#toggle">
@@ -25,18 +160,16 @@
     </button>
   </div>
 
-  <%# Mobile menu — hidden until burger is tapped. Outer div uses only 'hidden' (no flex) %>
-  <%# so classList.toggle('hidden') cleanly shows/hides without Tailwind class conflicts %>
   <div class="hidden border-t border-gray-100 bg-white"
        data-nav-target="menu">
     <div class="flex flex-col px-6 py-3 gap-1">
       <a href="/technical-overview" class="text-sm font-medium py-2 border-b border-gray-50" style="color: #0C1B38;">Technical Overview</a>
       <a href="/technical-overview" class="text-sm font-medium py-2 border-b border-gray-50" style="color: #0C1B38;">Central Bank Access</a>
-      <a href="mailto:governors@bearercore.com?subject=Briefing%20Request"
-         class="btn-gold text-sm font-semibold px-5 py-3 rounded-full text-center mt-2"
-         style="background: #C9A84C; color: #0C1B38;">
+      <button class="btn-gold text-sm font-semibold px-5 py-3 rounded-full text-center mt-2"
+              style="background: #C9A84C; color: #0C1B38;"
+              data-action="modal#open">
         Request a Briefing
-      </a>
+      </button>
     </div>
   </div>
 </nav>
@@ -46,7 +179,6 @@
 <section class="relative flex flex-col items-center text-center overflow-hidden bg-white"
          style="padding-top: 160px; padding-bottom: 100px;">
 
-  <%# Guilloché SVG background — fine displaced-line security texture %>
   <svg class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
     <defs>
       <filter id="guilloche-warp" x="-5%" y="-5%" width="110%" height="110%">
@@ -60,14 +192,12 @@
     <rect width="100%" height="100%" fill="url(#guilloche-lines)" filter="url(#guilloche-warp)" opacity="0.035"/>
   </svg>
 
-  <%# Radial gold glow behind logo %>
   <div class="absolute pointer-events-none"
        style="width: 560px; height: 360px; top: 60px; left: 50%; transform: translateX(-50%);
               background: radial-gradient(ellipse at center, rgba(201,168,76,0.10) 0%, transparent 72%);"></div>
 
   <div class="relative z-10 px-6 max-w-3xl mx-auto">
 
-    <%# Logo with spinning dashed halo %>
     <div class="flex justify-center mb-10">
       <div class="relative w-[230px] h-[230px]">
         <svg class="absolute -inset-4 w-[262px] h-[262px]" viewBox="0 0 262 262" fill="none"
@@ -87,14 +217,12 @@
       </div>
     </div>
 
-    <%# Eyebrow %>
     <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-7 border"
          style="border-color: rgba(201,168,76,0.35); background: rgba(201,168,76,0.05);">
       <span class="w-1.5 h-1.5 rounded-full" style="background: #C9A84C;"></span>
       <span class="text-xs font-semibold tracking-widest uppercase" style="color: #C9A84C;">Central Bank Digital Currency Platform</span>
     </div>
 
-    <%# Headline — Playfair Display serif %>
     <h1 class="font-bold mb-10"
         style="color: #0C1B38;
                font-size: clamp(1.75rem, 6vw, 2.6rem);
@@ -104,16 +232,15 @@
       Sovereign Payment Infrastructure
     </h1>
 
-    <%# CTAs %>
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-      <a href="#contact"
-         class="btn-gold inline-flex items-center gap-3 px-8 py-4 rounded-full text-base font-semibold"
-         style="background: #C9A84C; color: #0C1B38; box-shadow: 0 4px 20px rgba(201,168,76,0.28);">
+      <button class="btn-gold inline-flex items-center gap-3 px-8 py-4 rounded-full text-base font-semibold"
+              style="background: #C9A84C; color: #0C1B38; box-shadow: 0 4px 20px rgba(201,168,76,0.28);"
+              data-action="modal#open">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
         </svg>
         Schedule a Governor's Briefing
-      </a>
+      </button>
       <a href="/technical-overview"
          class="inline-flex items-center gap-2 px-7 py-4 rounded-full text-base font-medium border-2 transition-all hover:bg-gray-50"
          style="border-color: #0C1B38; color: #0C1B38;">
@@ -135,7 +262,6 @@
 </style>
 
 
-
 <%# ─── CBDC FLOW DIAGRAM — pure inline SVG, razor-sharp at any zoom ────────── %>
 <section class="py-12 md:py-16 px-6 bg-white border-t border-gray-100">
   <div style="max-width: 460px; margin: 0 auto;">
@@ -150,8 +276,6 @@
           <feDropShadow dx="0" dy="2" stdDeviation="4"
                         flood-color="#0C1B38" flood-opacity="0.055"/>
         </filter>
-
-        <%# ── Reusable icon symbols (24×24 heroicon viewBox) ── %>
         <symbol id="ico-bank" viewBox="0 0 24 24">
           <path fill="none" stroke-linecap="round" stroke-linejoin="round"
                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -166,28 +290,22 @@
         </symbol>
       </defs>
 
-
-      <%# ══ NODE 1 · CENTRAL BANK ════════════════════════════════════════ %>
       <rect x="10" y="10" width="420" height="78" rx="16"
             fill="rgba(201,168,76,0.04)" stroke="#C9A84C" stroke-width="2"/>
       <circle cx="52" cy="49" r="20" fill="#C9A84C"/>
       <use href="#ico-bank" x="38" y="35" width="28" height="28"
            stroke="#0C1B38" stroke-width="1.8"/>
-
       <text x="84" y="43"
             font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
             font-size="14" font-weight="700" fill="#0C1B38">Central Bank</text>
       <text x="84" y="61"
             font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
             font-size="12" fill="#9CA3AF">Issues and authenticates sovereign CBDC notes</text>
-
       <rect x="356" y="37" width="62" height="22" rx="11" fill="rgba(201,168,76,0.15)"/>
       <text x="387" y="52"
             font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
             font-size="10" font-weight="700" fill="#C9A84C" text-anchor="middle" letter-spacing="0.8">ISSUER</text>
 
-
-      <%# ── CONNECTOR 1 ─────────────────────────────────────────────────── %>
       <line x1="220" y1="89" x2="220" y2="148" stroke="#F3F4F6" stroke-width="2"/>
       <line x1="220" y1="89" x2="220" y2="148" stroke="#C9A84C" stroke-width="1.5"
             class="flow-line-animated" opacity="0.7"/>
@@ -195,29 +313,23 @@
             font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
             font-size="11" fill="#9CA3AF" letter-spacing="0.4">CBDC Delivery</text>
 
-
-      <%# ══ NODE 2 · COMMERCIAL BANK ════════════════════════════════════ %>
       <rect x="10" y="152" width="420" height="78" rx="16"
             fill="white" stroke="#E5E7EB" stroke-width="1.5"
             filter="url(#f-card-shadow)"/>
       <circle cx="52" cy="191" r="20" fill="#0C1B38"/>
       <use href="#ico-card" x="38" y="177" width="28" height="28"
            stroke="white" stroke-width="1.8"/>
-
       <text x="84" y="185"
             font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
             font-size="14" font-weight="700" fill="#0C1B38">Commercial Bank</text>
       <text x="84" y="203"
             font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
             font-size="12" fill="#9CA3AF">Validates &amp; distributes to holders</text>
-
       <rect x="324" y="179" width="98" height="22" rx="11" fill="rgba(12,27,56,0.07)"/>
       <text x="373" y="194"
             font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
             font-size="10" font-weight="700" fill="#0C1B38" text-anchor="middle" letter-spacing="0.8">DISTRIBUTOR</text>
 
-
-      <%# ── CONNECTOR 2 ─────────────────────────────────────────────────── %>
       <line x1="220" y1="231" x2="220" y2="290" stroke="#F3F4F6" stroke-width="2"/>
       <line x1="220" y1="231" x2="220" y2="290" stroke="#C9A84C" stroke-width="1.5"
             class="flow-line-animated" style="animation-delay:0.45s;" opacity="0.7"/>
@@ -225,22 +337,18 @@
             font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
             font-size="11" fill="#9CA3AF" letter-spacing="0.4">Instant Transfer</text>
 
-
-      <%# ══ NODE 3 · END USER ═══════════════════════════════════════════ %>
       <rect x="10" y="294" width="420" height="78" rx="16"
             fill="white" stroke="#E5E7EB" stroke-width="1.5"
             filter="url(#f-card-shadow)"/>
       <circle cx="52" cy="333" r="20" fill="#F3F4F6"/>
       <use href="#ico-person" x="38" y="319" width="28" height="28"
            stroke="#6B7280" stroke-width="1.8"/>
-
       <text x="84" y="327"
             font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
             font-size="14" font-weight="700" fill="#0C1B38">End User</text>
       <text x="84" y="345"
             font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
             font-size="12" fill="#9CA3AF">No bank account required</text>
-
       <rect x="368" y="321" width="54" height="22" rx="11" fill="#F3F4F6"/>
       <text x="395" y="336"
             font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
@@ -255,16 +363,15 @@
 <div class="py-10 px-6 bg-white border-t border-gray-100 text-center" data-controller="fade-in">
   <p class="reveal text-sm text-gray-400">
     Technical implementation, SDK &amp; API access available upon institutional review. &nbsp;
-    <a href="mailto:governors@bearercore.com?subject=Technical%20Access%20Request"
-       class="font-medium hover:underline transition-colors"
-       style="color: #C9A84C;">
+    <button class="font-medium hover:underline transition-colors"
+            style="color: #C9A84C;"
+            data-action="modal#open">
       Request whitepaper &rarr;
-    </a>
+    </button>
   </p>
 </div>
 
 
-<%# ─── GOVERNOR'S BRIEFING CTA ────────────────────────────────────────────── %>
 <%# ─── FOOTER ─────────────────────────────────────────────────────────────── %>
 <footer class="border-t border-gray-100 bg-white py-10 px-6">
   <div class="max-w-6xl mx-auto">
@@ -290,3 +397,5 @@
     </div>
   </div>
 </footer>
+
+</div><%# /modal controller scope %>
