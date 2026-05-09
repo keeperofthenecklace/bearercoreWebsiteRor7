@@ -51,21 +51,21 @@
 
     <%# Logo with spinning dashed halo %>
     <div class="flex justify-center mb-10">
-      <div class="relative w-28 h-28">
-        <svg class="absolute -inset-4 w-36 h-36" viewBox="0 0 144 144" fill="none"
+      <div class="relative w-36 h-36">
+        <svg class="absolute -inset-4 w-44 h-44" viewBox="0 0 176 176" fill="none"
              style="animation: spin 40s linear infinite;">
-          <circle cx="72" cy="72" r="68" stroke="#C9A84C" stroke-width="1"
+          <circle cx="88" cy="88" r="84" stroke="#C9A84C" stroke-width="1"
                   stroke-dasharray="6 5" opacity="0.30"/>
         </svg>
-        <svg class="absolute -inset-8 w-44 h-44" viewBox="0 0 176 176" fill="none"
+        <svg class="absolute -inset-8 w-52 h-52" viewBox="0 0 208 208" fill="none"
              style="animation: spin 90s linear infinite reverse;">
-          <circle cx="88" cy="88" r="82" stroke="#C9A84C" stroke-width="0.6"
+          <circle cx="104" cy="104" r="100" stroke="#C9A84C" stroke-width="0.6"
                   stroke-dasharray="3 8" opacity="0.15"/>
         </svg>
         <%= image_tag "bearercore_logo.png",
               alt: "bearerCORE",
-              class: "relative w-28 h-28 rounded-full z-10",
-              style: "box-shadow: 0 10px 48px rgba(12,27,56,0.17);" %>
+              class: "relative w-36 h-36 rounded-full z-10",
+              style: "box-shadow: 0 12px 56px rgba(12,27,56,0.18);" %>
       </div>
     </div>
 
@@ -124,38 +124,9 @@
       <h2 class="font-serif-display text-4xl md:text-5xl font-bold leading-tight mb-6" style="color: #0C1B38;">
         Cash principles.<br>Digital speed.
       </h2>
-      <p class="text-lg text-gray-500 leading-relaxed mb-8">
-        Over 60% of Africans remain outside the traditional banking system. bearerCORE extends the reach of Central Bank money using the same trust model as physical currency — no account required, no smartphone required.
+      <p class="text-lg text-gray-500 leading-relaxed">
+        bearerCORE extends the reach of Central Bank money to the unbanked through a secure, smartphone-based CBDC Note system. By utilizing the trust model of physical currency, we enable sovereign peer-to-peer transfers that remain resilient in offline environments and accessible to everyone, while ensuring the issuing Central Bank maintains full auditability and oversight.
       </p>
-      <ul class="space-y-4">
-        <li class="flex items-start gap-3">
-          <span class="mt-1 w-5 h-5 flex-shrink-0 rounded-full flex items-center justify-center"
-                style="background: rgba(201,168,76,0.15);">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-          </span>
-          <span class="text-gray-600">Peer-to-peer transfers without correspondent banks or SWIFT</span>
-        </li>
-        <li class="flex items-start gap-3">
-          <span class="mt-1 w-5 h-5 flex-shrink-0 rounded-full flex items-center justify-center"
-                style="background: rgba(201,168,76,0.15);">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-          </span>
-          <span class="text-gray-600">Offline-capable for low-connectivity rural communities</span>
-        </li>
-        <li class="flex items-start gap-3">
-          <span class="mt-1 w-5 h-5 flex-shrink-0 rounded-full flex items-center justify-center"
-                style="background: rgba(201,168,76,0.15);">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" style="color: #C9A84C;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-          </span>
-          <span class="text-gray-600">Fully auditable by the issuing Central Bank at all times</span>
-        </li>
-      </ul>
     </div>
 
     <%# Right: animated CBDC flow diagram %>
@@ -173,7 +144,7 @@
           </div>
           <div>
             <div class="font-bold text-sm" style="color: #0C1B38;">Central Bank</div>
-            <div class="text-xs text-gray-400">Mints &amp; signs CVIB banknotes</div>
+            <div class="text-xs text-gray-400">Issues and authenticates sovereign CBDC Notes</div>
           </div>
           <span class="ml-auto text-xs font-semibold px-2 py-1 rounded-full"
                 style="background: rgba(201,168,76,0.15); color: #C9A84C;">ISSUER</span>
@@ -189,7 +160,7 @@
           <div class="absolute flex flex-col items-center gap-1">
             <div class="w-2 h-2 rounded-full flow-dot" style="background: #C9A84C;"></div>
           </div>
-          <div class="absolute bottom-1 text-xs text-gray-400 font-medium tracking-wide">CVIB Delivery</div>
+          <div class="absolute bottom-1 text-xs text-gray-400 font-medium tracking-wide">CBDC Delivery</div>
         </div>
 
         <%# Commercial Bank node %>
