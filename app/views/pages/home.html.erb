@@ -51,21 +51,21 @@
 
     <%# Logo with spinning dashed halo %>
     <div class="flex justify-center mb-10">
-      <div class="relative w-36 h-36">
-        <svg class="absolute -inset-4 w-44 h-44" viewBox="0 0 176 176" fill="none"
+      <div class="relative w-48 h-48">
+        <svg class="absolute -inset-4 w-56 h-56" viewBox="0 0 224 224" fill="none"
              style="animation: spin 40s linear infinite;">
-          <circle cx="88" cy="88" r="84" stroke="#C9A84C" stroke-width="1"
+          <circle cx="112" cy="112" r="108" stroke="#C9A84C" stroke-width="1"
                   stroke-dasharray="6 5" opacity="0.30"/>
         </svg>
-        <svg class="absolute -inset-8 w-52 h-52" viewBox="0 0 208 208" fill="none"
+        <svg class="absolute -inset-8 w-64 h-64" viewBox="0 0 256 256" fill="none"
              style="animation: spin 90s linear infinite reverse;">
-          <circle cx="104" cy="104" r="100" stroke="#C9A84C" stroke-width="0.6"
+          <circle cx="128" cy="128" r="124" stroke="#C9A84C" stroke-width="0.6"
                   stroke-dasharray="3 8" opacity="0.15"/>
         </svg>
         <%= image_tag "bearercore_logo.png",
               alt: "bearerCORE",
-              class: "relative w-36 h-36 rounded-full z-10",
-              style: "box-shadow: 0 12px 56px rgba(12,27,56,0.18);" %>
+              class: "relative w-48 h-48 rounded-full z-10",
+              style: "box-shadow: 0 14px 64px rgba(12,27,56,0.18);" %>
       </div>
     </div>
 
@@ -77,9 +77,14 @@
     </div>
 
     <%# Headline — Playfair Display serif %>
-    <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-10"
-        style="color: #0C1B38; letter-spacing: -0.01em; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-      Sovereign Payment<br>Infrastructure
+    <h1 class="font-bold mb-10"
+        style="color: #0C1B38;
+               font-size: clamp(1.6rem, 4vw, 2.6rem);
+               letter-spacing: 0.02em;
+               white-space: nowrap;
+               line-height: 1.15;
+               font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+      Sovereign Payment Infrastructure
     </h1>
 
     <%# CTAs %>

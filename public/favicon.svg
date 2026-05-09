@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Navy background circle -->
+  <circle cx="32" cy="32" r="32" fill="#0C1B38"/>
+  <!-- Gold shield -->
+  <path d="M32 10 L48 17 L48 34 Q48 46 32 54 Q16 46 16 34 L16 17 Z"
+        fill="none" stroke="#C9A84C" stroke-width="2.5"/>
+  <!-- bC monogram -->
+  <text x="32" y="38"
+        font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', Helvetica, Arial, sans-serif"
+        font-size="18"
+        font-weight="700"
+        fill="#C9A84C"
+        text-anchor="middle"
+        letter-spacing="-1">bC</text>
+</svg>
