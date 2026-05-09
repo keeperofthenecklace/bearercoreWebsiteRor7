@@ -136,78 +136,117 @@
 
 
 
-<%# ─── CBDC FLOW DIAGRAM ──────────────────────────────────────────────────── %>
+<%# ─── CBDC FLOW DIAGRAM — pure inline SVG, razor-sharp at any zoom ────────── %>
 <section class="py-12 md:py-16 px-6 bg-white border-t border-gray-100">
-  <div class="max-w-sm mx-auto">
+  <div style="max-width: 460px; margin: 0 auto;">
 
-    <%# Central Bank node %>
-    <div class="flex items-center gap-4 p-5 rounded-2xl border-2"
-         style="border-color: #C9A84C; background: rgba(201,168,76,0.04);">
-      <div class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
-           style="background: #C9A84C;">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #0C1B38;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-        </svg>
-      </div>
-      <div>
-        <div class="font-bold text-sm" style="color: #0C1B38;">Central Bank</div>
-        <div class="text-xs text-gray-400">Issues and authenticates sovereign CBDC Notes</div>
-      </div>
-      <span class="ml-auto text-xs font-semibold px-2 py-1 rounded-full"
-            style="background: rgba(201,168,76,0.15); color: #C9A84C;">ISSUER</span>
-    </div>
+    <svg viewBox="0 0 440 382" xmlns="http://www.w3.org/2000/svg"
+         style="width: 100%; height: auto; display: block; overflow: visible;"
+         role="img"
+         aria-label="bearerCORE CBDC flow: Central Bank issues notes, Commercial Bank validates and distributes, End User receives as bearer instrument">
 
-    <%# Connector 1 %>
-    <div class="flex items-center justify-center relative" style="height: 64px;">
-      <svg width="2" height="64" viewBox="0 0 2 64" class="absolute">
-        <line x1="1" y1="0" x2="1" y2="64" stroke="#E5E7EB" stroke-width="2"/>
-        <line x1="1" y1="0" x2="1" y2="64" stroke="#C9A84C" stroke-width="1.5"
-              class="flow-line-animated" opacity="0.6"/>
-      </svg>
-      <div class="absolute bottom-1 text-xs text-gray-400 font-medium tracking-wide">CBDC Delivery</div>
-    </div>
+      <defs>
+        <filter id="f-card-shadow" x="-4%" y="-8%" width="108%" height="128%">
+          <feDropShadow dx="0" dy="2" stdDeviation="4"
+                        flood-color="#0C1B38" flood-opacity="0.055"/>
+        </filter>
 
-    <%# Commercial Bank node %>
-    <div class="flex items-center gap-4 p-5 rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <div class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
-           style="background: #0C1B38;">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-        </svg>
-      </div>
-      <div>
-        <div class="font-bold text-sm" style="color: #0C1B38;">Commercial Bank</div>
-        <div class="text-xs text-gray-400">Validates &amp; distributes to holders</div>
-      </div>
-      <span class="ml-auto text-xs font-semibold px-2 py-1 rounded-full"
-            style="background: rgba(12,27,56,0.08); color: #0C1B38;">DISTRIBUTOR</span>
-    </div>
+        <%# ── Reusable icon symbols (24×24 heroicon viewBox) ── %>
+        <symbol id="ico-bank" viewBox="0 0 24 24">
+          <path fill="none" stroke-linecap="round" stroke-linejoin="round"
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+        </symbol>
+        <symbol id="ico-card" viewBox="0 0 24 24">
+          <path fill="none" stroke-linecap="round" stroke-linejoin="round"
+                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+        </symbol>
+        <symbol id="ico-person" viewBox="0 0 24 24">
+          <path fill="none" stroke-linecap="round" stroke-linejoin="round"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </symbol>
+      </defs>
 
-    <%# Connector 2 %>
-    <div class="flex items-center justify-center relative" style="height: 64px;">
-      <svg width="2" height="64" viewBox="0 0 2 64" class="absolute">
-        <line x1="1" y1="0" x2="1" y2="64" stroke="#E5E7EB" stroke-width="2"/>
-        <line x1="1" y1="0" x2="1" y2="64" stroke="#C9A84C" stroke-width="1.5"
-              class="flow-line-animated" opacity="0.6" style="animation-delay: 0.45s;"/>
-      </svg>
-      <div class="absolute bottom-1 text-xs text-gray-400 font-medium tracking-wide">Instant Transfer</div>
-    </div>
 
-    <%# End User node %>
-    <div class="flex items-center gap-4 p-5 rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <div class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-100">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-        </svg>
-      </div>
-      <div>
-        <div class="font-bold text-sm" style="color: #0C1B38;">End User</div>
-        <div class="text-xs text-gray-400">No bank account required</div>
-      </div>
-      <span class="ml-auto text-xs font-semibold px-2 py-1 rounded-full"
-            style="background: #F3F4F6; color: #6B7280;">BEARER</span>
-    </div>
+      <%# ══ NODE 1 · CENTRAL BANK ════════════════════════════════════════ %>
+      <rect x="10" y="10" width="420" height="78" rx="16"
+            fill="rgba(201,168,76,0.04)" stroke="#C9A84C" stroke-width="2"/>
+      <circle cx="52" cy="49" r="20" fill="#C9A84C"/>
+      <use href="#ico-bank" x="38" y="35" width="28" height="28"
+           stroke="#0C1B38" stroke-width="1.8"/>
 
+      <text x="84" y="43"
+            font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+            font-size="14" font-weight="700" fill="#0C1B38">Central Bank</text>
+      <text x="84" y="61"
+            font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+            font-size="12" fill="#9CA3AF">Issues and authenticates sovereign CBDC notes</text>
+
+      <rect x="356" y="37" width="62" height="22" rx="11" fill="rgba(201,168,76,0.15)"/>
+      <text x="387" y="52"
+            font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+            font-size="10" font-weight="700" fill="#C9A84C" text-anchor="middle" letter-spacing="0.8">ISSUER</text>
+
+
+      <%# ── CONNECTOR 1 ─────────────────────────────────────────────────── %>
+      <line x1="220" y1="89" x2="220" y2="148" stroke="#F3F4F6" stroke-width="2"/>
+      <line x1="220" y1="89" x2="220" y2="148" stroke="#C9A84C" stroke-width="1.5"
+            class="flow-line-animated" opacity="0.7"/>
+      <text x="232" y="124"
+            font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+            font-size="11" fill="#9CA3AF" letter-spacing="0.4">CBDC Delivery</text>
+
+
+      <%# ══ NODE 2 · COMMERCIAL BANK ════════════════════════════════════ %>
+      <rect x="10" y="152" width="420" height="78" rx="16"
+            fill="white" stroke="#E5E7EB" stroke-width="1.5"
+            filter="url(#f-card-shadow)"/>
+      <circle cx="52" cy="191" r="20" fill="#0C1B38"/>
+      <use href="#ico-card" x="38" y="177" width="28" height="28"
+           stroke="white" stroke-width="1.8"/>
+
+      <text x="84" y="185"
+            font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+            font-size="14" font-weight="700" fill="#0C1B38">Commercial Bank</text>
+      <text x="84" y="203"
+            font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+            font-size="12" fill="#9CA3AF">Validates &amp; distributes to holders</text>
+
+      <rect x="324" y="179" width="98" height="22" rx="11" fill="rgba(12,27,56,0.07)"/>
+      <text x="373" y="194"
+            font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+            font-size="10" font-weight="700" fill="#0C1B38" text-anchor="middle" letter-spacing="0.8">DISTRIBUTOR</text>
+
+
+      <%# ── CONNECTOR 2 ─────────────────────────────────────────────────── %>
+      <line x1="220" y1="231" x2="220" y2="290" stroke="#F3F4F6" stroke-width="2"/>
+      <line x1="220" y1="231" x2="220" y2="290" stroke="#C9A84C" stroke-width="1.5"
+            class="flow-line-animated" style="animation-delay:0.45s;" opacity="0.7"/>
+      <text x="232" y="266"
+            font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+            font-size="11" fill="#9CA3AF" letter-spacing="0.4">Instant Transfer</text>
+
+
+      <%# ══ NODE 3 · END USER ═══════════════════════════════════════════ %>
+      <rect x="10" y="294" width="420" height="78" rx="16"
+            fill="white" stroke="#E5E7EB" stroke-width="1.5"
+            filter="url(#f-card-shadow)"/>
+      <circle cx="52" cy="333" r="20" fill="#F3F4F6"/>
+      <use href="#ico-person" x="38" y="319" width="28" height="28"
+           stroke="#6B7280" stroke-width="1.8"/>
+
+      <text x="84" y="327"
+            font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+            font-size="14" font-weight="700" fill="#0C1B38">End User</text>
+      <text x="84" y="345"
+            font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+            font-size="12" fill="#9CA3AF">No bank account required</text>
+
+      <rect x="368" y="321" width="54" height="22" rx="11" fill="#F3F4F6"/>
+      <text x="395" y="336"
+            font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+            font-size="10" font-weight="700" fill="#6B7280" text-anchor="middle" letter-spacing="0.8">BEARER</text>
+
+    </svg>
   </div>
 </section>
 
