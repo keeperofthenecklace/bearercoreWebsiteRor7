@@ -1,0 +1,847 @@
+<%# app/views/documents_portal/governance.html.erb
+    Governance — Policy, Approvals & Oversight
+    System Design & UI Behavior Specification v2.0 %>
+
+<%= render 'docs/doc_styles' %>
+
+<style>
+/* ── Governance-specific extensions ── */
+.dp-quorum-bar {
+  height: 10px;
+  border-radius: 5px;
+  background: #eceff1;
+  overflow: hidden;
+  margin: 6px 0 4px;
+  border: 1px solid #cfd8dc;
+}
+.dp-quorum-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.4s ease;
+}
+.dp-quorum-fill.amber { background: linear-gradient(90deg, #e65100, #ffb74d); }
+.dp-quorum-fill.green { background: linear-gradient(90deg, #1b5e20, #4caf50); }
+.dp-quorum-fill.red   { background: linear-gradient(90deg, #b71c1c, #ef5350); }
+
+.dp-seat-grid {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+.dp-seat {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  letter-spacing: 0.05em;
+}
+.dp-seat.pending  { background: #e8e8e8; color: #777; border-color: #ccc; }
+.dp-seat.approved { background: #1b5e20; color: white; border-color: #1b5e20; }
+.dp-seat.rejected { background: #b71c1c; color: white; border-color: #b71c1c; }
+
+.dp-context-menu {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 0;
+  font-size: 12px;
+  min-width: 220px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  display: inline-block;
+  margin: 8px 0;
+}
+.dp-context-item {
+  padding: 6px 16px;
+  color: var(--text);
+  cursor: default;
+}
+.dp-context-item:hover { background: #f0f4f8; }
+.dp-context-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 3px 0;
+}
+.dp-context-item.danger { color: var(--red); }
+
+.dp-json-block {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 14px 18px;
+  border-radius: 6px;
+  margin: 10px 0 14px;
+  line-height: 1.7;
+  overflow-x: auto;
+}
+.dp-json-block .jk { color: #9cdcfe; }
+.dp-json-block .jv { color: #ce9178; }
+.dp-json-block .jn { color: #b5cea8; }
+.dp-json-block .jb { color: #569cd6; }
+
+.dp-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dp-badge.teal   { background: #e0f7fa; color: #006064; border: 1px solid #80deea; }
+.dp-badge.navy   { background: #e8eaf6; color: #1a237e; border: 1px solid #9fa8da; }
+.dp-badge.amber  { background: #fff8e1; color: #e65100; border: 1px solid #ffe082; }
+.dp-badge.green  { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+.dp-badge.red    { background: #fce4ec; color: #b71c1c; border: 1px solid #ef9a9a; }
+.dp-badge.gold   { background: #fef9e7; color: #7d6608; border: 1px solid #f9e79f; }
+
+.dp-delta-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  background: #f8f9fc;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 6px 0;
+  font-size: 12px;
+}
+.dp-delta-row .cur { color: var(--text-muted); }
+.dp-delta-row .arr { color: var(--amber); font-size: 14px; }
+.dp-delta-row .nxt { color: var(--navy); font-weight: 700; }
+.dp-delta-row .chg { color: var(--amber); font-weight: 700; font-size: 11px; }
+
+.dp-lock-banner {
+  background: #b71c1c;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+  letter-spacing: 0.03em;
+}
+</style>
+
+<div class="dp-wrap">
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">Governance — Policy, Approvals &amp; Oversight</span>
+    <span class="dp-topbar-tag" style="color:#00897b;border-color:rgba(0,137,123,0.35);">v2.0 — Current</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:720px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · System Design &amp; UI Behavior Specification</div>
+      <h1>Governance — Policy, Approvals &amp; Oversight</h1>
+      <p class="dp-cover-desc">
+        Complete backend and frontend specification for the Governance tab. Enforces the
+        Four-Eyes Principle, 67% multi-sig board quorum, DLT policy anchoring, and an
+        Immutable Seal for all monetary constitution changes. Covers all pane-by-pane
+        behaviors, data models, user flows, and API contracts.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>2.0</b></div>
+        <div>Updated <b>April 2026</b></div>
+        <div>Status <b>Current</b></div>
+        <div>Principal Role <b>CBDC Infrastructure Engineer</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-secnav">
+    <a href="#overview">§1 Overview</a>
+    <a href="#data-models">§2 Data Models</a>
+    <a href="#pane-logic">§3 Pane Logic</a>
+    <a href="#ui-behavior">§4 UI Behavior</a>
+    <a href="#user-flow">§5 User Flow</a>
+    <a href="#validation">§6 Validation</a>
+    <a href="#api">§7 API Reference</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <%# ── §1 Overview ─────────────────────────────────────────────────────── %>
+    <div class="dp-section" id="overview">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§1</div>
+        <h2>System Overview</h2>
+      </div>
+
+      <div class="dp-callout dp-danger">
+        <span class="dp-ci">⛔</span>
+        <div>
+          <strong>Core Mandate:</strong> No single operator may unilaterally execute any action
+          that affects the monetary supply, exchange rate corridors, or systemic risk limits.
+          All such actions require a multi-sig board quorum of ≥ 67%, enforced server-side.
+          Self-approval returns <code>HTTP 403 Forbidden</code> at the API boundary.
+        </div>
+      </div>
+
+      <p>
+        The Governance tab is the Policy Workstation of the bearerCORE™ CBDC platform. It
+        provides a three-pane interface — Filters &amp; Impact Preview (left), Active Policy
+        Briefs &amp; Consensus Quorum (centre), and Governance Controls &amp; Properties (right)
+        — through which board members draft, vote on, and anchor monetary policy changes to
+        the distributed ledger.
+      </p>
+      <p>
+        Every policy change is represented as a <strong>GovernanceProposal</strong> linked to a
+        <strong>PolicyBrief</strong> containing its legal authority, economic impact statement,
+        and raw parameter JSON. Once a 67% quorum of the five-seat board is reached, the lead
+        administrator anchors the policy hash to the DLT via the <strong>Immutable Seal</strong>,
+        producing a tamper-evident <strong>DLTAnchor</strong> record.
+      </p>
+
+      <div class="dp-pane-grid">
+        <div class="dp-pane dp-pane-left">
+          <h3>Left Pane — Filters &amp; Impact</h3>
+          <ul>
+            <li>Queue stats (Pending / Overdue / High-Risk / Total)</li>
+            <li>Proposal filters: Category, Risk Level, Date Range</li>
+            <li>Read-only monetary policy controls</li>
+            <li>Corridor Caps — Impact Preview sidebar</li>
+            <li>Delta-Check: amber % arrow when a proposal is selected</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-middle">
+          <h3>Centre Pane — Policy Briefs &amp; Consensus</h3>
+          <ul>
+            <li>Active Policy Briefs table (9 cols incl. Legal Origin)</li>
+            <li>Monetary Constitution ribbon at top</li>
+            <li>Policy Brief detail panel with Economic Impact Statement</li>
+            <li>Legal Reference bar + Attach button</li>
+            <li>Consensus Quorum: progress bar + 5 board-seat chips</li>
+            <li>Multi-Sig Voting Log with right-click context menu</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-right">
+          <h3>Right Pane — Properties &amp; Anchoring</h3>
+          <ul>
+            <li>Quorum Status Bar (amber → green at 67%)</li>
+            <li>Board Seat voter breakdown table</li>
+            <li>Time-to-Expiry label (computed from effective_date)</li>
+            <li>DLT Policy Anchoring — Immutable Seal section</li>
+            <li>Mainnet Sync Status dot</li>
+            <li>Raw Policy JSON expandable pane</li>
+            <li>Quick-Copy hash button (⧉)</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Four-Eyes Principle — Governance Actions</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Action</th><th>Proposer</th><th>Quorum Required</th><th>Legal Authority</th></tr></thead>
+        <tbody>
+          <tr><td>Issuance Cap Change</td><td>Issuance Operator</td><td>3 / 5 board seats (≥ 67%)</td><td>CBN Act §32(b)</td></tr>
+          <tr><td>Reserve Ratio Change</td><td>Corridor Ops Operator</td><td>3 / 5 board seats (≥ 67%)</td><td>Monetary Policy §14</td></tr>
+          <tr><td>Corridor Cap Change</td><td>Corridor Ops Operator</td><td>3 / 5 board seats (≥ 67%)</td><td>FX Regulations §8(a)</td></tr>
+          <tr><td>Burn Authorization</td><td>Redemption Operator</td><td>Governor + Deputy (dual sig)</td><td>CBDC Framework §22</td></tr>
+          <tr><td>Policy Update (General)</td><td>Any authorized operator</td><td>Board Resolution (majority)</td><td>Board Resolution</td></tr>
+          <tr><td>DLT Anchor / Immutable Seal</td><td>Lead Administrator</td><td>Quorum already met</td><td>Framework activation</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <%# ── §2 Data Models ──────────────────────────────────────────────────── %>
+    <div class="dp-section" id="data-models">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§2</div>
+        <h2>Architecture &amp; Data Models</h2>
+      </div>
+
+      <p>
+        Four primary models govern the policy lifecycle. Each maps to a distinct phase:
+        proposal creation → brief attachment → quorum tracking → DLT anchoring.
+        All are linked by <code>governance_proposal_id</code> as the shared foreign key.
+      </p>
+
+      <h3>GovernanceProposal</h3>
+      <p>Root record for every policy action. Tracks lifecycle status and quorum counters.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Primary key</td></tr>
+          <tr><td class="f">proposal_id</td><td class="t">string</td><td>Human-readable reference e.g. <code>GOV-2026-AF0C3B</code></td></tr>
+          <tr><td class="f">category</td><td class="t">enum</td><td><code>monetary</code> | <code>corridor</code> | <code>risk</code> | <code>burn</code> | <code>policy_update</code></td></tr>
+          <tr><td class="f">proposal_type</td><td class="t">string</td><td><code>issuance_cap_change</code> | <code>reserve_ratio_change</code> | <code>corridor_cap_change</code> | <code>burn_authorization</code></td></tr>
+          <tr><td class="f">risk_level</td><td class="t">enum</td><td><code>low</code> | <code>medium</code> | <code>high</code> — high triggers Double-Auth dialog</td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td><code>pending</code> | <code>open</code> | <code>approved</code> | <code>rejected</code> | <code>expired</code> | <code>executed</code></td></tr>
+          <tr><td class="f">submitted_by</td><td class="t">string</td><td>Doorkeeper token identity of proposer</td></tr>
+          <tr><td class="f">submitted_at</td><td class="t">timestamp</td><td>Proposal creation time</td></tr>
+          <tr><td class="f">effective_date</td><td class="t">date</td><td>Target implementation date — drives Time-to-Expiry label</td></tr>
+          <tr><td class="f">country</td><td class="t">string</td><td>ISO 3166-1 alpha-3 jurisdiction (e.g. <code>KEN</code>, <code>NGA</code>)</td></tr>
+          <tr><td class="f">current_value</td><td class="t">decimal</td><td>Existing system value being replaced</td></tr>
+          <tr><td class="f">proposed_value</td><td class="t">decimal</td><td>Requested new value — used for Delta-Check % arrow</td></tr>
+          <tr><td class="f">quorum_required</td><td class="t">integer</td><td>Minimum approvals needed (default: 3 of 5 board seats)</td></tr>
+          <tr><td class="f">votes_cast</td><td class="t">integer</td><td>Cached count of yes votes for quick ratio display</td></tr>
+          <tr><td class="f">legal_origin</td><td class="t">string</td><td>Gazette citation — may be null and derived client-side from <code>proposal_type</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>PolicyBrief</h3>
+      <p>Rich narrative content attached to a proposal. Contains the legal foundation, economic analysis, and the exact JSON payload that will be hashed at anchoring time.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Primary key</td></tr>
+          <tr><td class="f">governance_proposal_id</td><td class="t">uuid FK</td><td>Parent proposal</td></tr>
+          <tr><td class="f">legal_origin</td><td class="t">string</td><td>Authoritative legal reference (e.g. <code>CBN Act §32(b)</code>)</td></tr>
+          <tr><td class="f">gazette_reference</td><td class="t">string</td><td>Optional gazette/act citation attached via Attach button</td></tr>
+          <tr><td class="f">economic_impact_statement</td><td class="t">text</td><td>Plain-text analyst narrative shown in the "Economic Impact Statement" pane (formerly Justification)</td></tr>
+          <tr><td class="f">policy_json</td><td class="t">jsonb</td><td>Raw parameter payload — the exact object that is SHA-256 hashed at DLT anchoring</td></tr>
+          <tr><td class="f">policy_hash</td><td class="t">string</td><td>SHA-256 hex digest of <code>policy_json</code>; stored after anchoring</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>GovernanceQuorum</h3>
+      <p>Tracks the five fixed board seats per proposal. Each seat represents an institutional role, not a named individual, ensuring continuity across personnel changes.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Primary key</td></tr>
+          <tr><td class="f">governance_proposal_id</td><td class="t">uuid FK</td><td>Parent proposal</td></tr>
+          <tr><td class="f">seat_governor</td><td class="t">boolean</td><td><span class="dp-badge navy">GOV</span> — Governor seat voted</td></tr>
+          <tr><td class="f">seat_deputy</td><td class="t">boolean</td><td><span class="dp-badge navy">DEP</span> — Deputy Governor seat voted</td></tr>
+          <tr><td class="f">seat_risk_lead</td><td class="t">boolean</td><td><span class="dp-badge navy">RISK</span> — Chief Risk Officer seat voted</td></tr>
+          <tr><td class="f">seat_compliance</td><td class="t">boolean</td><td><span class="dp-badge navy">COMP</span> — Head of Compliance seat voted</td></tr>
+          <tr><td class="f">seat_external</td><td class="t">boolean</td><td><span class="dp-badge navy">EXT</span> — External Auditor seat voted</td></tr>
+          <tr><td class="f">quorum_count</td><td class="t">integer</td><td>Number of yes votes cast (max 5)</td></tr>
+          <tr><td class="f">quorum_threshold</td><td class="t">decimal</td><td>Required ratio for activation — always <code>0.67</code></td></tr>
+          <tr><td class="f">threshold_met_at</td><td class="t">timestamp</td><td>Set when <code>quorum_count / 5 ≥ 0.67</code>; enables the Approve action</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>GovernanceVote</h3>
+      <p>Individual vote records. The proposer's identity is checked on every POST — self-approval returns 403.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Primary key</td></tr>
+          <tr><td class="f">governance_proposal_id</td><td class="t">uuid FK</td><td>Parent proposal</td></tr>
+          <tr><td class="f">voter_id</td><td class="t">string</td><td>Doorkeeper token identity of voter</td></tr>
+          <tr><td class="f">voter_cb_code</td><td class="t">string</td><td>Canonical seat code: <code>GOV</code> | <code>DEP</code> | <code>RISK</code> | <code>COMP</code> | <code>EXT</code></td></tr>
+          <tr><td class="f">vote</td><td class="t">enum</td><td><code>yes</code> / <code>approve</code> | <code>no</code> / <code>reject</code></td></tr>
+          <tr><td class="f">comment</td><td class="t">text</td><td>Optional reviewer notes</td></tr>
+          <tr><td class="f">created_at</td><td class="t">timestamp</td><td>Voting timestamp</td></tr>
+          <tr><td class="f">signature_key_id</td><td class="t">string</td><td>HSM key identifier (e.g. <code>CBK-KEY-01</code>) — no private key stored in DB</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>DLTAnchor</h3>
+      <p>Immutable record created when the lead administrator seals the policy to the distributed ledger. Once written, this record may not be modified or deleted.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Primary key</td></tr>
+          <tr><td class="f">governance_proposal_id</td><td class="t">uuid FK</td><td>Parent proposal</td></tr>
+          <tr><td class="f">policy_hash</td><td class="t">string</td><td>SHA-256 hex of <code>policy_json</code> at time of anchoring</td></tr>
+          <tr><td class="f">dlt_anchor_tx</td><td class="t">string</td><td>DLT transaction ID returned by the ledger</td></tr>
+          <tr><td class="f">anchored_at</td><td class="t">timestamp</td><td>Time the anchor was confirmed</td></tr>
+          <tr><td class="f">node_status</td><td class="t">string</td><td><code>active</code> | <code>degraded</code> | <code>offline</code></td></tr>
+          <tr><td class="f">sync_status</td><td class="t">string</td><td><code>synced</code> | <code>syncing</code> — drives the ● / ◌ dot in the UI</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <%# ── §3 Pane-by-Pane Logic ───────────────────────────────────────────── %>
+    <div class="dp-section" id="pane-logic">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§3</div>
+        <h2>Pane-by-Pane Logic &amp; Behavior</h2>
+      </div>
+
+      <h3>Left Pane — Filters &amp; Impact Preview</h3>
+      <p>
+        The left pane (240 px wide sidebar) contains queue statistics, proposal filters,
+        read-only monetary policy controls, and the Corridor Caps — Impact Preview table.
+        All filter inputs drive a live refresh of the Active Policy Briefs table via
+        <code>GET /api/v2/governance/proposals?{query}</code>.
+      </p>
+
+      <h4>Queue Stats (top of sidebar)</h4>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>Derives from</th><th>Update trigger</th></tr></thead>
+        <tbody>
+          <tr><td>Pending</td><td>Count of proposals where <code>status ∈ {pending, open}</code></td><td>On proposals list refresh</td></tr>
+          <tr><td>Overdue</td><td>Proposals where <code>effective_date &lt; today</code> and still pending</td><td>On proposals list refresh</td></tr>
+          <tr><td>High-Risk</td><td>Count where <code>risk_level = high</code></td><td>On proposals list refresh</td></tr>
+          <tr><td>Total</td><td>Length of current filtered proposals array</td><td>On proposals list refresh</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Proposal Filters</h4>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Control</th><th>Query param</th><th>Behavior</th></tr></thead>
+        <tbody>
+          <tr><td>Category (combo)</td><td><code>proposal_type</code></td><td>Maps "All" → omit param; otherwise lowercase enum value</td></tr>
+          <tr><td>Risk Level (combo)</td><td><code>risk_level</code></td><td>Maps "All" → omit param</td></tr>
+          <tr><td>Submitted By (text)</td><td><code>submitted_by</code></td><td>Partial match; empty → omit</td></tr>
+          <tr><td>From / To dates</td><td><code>date_from</code>, <code>date_to</code></td><td>ISO date strings; both optional</td></tr>
+          <tr><td>Apply Filters button</td><td>—</td><td>Calls <code>loadProposals()</code> which rebuilds query from all active filter values</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Corridor Caps — Impact Preview (Delta-Check)</h4>
+      <p>
+        When a proposal is selected, the controller computes a predicted impact
+        for each corridor row and renders it in the <strong>Impact</strong> column.
+        The computation runs on the client using <code>current_value</code> and
+        <code>proposed_value</code> from the selected proposal.
+      </p>
+      <div class="dp-delta-row">
+        <span class="cur">UZA-NGA Daily Cap: 5,000,000</span>
+        <span class="arr">→</span>
+        <span class="nxt">6,000,000 <span class="chg">↑ +20.0%</span></span>
+      </div>
+      <div class="dp-rule">
+        if proposal_type ∈ {issuance_cap_change, reserve_ratio_change} → all corridors show % change<br>
+        if proposal_type = corridor_cap_change → only country-matched corridors show % change<br>
+        else → Impact column shows "—" (grey)
+      </div>
+      <p>
+        Affected rows flash an amber <code>#fff3e0</code> background pulse for 1.2 s on
+        proposal selection, then reset to the default row background. The
+        ↑ / ↓ arrow colour is amber (inflationary) or blue (restrictive).
+      </p>
+
+      <h3>Centre Pane — Active Policy Briefs &amp; Consensus Quorum</h3>
+
+      <h4>Monetary Constitution Ribbon</h4>
+      <p>
+        A dark navy (<code>#0a1628</code>) ribbon spanning the top of the centre pane.
+        Populated by <code>GET /api/v2/governance/domains?country={iso}</code> and
+        <code>GET /api/v2/governance/compliance?country={iso}</code>.
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>Source field</th><th>Style rules</th></tr></thead>
+        <tbody>
+          <tr><td>Framework Badge</td><td><code>data.active_framework.name + version</code></td><td>White text on navy</td></tr>
+          <tr><td>Next Review</td><td><code>data.limit_review_date</code></td><td>Amber; formatted as <code>dd-MMM-yyyy</code></td></tr>
+          <tr><td>Framework Status</td><td><code>data.policy_status</code></td><td>
+            <span class="dp-badge green">● IN FORCE</span> green |
+            <span class="dp-badge amber">◐ UNDER REVIEW</span> amber |
+            <span class="dp-badge red">⛔ SUSPENDED</span> red — triggers global lock
+          </td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Active Policy Briefs Table — Column Specification</h4>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>#</th><th>Column</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>Proposal ID</td><td><code>proposal_id</code> or <code>GOV-{id[:8].upcase}</code></td><td>UUID stored in <code>Qt::UserRole</code> for detail lookup</td></tr>
+          <tr><td>1</td><td>Title</td><td><code>title</code> or falls back to <code>proposal_type</code></td><td></td></tr>
+          <tr><td>2</td><td>Category</td><td><code>proposal_type</code></td><td></td></tr>
+          <tr><td>3</td><td>Legal Origin</td><td>Derived client-side from <code>proposal_type</code></td><td>Never null — falls back to "Board Resolution"</td></tr>
+          <tr><td>4</td><td>Submitted By</td><td><code>submitted_by</code></td><td></td></tr>
+          <tr><td>5</td><td>Date</td><td><code>submitted_at</code> formatted</td><td></td></tr>
+          <tr><td>6</td><td>Risk</td><td><code>risk_level</code></td><td>Red / amber / green foreground</td></tr>
+          <tr><td>7</td><td>Status</td><td><code>status</code></td><td></td></tr>
+          <tr><td>8</td><td>Quorum</td><td><code>votes_cast / quorum_required (pct%)</code></td><td></td></tr>
+        </tbody>
+      </table></div>
+
+      <p><strong>Selection logic:</strong> clicking a row calls <code>GET /api/v2/governance/proposals/:id</code>, then populates the Policy Brief panel, Consensus Quorum, and Properties pane simultaneously.</p>
+
+      <h4>Policy Brief Panel (bottom-centre)</h4>
+      <p>Shows the selected proposal's identity and narrative. The <strong>Economic Impact Statement</strong> is a read-only plain-text pane (formerly "Justification"). Below it, the <strong>Legal Reference bar</strong> shows the gazette citation; the Attach button opens a text-input dialog to paste or update the reference.</p>
+
+      <h4>Legal Origin Derivation Rule</h4>
+      <div class="dp-rule">
+        issuance_cap_change   → "CBN Act §32(b)"<br>
+        reserve_ratio_change  → "Monetary Policy §14"<br>
+        corridor_cap_change   → "FX Regulations §8(a)"<br>
+        burn_authorization    → "CBDC Framework §22"<br>
+        (any other)           → proposal.legal_origin OR "Board Resolution"
+      </div>
+
+      <h4>Consensus Quorum — Multi-Sig Board Seats</h4>
+      <p>Below the Policy Briefs table. Shows a segmented quorum progress bar and five board-seat chips.</p>
+
+      <div class="dp-quorum-bar" style="margin:10px 0 4px;">
+        <div class="dp-quorum-fill amber" style="width:40%"></div>
+      </div>
+      <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">2 / 5 seats voted — 40% (threshold: ≥ 67%)</p>
+
+      <div class="dp-seat-grid">
+        <span class="dp-seat approved">GOV ✓</span>
+        <span class="dp-seat approved">DEP ✓</span>
+        <span class="dp-seat pending">RISK</span>
+        <span class="dp-seat pending">COMP</span>
+        <span class="dp-seat pending">EXT</span>
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Seat</th><th>Role</th><th>Key ID</th><th>State colours</th></tr></thead>
+        <tbody>
+          <tr><td><span class="dp-badge navy">GOV</span></td><td>Governor</td><td>CBK-KEY-01</td><td rowspan="5">Grey = not yet voted · Green = approved · Red = rejected</td></tr>
+          <tr><td><span class="dp-badge navy">DEP</span></td><td>Deputy Governor</td><td>CBK-KEY-02</td></tr>
+          <tr><td><span class="dp-badge navy">RISK</span></td><td>Chief Risk Officer</td><td>CBK-KEY-03</td></tr>
+          <tr><td><span class="dp-badge navy">COMP</span></td><td>Head of Compliance</td><td>CBK-KEY-04</td></tr>
+          <tr><td><span class="dp-badge navy">EXT</span></td><td>External Auditor</td><td>CBK-KEY-EXT</td></tr>
+        </tbody>
+      </table></div>
+
+      <p>
+        <strong>Threshold trigger:</strong> as soon as <code>yes_votes / quorum_required ≥ 0.67</code>,
+        the progress bar transitions from amber to green, the <strong>Approve</strong> button
+        becomes active, and <code>GovernanceQuorum.threshold_met_at</code> is recorded.
+      </p>
+
+      <h3>Right Pane — Governance Controls &amp; Properties</h3>
+
+      <h4>Quorum Status Bar</h4>
+      <p>
+        A styled <code>QProgressBar</code> (0–100) in the Properties tab. Colour driven
+        by the approval ratio:
+      </p>
+      <div class="dp-rule">
+        ratio ≥ 0.67 → green gradient  (#1b5e20 → #4caf50)<br>
+        ratio ≥ 0.33 → amber gradient  (#e65100 → #ffb74d)<br>
+        ratio &lt; 0.33 → red gradient    (#b71c1c → #ef5350)
+      </div>
+
+      <h4>Time-to-Expiry Label</h4>
+      <p>Computed statically from <code>effective_date</code>:</p>
+      <div class="dp-rule">
+        days &lt; 0   → "EXPIRED (Nd ago)"   — red text<br>
+        days = 0   → "Effective TODAY"       — green text<br>
+        days = 1   → "1 day remaining"       — amber text<br>
+        days &gt; 1  → "N days remaining"     — amber text<br>
+        empty date → "—"                     — grey text
+      </div>
+
+      <h4>DLT Policy Anchoring — Immutable Seal Section</h4>
+      <p>
+        Located in the Properties tab. Populated by <code>GET /api/v2/dlt/status</code>
+        on tab initialization and after every anchor operation.
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>API source</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr><td>Node Status</td><td><code>data.node_status</code></td><td>Green = active · Amber = degraded · Red = offline</td></tr>
+          <tr><td>⬡ IMMUTABLE SEAL badge</td><td>Static label</td><td>Active only if framework status ≠ SUSPENDED</td></tr>
+          <tr><td>● Sync Status dot</td><td><code>data.sync_status</code> + <code>node_status</code></td><td>Green ● Synced (+ block #) if node active and synced; amber ◌ Syncing… otherwise</td></tr>
+          <tr><td>Anchor Record hash</td><td><code>data.last_anchor_tx</code></td><td>Full hex hash displayed; ⧉ button copies to clipboard with 1.5 s ✓ feedback</td></tr>
+          <tr><td>View Policy JSON</td><td>Cached proposal object</td><td>Toggles a dark code-pane showing indented JSON of <code>m_currentProposal</code></td></tr>
+          <tr><td>Accrue Policy (Anchor)</td><td>POST /api/v2/governance/anchor</td><td>Hashes policy_json → sends to DLT → updates DLTAnchor record; refreshes DLT status</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <%# ── §4 UI Behavior ─────────────────────────────────────────────────── %>
+    <div class="dp-section" id="ui-behavior">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4</div>
+        <h2>UI Behavior Specifications</h2>
+      </div>
+
+      <h3>Approve Button — Distinct Visual &amp; Double-Auth</h3>
+      <p>
+        The <strong>🔒 Approve</strong> button is visually isolated from utility buttons
+        (Search, Add Condition, Audit Trail) by a vertical line separator. It uses a
+        distinct green style (<code>#1b5e20</code> background, white text, bold, 12 px font)
+        so operators cannot accidentally trigger it during navigation.
+      </p>
+      <div class="dp-callout dp-warn">
+        <span class="dp-ci">⚠</span>
+        <div>
+          <strong>Double-Auth for High-Risk proposals:</strong> when <code>risk_level = high</code>,
+          clicking Approve opens a modal requiring the operator to (a) enter their authorisation
+          PIN and (b) type the word <code>APPROVE</code> verbatim before the vote API call fires.
+          Closing the dialog without completing both fields cancels the action silently.
+        </div>
+      </div>
+
+      <h3>Right-Click Context Menus</h3>
+
+      <h4>Active Policy Briefs Table</h4>
+      <p>Right-clicking any row in <code>tblGovProposals</code> opens:</p>
+      <div class="dp-context-menu">
+        <div class="dp-context-item">View Full Audit Trail</div>
+        <div class="dp-context-item">Generate Impact Brief (PDF)</div>
+        <div class="dp-context-item">Compare with Active Framework</div>
+        <div class="dp-context-sep"></div>
+        <div class="dp-context-item danger">⚠ Flag for Emergency Review</div>
+      </div>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Action</th><th>API call</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>View Full Audit Trail</td><td><code>GET /api/v2/governance/audit_logs?country=&amp;proposal_id=</code></td><td>Dark-themed monospace modal of all events for that proposal</td></tr>
+          <tr><td>Generate Impact Brief (PDF)</td><td><code>POST /api/v2/audit/reports/compliance {report_type: "impact_brief", proposal_id}</code></td><td>Returns <code>report_id</code>; confirmation dialog shown</td></tr>
+          <tr><td>Compare with Active Framework</td><td>No API — uses cached <code>m_currentProposal</code></td><td>3-column table: Metric | Active Framework | Proposed Change; diff rows highlighted amber</td></tr>
+          <tr><td>Flag for Emergency Review</td><td><code>POST /api/v2/governance/proposals/:id/flag {flag_type: "emergency_review"}</code></td><td>Escalates to top of queue for all board members; confirmation shown</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Consensus Quorum / Voting Log Table</h4>
+      <p>Right-clicking any row in <code>tblGovVotingLog</code> opens:</p>
+      <div class="dp-context-menu">
+        <div class="dp-context-item">Verify Cryptographic Signature</div>
+        <div class="dp-context-item">View Member Credentials</div>
+        <div class="dp-context-item">Inspect Vote Metadata</div>
+        <div class="dp-context-sep"></div>
+        <div class="dp-context-item">↻ Resend Quorum Notification</div>
+      </div>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Action</th><th>API call / source</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Verify Cryptographic Signature</td><td><code>POST /api/v2/audit/verify_signature {voter_id, proposal_id}</code></td><td>✅ VALID / ❌ INVALID + Key ID dialog</td></tr>
+          <tr><td>View Member Credentials</td><td>Derived from <code>voter_cb_code</code> seat mapping</td><td>Dialog: Voter ID, canonical Key ID (CBK-KEY-01…EXT), auth level, timestamp, decision</td></tr>
+          <tr><td>Inspect Vote Metadata</td><td>Constructed from row data + <code>m_currentProposal</code></td><td>Dark JSON pane (Courier New) showing raw vote object</td></tr>
+          <tr><td>Resend Quorum Notification</td><td><code>POST /api/v2/governance/proposals/:id/notify {voter_id}</code></td><td>Disabled if member has already voted; confirmation on success</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>New Proposal Modal</h3>
+      <p>
+        Triggered by <strong>+ New Proposal</strong>. A <code>QDialog</code> with a form
+        offering: Type (combo of all proposal_type values), Proposed Value (numeric field),
+        Justification (multi-line text). On accept, posts to
+        <code>POST /api/v2/governance/proposals</code> with <code>effective_date</code>
+        defaulting to <code>today + 14 days</code>. The new row appears immediately in the
+        Active Policy Briefs table.
+      </p>
+    </div>
+
+    <%# ── §5 End-to-End User Flow ────────────────────────────────────────── %>
+    <div class="dp-section" id="user-flow">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§5</div>
+        <h2>End-to-End User Interaction Flow</h2>
+      </div>
+
+      <div class="dp-flow">
+        <div class="dp-step">
+          <h4>Draft Proposal</h4>
+          <p>
+            Authorized operator clicks <strong>+ New Proposal</strong>. Modal opens with
+            fields for Category, Proposed Value, and Economic Impact Statement. The
+            <code>effective_date</code> defaults to today + 14 days. On submit,
+            <code>POST /api/v2/governance/proposals</code> creates the record with
+            <code>status: pending</code>.
+          </p>
+        </div>
+        <div class="dp-step">
+          <h4>Proposal Appears in Queue</h4>
+          <p>
+            A new row appears in the Active Policy Briefs table with a human-readable
+            reference (e.g. <code>GOV-2026-AF0C3B</code>), status <span class="s-pending">Pending</span>,
+            and 0/3 quorum. Queue stats in the sidebar update. The Impact column in Corridor
+            Caps shows "—" until the proposal is selected.
+          </p>
+        </div>
+        <div class="dp-step">
+          <h4>Board Review &amp; Impact Preview</h4>
+          <p>
+            Each board member selects the proposal. The left sidebar immediately runs the
+            Delta-Check — affected corridor rows pulse amber and display the predicted
+            ↑ / ↓ % change. The Policy Brief panel shows the Economic Impact Statement
+            and Legal Reference. Members review the raw Policy JSON via the expandable
+            dark code pane.
+          </p>
+        </div>
+        <div class="dp-step">
+          <h4>Voting — Multi-Sig Cast</h4>
+          <p>
+            Board members use the right-click menu on their seat row to verify their
+            signature, then click <strong>🔒 Approve</strong>. High-risk proposals require
+            PIN + typed APPROVE confirmation. Each vote is recorded via
+            <code>POST /api/v2/governance/proposals/:id/vote {decision: "approve", voter_role}</code>.
+            The board-seat chip for that member turns green. The quorum bar advances.
+          </p>
+        </div>
+        <div class="dp-step">
+          <h4>Quorum Threshold Met</h4>
+          <p>
+            Once <code>yes_votes / quorum_required ≥ 0.67</code>, the progress bar turns
+            green, the Approve button becomes permanently active,
+            <code>GovernanceQuorum.threshold_met_at</code> is recorded, and the Voting
+            Status label changes to <em>"Quorum Reached — Executable"</em>. The API
+            response includes <code>quorum_met: true</code> and <code>execution_ready: true</code>.
+          </p>
+        </div>
+        <div class="dp-step">
+          <h4>DLT Anchoring — Immutable Seal</h4>
+          <p>
+            The lead administrator clicks <strong>Accrue Policy</strong>. The system
+            SHA-256 hashes <code>policy_json</code>, posts to
+            <code>POST /api/v2/governance/anchor {country, proposal_id, policy_hash}</code>,
+            receives the DLT transaction ID, and writes it to <code>DLTAnchor</code>.
+            The Immutable Seal badge appears green. Framework Status updates to
+            <span class="s-active">Active</span> globally across the application.
+          </p>
+        </div>
+        <div class="dp-step">
+          <h4>Audit Trail &amp; Registry Update</h4>
+          <p>
+            The full lifecycle — proposed_by, submitted_at, each vote (voter_id, timestamp,
+            decision, key_id), anchor_tx, anchored_at — is permanently recorded in the
+            audit log. The Governance Queue removes the proposal from the active list
+            (status → <code>executed</code>). The Audit &amp; Reports tab Registry Status
+            reflects the change globally.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <%# ── §6 Validation & System Effects ────────────────────────────────── %>
+    <div class="dp-section" id="validation">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6</div>
+        <h2>Validation &amp; System Effects</h2>
+      </div>
+
+      <h3>Suspension Block</h3>
+      <div class="dp-lock-banner">
+        ⛔ FRAMEWORK SUSPENDED — All write actions are locked. Policy anchoring is frozen until status is restored to Active.
+      </div>
+      <p>When <code>policy_status = SUSPENDED</code> (returned by the domains endpoint):</p>
+      <ul style="padding-left:20px;font-size:13px;color:var(--text-muted);line-height:2;">
+        <li>The Constitution Status badge changes to red <strong>⛔ SUSPENDED</strong> with an <code>#ffebee</code> pill background.</li>
+        <li>The Corridor Caps table receives a <code>2px solid #b71c1c</code> border and <code>#fff8f8</code> background.</li>
+        <li>The <strong>🔒 Approve</strong> button is disabled with a tooltip: <em>"Framework is SUSPENDED — voting locked."</em></li>
+        <li>The <strong>Accrue Policy / Immutable Seal</strong> button is disabled.</li>
+        <li>All POST endpoints for <code>/vote</code>, <code>/anchor</code>, and <code>/execute</code> return <code>HTTP 423 Locked</code>.</li>
+      </ul>
+
+      <h3>Security Lock — HSM Key Policy</h3>
+      <div class="dp-callout dp-danger">
+        <span class="dp-ci">⛔</span>
+        <div>
+          No private keys are stored in the PostgreSQL database or transmitted over the API.
+          All vote signing is handled externally via an HSM or secure vault. The
+          <code>GovernanceVote.signature_key_id</code> field records only the key identifier
+          (e.g. <code>CBK-KEY-01</code>), never the private key material.
+          The Qt client calls the external HSM at vote-cast time; Rails only receives the
+          signed payload and key reference.
+        </div>
+      </div>
+
+      <h3>Self-Approval Block</h3>
+      <div class="dp-callout dp-danger">
+        <span class="dp-ci">⛔</span>
+        <div>
+          <code>POST /api/v2/governance/proposals/:id/vote</code> compares the Doorkeeper
+          token identity of the voter against <code>GovernanceProposal.submitted_by</code>.
+          If they match, the server returns <code>HTTP 403 Forbidden</code> with body
+          <code>{ "error": "Self-approval not permitted" }</code>. The client shows a
+          QMessageBox warning and does not update any UI state.
+        </div>
+      </div>
+
+      <h3>State Persistence on Restart</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>State</th><th>Persisted?</th><th>Behaviour on restart</th></tr></thead>
+        <tbody>
+          <tr><td>Pending governance proposals</td><td class="r">YES</td><td>Fully reloaded from DB via <code>GET /api/v2/governance/proposals</code> on tab initialize</td></tr>
+          <tr><td>Vote records</td><td class="r">YES</td><td>Votes are permanent; board-seat chips re-render from loaded votes array</td></tr>
+          <tr><td>DLT Anchor records</td><td class="r">YES</td><td>Immutable — always present after anchoring; sync status re-fetched</td></tr>
+          <tr><td>Active Preview (Validation Desk)</td><td class="r">NO</td><td>Cleared on restart; no session state persisted for in-progress validation views</td></tr>
+          <tr><td>Selected proposal</td><td class="r">NO</td><td>Clears on restart; user must re-select from table</td></tr>
+          <tr><td>Filter controls</td><td class="r">NO</td><td>Reset to defaults (All / All / empty dates) on restart</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Status Transition Rules</h3>
+      <div class="dp-rule">
+        pending → open           (when quorum begins, first vote cast)<br>
+        open    → approved       (when quorum_count / quorum_required ≥ 0.67)<br>
+        open    → rejected       (when majority votes are "no")<br>
+        approved → executed      (after DLT anchor succeeds; written via update_column to bypass enum)<br>
+        pending | open → expired (when effective_date passes with no quorum)
+      </div>
+
+      <div class="dp-callout dp-info">
+        <span class="dp-ci">ℹ</span>
+        <div>
+          The <code>executed</code> status is written via <code>update_column(:status, "executed")</code>
+          to bypass the Rails enum validator, which does not include "executed" in the
+          standard lifecycle enum definition. This is intentional — execution is a one-way
+          terminal state that must succeed even if enum validation is tightened in future migrations.
+        </div>
+      </div>
+    </div>
+
+    <%# ── §7 API Reference ───────────────────────────────────────────────── %>
+    <div class="dp-section" id="api">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§7</div>
+        <h2>API Reference</h2>
+      </div>
+
+      <p>All endpoints are under the <code>/api/v2/</code> namespace. Request and response bodies are JSON. Authentication via Doorkeeper Bearer token. All write endpoints enforce the self-approval block and, when framework status is SUSPENDED, return <code>HTTP 423 Locked</code>.</p>
+
+      <h3>Governance Proposals</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td class="f">/api/v2/governance/proposals</td><td>List proposals. Accepts: <code>country</code>, <code>status</code>, <code>proposal_type</code>, <code>risk_level</code>, <code>submitted_by</code>, <code>proposal_id</code>, <code>date_from</code>, <code>date_to</code></td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/governance/proposals</td><td>Create proposal. Body: <code>{ proposal: { type, country, new_cap, effective_date, justification } }</code></td></tr>
+          <tr><td>GET</td><td class="f">/api/v2/governance/proposals/:id</td><td>Single proposal with embedded <code>votes[]</code> array. Used to populate all three panes simultaneously.</td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/governance/proposals/:id/vote</td><td>Cast vote. Body: <code>{ decision: "approve"|"reject", voter_role }</code>. Returns <code>{ quorum_met, execution_ready, proposal_status }</code></td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/governance/proposals/:id/execute</td><td>Execute approved proposal. Triggers downstream system effects (cap updates, rate changes). Requires quorum already met.</td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/governance/proposals/:id/flag</td><td>Escalate to emergency review. Body: <code>{ flag_type: "emergency_review", country }</code></td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/governance/proposals/:id/notify</td><td>Resend quorum notification to a specific member. Body: <code>{ voter_id, country }</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Domain &amp; Constitution</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td class="f">/api/v2/governance/domains</td><td>Framework info for a jurisdiction. Params: <code>country</code>. Returns <code>active_framework</code>, <code>policy_status</code>, <code>monetary_authority</code></td></tr>
+          <tr><td>GET</td><td class="f">/api/v2/governance/compliance</td><td>Constitution version and review date. Params: <code>country</code>. Returns <code>policy_name</code>, <code>limit_review_date</code></td></tr>
+          <tr><td>GET</td><td class="f">/api/v2/governance/system_metrics</td><td>Monetary policy controls and corridor caps. Params: <code>country</code>. Returns <code>daily_issuance_cap</code>, <code>reserve_coverage_ratio</code>, <code>corridors[]</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>DLT Anchoring</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td class="f">/api/v2/dlt/status</td><td>Node status, sync status, latest block, last anchor TX. Polled on tab initialize and after every anchor.</td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/governance/anchor</td><td>Anchor policy hash. Body: <code>{ country, proposal_id, policy_hash }</code>. Returns <code>{ dlt_anchor_tx, policy_hash }</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Audit &amp; Reporting</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td class="f">/api/v2/governance/audit_logs</td><td>Audit events for governance. Params: <code>country</code>, optional <code>proposal_id</code> to scope to a single proposal.</td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/audit/reports/compliance</td><td>Generate certified report. Body: <code>{ proposal_id, country, report_type: "impact_brief" }</code>. Returns <code>{ report_id }</code></td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/audit/verify_signature</td><td>Verify a board member's cryptographic signature for a vote. Body: <code>{ voter_id, proposal_id }</code>. Returns <code>{ valid, key_id }</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Canonical API Envelope Format</h3>
+      <p>All v2 governance endpoints return responses in the following envelope:</p>
+      <div class="dp-json-block">
+{<br>
+&nbsp;&nbsp;<span class="jk">"meta"</span>: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"api_version"</span>: <span class="jv">"v2"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"request_id"</span>: <span class="jv">"req_abc123"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"timestamp"</span>: <span class="jv">"2026-04-16T09:00:00Z"</span><br>
+&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;<span class="jk">"data"</span>: { <span class="jv">/* payload */</span> },<br>
+&nbsp;&nbsp;<span class="jk">"error"</span>: <span class="jb">null</span><br>
+}
+      </div>
+      <p>
+        The Qt client reads <code>envelope["data"]</code> in all API callbacks. Errors are
+        surfaced via <code>envelope["error"]</code> as a string; non-null error causes a
+        <code>QMessageBox::warning</code> and aborts state updates.
+      </p>
+    </div>
+
+  </div>
+  <div class="dp-footer">bearerCORE™ &middot; Governance — Policy, Approvals &amp; Oversight &middot; System Design &amp; UI Behavior Specification v2.0 &middot; TowerPoint Group &middot; April 2026</div>
+</div>

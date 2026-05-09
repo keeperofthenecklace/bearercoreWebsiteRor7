@@ -1,0 +1,150 @@
+<%# app/views/documents_portal/deposit_burn.html.erb
+    Deposit & Burn — System Specification %>
+
+<%= render 'docs/doc_styles' %>
+
+<div class="dp-wrap">
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">Deposit &amp; Burn</span>
+    <span class="dp-topbar-tag" style="color:#e65100;border-color:rgba(230,81,0,0.35);">In Progress</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:680px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · Module Specification</div>
+      <h1>Deposit &amp; Burn</h1>
+      <p class="dp-cover-desc">
+        CBDC redemption workflow covering vault deposit ingestion, withdrawal
+        processing, burn authorisation, and the complete note lifecycle from
+        MINTED through TRANSFERRED, REDEEMED, and BURNED states.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>Draft</b></div>
+        <div>Updated <b>April 2026</b></div>
+        <div>Status <b>In Progress</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-secnav">
+    <a href="#overview">Overview</a>
+    <a href="#lifecycle">Note Lifecycle</a>
+    <a href="#data-model">Data Model</a>
+    <a href="#vault">Vault Operations</a>
+    <a href="#burn">Burn Authorization</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <div class="dp-section" id="overview">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§1</div>
+        <h2>System Overview</h2>
+      </div>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>Full specification in progress. The content below documents the known system behaviour from the current implementation.</div></div>
+      <p>Deposit &amp; Burn is the redemption side of the CBDC lifecycle. When a holder returns CBDC notes to the issuing central bank, the notes are deposited back into the vault, verified, and ultimately burned — permanently removing them from the money supply.</p>
+      <p>The WithdrawalCBDC module handles physical redemption: a holder presents notes, an agent verifies them against the registry, and the funds are released to a designated settlement account. The burn workflow is a separate, governance-gated action that permanently cancels the notes from the central bank's ledger.</p>
+
+      <div class="dp-pane-grid">
+        <div class="dp-pane dp-pane-left">
+          <h3>Deposit Intake</h3>
+          <ul><li>Vault file ingestion (SFTP auto-loader)</li><li>Per-file deletion after processing</li><li>Batch upload validation</li><li>Transferred vs unspent CBDC path detection</li></ul>
+        </div>
+        <div class="dp-pane dp-pane-middle">
+          <h3>Withdrawal Processing</h3>
+          <ul><li>Holder note presentation</li><li>Registry verification</li><li>Settlement account designation</li><li>Redemption confirmation</li></ul>
+        </div>
+        <div class="dp-pane dp-pane-right">
+          <h3>Burn Authorization</h3>
+          <ul><li>Burn candidate selection</li><li>Governance gate check</li><li>Irreversible burn execution</li><li>Supply reduction reporting</li></ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="dp-section" id="lifecycle">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§2</div>
+        <h2>Note Lifecycle</h2>
+      </div>
+      <p>Every CBDC note passes through a strictly ordered sequence of states. State transitions are irreversible and every transition is recorded in the audit trail.</p>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>MINTED</h4><p>Note created in a CBDC batch by the issuing central bank. Signed with Ed25519 key. Assigned a serial number.</p></div>
+        <div class="dp-step"><h4>ISSUED</h4><p>Batch dispatched to commercial bank via SFTP. Notes are now in circulation as claims on the issuer.</p></div>
+        <div class="dp-step"><h4>TRANSFERRED</h4><p>Note ownership moved from one holder to another via the P2P transfer module. Ed25519 challenge-response signed.</p></div>
+        <div class="dp-step"><h4>REDEEMED</h4><p>Holder returns note to the central bank or authorised agent. Note is withdrawn from circulation. Settlement account credited.</p></div>
+        <div class="dp-step"><h4>BURNED</h4><p>Governance-authorised permanent cancellation. Note record marked burned. Money supply reduced by denomination amount.</p></div>
+      </div>
+      <div class="dp-callout dp-danger"><span class="dp-ci">⛔</span><div>BURNED is a terminal and irreversible state. No action can restore a burned note. The burn action requires explicit governance authorisation and cannot be performed by a single operator.</div></div>
+    </div>
+
+    <div class="dp-section" id="data-model">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§3</div>
+        <h2>Data Model</h2>
+      </div>
+
+      <h3>CbdcNote</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Primary key</td></tr>
+          <tr><td class="f">serial_number</td><td class="t">string</td><td>Unique serial from SerialAllocationService</td></tr>
+          <tr><td class="f">cbdc_batch_id</td><td class="t">uuid FK</td><td>Parent batch</td></tr>
+          <tr><td class="f">denomination</td><td class="t">decimal</td><td>Face value in corridor asset currency</td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td><code>minted</code> | <code>issued</code> | <code>transferred</code> | <code>redeemed</code> | <code>burned</code></td></tr>
+          <tr><td class="f">current_holder_id</td><td class="t">string</td><td>Current holder's DID or wallet identifier</td></tr>
+          <tr><td class="f">blockchain_hash</td><td class="t">string</td><td>Ed25519 signed payload hash for verification</td></tr>
+          <tr><td class="f">redeemed_at</td><td class="t">timestamp</td><td>When note was redeemed</td></tr>
+          <tr><td class="f">burned_at</td><td class="t">timestamp</td><td>When note was burned (permanent)</td></tr>
+          <tr><td class="f">burn_authorized_by</td><td class="t">string</td><td>Operator who authorized the burn</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>WithdrawalCBDC</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Primary key</td></tr>
+          <tr><td class="f">note_serial</td><td class="t">string</td><td>Serial of note being redeemed</td></tr>
+          <tr><td class="f">holder_id</td><td class="t">string</td><td>Redeeming holder's identifier</td></tr>
+          <tr><td class="f">settlement_account</td><td class="t">string</td><td>Destination account for fiat settlement</td></tr>
+          <tr><td class="f">amount</td><td class="t">decimal</td><td>Note denomination (= settlement amount)</td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td><code>pending</code> | <code>verified</code> | <code>settled</code> | <code>rejected</code></td></tr>
+          <tr><td class="f">processed_at</td><td class="t">timestamp</td><td>When settlement was completed</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="dp-section" id="vault">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4</div>
+        <h2>Vault Operations</h2>
+      </div>
+      <h3>SFTP Auto-Loader</h3>
+      <p>The vault auto-loader monitors a designated SFTP directory. When a new vault file arrives it is ingested, validated, and processed. After successful processing, the source file is deleted from the SFTP server (per-file deletion). Files containing transferred (spent) CBDC follow a different path than unspent CBDC deposits.</p>
+      <div class="dp-rule">Transferred CBDC path: validate signature → mark as REDEEMED → credit settlement account → queue for burn.</div>
+      <div class="dp-rule">Unspent CBDC path: validate → return to issuer reserve → update corridor liquidity.</div>
+
+      <h3>Duplicate Prevention</h3>
+      <p>A <code>QSet</code> of processed serial numbers is maintained in-session to prevent double-processing of the same note from duplicate SFTP deliveries. Server-side idempotency is enforced via the note's <code>serial_number</code> unique constraint.</p>
+    </div>
+
+    <div class="dp-section" id="burn">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§5</div>
+        <h2>Burn Authorisation</h2>
+      </div>
+      <p>Burning a CBDC note is an irreversible monetary policy action — it permanently reduces the money supply. The burn workflow requires governance approval (Four-Eyes) before execution.</p>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Identify burn candidates</h4><p>Operator selects redeemed notes that are ready for permanent cancellation. Notes must be in REDEEMED state.</p></div>
+        <div class="dp-step"><h4>Governance gate</h4><p>Burn proposal submitted via POST /api/v2/governance/proposals. Second operator must approve.</p></div>
+        <div class="dp-step"><h4>Execute burn</h4><p>POST triggers note status → BURNED. burned_at and burn_authorized_by fields set. Action is immutable.</p></div>
+        <div class="dp-step"><h4>Supply reporting</h4><p>Corridor's linked_outstanding decremented by burned denomination. Full audit entry created.</p></div>
+      </div>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>A complete audit trail from MINTED to BURNED is maintained for every note. This trail is exportable from the Registry Audit tab and satisfies BIS-standard CBDC audit requirements.</div></div>
+    </div>
+
+  </div>
+  <div class="dp-footer">bearerCORE™ &middot; Deposit &amp; Burn Specification &middot; TowerPoint Group &middot; April 2026</div>
+</div>

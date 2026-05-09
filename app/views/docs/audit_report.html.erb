@@ -1,0 +1,1091 @@
+<%# app/views/documents_portal/audit_report.html.erb
+    Audit & Reports — Forensic Workstation
+    System Design & UI Behavior Specification v1.0 %>
+
+<%= render 'docs/doc_styles' %>
+
+<style>
+/* ── Audit-specific extensions ── */
+
+/* Health ribbon tile */
+.dp-health-tile {
+  background: #0d2137;
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+  flex: 1;
+}
+.dp-health-tile .ht-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #90a4b7;
+}
+.dp-health-tile .ht-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #64b5f6;
+  font-family: var(--font-mono);
+}
+.dp-health-tile .ht-value.ok     { color: #66bb6a; }
+.dp-health-tile .ht-value.warn   { color: #ffb74d; }
+.dp-health-tile .ht-value.alert  { color: #ef5350; }
+.dp-health-tile .ht-sub {
+  font-size: 11px;
+  color: #607d8b;
+}
+.dp-health-bar {
+  background: #0d2137;
+  border-bottom: 2px solid #1a3a5c;
+  border-radius: 8px;
+  padding: 12px 18px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+/* Registry / ledger pane indicators */
+.dp-ledger-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+.dp-ledger-label.monetary   { background: #e8eaf6; color: #1a237e; border: 1px solid #9fa8da; }
+.dp-ledger-label.operational { background: #e0f2f1; color: #004d40; border: 1px solid #80cbc4; }
+
+/* Integrity status dot */
+.dp-integrity-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.dp-integrity-dot.synced   { background: #4caf50; }
+.dp-integrity-dot.syncing  { background: #ffb74d; }
+.dp-integrity-dot.diverged { background: #ef5350; }
+
+/* HSM validation badge */
+.dp-hsm-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dp-hsm-badge.validated    { background: #1b5e20; color: white; }
+.dp-hsm-badge.not-validated { background: #b71c1c; color: white; }
+.dp-hsm-badge.pending       { background: #e8e8e8; color: #666; }
+
+/* Four-eyes row */
+.dp-four-eyes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 10px 0;
+}
+.dp-four-eyes-cell {
+  background: #f4f6fb;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.dp-four-eyes-cell .fe-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.dp-four-eyes-cell .fe-value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--navy);
+  font-weight: 600;
+}
+
+/* Velocity anomaly badge */
+.dp-velocity-badge {
+  background: #fff3e0;
+  border: 1px solid #ffe0b2;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 11px;
+  color: #e65100;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dp-velocity-badge .vb-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef5350;
+  flex-shrink: 0;
+  animation: pulse-red 1.2s infinite;
+}
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.35); }
+}
+
+/* Registry divergence banner */
+.dp-diverge-banner {
+  background: #b71c1c;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+  letter-spacing: 0.03em;
+}
+
+/* Report type selector */
+.dp-report-chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid #c5cdd5;
+  background: #f0f4f8;
+  color: #455a64;
+  margin: 3px 4px 3px 0;
+  cursor: default;
+}
+.dp-report-chip.active {
+  background: #0d2137;
+  color: white;
+  border-color: #0d2137;
+}
+
+/* JSON block (reuse governance style) */
+.dp-json-block {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 14px 18px;
+  border-radius: 6px;
+  margin: 10px 0 14px;
+  line-height: 1.7;
+  overflow-x: auto;
+}
+.dp-json-block .jk { color: #9cdcfe; }
+.dp-json-block .jv { color: #ce9178; }
+.dp-json-block .jn { color: #b5cea8; }
+.dp-json-block .jb { color: #569cd6; }
+
+.dp-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dp-badge.teal   { background: #e0f7fa; color: #006064; border: 1px solid #80deea; }
+.dp-badge.navy   { background: #e8eaf6; color: #1a237e; border: 1px solid #9fa8da; }
+.dp-badge.amber  { background: #fff8e1; color: #e65100; border: 1px solid #ffe082; }
+.dp-badge.green  { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+.dp-badge.red    { background: #fce4ec; color: #b71c1c; border: 1px solid #ef9a9a; }
+</style>
+
+<div class="dp-wrap">
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">Audit &amp; Reports — Forensic Workstation</span>
+    <span class="dp-topbar-tag" style="color:#00897b;border-color:rgba(0,137,123,0.35);">v1.0 — Current</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:720px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · System Design &amp; UI Behavior Specification</div>
+      <h1>Audit &amp; Reports — Forensic Workstation</h1>
+      <p class="dp-cover-desc">
+        Complete backend and frontend specification for the Audit &amp; Reports tab. Implements a
+        Dual-Registry Architecture — an immutable macro-monetary ledger and a secondary node activity
+        log — with forensic signature verification, velocity anomaly detection, Four-Eyes chain-of-custody
+        checking, DLT snapshot anchoring, and certified compliance report generation.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>1.0</b></div>
+        <div>Updated <b>April 2026</b></div>
+        <div>Status <b>Current</b></div>
+        <div>Principal Role <b>CBDC Forensic Auditor</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-secnav">
+    <a href="#overview">§1 Overview</a>
+    <a href="#data-models">§2 Data Models</a>
+    <a href="#pane-logic">§3 Pane Logic</a>
+    <a href="#ui-behavior">§4 UI Behavior</a>
+    <a href="#user-flow">§5 User Flow</a>
+    <a href="#validation">§6 Validation</a>
+    <a href="#api">§7 API Reference</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <%# ── §1 Overview ─────────────────────────────────────────────────────── %>
+    <div class="dp-section" id="overview">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§1</div>
+        <h2>System Overview</h2>
+      </div>
+
+      <div class="dp-callout dp-danger">
+        <span class="dp-ci">⛔</span>
+        <div>
+          <strong>Read-Only Integrity Mandate:</strong> The Audit tab is strictly read-only.
+          No operator may modify, delete, or re-order any entry in the Audit Event Registry
+          or Node Activity Log. All records are append-only. Any write attempt from this
+          tab returns <code>HTTP 405 Method Not Allowed</code> at the API boundary.
+        </div>
+      </div>
+
+      <p>
+        The Audit &amp; Reports tab is the Forensic Workstation of the bearerCORE™ CBDC platform.
+        It provides a three-pane interface — Forensic Filters &amp; Health (left), Dual-Ledger Event
+        Tables (centre), and Forensic Evidence &amp; Reporting (right) — through which central bank
+        auditors investigate monetary events, verify cryptographic evidence, and produce legally
+        certified compliance documents.
+      </p>
+      <p>
+        The workstation implements a <strong>Dual-Registry Architecture</strong>. The top table
+        (<strong>Audit Event Registry</strong>) surfaces macro-monetary events: issuances, redemptions,
+        large-scale transfers, and burns. The bottom table (<strong>Node Activity &amp; System Logs</strong>)
+        surfaces operational events: operator logins, node state changes, and system-level alerts.
+        The two ledgers are cross-searched when filters are applied, and a single row selection in
+        either table instantly populates the right-pane evidence panel.
+      </p>
+
+      <div class="dp-pane-grid">
+        <div class="dp-pane dp-pane-left">
+          <h3>Left Pane — Forensic Filters &amp; Health</h3>
+          <ul>
+            <li>Monetary Health Ribbon: Supply Integrity %, Pending Anchorings, Active Alerts</li>
+            <li>Standard filters: Jurisdiction, Operator ID, Institution, Corridor, Status</li>
+            <li>Forensic filters: Velocity Anomaly toggle, Min Value threshold, Alert Status</li>
+            <li>Apply Filter — cross-registry search across both ledgers</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-middle">
+          <h3>Centre Pane — Dual Ledger View</h3>
+          <ul>
+            <li>Audit Event Registry (top): Timestamp, Event Type, Reference ID, Operator, Institution, Amount</li>
+            <li>Node Activity &amp; System Logs (bottom): Timestamp, Event Type, Reference ID, Operator, Institution, Status</li>
+            <li>Row selection → instant right-pane evidence population</li>
+            <li>Per-table Refresh and Export Registry buttons</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-right">
+          <h3>Right Pane — Forensic Evidence &amp; Reporting</h3>
+          <ul>
+            <li>Event ID, Event Type, Amount fields</li>
+            <li>Manifest Hash and Ed25519 Signature read-only fields</li>
+            <li>DLT Anchor TX reference</li>
+            <li>HSM Validation badge (VALIDATED / NOT VALIDATED)</li>
+            <li>Four-Eyes Authorizer IDs (Authorizer 1 &amp; 2)</li>
+            <li>Verify Signature — real-time Ed25519 check vs. DLT record</li>
+            <li>Reporting: Export CSV, Certified Audit Statement (PDF), Compliance Report, DLT Snapshot Anchor</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Tab Read-Only Contract</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Action</th><th>Permitted</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td>View audit events</td><td><span class="dp-badge green">YES</span></td><td>Core auditor function</td></tr>
+          <tr><td>Filter / search events</td><td><span class="dp-badge green">YES</span></td><td>Core auditor function</td></tr>
+          <tr><td>Verify signature</td><td><span class="dp-badge green">YES</span></td><td>Read-only public-key check</td></tr>
+          <tr><td>Export CSV / PDF</td><td><span class="dp-badge green">YES</span></td><td>Output only, no DB write</td></tr>
+          <tr><td>Generate compliance report</td><td><span class="dp-badge green">YES</span></td><td>Creates <code>AuditReport</code> record (append-only)</td></tr>
+          <tr><td>Anchor snapshot to DLT</td><td><span class="dp-badge amber">LEAD ADMIN</span></td><td>Creates immutable <code>AuditSnapshot</code> — append-only</td></tr>
+          <tr><td>Edit any event field</td><td><span class="dp-badge red">NO</span></td><td>Append-only registry</td></tr>
+          <tr><td>Delete any event</td><td><span class="dp-badge red">NO</span></td><td>Immutability guarantee</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <%# ── §2 Data Models ──────────────────────────────────────────────────── %>
+    <div class="dp-section" id="data-models">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§2</div>
+        <h2>Architecture &amp; Data Models</h2>
+      </div>
+
+      <p>
+        Four models compose the Dual-Registry Architecture. <strong>AuditEvent</strong> is the
+        primary immutable ledger. <strong>AuditSnapshot</strong> captures DLT-anchored hashes
+        at a point in time. <strong>AuditReport</strong> tracks generated compliance documents.
+        <strong>IssuerKey</strong> (shared with the Issuance tab) provides the Ed25519 public keys
+        used for signature verification — no private key material is ever loaded in this tab.
+      </p>
+
+      <h3>AuditEvent</h3>
+      <p>
+        The primary append-only ledger record. Covers every macro-monetary and node-activity event
+        in the system. The <code>event_type</code> enum determines which table panel the event
+        appears in.
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Primary key — immutable event identifier</td></tr>
+          <tr><td class="f">event_type</td><td class="t">enum</td><td><code>issuance</code> | <code>burn</code> | <code>liquidity_lock</code> | <code>governance</code> | <code>validation</code> | <code>destruction</code> | <code>anchor</code></td></tr>
+          <tr><td class="f">reference_id</td><td class="t">string</td><td>Cross-reference to source record (e.g. batch ID, transfer ID)</td></tr>
+          <tr><td class="f">operator</td><td class="t">string</td><td>Operator ID who triggered the event</td></tr>
+          <tr><td class="f">institution</td><td class="t">string</td><td>Commercial bank or central bank name</td></tr>
+          <tr><td class="f">jurisdiction</td><td class="t">string</td><td>ISO 3166-1 alpha-3 country code (e.g. <code>KEN</code>, <code>NGA</code>)</td></tr>
+          <tr><td class="f">corridor</td><td class="t">string</td><td>FX corridor reference (e.g. <code>NGA-KEN</code>)</td></tr>
+          <tr><td class="f">amount</td><td class="t">bigint</td><td>Event monetary value in minor currency units (avoids float precision)</td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td><code>pending</code> | <code>completed</code> | <code>failed</code> | <code>flagged</code></td></tr>
+          <tr><td class="f">manifest_hash</td><td class="t">string</td><td>SHA-256 of the event payload — used for Ed25519 signature verification</td></tr>
+          <tr><td class="f">signature</td><td class="t">text</td><td>Ed25519 Base64URL signature over <code>manifest_hash</code></td></tr>
+          <tr><td class="f">dlt_anchor_tx</td><td class="t">string</td><td>DLT transaction ID if this event was individually anchored</td></tr>
+          <tr><td class="f">payload</td><td class="t">jsonb</td><td>Full event payload — includes <code>authorizer_1</code>, <code>authorizer_2</code>, <code>hsm_validated</code></td></tr>
+          <tr><td class="f">created_at</td><td class="t">timestamp</td><td>Immutable event timestamp (UTC)</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-info" style="margin-top:12px;">
+        <span class="dp-ci">ℹ</span>
+        <div>
+          <strong>Dual-Ledger Routing:</strong> The Qt UI routes events to the correct table
+          panel based on <code>event_type</code>. Macro-monetary types
+          (<code>issuance</code>, <code>burn</code>, <code>liquidity_lock</code>, <code>destruction</code>)
+          appear in the <strong>Audit Event Registry</strong> (top table, shows Amount).
+          Operational types (<code>governance</code>, <code>validation</code>, <code>anchor</code>)
+          appear in the <strong>Node Activity &amp; System Logs</strong> table (bottom, shows Status).
+          Both tables share the same API response — the Qt controller populates both simultaneously.
+        </div>
+      </div>
+
+      <h3>AuditSnapshot</h3>
+      <p>
+        Created when a Lead Administrator anchors the current audit state to the DLT.
+        The <code>snapshot_hash</code> is a SHA-256 Merkle-style chain digest over all
+        <code>AuditEvent</code> records up to the anchor time, ordered by <code>id</code>.
+        Once written, this record is never updated.
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Primary key</td></tr>
+          <tr><td class="f">snapshot_hash</td><td class="t">string</td><td>SHA-256 chain digest over all events up to anchor time</td></tr>
+          <tr><td class="f">dlt_tx_id</td><td class="t">string</td><td>DLT transaction identifier returned by the ledger node</td></tr>
+          <tr><td class="f">jurisdiction</td><td class="t">string</td><td>Optional jurisdiction scope for the snapshot</td></tr>
+          <tr><td class="f">anchored_by</td><td class="t">string</td><td>Operator ID of the Lead Administrator who triggered anchoring</td></tr>
+          <tr><td class="f">anchored_at</td><td class="t">timestamp</td><td>UTC timestamp of DLT confirmation</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>AuditReport</h3>
+      <p>
+        Tracks the generation lifecycle of compliance documents. Created when an auditor
+        requests a Compliance Report. The <code>file_path</code> and <code>download_url</code>
+        are set once the report is generated (synchronously in pilot mode; via Sidekiq job
+        in production).
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Primary key — returned as <code>report_id</code> in API response</td></tr>
+          <tr><td class="f">report_type</td><td class="t">enum</td><td><code>compliance</code> | <code>full_export</code> | <code>custom</code></td></tr>
+          <tr><td class="f">generated_by</td><td class="t">string</td><td>Operator ID of the auditor who requested the report</td></tr>
+          <tr><td class="f">jurisdiction</td><td class="t">string</td><td>Jurisdiction scope applied to the report</td></tr>
+          <tr><td class="f">parameters</td><td class="t">jsonb</td><td>Filter parameters used: <code>{from, to, jurisdiction, status, operator_id}</code></td></tr>
+          <tr><td class="f">file_path</td><td class="t">string</td><td>Server-side path to the generated document</td></tr>
+          <tr><td class="f">download_url</td><td class="t">string</td><td>Relative URL for the Qt client to download the PDF</td></tr>
+          <tr><td class="f">generated_at</td><td class="t">timestamp</td><td>Time the document was produced</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>IssuerKey (shared)</h3>
+      <p>
+        Ed25519 public keys registered to central banks. Used by <code>Audit::SignatureVerificationService</code>
+        to verify event signatures. <strong>No private key is ever accessed from this tab</strong> — the
+        service reads only <code>public_key</code> (or its <code>public_key_b64url</code> accessor).
+        Key status must be <code>active</code> for verification to proceed.
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Used by Audit tab</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="f">key_id</td><td><span class="dp-badge green">YES</span></td><td>Looked up via <code>issuer_key_id</code> in event payload</td></tr>
+          <tr><td class="f">public_key</td><td><span class="dp-badge green">YES</span></td><td>Decoded via <code>public_key_b64url</code> accessor (JWK or raw Base64URL)</td></tr>
+          <tr><td class="f">status</td><td><span class="dp-badge green">YES</span></td><td>Must be <code>active</code> — revoked keys return verification failure</td></tr>
+          <tr><td class="f">private_key_b64url</td><td><span class="dp-badge red">NEVER</span></td><td>Private key is never read in the Audit tab — signing is Issuance-only</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Service Layer</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Service</th><th>File</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>Audit::EventQueryService</code></td><td>app/services/audit/event_query_service.rb</td><td>Applies filter params to <code>AuditEvent</code> scope; paginates; returns <code>as_api_json</code> array</td></tr>
+          <tr><td><code>Audit::EventDetailsService</code></td><td>app/services/audit/event_details_service.rb</td><td>Loads a single event by <code>id</code> with full payload including authorizers</td></tr>
+          <tr><td><code>Audit::ExportService</code></td><td>app/services/audit/export_service.rb</td><td>Generates CSV up to 5,000 rows from the current filter scope</td></tr>
+          <tr><td><code>Audit::SignatureVerificationService</code></td><td>app/services/audit/signature_verification_service.rb</td><td>Ed25519 verify via <code>RbNaCl</code> — reads only <code>IssuerKey#public_key_b64url</code></td></tr>
+          <tr><td><code>Audit::ComplianceReportService</code></td><td>app/services/audit/compliance_report_service.rb</td><td>Creates <code>AuditReport</code> record; enqueues <code>AuditReportGeneratorJob</code> if Sidekiq present</td></tr>
+          <tr><td><code>Audit::ReportDownloadService</code></td><td>app/services/audit/report_download_service.rb</td><td>Resolves report by ID; returns <code>download_url</code> for Qt client</td></tr>
+          <tr><td><code>Audit::SnapshotAnchorService</code></td><td>app/services/audit/snapshot_anchor_service.rb</td><td>Builds SHA-256 chain digest; creates <code>AuditSnapshot</code></td></tr>
+          <tr><td><code>Audit::EventHashingService</code></td><td>app/services/audit/event_hashing_service.rb</td><td>Deterministic SHA-256 over canonical event fields — used at event creation time</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <%# ── §3 Pane-by-Pane Logic ───────────────────────────────────────────── %>
+    <div class="dp-section" id="pane-logic">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§3</div>
+        <h2>Pane-by-Pane Logic &amp; Behavior</h2>
+      </div>
+
+      <h3>Left Pane — Forensic Filters &amp; Health (240 px sidebar)</h3>
+
+      <h4>Monetary Health Ribbon</h4>
+      <p>
+        The health ribbon populates on tab entry via
+        <code>GET /api/v2/audit/health_metrics?jurisdiction={selected}</code>.
+        It refreshes automatically when the jurisdiction filter changes. Three tiles:
+      </p>
+
+      <div class="dp-health-bar">
+        <div class="dp-health-tile">
+          <div class="ht-label">Supply Integrity</div>
+          <div class="ht-value ok">99.2%</div>
+          <div class="ht-sub">Events succeeded / total</div>
+        </div>
+        <div class="dp-health-tile">
+          <div class="ht-label">Pending Anchorings</div>
+          <div class="ht-value warn">3</div>
+          <div class="ht-sub">Events not yet DLT-anchored</div>
+        </div>
+        <div class="dp-health-tile">
+          <div class="ht-label">Active Alerts</div>
+          <div class="ht-value alert">7</div>
+          <div class="ht-sub">Flagged events requiring review</div>
+        </div>
+      </div>
+
+      <p><strong>Supply Integrity colour logic:</strong></p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Value</th><th>Colour</th><th>Qt widget style</th></tr></thead>
+        <tbody>
+          <tr><td>≥ 99%</td><td>Green</td><td><code>color:#66bb6a</code></td></tr>
+          <tr><td>95–98.9%</td><td>Amber</td><td><code>color:#ffb74d</code></td></tr>
+          <tr><td>&lt; 95%</td><td>Red / Immediate Alert</td><td><code>color:#ef5350</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-danger">
+        <span class="dp-ci">⚠</span>
+        <div>
+          <strong>Registry Divergence:</strong> If the DLT and Local DB diverge — detected when the
+          most recent <code>AuditSnapshot#snapshot_hash</code> no longer matches a re-computed chain
+          digest — the Supply Integrity tile turns <strong>Red</strong> immediately and the divergence
+          banner is shown below the ribbon. The auditor must investigate and re-anchor before any
+          compliance reports can be generated.
+          <div class="dp-diverge-banner" style="margin-top:10px;">
+            <span>&#9888;</span>
+            REGISTRY DIVERGENCE — Local DB and DLT hashes do not match. Anchor snapshot required.
+          </div>
+        </div>
+      </div>
+
+      <h4>Standard Filters (Audit Filters group box)</h4>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>Field name sent</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>cmbAudJurisdiction</code></td><td><code>jurisdiction</code></td><td>"All" sends no param</td></tr>
+          <tr><td><code>txtAudOperatorId</code></td><td><code>operator_id</code></td><td>Partial match — pass as-is</td></tr>
+          <tr><td><code>txtAudInstitution</code></td><td><code>institution</code></td><td>Partial match</td></tr>
+          <tr><td><code>cmbAudCorridor</code></td><td><code>corridor</code></td><td>"All" sends no param</td></tr>
+          <tr><td><code>cmbAudStatusFilter</code></td><td><code>status</code></td><td>Values: All · Issuance · Burn · Liquidity Lock · Hash</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Forensic Filters (below separator)</h4>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>chkAudVelocityFilter</code></td>
+            <td>
+              When checked, appends <code>velocity_anomaly=true</code> to the query.
+              The Rails service filters for events where
+              <code>amount / time_delta_seconds &gt; institution_velocity_threshold</code>.
+              The Qt table highlights matching rows with an amber left border and a
+              <div class="dp-velocity-badge" style="display:inline-flex;margin-top:6px;">
+                <span class="vb-dot"></span> VELOCITY ANOMALY
+              </div>
+              badge in the Event Type column.
+            </td>
+          </tr>
+          <tr>
+            <td><code>txtAudValueThreshold</code></td>
+            <td>Sends as <code>min_value={n}</code> — filters to events where <code>amount ≥ n</code></td>
+          </tr>
+          <tr>
+            <td><code>cmbAudAlertStatus</code></td>
+            <td>
+              Options: All · 🟢 Normal · 🟡 Warning · 🔴 Critical<br>
+              Qt strips the emoji prefix before sending lowercase value to API.<br>
+              Maps to <code>alert_status=critical</code> etc.
+            </td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <p>
+        <strong>Apply Filter (<code>btnAudApplyFilter</code>):</strong> Builds the full query string
+        from all active filter values and calls <code>GET /api/v2/audit/events?{filters}</code>.
+        The response populates both tables simultaneously — the Qt controller calls
+        <code>populateEventsTable(events)</code> which fills both top and bottom tables from the
+        same <code>QJsonArray</code>.
+      </p>
+
+      <h3>Centre Pane — Dual-Ledger View</h3>
+
+      <h4>Audit Event Registry (top table — <code>tblAudEventsTop</code>)</h4>
+      <p>
+        Displays macro-monetary events. Six columns:
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Col</th><th>JSON field</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Timestamp</td><td><code>created_at</code></td><td>Formatted as <code>yyyy-MM-dd hh:mm:ss</code> local time</td></tr>
+          <tr><td>Event Type</td><td><code>event_type</code></td><td>Human label; velocity anomaly events get pulsing badge</td></tr>
+          <tr><td>Reference ID</td><td><code>reference_id</code></td><td>Source batch / transfer / proposal ID</td></tr>
+          <tr><td>Operator</td><td><code>operator</code></td><td>Operator identifier</td></tr>
+          <tr><td>Institution</td><td><code>institution</code></td><td>Bank or central bank name</td></tr>
+          <tr><td>Amount</td><td><code>amount</code></td><td>Integer minor units — Qt formats with currency symbol if available</td></tr>
+        </tbody>
+      </table></div>
+      <p>
+        Row selection fires <code>onRowSelectedTop(row)</code> → reads the event ID stored
+        in <code>Qt::UserRole</code> on column 0 → calls <code>GET /api/v2/audit/events/{id}</code>
+        → populates the right-pane evidence panel.
+      </p>
+
+      <h4>Node Activity &amp; System Logs (bottom table — <code>tblAudEventsBottom</code>)</h4>
+      <p>
+        Same data source, same API call. Last column shows <strong>Status</strong> instead of Amount.
+        Selection works identically — the selected event loads into the same right-pane evidence panel,
+        enabling the auditor to cross-reference an operational event (e.g. an operator login) against
+        a monetary event in the top table.
+      </p>
+
+      <h4>Per-Table Controls</h4>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>Action</th><th>Endpoint</th></tr></thead>
+        <tbody>
+          <tr><td><code>btnAudRefreshTop</code></td><td>Re-runs <code>loadEvents()</code></td><td><code>GET /api/v2/audit/events</code> with current filters</td></tr>
+          <tr><td><code>btnAudRefreshBottom</code></td><td>Identical to Refresh Top</td><td>Same — both tables share one API call</td></tr>
+          <tr><td><code>btnAudExportRegistryTop</code></td><td>File save dialog → CSV download</td><td><code>GET /api/v2/audit/events/export?{filters}</code></td></tr>
+          <tr><td><code>btnAudExportRegistryBottom</code></td><td>Same as Export Top</td><td>Delegates to <code>onExportRegistryTop()</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Right Pane — Forensic Evidence &amp; Reporting</h3>
+
+      <h4>Event Details (loaded on row selection)</h4>
+
+      <div class="dp-four-eyes">
+        <div class="dp-four-eyes-cell">
+          <div class="fe-label">Authorizer 1</div>
+          <div class="fe-value">OPS-ADM-01</div>
+        </div>
+        <div class="dp-four-eyes-cell">
+          <div class="fe-label">Authorizer 2</div>
+          <div class="fe-value">GOV-DPT-03</div>
+        </div>
+      </div>
+      <p>
+        Authorizer IDs are read from <code>event.payload.authorizer_1</code> and
+        <code>event.payload.authorizer_2</code>. They display as <code>—</code> when the event
+        has no four-eyes requirement. The auditor cross-references these IDs against the
+        Node Activity Log to confirm the personnel chain-of-custody.
+      </p>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>JSON field</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>lblAudEventIdVal</code></td><td><code>id</code></td><td>Immutable event UUID</td></tr>
+          <tr><td><code>lblAudEventTypeVal</code></td><td><code>event_type</code></td><td>Display label</td></tr>
+          <tr><td><code>lblAudAmountVal</code></td><td><code>amount</code></td><td>Integer minor units</td></tr>
+          <tr><td><code>txtAudManifestHash</code></td><td><code>manifest_hash</code></td><td>Read-only SHA-256 — sent to signature verification</td></tr>
+          <tr><td><code>txtAudSignature</code></td><td><code>signature</code></td><td>Read-only Ed25519 Base64URL signature</td></tr>
+          <tr><td><code>txtAudDltAnchorTx</code></td><td><code>dlt_anchor_tx</code></td><td>DLT transaction ID (may be blank if not yet anchored)</td></tr>
+          <tr><td><code>lblAudHsmBadge</code></td><td><code>payload.hsm_validated</code></td><td>Green VALIDATED / Red NOT VALIDATED</td></tr>
+          <tr><td><code>lblAudAuthorizer1Val</code></td><td><code>payload.authorizer_1</code></td><td>Four-Eyes first authorizer</td></tr>
+          <tr><td><code>lblAudAuthorizer2Val</code></td><td><code>payload.authorizer_2</code></td><td>Four-Eyes second authorizer</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>HSM Validation Badge States</h4>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 16px;">
+        <span class="dp-hsm-badge validated">HSM VALIDATED</span>
+        <span class="dp-hsm-badge not-validated">NOT VALIDATED</span>
+        <span class="dp-hsm-badge pending">— (no selection)</span>
+      </div>
+      <p>
+        When <code>payload.hsm_validated</code> is <code>true</code>, the badge shows green
+        <strong>HSM VALIDATED</strong>. When false, it shows red <strong>NOT VALIDATED</strong>.
+        Before any row is selected, the badge is neutral grey.
+      </p>
+
+      <h4>Verify Signature (<code>btnAudVerifySignature</code>)</h4>
+      <p>
+        Requires an event row to be selected (<code>m_selectedEventId</code> must be set).
+        Builds a POST body from the current <code>txtAudSignature</code> and
+        <code>txtAudManifestHash</code> values, then calls
+        <code>POST /api/v2/audit/verify_signature</code>.
+      </p>
+      <div class="dp-json-block">
+<span class="jk">"event_id"</span>: <span class="jv">"EVT-90321"</span>,
+<span class="jk">"signature"</span>: <span class="jv">"Q2Fk9d...Jai72x"</span>,
+<span class="jk">"manifest_hash"</span>: <span class="jv">"a7b45c2891f..."</span>
+      </div>
+      <p>
+        The <code>Audit::SignatureVerificationService</code> looks up the active
+        <code>IssuerKey</code>, decodes the public key via <code>public_key_b64url</code>,
+        and calls <code>RbNaCl::Signatures::Ed25519::VerifyKey#verify</code>.
+        A <code>QMessageBox</code> shows the result:
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Outcome</th><th>Dialog text</th></tr></thead>
+        <tbody>
+          <tr><td>Valid</td><td>Signature is VALID.</td></tr>
+          <tr><td>Invalid</td><td>Signature is INVALID. &lt;error detail&gt;</td></tr>
+          <tr><td>No event selected</td><td>Select an event first.</td></tr>
+          <tr><td>No signature present</td><td>No signature to verify for this event.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Reporting Controls</h4>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>Label</th><th>Action</th><th>Endpoint</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>btnAudExportCsv</code></td>
+            <td>Export CSV</td>
+            <td>File save dialog → downloads CSV of current filter scope (max 5,000 rows)</td>
+            <td><code>GET /api/v2/audit/events/export?format=csv&amp;{filters}</code></td>
+          </tr>
+          <tr>
+            <td><code>btnAudExportPdf</code></td>
+            <td>Generate Certified Audit Statement</td>
+            <td>Downloads PDF of the last generated compliance report. Requires <code>btnAudComplianceReport</code> to have been run first.</td>
+            <td><code>GET /api/v2/audit/reports/{report_id}/download</code></td>
+          </tr>
+          <tr>
+            <td><code>cmbAudReportType</code></td>
+            <td>Report Type selector</td>
+            <td>Must be set before clicking Compliance Report. Index 0 = "(Select type)" — clicking Compliance Report with index 0 shows a warning.</td>
+            <td>Sent as <code>report_type</code> in POST body</td>
+          </tr>
+          <tr>
+            <td><code>btnAudComplianceReport</code></td>
+            <td>Generate Compliance Report</td>
+            <td>Posts filter state to compliance endpoint; stores returned <code>report_id</code> in <code>m_lastReportId</code> for subsequent PDF download</td>
+            <td><code>POST /api/v2/audit/reports/compliance</code></td>
+          </tr>
+          <tr>
+            <td><code>btnAudAnchorSnapshot</code></td>
+            <td>Anchor Audit Snapshot</td>
+            <td>Posts current jurisdiction + UTC timestamp; <code>SnapshotAnchorService</code> builds chain digest and creates <code>AuditSnapshot</code> record</td>
+            <td><code>POST /api/v2/audit/anchor_snapshot</code></td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <%# ── §4 UI Behavior ─────────────────────────────────────────────────── %>
+    <div class="dp-section" id="ui-behavior">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4</div>
+        <h2>UI Behavior &amp; State Rules</h2>
+      </div>
+
+      <h3>Tab Initialization Sequence</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Step</th><th>Method</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><code>setupTables()</code></td><td>Sets column headers, selection policy, alternating row colors on both tables</td></tr>
+          <tr><td>2</td><td><code>connectSignals()</code></td><td>Wires all buttons, row-selection signals, and table context menu policies</td></tr>
+          <tr><td>3</td><td><code>loadHealthMetrics()</code></td><td><code>GET /api/v2/audit/health_metrics</code> — populates Supply Integrity, Pending, Alerts ribbon</td></tr>
+          <tr><td>4</td><td><code>loadEvents()</code></td><td><code>GET /api/v2/audit/events</code> (no filters) — populates both tables</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Event Details Clear Rules</h3>
+      <p>
+        <code>clearEventDetails()</code> is called when:
+      </p>
+      <ul>
+        <li><code>btnAudApplyFilter</code> is clicked (new filter clears stale selection)</li>
+        <li>The table is refreshed and the previously selected row no longer exists</li>
+      </ul>
+      <p>
+        All detail labels revert to <code>—</code>, text fields are cleared, and the HSM badge
+        resets to neutral grey. <code>m_selectedEventId</code> is cleared.
+      </p>
+
+      <h3>Table Column Width Strategy</h3>
+      <p>
+        <code>horizontalHeader()-&gt;setStretchLastSection(true)</code> is set on both tables.
+        This means the Amount / Status column stretches to fill remaining width. For the top table,
+        the Timestamp column should be set to a fixed minimum of 155 px to prevent truncation.
+      </p>
+
+      <h3>Health Ribbon Colour Transitions</h3>
+      <p>
+        The three health labels use Qt <code>setStyleSheet()</code> applied on every API response.
+        Pending Verifications: amber if &gt; 0, blue if 0. Active Alerts: green if 0, amber if 1–3,
+        red if &gt; 3. Supply Integrity: green ≥ 99%, amber 95–99%, red &lt; 95%.
+      </p>
+
+      <h3>Compliance Report Workflow (PDF Download Flow)</h3>
+      <p>
+        The PDF download is a two-step process:
+      </p>
+      <ol>
+        <li>Auditor selects a report type in <code>cmbAudReportType</code> and clicks
+            <strong>Generate Compliance Report</strong>. Rails creates an <code>AuditReport</code>
+            record and returns the <code>report_id</code>. Qt stores this in <code>m_lastReportId</code>.</li>
+        <li>Auditor clicks <strong>Generate Certified Audit Statement</strong>
+            (<code>btnAudExportPdf</code>). Qt calls
+            <code>GET /api/v2/audit/reports/{m_lastReportId}/download</code>
+            and presents a save-file dialog. The <code>Last Export</code> label is stamped with
+            the current timestamp.</li>
+      </ol>
+      <p>
+        If <code>m_lastReportId</code> is empty when the PDF button is clicked, a
+        <code>QMessageBox::information</code> prompts: <em>"Generate a compliance report first."</em>
+      </p>
+
+      <h3>Snapshot Anchor Post-Action</h3>
+      <p>
+        After a successful anchor, <code>lblAudSnapshotHashVal</code> is updated with the
+        <code>snapshot_hash</code> from the response. A <code>QMessageBox</code> shows the hash
+        and DLT tx ID. The health metrics ribbon is <em>not</em> auto-refreshed — the auditor
+        must click Refresh to see the updated Pending Anchorings count.
+      </p>
+    </div>
+
+    <%# ── §5 User Flow ───────────────────────────────────────────────────── %>
+    <div class="dp-section" id="user-flow">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§5</div>
+        <h2>End-to-End User Interaction Flow</h2>
+      </div>
+
+      <h3>Forensic Investigation — Velocity Anomaly</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Step</th><th>User action</th><th>System response</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Auditor notices Active Alerts = 7 (red) in the health ribbon on tab entry</td>
+            <td>Health ribbon populated from <code>GET /api/v2/audit/health_metrics</code></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Auditor ticks <strong>Velocity Anomaly Only</strong> and clicks <strong>Apply Filter</strong></td>
+            <td><code>GET /api/v2/audit/events?velocity_anomaly=true</code> → both tables repopulate showing only flagged events</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Auditor clicks a high-value issuance row in the Audit Event Registry</td>
+            <td><code>GET /api/v2/audit/events/{id}</code> → right pane populates with manifest hash, signature, HSM badge, and authorizer IDs</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Auditor reads HSM badge (green VALIDATED) and clicks <strong>Verify Signature</strong></td>
+            <td><code>POST /api/v2/audit/verify_signature</code> → <code>RbNaCl</code> Ed25519 check → dialog: <em>"Signature is VALID."</em></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>Auditor notes Authorizer IDs (OPS-ADM-01 and GOV-DPT-03) and searches the bottom Node Activity table for those operators</td>
+            <td>Auditor applies <code>operator_id=OPS-ADM-01</code> filter; scans the system log for the login/action timestamp that aligns with the issuance event</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Chain of custody confirmed. Auditor selects <strong>AML Compliance</strong> in report type dropdown and clicks <strong>Generate Compliance Report</strong></td>
+            <td><code>POST /api/v2/audit/reports/compliance</code> → report ID stored; dialog: <em>"Report generated. ID: RPT-20493. Use 'Generate Certified Audit Statement' to download."</em></td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>Auditor clicks <strong>Generate Certified Audit Statement</strong></td>
+            <td><code>GET /api/v2/audit/reports/RPT-20493/download</code> → save dialog opens; Last Export timestamp stamped</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>Auditor clicks <strong>Anchor Audit Snapshot</strong> to commit the current registry state to the DLT</td>
+            <td><code>POST /api/v2/audit/anchor_snapshot</code> → chain digest computed → <code>AuditSnapshot</code> created → Snapshot Hash label updated</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <%# ── §6 Validation & Constraints ───────────────────────────────────── %>
+    <div class="dp-section" id="validation">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6</div>
+        <h2>Validation &amp; Technical Constraints</h2>
+      </div>
+
+      <h3>Read-Only Enforcement</h3>
+      <div class="dp-callout dp-danger">
+        <span class="dp-ci">⛔</span>
+        <div>
+          <strong>No writes to <code>AuditEvent</code> from this tab.</strong>
+          The controller inherits from <code>API::V2::Audit::BaseController</code> which only
+          exposes GET and POST (for verification/reporting/anchoring) routes. There is no PATCH,
+          PUT, or DELETE route in the <code>namespace :audit</code> block. The Rails model has
+          no <code>before_update</code> guard needed — the route layer prevents it entirely.
+        </div>
+      </div>
+
+      <h3>Signature Verification Constraints</h3>
+      <ul>
+        <li>The active <code>IssuerKey</code> must have <code>status = 'active'</code> — revoked keys return verification failure, not an error</li>
+        <li>Only <code>ed25519</code> algorithm is supported in Phase 1</li>
+        <li>The <code>public_key_b64url</code> accessor handles both raw Base64URL strings and JWK JSON objects transparently</li>
+        <li>Private key columns are <strong>never read</strong> in any audit service — the <code>sign()</code> method on <code>IssuerKey</code> is never called from this tab</li>
+      </ul>
+
+      <h3>Pagination &amp; Export Limits</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Operation</th><th>Default</th><th>Maximum</th></tr></thead>
+        <tbody>
+          <tr><td>Event list (<code>index</code>)</td><td>50 rows</td><td>200 rows per page</td></tr>
+          <tr><td>CSV export</td><td>All matching</td><td>5,000 rows hard cap</td></tr>
+          <tr><td>Snapshot chain digest</td><td>All <code>AuditEvent</code> records</td><td>Streamed via <code>find_each</code> — no memory limit</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>AuditReport Validation</h3>
+      <ul>
+        <li><code>report_type</code> must be in <code>%w[compliance full_export custom]</code></li>
+        <li><code>generated_by</code> (operator ID) is required — derived from <code>X-Operator-ID</code> header or Doorkeeper token</li>
+        <li>Reports in <code>generating</code> status are not downloadable — the download service checks <code>file_path.present?</code></li>
+      </ul>
+
+      <h3>Snapshot Anchor Constraints</h3>
+      <ul>
+        <li>The SHA-256 chain digest iterates all <code>AuditEvent</code> records ordered by <code>id</code>, feeding <code>"{id}|{manifest_hash}|{created_at.to_i}"</code> into the digest</li>
+        <li>If the jurisdiction filter is active, only events in that jurisdiction are included in the digest</li>
+        <li>There is no guard preventing duplicate anchors — each call creates a new <code>AuditSnapshot</code> record. Auditors should use the <code>anchored_at</code> timestamp to distinguish sequential snapshots.</li>
+      </ul>
+
+      <h3>Security Model</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Requirement</th><th>Implementation</th></tr></thead>
+        <tbody>
+          <tr><td>All endpoints require authentication</td><td>Doorkeeper <code>doorkeeper_authorize!</code> in <code>API::V2::BaseController</code></td></tr>
+          <tr><td>Operator identity on every request</td><td><code>X-Operator-ID</code> header or Doorkeeper <code>resource_owner_id</code></td></tr>
+          <tr><td>No private key material in this tab</td><td><code>SignatureVerificationService</code> reads only <code>IssuerKey#public_key_b64url</code></td></tr>
+          <tr><td>Immutable event records</td><td>No PUT/PATCH/DELETE route exists for <code>audit/events</code></td></tr>
+          <tr><td>Append-only snapshots</td><td><code>AuditSnapshot</code> has no <code>before_update</code> guard needed — no update route exists</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <%# ── §7 API Reference ───────────────────────────────────────────────── %>
+    <div class="dp-section" id="api">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§7</div>
+        <h2>API Reference</h2>
+      </div>
+
+      <p>All endpoints are namespaced under <code>/api/v2/audit/</code> with
+      <code>defaults: { format: :json }</code>. All require a valid Doorkeeper Bearer token.</p>
+
+      <h3>Standard Response Envelope</h3>
+      <div class="dp-json-block">
+{
+  <span class="jk">"success"</span>: <span class="jb">true</span>,
+  <span class="jk">"request_id"</span>: <span class="jv">"uuid-v4"</span>,
+  <span class="jk">"timestamp"</span>: <span class="jv">"2026-04-16T14:30:00Z"</span>,
+  <span class="jk">"data"</span>: { <span class="jv">/* endpoint payload */</span> }
+}
+      </div>
+
+      <h3>GET /api/v2/audit/events</h3>
+      <p>
+        Returns a paginated, filtered list of audit events. Accepted query params:
+        <code>jurisdiction</code>, <code>operator_id</code>, <code>institution</code>,
+        <code>corridor</code>, <code>status</code>, <code>from</code>, <code>to</code>,
+        <code>velocity_anomaly</code>, <code>min_value</code>, <code>alert_status</code>,
+        <code>page</code>, <code>per</code> (max 200).
+      </p>
+      <div class="dp-json-block">
+<span class="jk">"data"</span>: {
+  <span class="jk">"events"</span>: [
+    {
+      <span class="jk">"id"</span>: <span class="jv">"550e8400-e29b-41d4-a716-446655440000"</span>,
+      <span class="jk">"event_type"</span>: <span class="jv">"issuance"</span>,
+      <span class="jk">"reference_id"</span>: <span class="jv">"BATCH-2026-04-A"</span>,
+      <span class="jk">"operator"</span>: <span class="jv">"Admin01"</span>,
+      <span class="jk">"institution"</span>: <span class="jv">"KCB Bank"</span>,
+      <span class="jk">"jurisdiction"</span>: <span class="jv">"KEN"</span>,
+      <span class="jk">"corridor"</span>: <span class="jv">"NGA-KEN"</span>,
+      <span class="jk">"amount"</span>: <span class="jn">10000000</span>,
+      <span class="jk">"status"</span>: <span class="jv">"completed"</span>,
+      <span class="jk">"manifest_hash"</span>: <span class="jv">"a7b45c2891f..."</span>,
+      <span class="jk">"created_at"</span>: <span class="jv">"2026-04-16T14:00:00Z"</span>
+    }
+  ],
+  <span class="jk">"page"</span>: <span class="jn">1</span>,
+  <span class="jk">"per"</span>: <span class="jn">50</span>
+}
+      </div>
+
+      <h3>GET /api/v2/audit/events/:id</h3>
+      <p>Full event detail including payload (authorizers, HSM status, DLT anchor tx).</p>
+      <div class="dp-json-block">
+<span class="jk">"data"</span>: {
+  <span class="jk">"id"</span>: <span class="jv">"550e8400-..."</span>,
+  <span class="jk">"manifest_hash"</span>: <span class="jv">"a7b45c2891f..."</span>,
+  <span class="jk">"signature"</span>: <span class="jv">"Q2Fk9d...Jai72x"</span>,
+  <span class="jk">"dlt_anchor_tx"</span>: <span class="jv">"0xace56a...123a9"</span>,
+  <span class="jk">"payload"</span>: {
+    <span class="jk">"hsm_validated"</span>: <span class="jb">true</span>,
+    <span class="jk">"authorizer_1"</span>: <span class="jv">"OPS-ADM-01"</span>,
+    <span class="jk">"authorizer_2"</span>: <span class="jv">"GOV-DPT-03"</span>
+  }
+}
+      </div>
+
+      <h3>GET /api/v2/audit/events/export</h3>
+      <p>Returns a CSV string in <code>data.csv</code>. Max 5,000 rows. Same filter params as index.</p>
+
+      <h3>GET /api/v2/audit/health_metrics</h3>
+      <p>Powers the health ribbon. Optional <code>?jurisdiction=KEN</code> to scope calculations.</p>
+      <div class="dp-json-block">
+<span class="jk">"data"</span>: {
+  <span class="jk">"supply_integrity"</span>: <span class="jv">"99.2%"</span>,
+  <span class="jk">"pending_verifications"</span>: <span class="jn">3</span>,
+  <span class="jk">"active_alerts"</span>: <span class="jn">7</span>
+}
+      </div>
+
+      <h3>POST /api/v2/audit/verify_signature</h3>
+      <div class="dp-json-block">
+<span class="jv">/* Request */</span>
+{
+  <span class="jk">"event_id"</span>: <span class="jv">"550e8400-..."</span>,
+  <span class="jk">"signature"</span>: <span class="jv">"Q2Fk9d...Jai72x"</span>,
+  <span class="jk">"manifest_hash"</span>: <span class="jv">"a7b45c2891f..."</span>
+}
+
+<span class="jv">/* Success response */</span>
+<span class="jk">"data"</span>: { <span class="jk">"valid"</span>: <span class="jb">true</span>, <span class="jk">"event_id"</span>: <span class="jv">"550e8400-..."</span>, <span class="jk">"error"</span>: <span class="jb">null</span> }
+
+<span class="jv">/* Failure response */</span>
+<span class="jk">"data"</span>: { <span class="jk">"valid"</span>: <span class="jb">false</span>, <span class="jk">"event_id"</span>: <span class="jv">"550e8400-..."</span>, <span class="jk">"error"</span>: <span class="jv">"Signature does not match manifest hash"</span> }
+      </div>
+
+      <h3>POST /api/v2/audit/reports/compliance</h3>
+      <div class="dp-json-block">
+<span class="jv">/* Request */</span>
+{
+  <span class="jk">"jurisdiction"</span>: <span class="jv">"Kenya"</span>,
+  <span class="jk">"status"</span>: <span class="jv">"completed"</span>,
+  <span class="jk">"operator_id"</span>: <span class="jv">"Admin01"</span>,
+  <span class="jk">"report_type"</span>: <span class="jv">"compliance"</span>,
+  <span class="jk">"from"</span>: <span class="jv">"2026-01-01"</span>,
+  <span class="jk">"to"</span>: <span class="jv">"2026-04-16"</span>
+}
+
+<span class="jv">/* Response */</span>
+<span class="jk">"data"</span>: {
+  <span class="jk">"report_id"</span>: <span class="jv">"RPT-20493"</span>,
+  <span class="jk">"status"</span>: <span class="jv">"generating"</span>,
+  <span class="jk">"jurisdiction"</span>: <span class="jv">"Kenya"</span>,
+  <span class="jk">"generated_at"</span>: <span class="jv">"2026-04-16T15:00:00Z"</span>
+}
+      </div>
+
+      <h3>GET /api/v2/audit/reports/:id/download</h3>
+      <p>Returns <code>data.download_url</code> as a relative path. The Qt client displays this URL in a dialog for manual download (binary file streaming is Phase 2).</p>
+
+      <h3>POST /api/v2/audit/anchor_snapshot</h3>
+      <div class="dp-json-block">
+<span class="jv">/* Request */</span>
+{
+  <span class="jk">"jurisdiction"</span>: <span class="jv">"Kenya"</span>,
+  <span class="jk">"anchored_at"</span>: <span class="jv">"2026-04-16T15:05:00Z"</span>
+}
+
+<span class="jv">/* Response */</span>
+<span class="jk">"data"</span>: {
+  <span class="jk">"id"</span>: <span class="jv">"uuid"</span>,
+  <span class="jk">"snapshot_hash"</span>: <span class="jv">"b3a8776e6d1254..."</span>,
+  <span class="jk">"dlt_tx_id"</span>: <span class="jv">null</span>,
+  <span class="jk">"anchored_by"</span>: <span class="jv">"Admin01"</span>,
+  <span class="jk">"anchored_at"</span>: <span class="jv">"2026-04-16T15:05:00Z"</span>
+}
+      </div>
+
+      <h3>Route Summary</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Controller#Action</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/api/v2/audit/events</code></td><td><code>events#index</code></td></tr>
+          <tr><td>GET</td><td><code>/api/v2/audit/events/export</code></td><td><code>events#export</code></td></tr>
+          <tr><td>GET</td><td><code>/api/v2/audit/events/:id</code></td><td><code>events#show</code></td></tr>
+          <tr><td>GET</td><td><code>/api/v2/audit/health_metrics</code></td><td><code>events#health_metrics</code></td></tr>
+          <tr><td>POST</td><td><code>/api/v2/audit/verify_signature</code></td><td><code>signatures#create</code></td></tr>
+          <tr><td>POST</td><td><code>/api/v2/audit/reports/compliance</code></td><td><code>reports#compliance</code></td></tr>
+          <tr><td>GET</td><td><code>/api/v2/audit/reports/:id/download</code></td><td><code>reports#download</code></td></tr>
+          <tr><td>POST</td><td><code>/api/v2/audit/anchor_snapshot</code></td><td><code>snapshots#create</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-info" style="margin-top:24px;">
+        <span class="dp-ci">ℹ</span>
+        <div>
+          <strong>Qt Parsing Guarantee:</strong> All responses follow the stable envelope.
+          The Qt controller always reads: <code>root["success"].toBool()</code> and
+          <code>root["data"].toObject()</code>. Fields within <code>data</code> — including
+          <code>events</code>, <code>snapshot_hash</code>, <code>valid</code> — will never
+          be renamed in v2. New fields are additive only.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dp-main -->
+
+  <div class="dp-footer">
+    bearerCORE™ CBDC Platform &middot; TowerPoint Group &middot; Audit &amp; Reports Specification &middot; April 2026
+  </div>
+
+</div>

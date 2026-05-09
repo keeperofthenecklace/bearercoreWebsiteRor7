@@ -1,0 +1,581 @@
+<%# app/views/documents_portal/interface_standards.html.erb
+    §6.4 Sovereign Interface Standards — Brand & Visual Identity specification %>
+
+<%= render 'docs/doc_styles' %>
+
+<%# ── Inline swatch helper styles ─────────────────────────────────────────── %>
+<style>
+  .swatch-row   { display:flex; gap:12px; flex-wrap:wrap; margin:16px 0 24px; }
+  .swatch       { border-radius:6px; padding:18px 20px 14px; min-width:160px;
+                  flex:1; border:1px solid rgba(255,255,255,0.08); }
+  .swatch-name  { font-weight:700; font-size:12px; color:#fff; letter-spacing:.3px; }
+  .swatch-var   { font-size:11px; color:rgba(255,255,255,.55); margin-top:2px; }
+  .swatch-hex   { display:inline-block; margin-top:10px; font-size:11px;
+                  font-family:monospace; padding:2px 8px; border-radius:3px;
+                  background:rgba(0,0,0,.3); color:#fff; }
+  .swatch-use   { font-size:10px; color:rgba(255,255,255,.45); margin-top:4px; }
+
+  .hier-table td:first-child { font-weight:600; white-space:nowrap; }
+  .qss-block    { background:#0B1E2D; color:#C9E8FF; border-radius:6px;
+                  padding:20px; font-size:11px; font-family:monospace;
+                  line-height:1.7; overflow:auto; border:1px solid #2A3640; }
+  .qss-block .c { color:#5A7A5A; }   /* comment */
+  .qss-block .s { color:#27AE60; }   /* selector */
+  .qss-block .p { color:#A0AAB4; }   /* property */
+  .qss-block .v { color:#1976D2; }   /* value — blue */
+  .qss-block .h { color:#C9A84C; }   /* hex colour */
+
+  .flow-step    { display:flex; align-items:flex-start; gap:16px; margin:10px 0; }
+  .flow-num     { flex-shrink:0; width:28px; height:28px; border-radius:50%;
+                  background:#1565C0; color:#fff; display:flex; align-items:center;
+                  justify-content:center; font-weight:700; font-size:12px; }
+  .flow-arrow   { color:#27AE60; font-weight:700; padding:0 6px; align-self:center; }
+</style>
+
+<div class="dp-wrap">
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">Interface Standards</span>
+    <span class="dp-topbar-tag">Reference</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:680px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · Design System</div>
+      <h1>§6.4 Sovereign Interface Standards</h1>
+      <p class="dp-cover-desc">
+        Visual consistency in a CBDC environment is not merely aesthetic — it is a
+        psychological indicator of stability and trust. A unified colour palette reduces
+        cognitive load for operators handling billions in sovereign digital assets and
+        ensures that every entry point, from the Authentication Gateway to the Issuance
+        Desk, reads as a single hardened system.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>1.0</b></div>
+        <div>Palette <b>Sovereign Navy</b></div>
+        <div>Status <b>Enforced</b></div>
+        <div>Scope <b>Qt6 Desktop · All Modules</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-sidenav">
+    <a href="#rationale">Rationale</a>
+    <a href="#palette">Colour Palette</a>
+    <a href="#hierarchy">Visual Hierarchy</a>
+    <a href="#screens">Screen-by-Screen</a>
+    <a href="#qss">QSS Reference</a>
+    <a href="#rules">Enforcement Rules</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <!-- ══════════════ §6.4.1 RATIONALE ══════════════ -->
+    <div class="dp-section" id="rationale">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6.4.1</div>
+        <h2>Rationale — The Anchor Effect</h2>
+      </div>
+
+      <p>
+        When an operator transitions from the Authentication Gateway into the main workspace,
+        a jarring colour shift — dark login to bright dashboard — forces the brain to
+        <em>re-orient</em>. In a high-stakes environment where a single mis-click can affect
+        a sovereign currency balance, unnecessary cognitive effort is a security risk.
+      </p>
+      <p>
+        A consistent theme creates an <strong>Anchor</strong>: the operator does not have to
+        "re-learn" the UI between session states. Colours remain the same across:
+      </p>
+
+      <div style="display:flex;gap:0;align-items:center;margin:24px 0;flex-wrap:wrap;">
+        <div class="flow-step" style="margin:0;">
+          <div class="flow-num">1</div>
+          <div>
+            <div style="font-weight:700;font-size:13px;">Splash Screen</div>
+            <div style="font-size:11px;color:#666;">SovereignNavy background</div>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="margin:0;">
+          <div class="flow-num">2</div>
+          <div>
+            <div style="font-weight:700;font-size:13px;">Authentication Gateway</div>
+            <div style="font-size:11px;color:#666;">SlatePanel header · ActionBlue button</div>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="margin:0;">
+          <div class="flow-num">3</div>
+          <div>
+            <div style="font-weight:700;font-size:13px;">Main Workspace</div>
+            <div style="font-size:11px;color:#666;">SlatePanel menu bar · SovereignNavy MDI</div>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="margin:0;">
+          <div class="flow-num">4</div>
+          <div>
+            <div style="font-weight:700;font-size:13px;">Issuance Desk</div>
+            <div style="font-size:11px;color:#666;">ActionBlue active tab · MintGreen success</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dp-callout dp-ok">
+        <span class="dp-ci">🏛</span>
+        <div>
+          For a sovereign platform serving Africa's digital money, consistency is a proxy
+          for security. A unified palette signals a singular, integrated, hardened system —
+          not a collection of loosely bolted tools.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ §6.4.2 COLOUR PALETTE ══════════════ -->
+    <div class="dp-section" id="palette">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6.4.2</div>
+        <h2>The "Sovereign Navy" Colour Palette</h2>
+      </div>
+
+      <p>
+        Six tokens cover every surface in the application. All QSS stylesheets must
+        reference only these values — no ad-hoc colours.
+      </p>
+
+      <div class="swatch-row">
+        <div class="swatch" style="background:#0B1E2D;">
+          <div class="swatch-name">Sovereign Navy</div>
+          <div class="swatch-var">@SovereignNavy</div>
+          <div class="swatch-hex">#0B1E2D</div>
+          <div class="swatch-use">Primary background · Login · MDI workspace</div>
+        </div>
+        <div class="swatch" style="background:#1C252C;">
+          <div class="swatch-name">Slate Panel</div>
+          <div class="swatch-var">@SlatePanel</div>
+          <div class="swatch-hex">#1C252C</div>
+          <div class="swatch-use">Menu bar · Sidebars · Login header · Status ribbon</div>
+        </div>
+        <div class="swatch" style="background:#1565C0;">
+          <div class="swatch-name">Action Blue</div>
+          <div class="swatch-var">@ActionBlue</div>
+          <div class="swatch-hex">#1565C0</div>
+          <div class="swatch-use">Primary buttons · Active tabs · Focus border</div>
+        </div>
+      </div>
+      <div class="swatch-row">
+        <div class="swatch" style="background:#27AE60;">
+          <div class="swatch-name">Mint Success</div>
+          <div class="swatch-var">@MintSuccess</div>
+          <div class="swatch-hex">#27AE60</div>
+          <div class="swatch-use">Active-tab accent border · Section labels · Governance approval · Logo "Q" green</div>
+        </div>
+        <div class="swatch" style="background:#4A5568;">
+          <div class="swatch-name">Text Primary</div>
+          <div class="swatch-var">@TextPrimary</div>
+          <div class="swatch-hex">#FFFFFF</div>
+          <div class="swatch-use">High-contrast text on dark backgrounds</div>
+        </div>
+        <div class="swatch" style="background:#2A3640;">
+          <div class="swatch-name">Text Secondary / Border</div>
+          <div class="swatch-var">@TextSecondary / @Border</div>
+          <div class="swatch-hex">#A0AAB4 / #2A3640</div>
+          <div class="swatch-use">Muted labels · Timestamps · Field borders · Separators</div>
+        </div>
+      </div>
+
+      <h3>Supplementary Tokens</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Token</th><th>Hex</th><th>Usage</th></tr></thead>
+        <tbody>
+          <tr><td><code>InputBg</code></td><td><code>#141D26</code></td><td>Input field background — darker than SovereignNavy for depth cue</td></tr>
+          <tr><td><code>ActionBlueHover</code></td><td><code>#1976D2</code></td><td>Button hover state — lighter lift on ActionBlue</td></tr>
+          <tr><td><code>ActionBluePressed</code></td><td><code>#0D47A1</code></td><td>Button pressed / active state</td></tr>
+          <tr><td><code>DangerRed</code></td><td><code>#B71C1C</code></td><td>Error states · Quarantine alerts · Lockdown button</td></tr>
+          <tr><td><code>LoginGradientCenter</code></td><td><code>#162E44</code></td><td>Radial gradient center on login — slightly lighter than SovereignNavy</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-warn" style="margin-top:20px;">
+        <span class="dp-ci">⚠</span>
+        <div>
+          <strong>No ad-hoc colours.</strong> If a new panel or dialog requires a colour
+          not listed above, submit a design change request. Introducing one-off hex values
+          fragments the palette and breaks the Anchor Effect for operators.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ §6.4.3 VISUAL HIERARCHY ══════════════ -->
+    <div class="dp-section" id="hierarchy">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6.4.3</div>
+        <h2>Visual Hierarchy Summary</h2>
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table hier-table">
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Background</th>
+            <th>Text / Accent</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Splash Screen</td>
+            <td><code>#0B1E2D</code> SovereignNavy</td>
+            <td><code>#FFFFFF</code> · <code>#27AE60</code> version</td>
+            <td>First contact with the palette — sets expectation</td>
+          </tr>
+          <tr>
+            <td>Login Header</td>
+            <td><code>#1C252C</code> SlatePanel</td>
+            <td><code>#FFFFFF</code> title · <code>#A0AAB4</code> subtitle</td>
+            <td>Bottom border: <code>2px solid #27AE60</code> MintSuccess</td>
+          </tr>
+          <tr>
+            <td>Login Background</td>
+            <td>Radial gradient: <code>#162E44 → #0B1E2D</code></td>
+            <td>—</td>
+            <td>Premium depth; avoids flat near-black</td>
+          </tr>
+          <tr>
+            <td>Login Accent Line</td>
+            <td><code>#27AE60</code> MintSuccess</td>
+            <td>—</td>
+            <td>2px divider below header; visual link to "Action/Value"</td>
+          </tr>
+          <tr>
+            <td>Section Label (OPERATOR SIGN-IN)</td>
+            <td>transparent</td>
+            <td><code>#27AE60</code> MintSuccess</td>
+            <td>Reinforces the Money/Action colour link</td>
+          </tr>
+          <tr>
+            <td>Input Fields</td>
+            <td><code>#141D26</code> InputBg</td>
+            <td><code>#FFFFFF</code></td>
+            <td>Border: <code>#2A3640</code>; focus border: <code>#1565C0</code></td>
+          </tr>
+          <tr>
+            <td>Primary Button (Secure Login / Mint)</td>
+            <td><code>#1565C0</code> ActionBlue</td>
+            <td><code>#FFFFFF</code> bold</td>
+            <td>Hover: <code>#1976D2</code>; Pressed: <code>#0D47A1</code></td>
+          </tr>
+          <tr>
+            <td>Status Ribbon</td>
+            <td><code>#1C252C</code> SlatePanel</td>
+            <td><code>#A0AAB4</code> TextSecondary</td>
+            <td>Top border: <code>#2A3640</code>; mirrors menu bar</td>
+          </tr>
+          <tr>
+            <td>Menu Bar</td>
+            <td><code>#1C252C</code> SlatePanel</td>
+            <td><code>#FFFFFF</code></td>
+            <td>Selected item: <code>#1565C0</code> ActionBlue</td>
+          </tr>
+          <tr>
+            <td>Toolbar</td>
+            <td><code>#1C252C</code> SlatePanel</td>
+            <td><code>#A0AAB4</code> icons</td>
+            <td>Hover: <code>#1565C0</code></td>
+          </tr>
+          <tr>
+            <td>MDI Workspace</td>
+            <td><code>#0B1E2D</code> SovereignNavy</td>
+            <td>—</td>
+            <td>Frame border: <code>#2A3640</code></td>
+          </tr>
+          <tr>
+            <td>Active Tab</td>
+            <td><code>#1565C0</code> ActionBlue</td>
+            <td><code>#FFFFFF</code> bold</td>
+            <td>Bottom border: <code>2px solid #27AE60</code></td>
+          </tr>
+          <tr>
+            <td>Inactive Tab</td>
+            <td>transparent</td>
+            <td><code>#A0AAB4</code> TextSecondary</td>
+            <td>Hover: <code>#1C252C</code> SlatePanel lift</td>
+          </tr>
+          <tr>
+            <td>Tab Bar Strip</td>
+            <td><code>#0B1E2D</code> SovereignNavy</td>
+            <td>—</td>
+            <td>Pane top border: <code>2px solid #1565C0</code></td>
+          </tr>
+          <tr>
+            <td>Content Pane</td>
+            <td><code>#FFFFFF</code></td>
+            <td><code>#0B1E2D</code> dark text</td>
+            <td>Keeps form content highly readable</td>
+          </tr>
+          <tr>
+            <td>Status Bar</td>
+            <td><code>#1C252C</code> SlatePanel</td>
+            <td><code>#A0AAB4</code></td>
+            <td>Top border: <code>#2A3640</code></td>
+          </tr>
+          <tr>
+            <td>Success / Minting Indicator</td>
+            <td>transparent</td>
+            <td><code>#27AE60</code> MintSuccess</td>
+            <td>Used for "Governance: Approved", checkmarks, version text</td>
+          </tr>
+          <tr>
+            <td>Danger / Quarantine</td>
+            <td><code>#1A0808</code></td>
+            <td><code>#B71C1C</code> DangerRed</td>
+            <td>Used for lockdown button, integrity failure panels</td>
+          </tr>
+          <tr>
+            <td>Scroll Bar Handle</td>
+            <td><code>#2A3640</code></td>
+            <td>—</td>
+            <td>Hover: <code>#1565C0</code></td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ══════════════ §6.4.4 SCREEN-BY-SCREEN ══════════════ -->
+    <div class="dp-section" id="screens">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6.4.4</div>
+        <h2>Screen-by-Screen Application</h2>
+      </div>
+
+      <h3>Splash Screen</h3>
+      <p>
+        The first thing an operator sees. Background must be <code>#0B1E2D</code>
+        SovereignNavy — never white or system default. The version number is rendered in
+        <code>#27AE60</code> MintSuccess to introduce the green accent from the very first
+        frame. Application name in <code>#FFFFFF</code>; caption text in
+        <code>#A0AAB4</code> TextSecondary.
+      </p>
+
+      <h3>Authentication Gateway (Login Dialog)</h3>
+      <p>
+        The "front door to the Mint." Three zones, each with a defined role:
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Zone</th><th>Treatment</th><th>Design Rationale</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Header</strong></td>
+            <td>SlatePanel <code>#1C252C</code> with <code>2px #27AE60</code> bottom border. Logo centred, 80 × 80 px.</td>
+            <td>Matches the menu bar authority inside the app — operator sees the same "institutional header" on login and inside.</td>
+          </tr>
+          <tr>
+            <td><strong>Form Area</strong></td>
+            <td>Radial gradient <code>#162E44 → #0B1E2D</code>. Inputs on <code>#141D26</code>, focused with <code>#1565C0</code> border.</td>
+            <td>Premium depth without harsh contrast; the gradient centre draws the eye to the form.</td>
+          </tr>
+          <tr>
+            <td><strong>Status Ribbon</strong></td>
+            <td>SlatePanel <code>#1C252C</code>, TextSecondary labels, <code>#2A3640</code> separators.</td>
+            <td>Mirrors the application status bar — the operator's eye never has to "leave" the palette.</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <h3>Main Application Workspace</h3>
+      <p>
+        When the operator clicks "SECURE LOGIN," the transition must feel like a
+        <em>curtain lifting</em>, not a jump to a new application. This is achieved by:
+      </p>
+      <ul style="margin:0 0 16px 24px;line-height:1.9;">
+        <li>Menu bar background <code>#1C252C</code> — same as the login ribbon and header</li>
+        <li>MDI workspace background <code>#0B1E2D</code> — same as the login form gradient edge</li>
+        <li>Toolbar background <code>#1C252C</code> — continuous dark strip across the top</li>
+        <li>Status bar background <code>#1C252C</code> — same as the login ribbon</li>
+      </ul>
+
+      <h3>Tab Navigation (Issuance, Corridor Ops, Validation…)</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>State</th><th>Style</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Active tab</strong></td>
+            <td><code>#1565C0</code> fill · <code>#FFFFFF</code> bold text · <code>2px solid #27AE60</code> bottom accent border</td>
+          </tr>
+          <tr>
+            <td><strong>Inactive tab</strong></td>
+            <td>Transparent · <code>#A0AAB4</code> TextSecondary text</td>
+          </tr>
+          <tr>
+            <td><strong>Hover (inactive)</strong></td>
+            <td><code>#1C252C</code> SlatePanel lift · <code>#FFFFFF</code> text</td>
+          </tr>
+          <tr>
+            <td><strong>Tab bar strip</strong></td>
+            <td><code>#0B1E2D</code> SovereignNavy — continuous with the MDI workspace</td>
+          </tr>
+          <tr>
+            <td><strong>Content pane</strong></td>
+            <td><code>#FFFFFF</code> — high readability for forms and tables</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-ok">
+        <span class="dp-ci">✔</span>
+        <div>
+          The MintSuccess (<code>#27AE60</code>) bottom border on the active tab is the
+          same green as the logo "Q" and the "Governance: Approved" badge. This creates a
+          direct visual link: <em>the colour of access = the colour of value = the colour
+          of approval.</em>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ §6.4.5 QSS REFERENCE ══════════════ -->
+    <div class="dp-section" id="qss">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6.4.5</div>
+        <h2>Qt Style Sheet (QSS) Reference</h2>
+      </div>
+
+      <p>
+        The global stylesheet is applied in <code>main.cpp</code> via
+        <code>QApplication::setStyleSheet()</code> before any window is shown.
+        Per-widget stylesheets in individual dialogs may override specific rules
+        without conflict.
+      </p>
+
+      <h4>Global Structural Chrome (<code>main.cpp</code>)</h4>
+      <div class="qss-block">
+<span class="c">/* Main Window & MDI workspace */</span>
+<span class="s">QMainWindow</span> { <span class="p">background-color</span>: <span class="h">#0B1E2D</span>; }
+<span class="s">QMdiArea</span>    { <span class="p">background-color</span>: <span class="h">#0B1E2D</span>; <span class="p">border</span>: <span class="v">none</span>; }
+
+<span class="c">/* Menu bar — SlatePanel authority strip */</span>
+<span class="s">QMenuBar</span> { <span class="p">background-color</span>: <span class="h">#1C252C</span>; <span class="p">color</span>: <span class="h">#FFFFFF</span>; <span class="p">border-bottom</span>: <span class="v">1px solid</span> <span class="h">#2A3640</span>; }
+<span class="s">QMenuBar::item:selected</span> { <span class="p">background-color</span>: <span class="h">#1565C0</span>; }
+
+<span class="c">/* Drop-down menus */</span>
+<span class="s">QMenu</span> { <span class="p">background-color</span>: <span class="h">#1C252C</span>; <span class="p">color</span>: <span class="h">#FFFFFF</span>; <span class="p">border</span>: <span class="v">1px solid</span> <span class="h">#2A3640</span>; }
+<span class="s">QMenu::item:selected</span> { <span class="p">background-color</span>: <span class="h">#1565C0</span>; }
+<span class="s">QMenu::separator</span>     { <span class="p">background</span>: <span class="h">#2A3640</span>; <span class="p">height</span>: <span class="v">1px</span>; <span class="p">margin</span>: <span class="v">3px 8px</span>; }
+
+<span class="c">/* Toolbar */</span>
+<span class="s">QToolBar</span> { <span class="p">background-color</span>: <span class="h">#1C252C</span>; <span class="p">border-bottom</span>: <span class="v">1px solid</span> <span class="h">#2A3640</span>; }
+<span class="s">QToolBar QToolButton:hover</span> { <span class="p">background-color</span>: <span class="h">#1565C0</span>; <span class="p">color</span>: <span class="h">#FFFFFF</span>; }
+
+<span class="c">/* Status bar */</span>
+<span class="s">QStatusBar</span> { <span class="p">background-color</span>: <span class="h">#1C252C</span>; <span class="p">color</span>: <span class="h">#A0AAB4</span>; <span class="p">border-top</span>: <span class="v">1px solid</span> <span class="h">#2A3640</span>; }
+
+<span class="c">/* Scroll bars */</span>
+<span class="s">QScrollBar::handle:vertical</span>   { <span class="p">background</span>: <span class="h">#2A3640</span>; }
+<span class="s">QScrollBar::handle:vertical:hover</span> { <span class="p">background</span>: <span class="h">#1565C0</span>; }
+      </div>
+
+      <h4 style="margin-top:24px;">Login Dialog (<code>logindialog.cpp</code>)</h4>
+      <div class="qss-block">
+<span class="c">/* Radial gradient background — premium depth */</span>
+<span class="s">QDialog</span> {
+  <span class="p">background</span>: <span class="v">qradialgradient(cx:0.5, cy:0.35, radius:0.75,</span>
+               <span class="v">fx:0.5, fy:0.35,</span>
+               <span class="v">stop:0</span> <span class="h">#162E44</span><span class="v">, stop:1</span> <span class="h">#0B1E2D</span><span class="v">)</span>;
+}
+
+<span class="c">/* Header — SlatePanel with MintSuccess bottom accent */</span>
+<span class="c">/* background-color: #1C252C; border-bottom: 2px solid #27AE60; */</span>
+
+<span class="c">/* Input fields — InputBg with ActionBlue focus border */</span>
+<span class="s">QLineEdit, QComboBox</span> {
+  <span class="p">background</span>: <span class="h">#141D26</span>; <span class="p">border</span>: <span class="v">1px solid</span> <span class="h">#2A3640</span>; <span class="p">color</span>: <span class="h">#FFFFFF</span>;
+}
+<span class="s">QLineEdit:focus, QComboBox:focus</span> { <span class="p">border-color</span>: <span class="h">#1565C0</span>; }
+
+<span class="c">/* Primary button — solid ActionBlue (no gradient) */</span>
+<span class="s">QPushButton</span> { <span class="p">background-color</span>: <span class="h">#1565C0</span>; <span class="p">color</span>: <span class="h">#FFFFFF</span>; <span class="p">border</span>: <span class="v">none</span>; }
+<span class="s">QPushButton:hover</span>   { <span class="p">background-color</span>: <span class="h">#1976D2</span>; }
+<span class="s">QPushButton:pressed</span> { <span class="p">background-color</span>: <span class="h">#0D47A1</span>; }
+
+<span class="c">/* Status ribbon — SlatePanel mirrors menu bar */</span>
+<span class="c">/* background-color: #1C252C; border-top: 1px solid #2A3640; */</span>
+      </div>
+
+      <h4 style="margin-top:24px;">Tab Widget (<code>scprojectpage.cpp</code>)</h4>
+      <div class="qss-block">
+<span class="s">QTabBar</span>           { <span class="p">background</span>: <span class="h">#0B1E2D</span>; }
+<span class="s">QTabBar::tab</span>      { <span class="p">background</span>: <span class="v">transparent</span>; <span class="p">color</span>: <span class="h">#A0AAB4</span>; <span class="p">border-bottom</span>: <span class="v">2px solid transparent</span>; }
+<span class="s">QTabBar::tab:selected</span> {
+  <span class="p">background</span>: <span class="h">#1565C0</span>; <span class="p">color</span>: <span class="h">#FFFFFF</span>; <span class="p">font-weight</span>: <span class="v">bold</span>;
+  <span class="p">border-bottom</span>: <span class="v">2px solid</span> <span class="h">#27AE60</span>;   <span class="c">/* MintSuccess accent */</span>
+}
+<span class="s">QTabBar::tab:hover:!selected</span> { <span class="p">background</span>: <span class="h">#1C252C</span>; <span class="p">color</span>: <span class="h">#FFFFFF</span>; }
+<span class="s">QTabWidget::pane</span>  { <span class="p">background</span>: <span class="h">#FFFFFF</span>; <span class="p">border-top</span>: <span class="v">2px solid</span> <span class="h">#1565C0</span>; }
+      </div>
+    </div>
+
+    <!-- ══════════════ §6.4.6 ENFORCEMENT RULES ══════════════ -->
+    <div class="dp-section" id="rules">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6.4.6</div>
+        <h2>Enforcement Rules</h2>
+      </div>
+
+      <p>
+        To maintain operational trust and minimise cognitive fatigue, the following rules
+        are mandatory for all current and future bearerCORE™ modules:
+      </p>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>#</th><th>Rule</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>All entry points (login, splash, license wizard) must use <code>#0B1E2D</code> as background — never white or system default.</td>
+            <td>The Anchor Effect requires the operator to meet the same palette before they see any content.</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>The global QSS in <code>main.cpp</code> must not be removed or replaced with <code>setStyle("windows")</code>.</td>
+            <td>The Windows style engine overrides custom QSS on structural widgets (menu bar, toolbar, scrollbars), breaking the palette.</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Every primary action button must use <code>#1565C0</code> ActionBlue. Secondary / destructive actions use <code>#1A0808</code> with <code>#B71C1C</code> text.</td>
+            <td>Colour encodes intent — operators must never have to read a button label to know if it is safe.</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><code>#27AE60</code> MintSuccess is reserved for success states, approval indicators, and active-tab accents only. Do not use it for informational labels.</td>
+            <td>Semantic consistency — if MintSuccess appears, the operator knows something was approved or is currently active.</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>New dialogs and sub-windows must inherit from the global QSS. They may set per-widget overrides but must not introduce colours outside the palette.</td>
+            <td>Prevents the gradual drift that fragments a unified system into a patchwork.</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Critical alert panels (quarantine, lockdown, integrity failure) use <code>#1A0808</code> background with <code>#B71C1C</code> border and text. They must never use ActionBlue or MintSuccess.</td>
+            <td>Red must retain exclusive ownership of the "danger" semantic. Colour-borrowing erodes the alert hierarchy.</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-ok" style="margin-top:24px;">
+        <span class="dp-ci">📋</span>
+        <div>
+          <strong>Standard wording for technical specifications and procurement documents:</strong>
+          <br><br>
+          <em>"The bearerCORE™ platform utilises a unified 'Sovereign Navy' colour palette
+          applied consistently across all session states, from the Authentication Gateway
+          through the Issuance Desk. This standard is enforced via Qt Style Sheets applied
+          at the QApplication level and must be maintained in all future modules to ensure
+          operational trust, minimise cognitive load, and provide a single recognisable
+          interface identity for central bank operators."</em>
+        </div>
+      </div>
+    </div>
+
+  </div><%# .dp-main %>
+</div><%# .dp-wrap %>

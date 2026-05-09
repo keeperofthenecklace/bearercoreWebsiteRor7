@@ -1,0 +1,1298 @@
+<%# app/views/documents_portal/systems_events.html.erb
+    System Events — Forensic Infrastructure Workstation
+    System Design & UI Behavior Specification v1.0 %>
+
+<%= render 'docs/doc_styles' %>
+
+<style>
+/* ── System Events–specific extensions ── */
+
+/* Severity badge row in the event stream */
+.se-sev {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+.se-sev.info     { background: #e0f7fa; color: #006064; border: 1px solid #80deea; }
+.se-sev.warn     { background: #fff8e1; color: #e65100; border: 1px solid #ffe082; }
+.se-sev.error    { background: #fce4ec; color: #b71c1c; border: 1px solid #ef9a9a; }
+.se-sev.audit    { background: #1a1200; color: #ffd700; border: 1px solid #7d6608; }
+.se-sev.critical { background: #b71c1c; color: #fff; border: 1px solid #7f0000; }
+
+/* Node health card */
+.se-node-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin: 12px 0 20px;
+}
+.se-node-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 12px;
+}
+.se-node-card .node-name {
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+.se-node-card .node-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.se-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.se-dot.green  { background: #4caf50; box-shadow: 0 0 4px rgba(76,175,80,0.5); }
+.se-dot.amber  { background: #ffb74d; box-shadow: 0 0 4px rgba(255,183,77,0.5); }
+.se-dot.red    { background: #ef5350; box-shadow: 0 0 4px rgba(239,83,80,0.5); }
+.se-node-card .node-stat { color: var(--text-muted); font-size: 11px; line-height: 1.7; }
+
+/* Terminal log row mockup */
+.se-terminal {
+  background: #0d0d0d;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  padding: 0;
+  overflow: hidden;
+  margin: 10px 0 16px;
+}
+.se-terminal-bar {
+  background: #1a1a1a;
+  padding: 6px 14px;
+  font-size: 11px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #2a2a2a;
+}
+.se-terminal-bar .live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #4caf50;
+  box-shadow: 0 0 6px rgba(76,175,80,0.7);
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.se-terminal-body { padding: 10px 14px; font-family: var(--font-mono); font-size: 11px; line-height: 1.9; }
+.se-log-row { display: flex; gap: 12px; align-items: baseline; border-bottom: 1px solid #1a1a1a; padding: 2px 0; }
+.se-log-row:last-child { border-bottom: none; }
+.se-log-ts   { color: #555; min-width: 170px; flex-shrink: 0; }
+.se-log-svc  { color: #6ea6e0; min-width: 90px; flex-shrink: 0; }
+.se-log-msg.info  { color: #a0c4ff; }
+.se-log-msg.warn  { color: #ffb74d; }
+.se-log-msg.error { color: #ef5350; }
+.se-log-msg.audit { color: #ffd700; }
+
+/* Live-tail toggle button mockup */
+.se-live-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #0d2a0d;
+  border: 1px solid #2e7d32;
+  border-radius: 4px;
+  color: #4caf50;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+/* Metadata inspector card */
+.se-meta-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 10px 0 16px;
+}
+.se-meta-card-head {
+  background: var(--navy);
+  color: white;
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.se-meta-card-body { padding: 12px 16px; }
+.se-meta-row {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 4px 12px;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+.se-meta-lbl { color: var(--text-light); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+.se-meta-val { color: var(--text); font-family: var(--font-mono); }
+
+/* Audit-specific callout */
+.dp-audit {
+  background: #1a1200;
+  border-left: 3px solid #ffd700;
+  color: #ffd700;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  display: flex;
+  gap: 10px;
+}
+.dp-audit .dp-ci { color: #ffd700; }
+</style>
+
+<div class="dp-wrap">
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">System Events — Forensic Infrastructure Workstation</span>
+    <span class="dp-topbar-tag" style="color:#ffd700;border-color:rgba(255,215,0,0.35);">v1.0 — Current</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:720px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · System Design &amp; UI Behavior Specification</div>
+      <h1>System Events — Forensic Infrastructure Workstation</h1>
+      <p class="dp-cover-desc">
+        Complete backend and frontend specification for the System Events tab. Covers real-time
+        infrastructure health monitoring, sovereign-grade event streaming, AUDIT authority signatures,
+        forensic payload inspection, trace stack capture, and RBAC-gated access for the
+        System Administrator role. Defines every field, panel, button, and data model required
+        to build the monitoring and forensic system without further clarification.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>1.0</b></div>
+        <div>Updated <b>April 2026</b></div>
+        <div>Status <b>Current</b></div>
+        <div>Access Role <b>System Administrator</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-secnav">
+    <a href="#overview">§1 Overview</a>
+    <a href="#data-models">§2 Data Models</a>
+    <a href="#left-pane">§3 Left Pane</a>
+    <a href="#middle-pane">§4 Middle Pane</a>
+    <a href="#right-pane">§5 Right Pane</a>
+    <a href="#buttons">§6 Buttons</a>
+    <a href="#edge-cases">§7 Edge Cases</a>
+    <a href="#user-flow">§8 User Flow</a>
+    <a href="#architecture">§9 Architecture</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <%# ── §1 System Overview ───────────────────────────────────────────────── %>
+    <div class="dp-section" id="overview">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§1</div>
+        <h2>System Overview</h2>
+      </div>
+
+      <div class="dp-audit">
+        <span class="dp-ci">&#9733;</span>
+        <div>
+          <strong>Sovereign Logging Mandate:</strong> The System Events tab does NOT log UI
+          telemetry (button clicks, field changes, dialog openings). It logs every action that
+          carries <em>Administrative or Monetary Intent</em> — minting, issuance, transfers,
+          burns, approvals, rejections, signature operations, batch uploads, and security alerts.
+          These are permanent sovereign records. AUDIT-tier events are always visible regardless
+          of severity filter setting.
+        </div>
+      </div>
+
+      <p>
+        The System Events tab is the <strong>Forensic Infrastructure Workstation</strong> of the
+        bearerCORE™ CBDC platform. It provides a three-pane interface — Infrastructure Health (left),
+        Live Event Stream (centre), Event Inspection &amp; Forensics (right) — through which
+        System Administrators monitor node health, trace live events, investigate incidents, and
+        export certified audit logs.
+      </p>
+      <p>
+        The tab is gated behind the <code>system_admin</code> operator role. Operators with roles
+        of <code>auditor</code>, <code>operator</code>, <code>viewer</code>, or <code>null</code>
+        receive an "Access Restricted" modal when they attempt to navigate to the tab.
+        The tab itself is hidden from the tab bar for non-admin roles via
+        <code>QTabWidget::setTabVisible(6, false)</code> at application startup.
+      </p>
+
+      <h3>Key Concepts</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Concept</th><th>Definition</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Event Stream</strong></td>
+            <td>The ordered, time-stamped sequence of system events emitted by all services (Rails, Qt6, DLT, HSM, Nginx). Newest events appear at the top of the table. The stream is polled every 5 seconds in live-tail mode.</td>
+          </tr>
+          <tr>
+            <td><strong>Severity Levels</strong></td>
+            <td>
+              <span class="se-sev audit">AUDIT</span> — monetary/authority action, always visible, gold. &nbsp;
+              <span class="se-sev critical">CRITICAL</span> — service failure requiring immediate action. &nbsp;
+              <span class="se-sev error">ERROR</span> — recoverable failure. &nbsp;
+              <span class="se-sev warn">WARN</span> — degraded state. &nbsp;
+              <span class="se-sev info">INFO</span> — normal operational event.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Service Sources</strong></td>
+            <td>Each event is tagged with its origin: <code>Rails</code>, <code>Qt6 Bridge</code>, <code>DLT Node</code>, <code>HSM Module</code>, <code>PostgreSQL</code>, <code>Nginx</code>, <code>SFTP</code>, <code>Sidekiq</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>Event Metadata</strong></td>
+            <td>Structured data attached to every event: service, timestamp, payload, environment data, and cryptographic hash. Displayed in the right pane when a row is selected.</td>
+          </tr>
+          <tr>
+            <td><strong>Trace Stack</strong></td>
+            <td>A captured call-path array attached to ERROR and CRITICAL events. Shows the exact method chain from error origin to service boundary. Displayed in the right pane only when the selected event has <code>severity ∈ {ERROR, CRITICAL}</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>Payload Inspection</strong></td>
+            <td>The raw JSON body of the request or background job that produced the event. Sensitive fields (keys, tokens) are redacted with <code>***</code> before display. The payload is stored in <code>EventMetadata.payload</code> (JSONB).</td>
+          </tr>
+          <tr>
+            <td><strong>AUDIT Authority Signature</strong></td>
+            <td>All AUDIT-tier events carry a structured prefix: <code>[ACTION: {code}] | {message}</code>. Action codes are canonical verbs: <code>EXECUTE_MINT</code>, <code>EXECUTE_ISSUE</code>, <code>EXECUTE_TRANSFER</code>, <code>EXECUTE_BURN</code>, <code>AUTHORITY_APPROVE</code>, <code>AUTHORITY_REJECT</code>, <code>AUTHORITY_SIGN</code>, <code>SECURITY_ALERT</code>, <code>EXECUTE_FREEZE</code>, <code>BATCH_OPERATION</code>.</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-pane-grid">
+        <div class="dp-pane dp-pane-left">
+          <h3>Left Pane — Infrastructure Health</h3>
+          <ul>
+            <li>Six node health cards (Rails, DLT ×2, HSM, PostgreSQL, Nginx)</li>
+            <li>Status dot per card: green Active / amber Degraded / red Offline</li>
+            <li>Block height, peer count, uptime, thread count per card</li>
+            <li>Auto-refresh every 30 seconds via <code>GET /api/v2/health</code></li>
+            <li>Performance counters: CPU, Memory, Network Latency</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-middle">
+          <h3>Centre Pane — Live Event Stream</h3>
+          <ul>
+            <li>Five-column table: Severity · Timestamp · Service · Event ID · Message</li>
+            <li>Newest-first row insertion (<code>insertRow(0)</code>)</li>
+            <li>Live-tail toggle button (↓ Live, green when on)</li>
+            <li>Keyword search bar — filters all visible rows in real time</li>
+            <li>Severity combo: All / Info+ / Errors + Audit</li>
+            <li>AUDIT rows always visible regardless of filter setting</li>
+            <li>Export Terminal Logs, Clear Terminal, Clear Cache buttons</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-right">
+          <h3>Right Pane — Forensics &amp; Inspection</h3>
+          <ul>
+            <li>Event Metadata panel: ID, Severity, Timestamp, Service</li>
+            <li>Request Payload viewer (dark JSON pane, sensitive fields redacted)</li>
+            <li>Trace Stack (errors only) — call-path array</li>
+            <li>Performance Environment: Latency, CPU, Memory at event time</li>
+            <li>Cryptographic Reference: manifest hash + verification status</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Severity Decision Table</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Severity</th><th>Trigger Keywords / Conditions</th><th>Color (bg / fg)</th><th>Filter Behavior</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="se-sev audit">AUDIT</span></td>
+            <td><code>created cbdc</code>, <code>minted</code>, <code>printed</code>, <code>cbdc</code>, <code>burn</code>, <code>deposit</code>, <code>redeem</code>, <code>transfer</code>, <code>approved</code>, <code>rejected</code>, <code>counterfeit</code>, <code>freeze</code>, <code>ed25519</code>, <code>signature</code>, <code>batch upload</code>, <code>batch process</code>, <code>cache cleared</code>, <code>logs.txt deleted</code></td>
+            <td><code>#1a1200</code> / <code>#ffd700</code></td>
+            <td><strong>Always visible</strong> — bypasses severity filter. Keyword search still applies.</td>
+          </tr>
+          <tr>
+            <td><span class="se-sev critical">CRITICAL</span></td>
+            <td>Service unreachable, database connection lost, HSM key failure, DLT fork detected</td>
+            <td><code>#7f0000</code> / <code>#ffcdd2</code></td>
+            <td>Visible in All and Errors + Audit modes</td>
+          </tr>
+          <tr>
+            <td><span class="se-sev error">ERROR</span></td>
+            <td><code>error</code>, <code>failed</code>, <code>exception</code>, <code>fatal</code>, <code>crash</code></td>
+            <td><code>#fce4ec</code> / <code>#b71c1c</code></td>
+            <td>Visible in All and Errors + Audit modes</td>
+          </tr>
+          <tr>
+            <td><span class="se-sev warn">WARN</span></td>
+            <td><code>warn</code>, <code>timeout</code>, <code>retry</code>, <code>slow</code>, <code>degraded</code></td>
+            <td><code>#fff8e1</code> / <code>#e65100</code></td>
+            <td>Visible in All and Info+ modes</td>
+          </tr>
+          <tr>
+            <td><span class="se-sev info">INFO</span></td>
+            <td>All other messages not matched above</td>
+            <td><code>#e0f7fa</code> / <code>#006064</code></td>
+            <td>Visible in All mode only</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <h3>Noise Filter — What Is NOT Logged</h3>
+      <p>
+        The following message patterns are discarded at the intake point in
+        <code>setConsoleProcessing()</code> before any severity detection or row insertion:
+      </p>
+      <div class="dp-rule">
+        "Send button disabled"<br>
+        "Send button enabled"<br>
+        "button disabled"<br>
+        "Select Serial Number"<br>
+        "Showing Vault Mint Dialog"<br>
+        "File selection cancelled"<br>
+        "Directory path:"
+      </div>
+    </div>
+
+    <%# ── §2 Data Models ──────────────────────────────────────────────────── %>
+    <div class="dp-section" id="data-models">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§2</div>
+        <h2>Data Models</h2>
+      </div>
+
+      <p>
+        Seven models capture the full lifecycle of a system event — from raw emission through
+        metadata enrichment, trace capture, node health snapshot, and cryptographic reference.
+        All models link via <code>event_id</code> as the shared foreign key.
+      </p>
+
+      <h3>SystemEvent</h3>
+      <p>Root record for every event. Persisted to the Rails PostgreSQL database and to the local
+        <code>logs.txt</code> flat file simultaneously on every write.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Primary key</td></tr>
+          <tr><td class="f">event_id</td><td class="t">string</td><td>Human-readable reference, e.g. <code>EVT-20260417-A3F9</code></td></tr>
+          <tr><td class="f">timestamp</td><td class="t">timestamp</td><td>UTC emission time. Displayed in local timezone in the UI. Stored as UTC in PostgreSQL.</td></tr>
+          <tr><td class="f">severity</td><td class="t">enum</td><td><code>INFO</code> | <code>WARN</code> | <code>ERROR</code> | <code>CRITICAL</code> | <code>AUDIT</code></td></tr>
+          <tr><td class="f">service_source</td><td class="t">string</td><td>Originating service tag: <code>Rails</code> | <code>Qt6 Bridge</code> | <code>DLT Node</code> | <code>HSM Module</code> | <code>PostgreSQL</code> | <code>Nginx</code> | <code>SFTP</code> | <code>Sidekiq</code></td></tr>
+          <tr><td class="f">message</td><td class="t">text</td><td>Full event message. For AUDIT severity, includes the authority prefix: <code>[ACTION: EXECUTE_MINT] | original message</code></td></tr>
+          <tr><td class="f">node_id</td><td class="t">string</td><td>Identifier of the node that emitted the event (matches <code>nodeIdentifier</code> in <code>scconfig.xml</code>)</td></tr>
+          <tr><td class="f">correlation_id</td><td class="t">string</td><td>UUID linking events from the same logical operation (e.g. all events from a single batch mint share one <code>correlation_id</code>)</td></tr>
+          <tr><td class="f">action_code</td><td class="t">string</td><td>Canonical action for AUDIT events: <code>EXECUTE_MINT</code>, <code>EXECUTE_ISSUE</code>, <code>EXECUTE_TRANSFER</code>, <code>EXECUTE_BURN</code>, <code>AUTHORITY_APPROVE</code>, <code>AUTHORITY_REJECT</code>, <code>AUTHORITY_SIGN</code>, <code>SECURITY_ALERT</code>, <code>EXECUTE_FREEZE</code>, <code>BATCH_OPERATION</code>, <code>AUTHORITY_ACTION</code>. Null for non-AUDIT events.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>EventMetadata</h3>
+      <p>Enrichment record created asynchronously after the root event is written. Stores the full
+        request context, environment snapshot, and SHA-256 content hash.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Primary key</td></tr>
+          <tr><td class="f">system_event_id</td><td class="t">uuid FK</td><td>Parent event</td></tr>
+          <tr><td class="f">service</td><td class="t">string</td><td>Same as <code>SystemEvent.service_source</code> — denormalized for query performance</td></tr>
+          <tr><td class="f">timestamp</td><td class="t">timestamp</td><td>Time metadata was captured (may differ from event timestamp by milliseconds)</td></tr>
+          <tr><td class="f">payload</td><td class="t">jsonb</td><td>Raw request or job body. Sensitive fields (<code>api_auth_token</code>, private keys, passwords) are redacted with <code>***REDACTED***</code> before storage.</td></tr>
+          <tr><td class="f">environment_data</td><td class="t">jsonb</td><td>Snapshot of environment at event time: <code>{ cbdc_mode, node_id, rails_env, ruby_version, uptime_seconds }</code></td></tr>
+          <tr><td class="f">cryptographic_hash</td><td class="t">string</td><td>SHA-256 hex digest of <code>message + timestamp + node_id</code>. Used for tamper detection of the event record itself.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>TraceStack</h3>
+      <p>Captured only for <code>ERROR</code> and <code>CRITICAL</code> events. Contains the full
+        call-path array from the error origin to the service boundary.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Primary key</td></tr>
+          <tr><td class="f">system_event_id</td><td class="t">uuid FK</td><td>Parent event</td></tr>
+          <tr><td class="f">trace_id</td><td class="t">string</td><td>Unique trace reference, e.g. <code>TRC-20260417-B7C1</code></td></tr>
+          <tr><td class="f">stack_entries</td><td class="t">jsonb (array)</td><td>Array of <code>{ file, line, method }</code> objects in call order from outermost to error origin</td></tr>
+          <tr><td class="f">error_origin</td><td class="t">string</td><td>The exact file:line where the exception was raised (e.g. <code>app/services/validation/ingest_service.rb:47</code>)</td></tr>
+          <tr><td class="f">call_path</td><td class="t">text</td><td>Flattened single-string representation of the full stack for log file export</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>NodeStatus</h3>
+      <p>One record per monitored infrastructure node. Refreshed every 30 seconds by the Qt6 health
+        polling timer via <code>GET /api/v2/health</code>. Drives the left-pane node cards.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">node_name</td><td class="t">string</td><td><code>rails_server</code> | <code>dlt_node_1</code> | <code>dlt_node_2</code> | <code>hsm_module</code> | <code>postgresql</code> | <code>nginx_bridge</code></td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td><code>active</code> | <code>degraded</code> | <code>offline</code></td></tr>
+          <tr><td class="f">block_height</td><td class="t">integer</td><td>Current ledger block height. Proxy: <code>LedgerEvent.count</code>. Null for non-DLT nodes.</td></tr>
+          <tr><td class="f">peer_count</td><td class="t">integer</td><td>Connected peers. Proxy: <code>PeerIpaddress.count</code>. Null for non-DLT nodes.</td></tr>
+          <tr><td class="f">last_sync_time</td><td class="t">timestamp</td><td>Time of most recent successful health check. Drives the "Last sync" label in the node card.</td></tr>
+          <tr><td class="f">uptime_seconds</td><td class="t">integer</td><td>Rails process uptime from <code>Process.clock_gettime(Process::CLOCK_MONOTONIC)</code>. Null for external nodes.</td></tr>
+          <tr><td class="f">thread_count</td><td class="t">integer</td><td>Active Puma threads (Rails). Null for external nodes.</td></tr>
+          <tr><td class="f">active_key_id</td><td class="t">string</td><td>Latest <code>IssuerKey.currently_valid</code> identifier. HSM module only. Null for all other nodes.</td></tr>
+          <tr><td class="f">tls_active</td><td class="t">boolean</td><td>Whether the last request to Rails arrived over TLS. Nginx/Qt6 Bridge only.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>InfrastructureHealth</h3>
+      <p>Aggregated health envelope returned by <code>GET /api/v2/health</code>. Wraps individual
+        NodeStatus records into a single response object consumed by the Qt6 polling timer.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">service_name</td><td class="t">string</td><td>Canonical node identifier — same enum as <code>NodeStatus.node_name</code></td></tr>
+          <tr><td class="f">status</td><td class="t">string</td><td><code>active</code> | <code>degraded</code> | <code>offline</code></td></tr>
+          <tr><td class="f">uptime</td><td class="t">string</td><td>Human-formatted uptime string: <code>"4d 2h 17m"</code></td></tr>
+          <tr><td class="f">connection_state</td><td class="t">string</td><td><code>connected</code> | <code>syncing</code> | <code>disconnected</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>PerformanceMetrics</h3>
+      <p>Point-in-time snapshot captured at the moment the event was emitted.
+        Stored in <code>EventMetadata.environment_data</code> and displayed in the right pane.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">cpu_usage</td><td class="t">decimal</td><td>Percentage CPU utilization at event time. Sourced from <code>/proc/stat</code> on Linux or <code>host_cpu_usage_info()</code> via Mach API on macOS.</td></tr>
+          <tr><td class="f">memory_usage</td><td class="t">decimal</td><td>Percentage of physical RAM in use. Sourced from <code>GC.stat</code> on Ruby side; Mach memory API on Qt6 side.</td></tr>
+          <tr><td class="f">network_latency</td><td class="t">integer</td><td>Round-trip latency in milliseconds to the Rails API endpoint, measured at the time of the most recent health poll.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>CryptographicReference</h3>
+      <p>Links an event to the CBDC manifest it references, enabling cross-tab forensic correlation
+        between the System Events log and the Validation Desk / Audit &amp; Reports tab.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">system_event_id</td><td class="t">uuid FK</td><td>Parent event</td></tr>
+          <tr><td class="f">manifest_hash</td><td class="t">string</td><td>SHA-256 hex digest of the CBDC batch manifest. Populated for AUDIT events with <code>action_code ∈ {EXECUTE_MINT, EXECUTE_ISSUE, BATCH_OPERATION}</code>.</td></tr>
+          <tr><td class="f">verification_status</td><td class="t">enum</td><td><code>verified</code> | <code>unverified</code> | <code>tampered</code> | <code>pending</code>. Set to <code>pending</code> at creation; updated by <code>Validation::SignatureVerificationService</code> when it runs.</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <%# ── §3 Left Pane ────────────────────────────────────────────────────── %>
+    <div class="dp-section" id="left-pane">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§3</div>
+        <h2>Left Pane — Infrastructure Health &amp; Nodes</h2>
+      </div>
+
+      <p>
+        The left pane is a fixed-width sidebar (~260 px) containing six node health cards and
+        a system performance summary row. It is populated on tab initialization and refreshed
+        automatically every 30 seconds via a <code>QTimer</code> that fires <code>refreshNodeHealth()</code>.
+      </p>
+
+      <h3>A. Node Health Cards</h3>
+      <p>Each card displays one monitored service. All six are always present; a node that cannot
+        be reached shows status <span class="se-sev error">OFFLINE</span> with a red dot.</p>
+
+      <div class="se-node-grid">
+        <div class="se-node-card">
+          <div class="node-name">Rails Server</div>
+          <div class="node-status"><div class="se-dot green"></div><span style="font-size:11px;color:#2e7d32;font-weight:700;">Active</span></div>
+          <div class="node-stat">Threads: 5 / 5<br>Uptime: 4d 2h 17m</div>
+        </div>
+        <div class="se-node-card">
+          <div class="node-name">DLT Node 1</div>
+          <div class="node-status"><div class="se-dot green"></div><span style="font-size:11px;color:#2e7d32;font-weight:700;">Synced</span></div>
+          <div class="node-stat">Block: 12,847<br>Peers: 4</div>
+        </div>
+        <div class="se-node-card">
+          <div class="node-name">DLT Node 2</div>
+          <div class="node-status"><div class="se-dot green"></div><span style="font-size:11px;color:#2e7d32;font-weight:700;">Synced</span></div>
+          <div class="node-stat">Block: 12,847<br>Peers: 4</div>
+        </div>
+        <div class="se-node-card">
+          <div class="node-name">HSM Module</div>
+          <div class="node-status"><div class="se-dot green"></div><span style="font-size:11px;color:#2e7d32;font-weight:700;">Connected</span></div>
+          <div class="node-stat">Active key: CBK-KEY-01</div>
+        </div>
+        <div class="se-node-card">
+          <div class="node-name">PostgreSQL DB</div>
+          <div class="node-status"><div class="se-dot green"></div><span style="font-size:11px;color:#2e7d32;font-weight:700;">Online</span></div>
+          <div class="node-stat">Connections: 8</div>
+        </div>
+        <div class="se-node-card">
+          <div class="node-name">Nginx Bridge</div>
+          <div class="node-status"><div class="se-dot green"></div><span style="font-size:11px;color:#2e7d32;font-weight:700;">Active</span></div>
+          <div class="node-stat">TLS: Yes</div>
+        </div>
+      </div>
+
+      <h3>B. Node Card — Field Specification</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Node</th><th>Status Label</th><th>Metrics Shown</th><th>Data Source</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Rails Server</strong></td>
+            <td>Active / Degraded / Offline</td>
+            <td>Thread count, Uptime</td>
+            <td><code>health["rails"]["threads"]</code>, <code>health["rails"]["uptime"]</code> from <code>GET /api/v2/health</code></td>
+          </tr>
+          <tr>
+            <td><strong>DLT Node 1</strong></td>
+            <td>Synced / Syncing / Offline</td>
+            <td>Block height, Peer count</td>
+            <td><code>LedgerEvent.count</code> (block height proxy), <code>PeerIpaddress.count</code> (peer proxy). DLT Node 1 is the primary anchor writer; DLT Node 2 is the read-replica/verifier. Both share the same underlying ledger so block height is identical.</td>
+          </tr>
+          <tr>
+            <td><strong>DLT Node 2</strong></td>
+            <td>Synced / Syncing / Offline</td>
+            <td>Block height, Peer count</td>
+            <td>Same as DLT Node 1 — read-replica role; labeled "read-replica/verifier" in the card subtitle.</td>
+          </tr>
+          <tr>
+            <td><strong>HSM Module</strong></td>
+            <td>Connected / Offline</td>
+            <td>Active key ID</td>
+            <td><code>IssuerKey.currently_valid.count &gt; 0</code> → Connected. <code>IssuerKey.currently_valid.order(activated_at: :desc).first.identifier</code> → key ID displayed. No private key material is returned.</td>
+          </tr>
+          <tr>
+            <td><strong>PostgreSQL DB</strong></td>
+            <td>Online / Offline</td>
+            <td>Active connections</td>
+            <td><code>ActiveRecord::Base.connection.execute("SELECT count(*) FROM pg_stat_activity").first["count"]</code></td>
+          </tr>
+          <tr>
+            <td><strong>Nginx / Qt6 Bridge</strong></td>
+            <td>Active / Offline</td>
+            <td>TLS active (Yes/No)</td>
+            <td>If Rails is responding, Nginx is up (Nginx is the reverse proxy that routes all traffic to Rails). TLS status from <code>request.ssl? || request.env["HTTP_X_FORWARDED_PROTO"] == "https"</code>.</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <h3>C. Status Color Rules</h3>
+      <div class="dp-rule">
+        status = "active" | "synced" | "connected" | "online"  →  green dot  (#4caf50)<br>
+        status = "degraded" | "syncing"                         →  amber dot  (#ffb74d)<br>
+        status = "offline"                                       →  red dot    (#ef5350)<br>
+        API request timeout or network error                     →  red dot    (#ef5350), card label "Offline"
+      </div>
+
+      <h3>D. Node Details — Data Source &amp; Refresh</h3>
+      <p>
+        The Qt6 client fires <code>refreshNodeHealth()</code> on tab show and then every 30 seconds
+        via <code>m_healthTimer</code>. Each call issues a single
+        <code>GET {F5URL}/api/v2/health</code> request with the Bearer token.
+        The response JSON is parsed in <code>applyNodeHealthJson()</code> which
+        updates each card's label and dot color in place. No page reload occurs.
+      </p>
+      <div class="dp-callout dp-warn">
+        <span class="dp-ci">⚠</span>
+        <div>
+          <strong>Brace initialization required:</strong> the <code>QNetworkRequest</code> object
+          inside <code>refreshNodeHealth()</code> must be initialized with braces —
+          <code>QNetworkRequest req{QUrl(url)};</code> — not parentheses. The parenthesis form
+          triggers the C++ most-vexing-parse and is silently mis-compiled as a function declaration,
+          causing all subsequent member calls to fail at compile time.
+        </div>
+      </div>
+
+      <h3>E. Performance Summary (below node cards)</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>Label</th><th>Source</th><th>Phase</th></tr></thead>
+        <tbody>
+          <tr><td><code>lblSysEvtLatencyVal</code></td><td>Network Latency</td><td>Round-trip ms to health endpoint measured in <code>refreshNodeHealth()</code> reply handler</td><td>Phase 2 — shows "—" until live data implemented</td></tr>
+          <tr><td><code>lblSysEvtCpuVal</code></td><td>CPU Usage</td><td>Mach host CPU info (macOS) / /proc/stat (Linux)</td><td>Phase 2 — shows "—" until live data implemented</td></tr>
+          <tr><td><code>lblSysEvtMemVal</code></td><td>Memory Usage</td><td>Mach VM stats / /proc/meminfo</td><td>Phase 2 — shows "—" until live data implemented</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <%# ── §4 Middle Pane ──────────────────────────────────────────────────── %>
+    <div class="dp-section" id="middle-pane">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4</div>
+        <h2>Middle Pane — Event Stream (Core System)</h2>
+      </div>
+
+      <h3>A. Header Bar Controls</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>Object Name</th><th>Type</th><th>Behavior</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Search label</td>
+            <td><code>sysEventsSearchLabel</code></td>
+            <td>QLabel</td>
+            <td>Static "SEARCH" label. Grey monospace styling. No interaction.</td>
+          </tr>
+          <tr>
+            <td>Keyword search bar</td>
+            <td><code>sysEventsSearchBar</code></td>
+            <td>QLineEdit</td>
+            <td>Dark terminal style. Placeholder: "Filter events…". Width 150–250 px. On <code>textChanged</code>, calls <code>applySysEventFilter()</code> which iterates all rows and hides/shows based on <code>message.contains(needle)</code> or <code>eventId.contains(needle)</code>, case-insensitive. AUDIT rows pass the severity gate but still subject to keyword filter.</td>
+          </tr>
+          <tr>
+            <td>Severity combo</td>
+            <td><code>logLevelCombo</code></td>
+            <td>QComboBox</td>
+            <td>
+              Items:<br>
+              <strong>All</strong> — show INFO, WARN, ERROR, CRITICAL, AUDIT<br>
+              <strong>Info+</strong> — show INFO, WARN, ERROR, CRITICAL, AUDIT<br>
+              <strong>Errors + Audit</strong> — show ERROR, CRITICAL, AUDIT only<br>
+              On <code>currentIndexChanged</code>, calls <code>applySysEventFilter()</code>.
+            </td>
+          </tr>
+          <tr>
+            <td>Live-tail toggle</td>
+            <td><code>sysEventsLiveTailBtn</code></td>
+            <td>QPushButton (checkable)</td>
+            <td>
+              Default: checked = true, text "↓ Live", green background (<code>#0d2a0d</code>, <code>#2e7d32</code> border, <code>#4caf50</code> text).<br>
+              Unchecked: text "⏸ Paused", grey styling.<br>
+              When checked: after every new row insertion, calls <code>sysEventsTable→scrollToTop()</code> so the latest event remains visible.
+            </td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <h3>B. Event Log Table — Column Specification</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>#</th><th>Column</th><th>Source</th><th>Format / Notes</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>Severity</td><td><code>SystemEvent.severity</code></td><td>Colored chip: see §1 Severity Decision Table. Bold monospace 9 px, uppercase.</td></tr>
+          <tr><td>1</td><td>Timestamp</td><td><code>SystemEvent.timestamp</code></td><td>Formatted as <code>yyyy-MM-dd HH:mm:ss.zzz</code> local time. Monospace.</td></tr>
+          <tr><td>2</td><td>Service / Source</td><td><code>SystemEvent.service_source</code></td><td>Short service tag string. Color-coded: Rails = teal, DLT = navy, HSM = purple, Nginx = grey.</td></tr>
+          <tr><td>3</td><td>Event ID</td><td><code>SystemEvent.event_id</code></td><td>Human-readable reference, e.g. <code>EVT-20260417-A3F9</code>. Monospace. Clickable — selecting this row also loads metadata.</td></tr>
+          <tr><td>4</td><td>Message</td><td><code>SystemEvent.message</code></td><td>Full message text. AUDIT events show <code>[ACTION: EXECUTE_MINT] | original message</code> prefix in gold. Truncated at 180 chars in the cell; full text always visible in the right pane.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>C. Event Stream — Mock Terminal View</h3>
+      <div class="se-terminal">
+        <div class="se-terminal-bar">
+          <div class="live-dot"></div>
+          <span>System Events Terminal — Live Mode Active</span>
+          <span style="margin-left:auto;"><span class="se-live-btn">↓ Live</span></span>
+        </div>
+        <div class="se-terminal-body">
+          <div class="se-log-row">
+            <span class="se-log-ts">2026-04-17 09:14:22.441</span>
+            <span class="se-log-svc">Qt6 Bridge</span>
+            <span class="se-log-msg audit">[ACTION: EXECUTE_MINT] | Created CBDC batch #B-20260417-0042 — 200 notes — NGN ₦200</span>
+          </div>
+          <div class="se-log-row">
+            <span class="se-log-ts">2026-04-17 09:14:20.118</span>
+            <span class="se-log-svc">Rails</span>
+            <span class="se-log-msg audit">[ACTION: AUTHORITY_APPROVE] | Issuance authorization ISS-AF3B approved by GOV</span>
+          </div>
+          <div class="se-log-row">
+            <span class="se-log-ts">2026-04-17 09:13:55.004</span>
+            <span class="se-log-svc">Sidekiq</span>
+            <span class="se-log-msg info">ValidationSession #VS-202604-112 background job completed in 1.24 s</span>
+          </div>
+          <div class="se-log-row">
+            <span class="se-log-ts">2026-04-17 09:12:44.887</span>
+            <span class="se-log-svc">DLT Node</span>
+            <span class="se-log-msg warn">Peer connection retry — attempt 2/5 to 10.0.0.14</span>
+          </div>
+          <div class="se-log-row">
+            <span class="se-log-ts">2026-04-17 09:11:30.201</span>
+            <span class="se-log-svc">Rails</span>
+            <span class="se-log-msg error">Ed25519 signature verification failed — serial: NGN-20260417-0031</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>D. Row Insertion &amp; Ordering</h3>
+      <p>
+        New events are always inserted at row index 0 (<code>insertRow(0)</code>), so the newest
+        event is at the top of the table. This is the inverse of a traditional append-at-bottom
+        log. The table uses <code>QTableWidget</code> with <code>setEditTriggers(NoEditTriggers)</code>
+        and <code>setSelectionBehavior(SelectRows)</code>.
+      </p>
+
+      <h3>E. Filter Logic — Combined Severity + Keyword</h3>
+      <p><code>applySysEventFilter()</code> is called whenever the severity combo or the search bar
+        changes. It iterates every row in the table:</p>
+      <div class="dp-rule">
+        For each row:<br>
+        &nbsp;&nbsp;severity = row[col_0].data(Qt::UserRole)  // stored as plain string<br>
+        &nbsp;&nbsp;message  = row[col_4].text()<br>
+        &nbsp;&nbsp;eid      = row[col_3].text()<br>
+        <br>
+        &nbsp;&nbsp;// Severity gate — AUDIT always passes<br>
+        &nbsp;&nbsp;severityOk = (severity == "AUDIT")<br>
+        &nbsp;&nbsp;if !severityOk:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;if combo == "All":            severityOk = true<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;if combo == "Info+":          severityOk = severity ∈ {INFO, WARN, ERROR, CRITICAL, AUDIT}<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;if combo == "Errors + Audit": severityOk = severity ∈ {ERROR, CRITICAL}<br>
+        <br>
+        &nbsp;&nbsp;// Keyword gate<br>
+        &nbsp;&nbsp;searchOk = searchBar.text().isEmpty() OR<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;message.contains(needle, CaseInsensitive) OR<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;eid.contains(needle, CaseInsensitive)<br>
+        <br>
+        &nbsp;&nbsp;row.setHidden(!(severityOk AND searchOk))
+      </div>
+
+      <h3>F. Row Click — Right Pane Loading</h3>
+      <p>
+        <code>QTableWidget::itemSelectionChanged</code> triggers <code>onSysEventRowSelected()</code>.
+        The selected row's <code>event_id</code> (column 3) is extracted and passed to
+        <code>GET {F5URL}/api/v2/system_events/{event_id}</code>. The response populates:
+      </p>
+      <ul style="padding-left:20px;font-size:13px;color:var(--text-muted);line-height:2.1;">
+        <li>Event Metadata panel (Event ID, Severity, Timestamp, Service)</li>
+        <li>Request Payload dark JSON viewer</li>
+        <li>Trace Stack panel — shown only if <code>severity ∈ {ERROR, CRITICAL}</code> and <code>trace_stack</code> key present</li>
+        <li>Performance Environment (Latency, CPU, Memory) — Phase 2; shows "—" until implemented</li>
+        <li>Cryptographic Reference (manifest hash + verification status)</li>
+      </ul>
+
+      <h3>G. AUDIT Structured Event Emission</h3>
+      <p>
+        Monetary and authority controllers call <code>appendAuditEvent()</code> directly rather
+        than routing through <code>setConsoleProcessing()</code>. This function constructs the
+        canonical authority-signature format and writes to both the in-memory table and the
+        persistent log file:
+      </p>
+      <div class="dp-rule">
+        appendAuditEvent(action, entity, detail, refHash)<br>
+        <br>
+        → message = "[ACTION: {action}] | [Entity: {entity}] | [Detail: {detail}]"<br>
+        → if refHash not empty: message += " | [Ref: {refHash}]"<br>
+        → service = detect from action prefix (EXECUTE_* → Qt6 Bridge, AUTHORITY_* → Rails)<br>
+        → appendSysEventRow("AUDIT", service, message)
+      </div>
+
+      <h3>H. Action Code Mapping</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Action Code</th><th>Trigger Keywords</th><th>Service Tag</th></tr></thead>
+        <tbody>
+          <tr><td class="f">EXECUTE_MINT</td><td><code>created cbdc</code>, <code>minted</code></td><td>Qt6 Bridge</td></tr>
+          <tr><td class="f">EXECUTE_ISSUE</td><td><code>printed</code>, <code>cbdc</code> + <code>issu</code></td><td>Qt6 Bridge</td></tr>
+          <tr><td class="f">EXECUTE_TRANSFER</td><td><code>transfer</code>, <code>deliver</code>, <code>sent</code>, <code>received</code></td><td>Qt6 Bridge</td></tr>
+          <tr><td class="f">EXECUTE_BURN</td><td><code>burn</code>, <code>redeemed</code>, <code>destroyed</code></td><td>Rails</td></tr>
+          <tr><td class="f">AUTHORITY_APPROVE</td><td><code>approved</code></td><td>Rails</td></tr>
+          <tr><td class="f">AUTHORITY_REJECT</td><td><code>rejected</code>, <code>denied</code></td><td>Rails</td></tr>
+          <tr><td class="f">AUTHORITY_SIGN</td><td><code>ed25519</code>, <code>signature</code>, <code>signed</code></td><td>HSM Module</td></tr>
+          <tr><td class="f">SECURITY_ALERT</td><td><code>counterfeit</code>, <code>tamper</code>, <code>invalid sig</code>, <code>fraud</code></td><td>Rails</td></tr>
+          <tr><td class="f">EXECUTE_FREEZE</td><td><code>freeze</code>, <code>frozen</code></td><td>Rails</td></tr>
+          <tr><td class="f">BATCH_OPERATION</td><td><code>batch upload</code>, <code>batch process</code></td><td>Sidekiq</td></tr>
+          <tr><td class="f">AUTHORITY_ACTION</td><td>(fallback — no keyword matched)</td><td>Rails</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <%# ── §5 Right Pane ───────────────────────────────────────────────────── %>
+    <div class="dp-section" id="right-pane">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§5</div>
+        <h2>Right Pane — Event Inspection &amp; Forensics</h2>
+      </div>
+
+      <p>
+        The right pane is divided into five vertically stacked sub-panels inside a scroll area.
+        All sub-panels are empty ("—") until a row is selected in the event stream table.
+        When a row is selected, a single <code>GET /api/v2/system_events/{event_id}</code>
+        request retrieves the full event object and populates all sub-panels simultaneously.
+      </p>
+
+      <h3>A. Event Metadata Panel</h3>
+
+      <div class="se-meta-card">
+        <div class="se-meta-card-head">Event Metadata</div>
+        <div class="se-meta-card-body">
+          <div class="se-meta-row"><span class="se-meta-lbl">Event ID</span><span class="se-meta-val">EVT-20260417-A3F9</span></div>
+          <div class="se-meta-row"><span class="se-meta-lbl">Severity</span><span class="se-meta-val"><span class="se-sev audit">AUDIT</span></span></div>
+          <div class="se-meta-row"><span class="se-meta-lbl">Timestamp</span><span class="se-meta-val">2026-04-17 09:14:22.441 UTC</span></div>
+          <div class="se-meta-row"><span class="se-meta-lbl">Service</span><span class="se-meta-val">Qt6 Bridge</span></div>
+          <div class="se-meta-row"><span class="se-meta-lbl">Node ID</span><span class="se-meta-val">N9F531B1F55</span></div>
+          <div class="se-meta-row"><span class="se-meta-lbl">Correlation</span><span class="se-meta-val">corr-20260417-B-0042</span></div>
+        </div>
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Source of Truth</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Event ID</strong></td><td><code>SystemEvent.event_id</code></td><td>Human-readable reference used for cross-tab correlation</td></tr>
+          <tr><td><strong>Severity</strong></td><td><code>SystemEvent.severity</code></td><td>Rendered as colored chip — same style as table column</td></tr>
+          <tr><td><strong>Timestamp</strong></td><td><code>SystemEvent.timestamp</code></td><td>Full ISO 8601 with milliseconds and explicit UTC label</td></tr>
+          <tr><td><strong>Service</strong></td><td><code>SystemEvent.service_source</code></td><td>Canonical service tag string</td></tr>
+          <tr><td><strong>Node ID</strong></td><td><code>SystemEvent.node_id</code></td><td>The <code>nodeIdentifier</code> from the emitting installation's <code>scconfig.xml</code></td></tr>
+          <tr><td><strong>Correlation ID</strong></td><td><code>SystemEvent.correlation_id</code></td><td>Links all events from the same logical operation. Clicking it opens a filtered view of the event stream showing only events with the same correlation ID.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>B. Request Payload Panel</h3>
+      <p>
+        Dark JSON viewer showing the raw payload from <code>EventMetadata.payload</code>.
+        Sensitive fields are redacted at write time — they are never stored in plain text.
+        The viewer is read-only. A small "⧉ Copy" button in the panel header copies the
+        raw JSON to the clipboard.
+      </p>
+
+      <div class="dp-json-block">
+{<br>
+&nbsp;&nbsp;<span class="jk">"action"</span>: <span class="jv">"EXECUTE_MINT"</span>,<br>
+&nbsp;&nbsp;<span class="jk">"batch_id"</span>: <span class="jv">"B-20260417-0042"</span>,<br>
+&nbsp;&nbsp;<span class="jk">"denomination"</span>: <span class="jv">"200"</span>,<br>
+&nbsp;&nbsp;<span class="jk">"asset_code"</span>: <span class="jv">"NGN"</span>,<br>
+&nbsp;&nbsp;<span class="jk">"note_count"</span>: <span class="jn">200</span>,<br>
+&nbsp;&nbsp;<span class="jk">"issued_at"</span>: <span class="jv">"2026-04-17T09:14:22.441Z"</span>,<br>
+&nbsp;&nbsp;<span class="jk">"manifest_hash"</span>: <span class="jv">"a3f9c8e2d1b4…"</span>,<br>
+&nbsp;&nbsp;<span class="jk">"api_auth_token"</span>: <span class="jv">"***REDACTED***"</span>,<br>
+&nbsp;&nbsp;<span class="jk">"encKey"</span>: <span class="jv">"***REDACTED***"</span><br>
+}
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field in Payload</th><th>Redacted?</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>api_auth_token</code></td><td class="r">YES</td><td>Bearer token — always redacted</td></tr>
+          <tr><td><code>encKey</code></td><td class="r">YES</td><td>AES-256 encryption key — always redacted</td></tr>
+          <tr><td><code>encIv</code></td><td class="r">YES</td><td>AES IV — always redacted</td></tr>
+          <tr><td><code>wizard_registeredLicenseKey</code></td><td class="r">YES</td><td>License secret — always redacted</td></tr>
+          <tr><td><code>manifest_hash</code></td><td>No</td><td>SHA-256 hash — forensically safe to display</td></tr>
+          <tr><td><code>issuer_sig</code></td><td>No</td><td>Ed25519 signature — public material</td></tr>
+          <tr><td>All other fields</td><td>No</td><td>Displayed as received</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>C. Trace Stack Panel (Errors Only)</h3>
+      <p>
+        Visible only when <code>SystemEvent.severity ∈ {ERROR, CRITICAL}</code> AND
+        the API response contains a non-null <code>trace_stack</code> key.
+        Hidden entirely for INFO, WARN, and AUDIT events.
+        Displays an ordered list of <code>{ file, line, method }</code> entries from
+        outermost frame to the error origin.
+      </p>
+      <div class="dp-json-block">
+<span class="jk">error_origin</span>: <span class="jv">"app/services/validation/ingest_service.rb:47"</span><br>
+<br>
+<span class="jk">stack_entries</span>:<br>
+&nbsp;&nbsp;[0] app/controllers/api/v2/validation_controller.rb:23 — ingest<br>
+&nbsp;&nbsp;[1] app/services/validation/ingest_service.rb:31 — call<br>
+&nbsp;&nbsp;[2] app/services/validation/ingest_service.rb:47 — parse_metadata<br>
+&nbsp;&nbsp;[3] lib/cvib/png_parser.rb:88 — inflate_comment_chunk  <span style="color:#ef5350;">← error origin</span>
+      </div>
+      <p>
+        The stack is captured by the Rails exception handler at
+        <code>rescue =&gt; e; e.backtrace</code> and stored in
+        <code>TraceStack.stack_entries</code> as a JSONB array at the time the error is logged.
+      </p>
+
+      <h3>D. Performance Environment Panel</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Label</th><th>Source</th><th>Phase</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>lblSysEvtLatencyVal</code></td>
+            <td>Network Latency</td>
+            <td>Round-trip ms at event time. Stored in <code>EventMetadata.environment_data["latency_ms"]</code>.</td>
+            <td>Phase 2 — shows "—" until implemented</td>
+          </tr>
+          <tr>
+            <td><code>lblSysEvtCpuVal</code></td>
+            <td>CPU Usage</td>
+            <td>Percentage from <code>EventMetadata.environment_data["cpu_pct"]</code>.</td>
+            <td>Phase 2 — shows "—" until implemented</td>
+          </tr>
+          <tr>
+            <td><code>lblSysEvtMemVal</code></td>
+            <td>Memory Usage</td>
+            <td>Percentage from <code>EventMetadata.environment_data["mem_pct"]</code>.</td>
+            <td>Phase 2 — shows "—" until implemented</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <h3>E. Cryptographic Reference Panel</h3>
+      <p>
+        Populated only for AUDIT events with <code>action_code ∈ {EXECUTE_MINT, EXECUTE_ISSUE, BATCH_OPERATION}</code>.
+        Empty ("—") for all other events.
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Source</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Raw Manifest Hash</td>
+            <td><code>CryptographicReference.manifest_hash</code></td>
+            <td>SHA-256 hex digest of the CBDC batch manifest. Displayed in full (64 hex chars). A "⧉ Copy" button copies to clipboard. Operators can use this hash to cross-reference the batch in the Validation Desk or Audit &amp; Reports tab.</td>
+          </tr>
+          <tr>
+            <td>Verification Status</td>
+            <td><code>CryptographicReference.verification_status</code></td>
+            <td>
+              <code>verified</code> — Validation service confirmed Ed25519 signature matches manifest.<br>
+              <code>unverified</code> — Validation service ran but could not confirm.<br>
+              <code>tampered</code> — Hash mismatch detected. Triggers a SECURITY_ALERT AUDIT event automatically.<br>
+              <code>pending</code> — Validation service has not yet run for this batch.
+            </td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <%# ── §6 Button-Level Spec ────────────────────────────────────────────── %>
+    <div class="dp-section" id="buttons">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6</div>
+        <h2>Button-Level Specification</h2>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head">
+          <span class="dp-btn-name">Export Terminal Logs</span>
+          <span class="dp-btn-pane m">MIDDLE PANE</span>
+        </div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Object Name</span><span><code>pushButton</code></span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Inputs</span><span>No user input required. Reads all rows currently in <code>sysEventsTable</code> regardless of filter/hidden state. The AUDIT table model in-memory, if used, is the source.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Backend</span><span>Client-side only. No API call. Opens a <code>QFileDialog::getSaveFileName</code> with default filename <code>smartcheq_events_{ISO-date}.log</code> and filter "Log Files (*.log);;Text Files (*.txt)".</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Validation</span><span>File path must not be empty (dialog rejection = no-op). Destination directory must be writable.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Output Format</span><span>Plain text, one event per line: <code>{timestamp} [{severity}] [{service}] {event_id} — {message}</code>. AUDIT events include the full authority prefix. File is UTF-8 encoded.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Success</span><span>File written. A <code>QMessageBox::information</code> confirms: "Terminal logs exported to {path}." An AUDIT event is emitted: <code>[ACTION: BATCH_OPERATION] | Terminal logs exported by system_admin</code>.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Failure</span><span>File write error → <code>QMessageBox::critical</code>: "Failed to export logs: {error}". No partial file left on disk.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">RBAC</span><span>Enabled only when <code>wizard_operator_role = system_admin</code>. Disabled for all other roles.</span></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head">
+          <span class="dp-btn-name">Clear Terminal</span>
+          <span class="dp-btn-pane m">MIDDLE PANE</span>
+        </div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Object Name</span><span><code>scConsoleClearPushButton</code></span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Inputs</span><span>None. Confirmation dialog required (see below).</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Backend</span><span>Client-side only. Calls <code>sysEventsTable→clearContents()</code> followed by <code>sysEventsTable→setRowCount(0)</code>. Clears the in-memory row model. Does NOT affect the PostgreSQL database or the on-disk <code>logs.txt</code> file.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Confirmation</span><span>A <code>QMessageBox::warning</code> with Yes/No buttons: "Clear all events from the terminal view? This does NOT delete the persistent log file — events are still in the database." Only proceeds on Yes.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Success</span><span>Table visually emptied. Right pane resets to all "—" values. An AUDIT event is emitted to the (now empty) table and to the persistent log: <code>[ACTION: AUTHORITY_ACTION] | Terminal view cleared by system_admin</code>.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Failure</span><span>No failure path — UI operation only.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">RBAC</span><span>Enabled only when <code>wizard_operator_role = system_admin</code>.</span></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head">
+          <span class="dp-btn-name">Clear Cache</span>
+          <span class="dp-btn-pane m">MIDDLE PANE</span>
+        </div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Object Name</span><span><code>pushButtonClearConsoleLogs</code></span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Inputs</span><span>None. Confirmation dialog required.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Backend</span><span>Two-phase operation: (1) Deletes the on-disk <code>logs.txt</code> flat file (path resolved via <code>QStandardPaths::AppDataLocation</code>). (2) Calls <code>QNetworkAccessManager::clearAccessCache()</code> and <code>clearConnectionCache()</code> to flush HTTP connection pool and cached responses.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">What Is Cleared</span><span>
+            • <code>logs.txt</code> — flat file event log (local only, not the PostgreSQL store)<br>
+            • Qt HTTP connection cache — forces fresh TCP connections to the Rails API<br>
+            • No database records are deleted<br>
+            • No in-memory table rows are removed (table remains populated from current session)
+          </span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Confirmation</span><span><code>QMessageBox::warning</code>: "Delete the local logs.txt cache file and flush the HTTP connection pool? Database records are not affected." Yes/No required.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Success</span><span><code>QMessageBox::information</code>: "Cache cleared." An AUDIT event is emitted immediately: <code>[ACTION: AUTHORITY_ACTION] | Cache cleared by system_admin</code>. This event itself triggers the AUDIT severity path because "cache cleared" is in the AUDIT keyword list.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Failure</span><span>File deletion fails (e.g. permission denied) → <code>QMessageBox::critical</code>: "Failed to delete logs.txt: {error}". HTTP cache clear always succeeds (Qt API).</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">RBAC</span><span>Enabled only when <code>wizard_operator_role = system_admin</code>.</span></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head">
+          <span class="dp-btn-name">↓ Live (Live-Tail Toggle)</span>
+          <span class="dp-btn-pane m">MIDDLE PANE HEADER</span>
+        </div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Object Name</span><span><code>sysEventsLiveTailBtn</code></span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Default State</span><span>Checked = true. Text "↓ Live". Green background.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Unchecked State</span><span>Text "⏸ Paused". Grey background. New events still arrive and are inserted at row 0, but <code>scrollToTop()</code> is NOT called — the user can scroll freely without the view jumping.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Backend</span><span>No API call. Pure UI state toggle. The polling timer and row insertion logic are unaffected.</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">RBAC</span><span>Available to all roles that can see the tab (system_admin only).</span></div>
+        </div>
+      </div>
+    </div>
+
+    <%# ── §7 Edge Cases ───────────────────────────────────────────────────── %>
+    <div class="dp-section" id="edge-cases">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§7</div>
+        <h2>System Rules &amp; Edge Cases</h2>
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Scenario</th><th>Detection</th><th>System Response</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Event overload (high volume)</strong></td>
+            <td>Table row count exceeds <code>kMaxTableRows</code> (default: 5 000).</td>
+            <td>Oldest rows (bottom of table) are removed to maintain the cap. A WARN event is emitted: "Event buffer capped at 5000 rows — oldest events trimmed from view (database not affected)."</td>
+          </tr>
+          <tr>
+            <td><strong>Missing EventMetadata</strong></td>
+            <td>API returns null for <code>metadata</code> key when a row is selected.</td>
+            <td>Right pane shows "Metadata not available" placeholder. Event ID, Severity, Timestamp, and Service are still populated from the <code>SystemEvent</code> root record. No error dialog.</td>
+          </tr>
+          <tr>
+            <td><strong>Corrupted payload</strong></td>
+            <td>Payload JSON fails to parse (<code>JSON.parse</code> throws).</td>
+            <td>Raw payload viewer shows: <code>{"error": "Payload could not be decoded", "raw": "{raw bytes truncated at 512 chars}"}</code>. A WARN event is emitted for the corruption.</td>
+          </tr>
+          <tr>
+            <td><strong>Node offline</strong></td>
+            <td>Health endpoint returns 5xx, or network timeout occurs in <code>refreshNodeHealth()</code>.</td>
+            <td>Node card status changes to red dot "Offline". A CRITICAL event is emitted: "Health check failed for {node_name} — unreachable". Health timer continues polling every 30 s. When the node recovers, status updates automatically and an INFO event confirms: "{node_name} is back online."</td>
+          </tr>
+          <tr>
+            <td><strong>Delayed logs</strong></td>
+            <td>Event timestamp is more than 5 minutes in the past relative to current time.</td>
+            <td>The event is inserted normally into the stream (newest-first by actual timestamp). A "⚠ Delayed" label is appended to the timestamp cell in orange: <code>2026-04-17 09:10:00.000 ⚠ Delayed</code>. Delayed events do not affect live-tail scroll behavior.</td>
+          </tr>
+          <tr>
+            <td><strong>Duplicate events</strong></td>
+            <td><code>SystemEvent.event_id</code> already exists in the table.</td>
+            <td>Duplicate is discarded before row insertion. The existing row is not updated. A WARN is emitted to the console (not to the table): "Duplicate event_id suppressed: {event_id}".</td>
+          </tr>
+          <tr>
+            <td><strong>Time sync issues</strong></td>
+            <td>Event timestamp is in the future relative to the local clock by more than 60 seconds.</td>
+            <td>A WARN event is emitted: "Clock skew detected — event timestamp {ts} is {N}s ahead of local clock. Verify NTP sync." The event is still inserted.</td>
+          </tr>
+          <tr>
+            <td><strong>RBAC violation attempt</strong></td>
+            <td>A non-admin role attempts to access the System Events tab (e.g. from deep link or API).</td>
+            <td>Tab is hidden from tab bar at startup. If the tab is somehow reached: <code>QMessageBox::warning</code> shown and tab index is reset to the previous tab. A SECURITY_ALERT AUDIT event is emitted: "Unauthorized access attempt to System Events tab by role: {role}".</td>
+          </tr>
+          <tr>
+            <td><strong>logs.txt cannot be written</strong></td>
+            <td>File open fails due to permissions or disk full.</td>
+            <td>Events continue to be inserted into the in-memory table only. A CRITICAL event is emitted: "Persistent log write failed — {error}. Events are not being persisted to disk." The table remains fully functional.</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <%# ── §8 End-to-End User Flow ─────────────────────────────────────────── %>
+    <div class="dp-section" id="user-flow">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§8</div>
+        <h2>End-to-End User Interaction Flow</h2>
+      </div>
+
+      <div class="dp-flow">
+        <div class="dp-step">
+          <h4>Tab Open — RBAC Check</h4>
+          <p>
+            The application calls <code>sysEventsApplyRbac()</code> on construction.
+            <code>SCUIUtil::ReadFromSmartcheqConfig("wizard_operator_role")</code> is evaluated.
+            If the role is not <code>system_admin</code>, <code>admin</code>, or
+            <code>administrator</code>, the tab at index 6 is hidden via
+            <code>tabWidgetTopLeft→setTabVisible(6, false)</code>. The Export, Clear Terminal,
+            and Clear Cache buttons are also disabled. For a valid system_admin, the tab is
+            visible and all controls are enabled.
+          </p>
+        </div>
+        <div class="dp-step">
+          <h4>Infrastructure Health Load</h4>
+          <p>
+            On tab show, <code>refreshNodeHealth()</code> fires immediately, issuing
+            <code>GET {F5URL}/api/v2/health</code> with Bearer token. The response JSON is
+            dispatched to <code>applyNodeHealthJson()</code>, which populates all six node cards
+            with status dots, metric values, and last-sync timestamps.
+            A QTimer is started at 30-second intervals for subsequent refreshes.
+            An INFO event is emitted: "Infrastructure health loaded — 6 nodes polled."
+          </p>
+        </div>
+        <div class="dp-step">
+          <h4>Event Stream Begins (Live Mode)</h4>
+          <p>
+            The Qt6 console begins routing all <code>qInfo()</code> / <code>qWarning()</code> /
+            <code>qCritical()</code> messages through <code>setConsoleProcessing()</code>.
+            Each message passes the noise filter, severity detector, action code detector
+            (if AUDIT), and row inserter. Live-tail is on by default — the table scrolls to the
+            top on each new row so the latest event is always visible.
+          </p>
+        </div>
+        <div class="dp-step">
+          <h4>User Applies Filters</h4>
+          <p>
+            The operator types a keyword into <code>sysEventsSearchBar</code> or selects
+            a severity from <code>logLevelCombo</code>. <code>applySysEventFilter()</code>
+            runs synchronously on the UI thread — no API call. Rows that do not match are
+            hidden; AUDIT rows are exempted from the severity gate but still hide if the keyword
+            does not match their message or event ID.
+          </p>
+        </div>
+        <div class="dp-step">
+          <h4>User Selects an Event Row</h4>
+          <p>
+            The operator clicks a row. <code>onSysEventRowSelected()</code> extracts the
+            <code>event_id</code> from column 3 and issues
+            <code>GET {F5URL}/api/v2/system_events/{event_id}</code>.
+            The API returns the full <code>SystemEvent</code> + <code>EventMetadata</code>
+            + (if error) <code>TraceStack</code> + <code>CryptographicReference</code> object.
+            All five right-pane sub-panels are populated from this single response.
+          </p>
+        </div>
+        <div class="dp-step">
+          <h4>Forensic Inspection</h4>
+          <p>
+            The operator reviews the Event Metadata (ID, Severity, Timestamp, Node, Correlation),
+            the raw Request Payload (sensitive fields redacted), and — if the event is an error —
+            the Trace Stack showing the exact file:line of the error origin.
+            For AUDIT events tied to a CBDC batch, the Cryptographic Reference panel shows the
+            manifest hash and its verification status. The operator may copy the hash and
+            switch to the Validation Desk tab to cross-reference the batch record.
+          </p>
+        </div>
+        <div class="dp-step">
+          <h4>Export Logs</h4>
+          <p>
+            The operator clicks <strong>Export Terminal Logs</strong>. A save dialog opens.
+            On confirmation, all rows in the table (visible and hidden) are written to the
+            chosen file as plain text. A <code>QMessageBox::information</code> confirms success.
+            An AUDIT event is written: <code>[ACTION: BATCH_OPERATION] | Terminal logs exported</code>.
+          </p>
+        </div>
+        <div class="dp-step">
+          <h4>Audit Trail Written</h4>
+          <p>
+            Every action taken in the System Events tab that carries administrative intent is
+            itself an AUDIT-tier system event. The tab monitors itself: clearing the terminal,
+            clearing the cache, and exporting logs each produce their own AUDIT event with
+            the operator's node ID and timestamp. These self-referential audit events are
+            written to the persistent <code>logs.txt</code> file and to the PostgreSQL
+            <code>system_events</code> table before the operation completes.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <%# ── §9 Architecture Notes ───────────────────────────────────────────── %>
+    <div class="dp-section" id="architecture">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§9</div>
+        <h2>Architecture Notes</h2>
+      </div>
+
+      <h3>Event Ingestion Pipeline</h3>
+      <p>
+        Events originate from two sources: (1) the Qt6 application via the Qt message handler
+        callback registered with <code>qInstallMessageHandler</code>, which routes all
+        <code>qInfo/qWarning/qCritical/qDebug</code> calls through
+        <code>setConsoleProcessing()</code>; and (2) the Rails backend via
+        <code>Rails.logger</code> and Sidekiq job lifecycle hooks.
+      </p>
+      <div class="dp-rule">
+        Qt6 message handler → setConsoleProcessing()<br>
+        &nbsp;&nbsp;→ noise filter (discard UI telemetry)<br>
+        &nbsp;&nbsp;→ sysEvt_detectSeverity()   (AUDIT checked first)<br>
+        &nbsp;&nbsp;→ sysEvt_detectAuditAction() (if AUDIT)<br>
+        &nbsp;&nbsp;→ appendSysEventRow()        (insert at row 0, apply filter, scroll if live)<br>
+        &nbsp;&nbsp;→ persist to logs.txt        (append write, UTF-8)<br>
+        &nbsp;&nbsp;→ POST /api/v2/system_events (async, background thread)<br>
+        <br>
+        Rails logger → SystemEvent.create()      (synchronous within request)<br>
+        &nbsp;&nbsp;→ EventMetadata.create()     (async via Sidekiq job)<br>
+        &nbsp;&nbsp;→ TraceStack.create()        (if exception, async)
+      </div>
+
+      <h3>Logging Service — Centralized Design</h3>
+      <p>
+        A single logging service class (<code>SystemEventLogger</code>) in
+        <code>app/services/system_event_logger.rb</code> is the sole writer for all backend
+        events. It accepts <code>severity</code>, <code>service_source</code>,
+        <code>message</code>, <code>node_id</code>, and optional <code>payload</code>.
+        It constructs the <code>event_id</code>, calls
+        <code>SystemEvent.create!</code>, and enqueues
+        <code>SystemEventMetadataJob</code> for async enrichment.
+        Rails controllers call it via:
+      </p>
+      <div class="dp-rule">
+        SystemEventLogger.log(severity: "AUDIT", service: "Rails",<br>
+        &nbsp;&nbsp;message: "[ACTION: AUTHORITY_APPROVE] | #{proposal.proposal_id}",<br>
+        &nbsp;&nbsp;node_id: current_node_id, payload: request_payload)
+      </div>
+
+      <h3>Storage</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Store</th><th>Contents</th><th>Retention</th></tr></thead>
+        <tbody>
+          <tr><td>PostgreSQL (<code>system_events</code> table)</td><td>All <code>SystemEvent</code> records and their associated <code>EventMetadata</code>, <code>TraceStack</code>, <code>CryptographicReference</code></td><td>365 days default (configurable via <code>wizard_log_retention_days</code> in Security preferences)</td></tr>
+          <tr><td><code>logs.txt</code> (flat file)</td><td>Plain-text append log from the Qt6 client. Cleared by Clear Cache action. Human-readable without a database.</td><td>Until manually cleared or Clear Cache is invoked</td></tr>
+          <tr><td>PostgreSQL (<code>governance_votes</code>, <code>validation_events</code>)</td><td>Cross-tab audit records referenced by <code>correlation_id</code></td><td>Permanent (immutable)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Streaming Mechanism</h3>
+      <p>
+        Phase 1 (current): The Qt6 client uses a <strong>local message handler callback</strong>
+        for events originating from its own process, and a <strong>30-second polling timer</strong>
+        for infrastructure health. There is no WebSocket connection in Phase 1.
+      </p>
+      <p>
+        Phase 2 (planned): The Rails API will expose an ActionCable WebSocket channel
+        (<code>SystemEventsChannel</code>). The Qt6 client will subscribe via the
+        <code>QtWebSockets</code> module and receive pushed events in real time,
+        eliminating the polling gap for backend-originated events.
+      </p>
+
+      <h3>Integration with Governance Audit Logs</h3>
+      <div class="dp-callout dp-info">
+        <span class="dp-ci">ℹ</span>
+        <div>
+          The System Events tab shares the <strong>same audit trail infrastructure</strong>
+          as the Governance tab. When a board vote is cast (<code>GovernanceVote</code>)
+          or a policy is anchored (<code>DLTAnchor</code>), a corresponding
+          <code>SystemEvent</code> with <code>severity: AUDIT</code> and the appropriate
+          <code>action_code</code> is written by <code>SystemEventLogger</code>. The
+          <code>correlation_id</code> ties the <code>SystemEvent</code> to the
+          <code>GovernanceProposal.id</code>, enabling forensic investigators to trace
+          the full chain: proposal creation → voting → quorum → DLT anchor, all within
+          a single System Events query filtered by correlation ID.
+        </div>
+      </div>
+
+      <h3>API Reference</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td class="f">/api/v2/health</td><td>Infrastructure health envelope. Returns <code>{ rails: {}, dlt: {node_1: {}, node_2: {}}, hsm: {}, postgresql: {}, nginx: {} }</code>. Polled every 30 seconds by Qt6 client.</td></tr>
+          <tr><td>GET</td><td class="f">/api/v2/system_events</td><td>List events. Params: <code>severity</code>, <code>service_source</code>, <code>node_id</code>, <code>correlation_id</code>, <code>from_ts</code>, <code>to_ts</code>, <code>limit</code> (default 200). Returns array of <code>SystemEvent</code> objects newest-first.</td></tr>
+          <tr><td>GET</td><td class="f">/api/v2/system_events/:event_id</td><td>Full event detail. Returns <code>SystemEvent</code> + nested <code>metadata</code>, <code>trace_stack</code> (if error), <code>cryptographic_reference</code> (if AUDIT). Used by right-pane panel population.</td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/system_events</td><td>Write event from Qt6 client. Body: <code>{ severity, service_source, message, node_id, correlation_id, payload }</code>. Returns <code>{ event_id }</code>.</td></tr>
+          <tr><td>GET</td><td class="f">/api/v2/system_events/export</td><td>Download all events as a plain-text log file. Params: <code>from_ts</code>, <code>to_ts</code>, <code>severity</code>. Returns <code>Content-Type: text/plain</code> file attachment.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Canonical API Envelope Format</h3>
+      <p>All <code>/api/v2/system_events</code> endpoints return the standard v2 envelope:</p>
+      <div class="dp-json-block">
+{<br>
+&nbsp;&nbsp;<span class="jk">"meta"</span>: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"api_version"</span>: <span class="jv">"v2"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"request_id"</span>: <span class="jv">"req_evt_20260417_a3f9"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"timestamp"</span>: <span class="jv">"2026-04-17T09:14:22Z"</span><br>
+&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;<span class="jk">"data"</span>: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"event_id"</span>: <span class="jv">"EVT-20260417-A3F9"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"severity"</span>: <span class="jv">"AUDIT"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"service_source"</span>: <span class="jv">"Qt6 Bridge"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"message"</span>: <span class="jv">"[ACTION: EXECUTE_MINT] | Created CBDC batch…"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"node_id"</span>: <span class="jv">"N9F531B1F55"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"correlation_id"</span>: <span class="jv">"corr-20260417-B-0042"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"metadata"</span>: { <span class="jv">/* EventMetadata object */</span> },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"trace_stack"</span>: <span class="jb">null</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"cryptographic_reference"</span>: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"manifest_hash"</span>: <span class="jv">"a3f9c8e2d1b4…"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"verification_status"</span>: <span class="jv">"verified"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;<span class="jk">"error"</span>: <span class="jb">null</span><br>
+}
+      </div>
+    </div>
+
+  </div><!-- /dp-main -->
+
+  <div class="dp-footer">
+    bearerCORE™ &middot; System Events — Forensic Infrastructure Workstation &middot; System Design &amp; UI Behavior Specification v1.0 &middot; TowerPoint Group &middot; April 2026
+  </div>
+</div>

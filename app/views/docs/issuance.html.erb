@@ -1,0 +1,970 @@
+<%# app/views/documents_portal/issuance.html.erb
+    Issuance Tab — Full System Specification (from UI mockup) %>
+
+<%= render 'docs/doc_styles' %>
+
+<div class="dp-wrap">
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">Issuance Tab</span>
+    <span class="dp-topbar-tag">Complete</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:680px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · Module Specification</div>
+      <h1>CBDC Issuance System</h1>
+      <p class="dp-cover-desc">
+        The Issuance Tab is the central bank operator's interface for creating, authorising,
+        and dispatching CBDC (CBDC Voucher in Bearer) batches. It covers the complete
+        lifecycle from draft configuration through governance approval, note minting,
+        vault encryption, and ownership transfer to commercial banks.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>1.0</b></div>
+        <div>Source <b>UI Mockup — April 2026</b></div>
+        <div>Status <b>Production Reference</b></div>
+        <div>Scope <b>54 AU Member Corridors</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-secnav">
+    <a href="#overview">Overview</a>
+    <a href="#data-model">Data Model</a>
+    <a href="#left-pane">Left Pane</a>
+    <a href="#middle-pane">Middle Pane</a>
+    <a href="#vault-management">Vault Management</a>
+    <a href="#vault-integrity">Integrity Check</a>
+    <a href="#right-pane">Right Pane</a>
+    <a href="#buttons">Buttons</a>
+    <a href="#rules">Rules</a>
+    <a href="#flow">End-to-End Flow</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <!-- ══════════════ §1 OVERVIEW ══════════════ -->
+    <div class="dp-section" id="overview">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§1</div>
+        <h2>System Overview</h2>
+      </div>
+      <p>The Issuance system orchestrates the creation of Central Bank Digital Currency notes (CBDCNotes) backed by real central bank reserves locked in the Corridor Ops module. A batch of notes is minted, cryptographically signed with the issuing bank's Ed25519 key, packaged into a vault-encrypted bundle, and transferred to a commercial bank — the "Claiming Institution".</p>
+
+      <h3>Key Concepts</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Concept</th><th>Definition</th><th>Example from UI</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Draft Issuance</strong></td><td>Initial configuration record. Country, central bank, currency, denomination and corridor are selected. Not yet submitted to governance.</td><td>IA-E0E7A9E144D8-20260407</td></tr>
+          <tr><td><strong>Authorization</strong></td><td>Governance-gated approval that links the issuance to a backing liquidity lock. Requires a second operator (Four-Eyes).</td><td>50d5ed31-f072-4018-b4e5-9fe883004208</td></tr>
+          <tr><td><strong>Minting</strong></td><td>The act of generating individual CBDCNotes with serial numbers, denominations, and issuer signatures within a MintBatch.</td><td>5 notes, L-XOF</td></tr>
+          <tr><td><strong>Batch Generation</strong></td><td>The MintBatch record grouping all notes: serial range, asset code, holder ID, issuer key, expiry.</td><td>70f75f6f-9164-4ae3-ae38-f347732cdc9d</td></tr>
+          <tr><td><strong>Ownership Transfer</strong></td><td>Cryptographically signed handoff of the note bundle from the issuing central bank to the claiming commercial bank via email or SFTP.</td><td>BANQUE ATLANTIQUE DU BENIN — ATBJBJBJ</td></tr>
+          <tr><td><strong>Manifest</strong></td><td>A hash-signed inventory of all notes in the bundle. Used by the receiving institution to verify bundle integrity before accepting notes.</td><td>Manifest Hash field (empty until generated)</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-pane-grid">
+        <div class="dp-pane dp-pane-left">
+          <h3>Left Pane — Configuration</h3>
+          <ul>
+            <li>Issuance config draft</li>
+            <li>Country / Central Bank / Governor</li>
+            <li>Asset code &amp; currency details</li>
+            <li>Corridor identity</li>
+            <li>Denomination selector</li>
+            <li>Refresh / Edit Plan</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-middle">
+          <h3>Middle Pane — Activity</h3>
+          <ul>
+            <li>Issuance flow stepper (5 stages)</li>
+            <li>Issuance registry activity feed</li>
+            <li>Per-note table with status</li>
+            <li>Refresh / Import Metadata / Download Manifest</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-right">
+          <h3>Right Pane — Controls</h3>
+          <ul>
+            <li>Authorization snapshot</li>
+            <li>Governance approval banner</li>
+            <li>Authorize mint batch</li>
+            <li>Transfer destination</li>
+            <li>Transfer readiness checklist</li>
+            <li>Vault authentication</li>
+            <li>Batch configuration</li>
+            <li>Claiming institution</li>
+            <li>Packaging options</li>
+            <li>Transfer Ownership</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ §2 DATA MODEL ══════════════ -->
+    <div class="dp-section" id="data-model">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§2</div>
+        <h2>Data Model</h2>
+      </div>
+
+      <h3>IssuanceDraft</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Example</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">string</td><td>IA-E0E7A9E144D8-20260407</td><td>Composite: <code>IA-{hex}-{YYYYMMDD}</code></td></tr>
+          <tr><td class="f">country</td><td class="t">string</td><td>Mali</td><td>Issuing country (target country of corridor)</td></tr>
+          <tr><td class="f">central_bank</td><td class="t">string</td><td>BCEAO</td><td>Central bank name</td></tr>
+          <tr><td class="f">governor</td><td class="t">string</td><td>Jean-Claude Kassi Brou</td><td>Signing authority name</td></tr>
+          <tr><td class="f">city</td><td class="t">string</td><td>COTONOU</td><td>Central bank city</td></tr>
+          <tr><td class="f">branch</td><td class="t">string</td><td>—</td><td>Optional branch designation</td></tr>
+          <tr><td class="f">asset_code</td><td class="t">string</td><td>L-XOF</td><td>Prefixed ISO 4217: <code>L-{currency}</code></td></tr>
+          <tr><td class="f">swift_bic</td><td class="t">string</td><td>BCAOBJBJ</td><td>SWIFT/BIC of issuing central bank</td></tr>
+          <tr><td class="f">symbol</td><td class="t">string</td><td>FCFA</td><td>Currency symbol</td></tr>
+          <tr><td class="f">serial_pattern</td><td class="t">string</td><td>N11A1</td><td>Typed segments: N=numeric, A=alpha. Drives serial number generation.</td></tr>
+          <tr><td class="f">currency_no</td><td class="t">string</td><td>952</td><td>ISO 4217 numeric code</td></tr>
+          <tr><td class="f">iban</td><td class="t">string</td><td>—</td><td>IBAN if applicable</td></tr>
+          <tr><td class="f">country_code</td><td class="t">string</td><td>ML</td><td>ISO 3166-1 alpha-2</td></tr>
+          <tr><td class="f">coin_symbol</td><td class="t">string</td><td>c</td><td>Subunit symbol (centime)</td></tr>
+          <tr><td class="f">iso_4217</td><td class="t">string</td><td>XOF</td><td>ISO 4217 alphabetic code</td></tr>
+          <tr><td class="f">coin_name</td><td class="t">string</td><td>centime</td><td>Name of subunit</td></tr>
+          <tr><td class="f">currency_name</td><td class="t">string</td><td>West African CFA Franc</td><td>Full currency name</td></tr>
+          <tr><td class="f">denomination</td><td class="t">decimal</td><td>10,000</td><td>Face value per note</td></tr>
+          <tr><td class="f">pieces_per_unit</td><td class="t">integer</td><td>1</td><td>Notes per unit (usually 1)</td></tr>
+          <tr><td class="f">denomination_type</td><td class="t">enum</td><td>Linked</td><td><code>Domestic</code> | <code>Linked</code> — determines corridor vs domestic issuance</td></tr>
+          <tr><td class="f">asset_type</td><td class="t">string</td><td>—</td><td>Populated from corridor config</td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td>draft</td><td><code>draft</code> | <code>preview</code> | <code>authorization</code> | <code>generation</code> | <code>minted</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>IssuanceAuthorization</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Example</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">authorization_id</td><td class="t">string</td><td>IA-E0E7A9E144D8-20260407</td><td>Same as draft ID — authorization inherits draft reference</td></tr>
+          <tr><td class="f">asset_code</td><td class="t">string</td><td>L-XOF</td><td>Asset being authorized</td></tr>
+          <tr><td class="f">total_amount</td><td class="t">decimal</td><td>50000.0</td><td>Total face value of the authorization (denomination × notes)</td></tr>
+          <tr><td class="f">backing_lock_id</td><td class="t">string</td><td>50d5ed31-f072-4018-b4e5-9fe883004208</td><td>References LiquidityLock.id from Corridor Ops. Must be ACTIVE.</td></tr>
+          <tr><td class="f">corridor</td><td class="t">string</td><td>GHA → MLI</td><td>Source and target country of the corridor</td></tr>
+          <tr><td class="f">approved_by</td><td class="t">string</td><td>(governor operator identity)</td><td>Doorkeeper token owner who approved</td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td>Approved</td><td><code>pending</code> | <code>approved</code> | <code>rejected</code></td></tr>
+          <tr><td class="f">timestamp</td><td class="t">timestamp</td><td>2026-04-07</td><td>Approval timestamp (UTC)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>MintBatch</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Example</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">batch_id</td><td class="t">uuid</td><td>70f75f6f-9164-4ae3-ae38-f347732cdc9d</td><td>UUID generated at batch creation</td></tr>
+          <tr><td class="f">asset_code</td><td class="t">string</td><td>L-XOF</td><td>From authorization</td></tr>
+          <tr><td class="f">serial_range</td><td class="t">string</td><td>L-XOF-00000000001 → L-XOF-00000000005</td><td>First and last serial in batch</td></tr>
+          <tr><td class="f">number_of_notes</td><td class="t">integer</td><td>5</td><td>Total notes in batch</td></tr>
+          <tr><td class="f">denomination</td><td class="t">decimal</td><td>10,000</td><td>Face value per note (XOF)</td></tr>
+          <tr><td class="f">issue_date</td><td class="t">date</td><td>07.04.2026</td><td>Date notes were minted</td></tr>
+          <tr><td class="f">expiry_date</td><td class="t">date</td><td>None</td><td>Optional expiry — "None" means perpetual</td></tr>
+          <tr><td class="f">holder_id</td><td class="t">string</td><td>Bank of Ghana (long hash)</td><td>Initial holder — the issuing central bank</td></tr>
+          <tr><td class="f">issuer_key</td><td class="t">string</td><td>Bank of Ghana — BOG Primary Key</td><td>Ed25519 key reference used to sign notes</td></tr>
+          <tr><td class="f">authorization_id</td><td class="t">string</td><td>IA-E0E7A9E144D8-20260407</td><td>Parent authorization</td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td>minted</td><td><code>pending</code> | <code>minted</code> | <code>transferred</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>CBDCNote</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Example</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">serial_number</td><td class="t">string</td><td>L-XOF-00000000001</td><td>Unique serial. Format: <code>{asset_code}-{serial_pattern}</code></td></tr>
+          <tr><td class="f">asset_code</td><td class="t">string</td><td>L-XOF</td><td>From parent batch</td></tr>
+          <tr><td class="f">denomination</td><td class="t">decimal</td><td>10,000</td><td>Face value (XOF)</td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td>ACTIVE</td><td><code>ACTIVE</code> | <code>TRANSFERRED</code> | <code>REDEEMED</code> | <code>BURNED</code></td></tr>
+          <tr><td class="f">country</td><td class="t">string</td><td>Mali</td><td>Issuing country</td></tr>
+          <tr><td class="f">currency_name</td><td class="t">string</td><td>West African CFA Franc</td><td>Full currency name</td></tr>
+          <tr><td class="f">central_bank</td><td class="t">string</td><td>Central Bank of West Africa</td><td>Issuing institution</td></tr>
+          <tr><td class="f">issuance_date</td><td class="t">datetime</td><td>07.04.2026 10:28</td><td>Creation timestamp (UTC)</td></tr>
+          <tr><td class="f">tender</td><td class="t">string</td><td>Banknotes</td><td>Tender type designation</td></tr>
+          <tr><td class="f">denomination_value</td><td class="t">string</td><td>10000 FCFA</td><td>Display value with symbol</td></tr>
+          <tr><td class="f">denomination_nominal</td><td class="t">string</td><td>10000fr</td><td>Nominal display value</td></tr>
+          <tr><td class="f">holder</td><td class="t">string</td><td>Bank of Ghana</td><td>Current holder (changes on transfer)</td></tr>
+          <tr><td class="f">issuer</td><td class="t">string</td><td>Bank of Ghana — BOG Primary Key</td><td>Signing issuer — never changes</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>TransferRequest</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Example</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">target_institution</td><td class="t">string</td><td>BANQUE ATLANTIQUE DU BENIN</td><td>Full name of claiming commercial bank</td></tr>
+          <tr><td class="f">bic_swift</td><td class="t">string</td><td>ATBJBJBJ</td><td>SWIFT code of claiming bank</td></tr>
+          <tr><td class="f">method</td><td class="t">enum</td><td>Email</td><td><code>Email</code> | <code>SFTP</code></td></tr>
+          <tr><td class="f">destination</td><td class="t">string</td><td>info@towerpointgroup.com</td><td>Email address or SFTP host for delivery</td></tr>
+          <tr><td class="f">verification_status</td><td class="t">enum</td><td>Pending</td><td><code>Pending</code> | <code>Verified</code> | <code>Failed</code></td></tr>
+          <tr><td class="f">sftp_host</td><td class="t">string</td><td>—</td><td>SFTP hostname (if method = SFTP)</td></tr>
+          <tr><td class="f">sftp_directory</td><td class="t">string</td><td>—</td><td>Remote directory for SFTP delivery</td></tr>
+          <tr><td class="f">sftp_username</td><td class="t">string</td><td>—</td><td>SFTP login username</td></tr>
+          <tr><td class="f">sftp_password</td><td class="t">string</td><td>—</td><td>SFTP password (encrypted at rest)</td></tr>
+          <tr><td class="f">transfer_status</td><td class="t">enum</td><td>—</td><td><code>pending</code> | <code>in_progress</code> | <code>completed</code> | <code>failed</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Manifest</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">manifest_hash</td><td class="t">string</td><td>SHA-256 hash of the bundle contents. Displayed in right pane Manifest Hash field. Empty until batch is generated.</td></tr>
+          <tr><td class="f">authorization_id</td><td class="t">string</td><td>References IssuanceAuthorization</td></tr>
+          <tr><td class="f">batch_id</td><td class="t">uuid</td><td>References MintBatch</td></tr>
+          <tr><td class="f">integrity_status</td><td class="t">enum</td><td><code>unverified</code> | <code>verified</code> | <code>mismatch</code></td></tr>
+          <tr><td class="f">generated_at</td><td class="t">timestamp</td><td>When manifest was created</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>VaultConfig</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">vault_name</td><td class="t">string</td><td>Selected from "Select Vault" dropdown. Vault must be pre-configured.</td></tr>
+          <tr><td class="f">password</td><td class="t">string</td><td>Vault encryption password (not stored — used only at runtime)</td></tr>
+          <tr><td class="f">output_path</td><td class="t">string</td><td>Filesystem path where encrypted bundle is written</td></tr>
+          <tr><td class="f">tender</td><td class="t">string</td><td>Auto-populated from issuance draft</td></tr>
+          <tr><td class="f">mode</td><td class="t">enum</td><td>Encryption mode (e.g. AES-256-GCM)</td></tr>
+          <tr><td class="f">key_length</td><td class="t">integer</td><td>Encryption key size in bits</td></tr>
+          <tr><td class="f">block_size</td><td class="t">string</td><td>Encryption block/padding size</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ══════════════ §3 LEFT PANE ══════════════ -->
+    <div class="dp-section" id="left-pane">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§3</div>
+        <h2>Left Pane — Issuance Configuration</h2>
+      </div>
+
+      <h3>Issuance Config Draft section</h3>
+      <p>Read-only display panel populated when a corridor is loaded. Shows the identity of the <em>issuing</em> (target) central bank — in the mockup, Mali / BCEAO — since the CBDC notes are denominated in the target country's currency.</p>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Value (mockup)</th><th>Source / Validation</th></tr></thead>
+        <tbody>
+          <tr><td>Country</td><td>Mali</td><td>Resolved from corridor's target_country ISO3 via kIso3Names map</td></tr>
+          <tr><td>Central bank</td><td>s de l'Afrique de l'Ouest, BCEAO</td><td>Resolved from kCbMap target entry</td></tr>
+          <tr><td>Governor</td><td>Jean-Claude Kassi Brou</td><td>Stored in IssuerKey or central bank metadata record</td></tr>
+          <tr><td>City</td><td>COTONOU</td><td>Central bank city from metadata</td></tr>
+          <tr><td>Branch</td><td>—</td><td>Optional. Empty if not applicable.</td></tr>
+          <tr><td>Governance</td><td>—</td><td>Populated with governance approval status after authorization</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Asset Code &amp; Currency section</h3>
+      <p>All fields are read-only, derived from the loaded corridor and its target currency. The asset code <code>L-XOF</code> = "Linked" prefix + ISO 4217 code. "Linked" means the issuance is backed by a cross-border corridor lock (as opposed to "Domestic" which would be a single-country issuance).</p>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Value</th><th>Rule</th></tr></thead>
+        <tbody>
+          <tr><td>SWIFT/BIC</td><td>BCAOBJBJ</td><td>From IssuerKey.swift_bic for the target central bank</td></tr>
+          <tr><td>Symbol</td><td>FCFA</td><td>Currency symbol from currency metadata</td></tr>
+          <tr><td>Serial pattern</td><td>N11A1</td><td>Drives SerialAllocationService. N=numeric(11 digits), A=alpha(1 char), 1=literal. Must match corridor config.</td></tr>
+          <tr><td>Currency no.</td><td>952</td><td>ISO 4217 numeric code</td></tr>
+          <tr><td>IBAN</td><td>—</td><td>Optional — not applicable for XOF</td></tr>
+          <tr><td>Country code</td><td>ML</td><td>ISO 3166-1 alpha-2 of issuing country</td></tr>
+          <tr><td>Coin symbol</td><td>c</td><td>Subunit (centime)</td></tr>
+          <tr><td>ISO 4217</td><td>XOF</td><td>Alphabetic ISO currency code</td></tr>
+          <tr><td>Coin name</td><td>centime</td><td>Name of the subunit denomination</td></tr>
+          <tr><td>Currency name</td><td>West African CFA Franc</td><td>Full English currency name</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Corridor Identity section</h3>
+      <p>Mirrors the selected corridor from Corridor Ops. Drives the authorization's backing lock reference.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Value</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Country</td><td>Ghana</td><td>Source country of the corridor (the funder)</td></tr>
+          <tr><td>Central Bank</td><td>Bank of Ghana</td><td>Source central bank</td></tr>
+          <tr><td>Currency</td><td>GHS</td><td>Source currency ISO code</td></tr>
+          <tr><td>Governor</td><td>Dr. Johnson Pandit Asiama</td><td>Governor of the source central bank</td></tr>
+          <tr><td>Total auth.</td><td>50,000 L-XOF</td><td>Total authorized issuance amount for this corridor</td></tr>
+          <tr><td>FX rate</td><td>1 GHS = 50.5425 XOF</td><td>Exchange rate used to calculate corridor value equivalence. From <code>GET /api/v2/corridors/:id/fx_rate</code>. Used in issuance valuation display only — does not change note denomination.</td></tr>
+          <tr><td>Liquidity</td><td>Bank of Ghana Reserve Pool</td><td>Which reserve pool backs this issuance</td></tr>
+          <tr><td>Funding lock</td><td>LOCK-GHA-04208</td><td>Short reference to the LiquidityLock in Corridor Ops. The full UUID is shown in the Authorization panel on the right (50d5ed31-…). This lock must be ACTIVE for authorization to proceed.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Select count denomination section</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Control</th><th>Value</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr><td>Domestic / Linked radio</td><td>Linked (selected)</td><td><strong>Domestic</strong>: notes are backed by local central bank funds only. <strong>Linked</strong>: notes are backed by a cross-border corridor lock. Linked is required when issuance spans two countries (e.g. GHA funding → MLI notes). Selection changes the asset_code prefix (Domestic = <code>D-</code>, Linked = <code>L-</code>).</td></tr>
+          <tr><td>Asset type</td><td>—</td><td>Read-only. Populated from corridor asset configuration.</td></tr>
+          <tr><td>Denomination</td><td>10,000 ×</td><td>Dropdown of allowed denominations for the currency. Selection determines face value per note. Validation: must be a valid denomination for the ISO 4217 currency.</td></tr>
+          <tr><td>Pieces/unit</td><td>1</td><td>Numeric stepper. How many physical notes per bundle unit. Default 1. Used to calculate <code>total_notes = count × pieces_per_unit</code>.</td></tr>
+          <tr><td>Active auths</td><td>🇬🇭 GHA → 🇲🇱 MLI | L-XOF |</td><td>Read-only chips showing all active authorizations for the current corridor. Clicking an auth chip loads it into the right pane.</td></tr>
+        </tbody>
+      </table></div>
+
+      <p><strong>Total issuance calculation:</strong> <code>total_amount = denomination × pieces_per_unit × note_count</code>. In the mockup: 10,000 × 1 × 5 = 50,000 XOF (matching the Authorization total_amount).</p>
+
+      <h3>Left Pane Buttons</h3>
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Refresh</span><span class="dp-btn-pane l">Left Pane</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Action</div><div>Reloads corridor identity and active authorizations from API. Useful when another operator has updated the corridor since the tab was opened.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>GET /api/v2/corridors/:id, GET /api/v2/corridors/:id/fx_rate, GET /api/v2/issuance_authorizations/latest</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>Left pane fields repopulated. Active auths chips refreshed. FX rate updated.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Failure</div><div>Toast error if API unreachable. Fields remain at last-known state.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Edit Plan</span><span class="dp-btn-pane l">Left Pane</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Action</div><div>Opens the issuance draft for editing. Unlocks denomination selector, pieces/unit, and domestic/linked toggle. Only available when status = draft or preview (not after authorization).</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Precondition</div><div>issuance status must be <code>draft</code> or <code>preview</code>. If status ≥ <code>authorization</code>, button is disabled.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">State change</div><div>Draft record becomes editable. Save triggers recalculation of total_amount.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ §4 MIDDLE PANE ══════════════ -->
+    <div class="dp-section" id="middle-pane">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4</div>
+        <h2>Middle Pane — Issuance Activity &amp; Lifecycle</h2>
+      </div>
+
+      <h3>A. Issuance Flow Stepper (top bar)</h3>
+      <p>A horizontal 5-stage pipeline showing the progression of the issuance. Each stage is a card with key identifiers. The active stage is highlighted. Current status shown in top-right corner: <strong>Approved</strong> (green badge).</p>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Stage</th><th>Display</th><th>Entry Condition</th><th>Exit Condition</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Draft</strong></td><td>IA-E0E7A9E144D8-20260407</td><td>Corridor selected + denomination configured</td><td>Operator submits for preview</td><td>issuance.status = draft</td></tr>
+          <tr><td><strong>Preview</strong></td><td>🇬🇭 GHA → 🇲🇱 MLI / 10,000 × 5 / 50000.0</td><td>Draft saved</td><td>Submitted to authorization queue</td><td>issuance.status = preview</td></tr>
+          <tr><td><strong>Authorization</strong></td><td>IA-E0E7A9… / 50d5ed31-… / L-XOF-00000000001 → L-XOF-00000000005 / —</td><td>Preview reviewed</td><td>Second operator approves (Four-Eyes)</td><td>issuance.status = authorization, auth.status = approved</td></tr>
+          <tr><td><strong>Generation</strong></td><td>70f75f6f-9164-… / L-XOF / —</td><td>Authorization approved</td><td>Mint batch button clicked and batch created</td><td>issuance.status = generation</td></tr>
+          <tr><td><strong>Minted</strong></td><td>5 notes</td><td>Batch generated successfully</td><td>Transfer Ownership completed</td><td>issuance.status = minted</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>B. Issuance Registry Activity Feed table</h3>
+      <p>Displays all CBDCNotes generated in the current batch. Rows are populated after minting. Each row represents one note.</p>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Column</th><th>Source</th><th>Example</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Row #</td><td>Display index</td><td>1–5</td><td>Not a DB field — display row counter</td></tr>
+          <tr><td>Radio button</td><td>UI only</td><td>○</td><td>Single-select row for note detail view</td></tr>
+          <tr><td>Serial</td><td>CBDCNote.serial_number</td><td>L-XOF-00000000001</td><td>Clickable — opens note detail. Format: asset_code + serialized pattern</td></tr>
+          <tr><td>Asset</td><td>CBDCNote.asset_code</td><td>L-XOF</td><td>Same for all notes in batch</td></tr>
+          <tr><td>Denomination</td><td>CBDCNote.denomination</td><td>10,000</td><td>Face value. Sortable.</td></tr>
+          <tr><td>Status</td><td>CBDCNote.status</td><td>● ACTIVE</td><td>Green dot = ACTIVE. Color-coded pill. States: ACTIVE, TRANSFERRED, REDEEMED, BURNED.</td></tr>
+          <tr><td>Country</td><td>CBDCNote.country</td><td>Mali</td><td>Issuing country</td></tr>
+          <tr><td>Currency Name</td><td>CBDCNote.currency_name</td><td>West African CFA Franc</td><td>Full currency name</td></tr>
+          <tr><td>Central Bank</td><td>CBDCNote.central_bank</td><td>Central Bank of We...</td><td>Truncated for display. Full name on hover/click.</td></tr>
+          <tr><td>Issuance Date</td><td>CBDCNote.issuance_date</td><td>07.04.2026 10:28</td><td>Format: DD.MM.YYYY HH:MM</td></tr>
+          <tr><td>Tender</td><td>CBDCNote.tender</td><td>Banknotes</td><td>Tender type — from vault config. Values: Banknotes, Coins, Electronic.</td></tr>
+          <tr><td>Denomination Value</td><td>CBDCNote.denomination_value</td><td>10000 FCFA</td><td>Amount with currency symbol</td></tr>
+          <tr><td>Denomination Nominal</td><td>CBDCNote.denomination_nominal</td><td>10000fr</td><td>Nominal display value with coin symbol</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Table interactions</h4>
+      <div class="dp-rule">Rows are read-only. No in-table editing.</div>
+      <div class="dp-rule">Radio button on each row enables single-select for note inspection.</div>
+      <div class="dp-rule">Table is populated after MintBatch status = minted. Empty before that stage.</div>
+      <div class="dp-rule">Horizontal scroll enabled — table has more columns than visible area.</div>
+
+      <h3>C. Middle Pane Buttons</h3>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Refresh</span><span class="dp-btn-pane m">Middle Pane</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Action</div><div>Reloads the registry activity feed table. Fetches latest note statuses from API.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>GET /api/v2/cvib/batches/:batch_id/notes (or equivalent notes endpoint)</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>Table rows refreshed. Status pills updated (e.g. ACTIVE → TRANSFERRED after ownership transfer).</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Import Metadata</span><span class="dp-btn-pane m">Middle Pane</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Action</div><div>Opens a file picker. Operator selects a metadata JSON/CSV file previously exported from another system. Populates issuance draft fields from the file.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/cvib/batches/:id/import_metadata with file payload</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Validation</div><div>File must match expected schema. Corridor and asset code must match current selection. Duplicate serials rejected.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>Draft fields pre-populated. Stepper advances to Preview stage.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Failure</div><div>Schema mismatch → error dialog listing invalid fields. No partial import.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Download / Verify Manifest</span><span class="dp-btn-pane m">Middle Pane</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Action</div><div>Downloads the manifest file for the current batch AND verifies its hash. The manifest is a signed inventory of all notes. Button is disabled (greyed out in mockup) until a batch has been generated.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>GET /api/v2/cvib/batches/:batch_id/manifest → returns manifest file + hash</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Verification</div><div>System recomputes hash of downloaded manifest. Compares to stored Manifest.manifest_hash. Updates Manifest.integrity_status.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>File saved locally. integrity_status → verified. Manifest Hash field on right pane populated.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Failure (mismatch)</div><div>integrity_status → mismatch. Transfer Ownership button blocked. Critical alert shown.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Disabled when</div><div>issuance.status &lt; generation OR no batch exists</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ §4.2 VAULT MANAGEMENT ══════════════ -->
+    <div class="dp-section" id="vault-management">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4.2</div>
+        <h2>Vault Authorization &amp; Management</h2>
+      </div>
+
+      <div class="dp-callout dp-ok" style="margin-bottom:24px;">
+        <span class="dp-ci">🔐</span>
+        <div>
+          <strong>Mandatory requirement.</strong> Every CBDC issuance requires an active, authenticated Vault.
+          Assets cannot be exported via email or SFTP unless they have been successfully staged in a Vault
+          environment. Operators can manage vaults via the <strong>Vaults menu</strong> or directly within
+          the <strong>Issuance Desk properties panel</strong>.
+        </div>
+      </div>
+
+      <h3>What is a Vault?</h3>
+      <p>
+        In bearerCORE™, a Vault is not a folder — it is a cryptographically secured staging environment
+        for national assets before they are distributed to commercial banks. Each vault is an AES-256-GCM
+        encrypted <code>.svlt</code> file that wraps the CBDC note bundle during the minting and transfer
+        pipeline. A vault must be created and authenticated before any batch can be exported or delivered.
+      </p>
+
+      <h3>Vault Management — Menu Access</h3>
+      <p>
+        The <strong>Vaults</strong> menu in the application menu bar is the primary management surface.
+        It is a top-level menu item, signalling to operators that vault management is a high-privilege
+        task separate from routine operations.
+      </p>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Menu Item</th><th>Shortcut</th><th>Function</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>New Vault…</strong></td>
+            <td><kbd>⌃⌥⌘V</kbd></td>
+            <td>Creates a new encrypted <code>.svlt</code> staging file. Operator sets vault name, encryption mode (AES-256-GCM), key length, and passphrase. The vault file is written to the configured output path.</td>
+          </tr>
+          <tr>
+            <td><strong>Open Vault…</strong></td>
+            <td><kbd>⌃⌥O</kbd></td>
+            <td>Decrypts and mounts an existing vault for inspection or for use in an active issuance session. Requires the vault passphrase.</td>
+          </tr>
+          <tr>
+            <td><strong>Import Vault…</strong></td>
+            <td>—</td>
+            <td>Securely ingests a vault file from an SFTP endpoint or a physical hardware security token. Used when a vault was created on another workstation and must be transferred to the current one.</td>
+          </tr>
+          <tr>
+            <td><em>separator</em></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><strong>Save Copy of Vault…</strong></td>
+            <td>—</td>
+            <td>Exports an encrypted backup of the active vault to a chosen destination. Required for disaster recovery and audit archive obligations.</td>
+          </tr>
+          <tr>
+            <td><strong>Delete Vault…</strong></td>
+            <td>—</td>
+            <td>Permanently destroys a vault and its staging contents after confirmed issuance. Irreversible. Requires operator confirmation.</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <h3>Vault Management — Issuance Desk (Inline Access)</h3>
+      <p>
+        Since a vault is required for issuance, the Issuance Desk right pane includes a
+        <strong>Vault Authentication</strong> section (§5.F) with an inline vault selector.
+        This prevents operators from having to navigate away from the issuance workflow if
+        they discover the target vault has not yet been set up.
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Vault Name</td><td>Yes</td><td>Dropdown of pre-configured vault identifiers on the workstation. Selecting a vault auto-populates Mode, Key Length, and Block Size.</td></tr>
+          <tr><td>Password</td><td>Yes</td><td>Vault encryption passphrase. Never stored — used at runtime only to authenticate the vault session.</td></tr>
+          <tr><td>Confirm Password</td><td>Yes</td><td>Must match Password exactly. Client-side validation prevents mismatched auth attempt.</td></tr>
+          <tr><td>Output Path</td><td>Auto</td><td>Filesystem path where the encrypted bundle will be written. Auto-populated from vault config on vault selection.</td></tr>
+          <tr><td>Mode</td><td>Auto</td><td>Encryption cipher — e.g. AES-256-GCM. Loaded from vault config.</td></tr>
+          <tr><td>Key Length</td><td>Auto</td><td>Encryption key size in bits. Loaded from vault config.</td></tr>
+          <tr><td>Block Size</td><td>Auto</td><td>Block/padding size. Loaded from vault config.</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-danger">
+        <span class="dp-ci">⛔</span>
+        <div>
+          The <strong>Vault Authenticated</strong> readiness check in the Transfer Readiness Checklist
+          (§5.E) must be green before Transfer Ownership is enabled. A vault that exists but has not been
+          authenticated in the current session is treated as unauthenticated.
+        </div>
+      </div>
+
+      <h3>Vault Lifecycle in an Issuance</h3>
+      <div class="dp-flow">
+        <div class="dp-step">
+          <h4>1. Pre-issuance — Create or Open Vault</h4>
+          <p>Before starting an issuance, the operator creates a new vault (<strong>Vaults → New Vault…</strong>) or opens an existing one (<strong>Vaults → Open Vault…</strong>). The vault name will appear in the Issuance Desk vault selector.</p>
+        </div>
+        <div class="dp-step">
+          <h4>2. Issuance Desk — Authenticate Vault</h4>
+          <p>In the right pane Vault Authentication section, the operator selects the vault from the dropdown and enters the passphrase. This sets the <em>Vault Authenticated</em> readiness check to green.</p>
+        </div>
+        <div class="dp-step">
+          <h4>3. Export — Bundle Staged in Vault</h4>
+          <p><strong>Export send bundle</strong> encrypts the CBDC note package using the authenticated vault key and writes it to the vault output path. No delivery occurs at this stage.</p>
+        </div>
+        <div class="dp-step">
+          <h4>4. Transfer — Delivered from Vault</h4>
+          <p><strong>Transfer Ownership</strong> sends the staged bundle from the vault output path to the claiming institution via Email or SFTP. All four readiness checks — including Vault Authenticated — must be green.</p>
+        </div>
+        <div class="dp-step">
+          <h4>5. Post-transfer — Archive or Delete Vault</h4>
+          <p>After confirmed delivery, the operator either saves a backup (<strong>Vaults → Save Copy of Vault…</strong>) for audit archive, or destroys the staging vault (<strong>Vaults → Delete Vault…</strong>) to close the issuance environment.</p>
+        </div>
+      </div>
+
+      <%# ── §4.2.1 Post-Transfer Integrity Check ──────────────────────────── %>
+      <h3 id="vault-integrity">Post-Transfer Integrity Check (Import Vault)</h3>
+      <p>
+        When a CBDC vault is transported to a recipient workstation via SFTP, the file is
+        <em>in flight</em> and vulnerable to interception or silent corruption. A bit-level
+        alteration to an encrypted vault cannot be detected by simply opening it — the AES-GCM
+        tag will reject the ciphertext, but this gives the operator no forensic context.
+        The <strong>Post-Transfer Integrity Check</strong> runs before the vault is ever mounted,
+        enforcing a full cryptographic handshake in five sequential stages.
+      </p>
+
+      <div class="dp-callout dp-ok" style="margin-bottom:24px;">
+        <span class="dp-ci">🔑</span>
+        <div>
+          <strong>Automatic trigger.</strong> Selecting <strong>Vaults → Import Vault…</strong>
+          always opens the Integrity Check modal first. The vault passphrase is only requested
+          after <em>all five stages pass</em>. There is no way to bypass this gate.
+        </div>
+      </div>
+
+      <h4>File Pair Convention</h4>
+      <p>
+        Every SFTP transfer must include <strong>two files</strong> — the vault and its companion
+        manifest. bearerCORE™ automatically looks for the manifest file in the same directory,
+        with the same base name and a <code>.manifest</code> extension:
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>File</th><th>Type</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>Vault_GHA_2026.svlt</code></td>
+            <td>Vault</td>
+            <td>AES-256-GCM encrypted CBDC note bundle</td>
+          </tr>
+          <tr>
+            <td><code>Vault_GHA_2026.manifest</code></td>
+            <td>Manifest</td>
+            <td>JSON file containing the vault's cryptographic fingerprint and origin signature</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <h4>Manifest File Schema</h4>
+      <p>The <code>.manifest</code> file is a JSON document generated and signed by the sending workstation at the point of export:</p>
+      <pre style="background:#0D2A4A;color:#C9E8FF;border-radius:4px;padding:16px;font-size:11px;overflow:auto;">{
+  "vault_file":           "Vault_GHA_2026.svlt",
+  "sha256":               "&lt;hex-encoded SHA-256 of raw .svlt bytes&gt;",
+  "sha512":               "&lt;hex-encoded SHA-512 of raw .svlt bytes&gt;",
+  "sender_public_key":    "&lt;hex-encoded 32-byte Ed25519 public key&gt;",
+  "signature":            "&lt;hex-encoded 64-byte Ed25519 sig over SHA-256 digest&gt;",
+  "created_at":           "2026-04-21T10:00:00Z",
+  "transfer_window_hours": 48
+}</pre>
+
+      <h4>The Five-Stage Validation Flow</h4>
+      <div class="dp-flow">
+        <div class="dp-step">
+          <h4>Stage 1 — Manifest Location</h4>
+          <p>bearerCORE™ searches for <code>{vault_stem}.manifest</code> in the same directory as the selected <code>.svlt</code> file. If the manifest is absent or unparseable, validation fails immediately and the vault is quarantined. This prevents any attempt to import a vault without a verifiable chain of custody.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Stage 2 — SHA-256 Hash Verification</h4>
+          <p>A fresh SHA-256 hash is computed over every byte of the <code>.svlt</code> file and compared against the manifest's <code>sha256</code> field. If even a single bit changed during SFTP transfer — due to corruption, truncation, or tampering — the hashes will not match and the vault is quarantined.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Stage 3 — SHA-512 Hash Verification</h4>
+          <p>An independent SHA-512 digest is computed and compared. Providing a second hash from a different digest family eliminates the theoretical risk of a preimage attack designed to defeat only one algorithm. SHA-512 is optional in the manifest; if absent, this stage passes automatically.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Stage 4 — Origin Signature Verification (Ed25519)</h4>
+          <p>The manifest carries a 64-byte Ed25519 digital signature over the raw 32-byte SHA-256 digest. bearerCORE™ verifies this signature using the <code>sender_public_key</code> from the manifest (via libsodium <code>crypto_sign_verify_detached</code>). A valid signature proves the vault was created by the holder of the corresponding private key — the authorised sending workstation. No other entity can forge this signature without the sender's private key.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Stage 5 — Transfer Window (Timestamp Anchoring)</h4>
+          <p>The manifest's <code>created_at</code> timestamp is compared against the current UTC time. If the vault is older than <code>transfer_window_hours</code> (default: 48 hours), the import is rejected as a potential <strong>replay attack</strong> — a scenario in which an attacker re-sends an old, cryptographically valid vault to trigger a duplicate issuance. Manifests dated more than 5 minutes in the future (clock skew) are also rejected.</p>
+        </div>
+      </div>
+
+      <h4>UI Workflow — Integrity Check Modal</h4>
+      <p>
+        The Integrity Check modal opens immediately when the operator selects Import Vault.
+        It is a blocking modal — no other action can be taken until it completes.
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Phase</th><th>Display</th><th>Outcome</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Scanning</strong></td>
+            <td>Gold progress bar advances; each stage row shows "Computing…" in amber</td>
+            <td>Operator observes live progress — no interaction required</td>
+          </tr>
+          <tr>
+            <td><strong>Stage Pass</strong></td>
+            <td>Row turns green: e.g. "SHA-256 matches registry manifest ✔"</td>
+            <td>Next stage begins automatically after 400 ms</td>
+          </tr>
+          <tr>
+            <td><strong>All Pass</strong></td>
+            <td>Progress bar turns green; success panel: "All cryptographic checks passed"</td>
+            <td>Operator clicks <strong>Continue</strong> → passphrase prompt appears</td>
+          </tr>
+          <tr>
+            <td><strong>Stage Fail</strong></td>
+            <td>Row turns red; quarantine panel expands with full alert message</td>
+            <td>Vault is blocked; incident logged; operator clicks <strong>Acknowledge</strong></td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <h4>Tamper Detection — Emergency Quarantine Mode</h4>
+      <p>
+        If any stage fails, bearerCORE™ enters Emergency Quarantine mode:
+      </p>
+      <ul style="margin:0 0 16px 24px; line-height:1.8;">
+        <li><strong>Hard Block:</strong> The vault file is flagged and cannot be opened, inspected, or mounted — even if the operator possesses the correct passphrase.</li>
+        <li><strong>Automated Incident Report:</strong> An <em>Inbound Transport Violation</em> record is automatically filed via <code>POST /api/v2/audit/inbound_transport_violations</code>. The record appears in the <strong>Fraud Dashboard</strong> under the "Inbound Transport Violations" category.</li>
+        <li><strong>High-Contrast Alert:</strong> The modal displays: <em>"Security Alert: Vault Integrity Compromised. File does not match source signature."</em> with the specific failure reason.</li>
+      </ul>
+
+      <div class="dp-callout dp-danger">
+        <span class="dp-ci">⛔</span>
+        <div>
+          <strong>Never dismiss a quarantine alert without investigation.</strong>
+          An integrity failure on an inbound vault indicates either network corruption, an
+          SFTP interception event, or an attempted vault replay. Treat every Inbound Transport
+          Violation as a security incident. Escalate to the Central Bank Security Operations team
+          and preserve the <code>.svlt</code> and <code>.manifest</code> files as forensic evidence.
+        </div>
+      </div>
+
+      <h4>API — Inbound Transport Violations</h4>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Method</th><th>Endpoint</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="badge" style="background:#1B5E20;color:#fff;padding:1px 6px;border-radius:3px;font-size:10px;">POST</span></td>
+            <td><code>/api/v2/audit/inbound_transport_violations</code></td>
+            <td>Qt terminal logs a failed integrity check. Body: <code>vault_file</code>, <code>violation_type</code>, <code>reason</code>, <code>detected_at</code>, <code>manifest_sha256</code>, <code>sender_pubkey</code>.</td>
+          </tr>
+          <tr>
+            <td><span class="badge" style="background:#0D47A1;color:#fff;padding:1px 6px;border-radius:3px;font-size:10px;">GET</span></td>
+            <td><code>/api/v2/audit/inbound_transport_violations</code></td>
+            <td>Fraud Dashboard fetches the violations list. Optional params: <code>status=quarantined</code>, <code>limit=50</code>.</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+    </div>
+
+    <!-- ══════════════ §5 RIGHT PANE ══════════════ -->
+    <div class="dp-section" id="right-pane">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§5</div>
+        <h2>Right Pane — Authorization, Transfer &amp; Controls</h2>
+      </div>
+
+      <h3>A. Authorization Snapshot (top dropdown)</h3>
+      <p>Dropdown at top of right pane reads "Bank of Ghana — BOG Primary Key". Selecting a key loads the authorization snapshot for that issuer key. All fields below are read-only snapshots.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Value</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Issuance Authorization ID</td><td>IA-E0E7A9E144D8-20260407</td><td>Matches draft ID. Read-only.</td></tr>
+          <tr><td>Asset Code</td><td>L-XOF</td><td>From authorization record</td></tr>
+          <tr><td>Total Amount</td><td>50000.0</td><td>Authorized total face value</td></tr>
+          <tr><td>Backing Lock ID</td><td>50d5ed31-f072-4018-b4e5-9fe883004208</td><td>Full UUID of LiquidityLock from Corridor Ops. Dropdown — selectable if multiple locks available.</td></tr>
+          <tr><td>Corridor</td><td>🇬🇭 GHA → 🇲🇱 MLI</td><td>Visual corridor indicator with flags</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>B. Governance Approval Banner</h3>
+      <p>Large green "Approved" banner with text "Read-only snapshot of the request". Below it, a locked text area shows the authorization notes (read-only). This banner only shows when auth.status = <code>approved</code>. When pending, it shows a waiting spinner.</p>
+
+      <h3>C. Authorize mint batch section</h3>
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Authorize package</span><span class="dp-btn-pane r">Right Pane (disabled)</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">State in mockup</div><div>Greyed out / disabled. Already authorized — cannot re-authorize.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">When enabled</div><div>Only when issuance.status = preview AND no existing authorization exists for this draft.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Action when clicked</div><div>Creates IssuanceAuthorization record with status=pending. Notifies second operator. Stepper advances to Authorization stage.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/issuance_authorizations {corridor_id, draft_id, backing_lock_id, asset_code, total_amount}</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Authorize mint batch</span><span class="dp-btn-pane r">Right Pane (active)</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Preconditions</div><div>auth.status = approved. issuance.status = authorization. Backing lock must be ACTIVE. No existing MintBatch for this authorization.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Action</div><div>Creates MintBatch record. Generates all CBDCNotes with serial numbers allocated by SerialAllocationService. Signs each note with IssuerKey. Sets issuance.status = generation → minted.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/cvib/batches {authorization_id, issuer_key_id, denomination, note_count, holder_id, expiry_date}</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>MintBatch created. Notes appear in registry table with status=ACTIVE. Stepper advances to Minted. Export send bundle button enables.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Failure</div><div>Lock expired → error "Backing lock is no longer active". Serial collision → "Serial range already allocated". Either blocks minting.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Export send bundle</span><span class="dp-btn-pane r">Right Pane</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Preconditions</div><div>issuance.status = minted. Vault authenticated. Manifest verified. Transfer destination configured. All Transfer Readiness checks green.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Action</div><div>Packages all notes into an encrypted vault bundle. Generates manifest. Writes bundle to output_path. Does NOT yet send — staging step before Transfer Ownership.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/cvib/batches/:id/export_bundle {vault_config, output_path}</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>Bundle file created at output_path. Manifest hash populated in right pane. Ready for Transfer Ownership.</div></div>
+        </div>
+      </div>
+
+      <h3>D. Transfer Destination section</h3>
+      <p>Configures where and how the note bundle is delivered to the claiming commercial bank.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Value</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Target (read-only)</td><td>BANQUE ATLANTIQUE DU BENIN - ATBJBJBJ</td><td>Populated from Claiming Institution selection. Full name + SWIFT code.</td></tr>
+          <tr><td>BIC/SWIFT (read-only)</td><td>ATBJBJBJ</td><td>SWIFT code of claiming bank</td></tr>
+          <tr><td>Method dropdown</td><td>Email</td><td>Select Email or SFTP. Changes visible sub-fields.</td></tr>
+          <tr><td>Destination (read-only)</td><td>info@towerpointgroup.com</td><td>Auto-populated from claiming institution's registered email</td></tr>
+          <tr><td>Verification</td><td>Pending (orange)</td><td>Status of destination verification. Pending = not yet confirmed reachable. System attempts to verify on bundle export.</td></tr>
+          <tr><td>Email field</td><td>info@towerpointgroup.com</td><td>Editable if method = Email. Must be valid email format.</td></tr>
+          <tr><td>Host (SFTP)</td><td>Select SFTP Host</td><td>Visible only when method = SFTP</td></tr>
+          <tr><td>Directory (SFTP)</td><td>Select Directory</td><td>Remote path — visible when method = SFTP</td></tr>
+          <tr><td>Username (SFTP)</td><td>—</td><td>SFTP login — visible when method = SFTP</td></tr>
+          <tr><td>Password (SFTP)</td><td>•••••••• (masked)</td><td>SFTP password — visible when method = SFTP. Stored encrypted.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>E. Transfer Readiness Checklist</h3>
+      <p>Four system checks that must all be green before Transfer Ownership is permitted. Each is a checkbox — green tick = passed, empty = not yet checked.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Check</th><th>Status (mockup)</th><th>System check</th></tr></thead>
+        <tbody>
+          <tr><td>Vault Authenticated</td><td>☐ (unchecked)</td><td>Vault password entered and validated against vault_name. Vault file accessible at output_path.</td></tr>
+          <tr><td>Manifest Verified</td><td>☐ (unchecked)</td><td>Manifest hash recomputed and matches stored hash. integrity_status = verified.</td></tr>
+          <tr><td>Target Host Reachable</td><td>✅ (green)</td><td>System ping/connectivity test to destination email server or SFTP host succeeded.</td></tr>
+          <tr><td>Claiming Institution Verified</td><td>✅ (green)</td><td>Claiming institution's SWIFT code validated against institution registry. BIC/SWIFT = ATBJBJBJ confirmed.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="dp-callout dp-danger"><span class="dp-ci">⛔</span><div>Transfer Ownership button remains disabled until ALL four checks show green ticks. No partial transfer is permitted.</div></div>
+
+      <h3>F. Vault Authentication section</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>*Password</td><td>Password input (masked)</td><td>Vault encryption password. Required. Used to decrypt/encrypt the vault bundle. NOT stored.</td></tr>
+          <tr><td>*Confirm Password</td><td>Password input (masked)</td><td>Must match Password field. Validation: exact character match.</td></tr>
+          <tr><td>*Vault Name</td><td>Dropdown "Select Vault"</td><td>Required. Pre-configured vault identifiers. Selection loads vault metadata (mode, key length, block size).</td></tr>
+          <tr><td>Output path</td><td>Text "Select vault above..."</td><td>Auto-populated from vault config. Filesystem path where bundle is written. Read-only until vault is selected.</td></tr>
+          <tr><td>*Tender</td><td>—</td><td>Auto-populated from issuance tender type (Banknotes). Read-only display.</td></tr>
+          <tr><td>*Mode</td><td>Dropdown "Select Mode"</td><td>Encryption mode — e.g. AES-256-GCM. Required. Loaded from vault config on vault selection.</td></tr>
+          <tr><td>*Key Length</td><td>Dropdown "Select Key Length"</td><td>Encryption key length in bits — e.g. 256. Required.</td></tr>
+          <tr><td>*Block Size</td><td>Dropdown "Select Padding"</td><td>Block/padding size for the cipher. Required.</td></tr>
+        </tbody>
+      </table></div>
+      <p>When vault name is selected, Mode, Key Length, and Block Size are auto-populated from the vault configuration record. The operator must still enter Password and Confirm Password manually — these are never stored.</p>
+
+      <h3>G. Batch Configuration section (Authorization Snapshot lower half)</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Value</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Issuance Authorization ID</td><td>IA-E0E7A9E144D8-20260407</td><td>Read-only. Links batch to authorization.</td></tr>
+          <tr><td>Asset Code</td><td>L-XOF</td><td>Read-only. From authorization.</td></tr>
+          <tr><td>Backing Lock ID</td><td>50d5ed31-f072-4018-b4e5-9fe883004208</td><td>Dropdown. Active Corridor Ops lock selected here — must match authorization's backing_lock_id.</td></tr>
+          <tr><td>Allocated Serial Block</td><td>L-XOF-00000000001 → L-XOF-00000000005</td><td>Read-only after generation. SerialAllocationService output.</td></tr>
+          <tr><td>Batch ID</td><td>70f75f6f-9164-4ae3-ae38-f347732cdc9d</td><td>Read-only UUID generated when batch is created.</td></tr>
+          <tr><td>Corridor</td><td>🇬🇭 GHA → 🇲🇱 MLI</td><td>Read-only corridor indicator.</td></tr>
+          <tr><td>Initial Holder</td><td>Bank of Ghana</td><td>Read-only. The issuing central bank is always the initial holder.</td></tr>
+          <tr><td>Holder ID</td><td>BANQUE ATLANTIQUE DU BENIN (long hash)</td><td>The claiming institution's DID/holder identifier. This is set to the target bank — the holder AFTER transfer. The long hash (3a42dbe76594bf…) is the cryptographic holder identity.</td></tr>
+          <tr><td>Issuer Key</td><td>Bank of Ghana — BOG Primary Key (dropdown)</td><td>Ed25519 key used to sign notes. Must be an active IssuerKey for the source central bank.</td></tr>
+          <tr><td>Expiry Date</td><td>None</td><td>Optional note expiry. "None" = perpetual validity.</td></tr>
+          <tr><td>Authorization ID</td><td>IA-E0E7A9E144D8-20260407</td><td>Repeated reference for clarity.</td></tr>
+          <tr><td>Manifest Hash</td><td>(empty)</td><td>Populated after Export send bundle. SHA-256 of bundle contents. Used for integrity verification by claiming institution.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>H. Claiming Institution section</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Value</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Commercial Bank</td><td>BANQUE ATLANTIQUE DU BENIN - ATBJBJBJ</td><td>Name and SWIFT of receiving bank. Populated from institution registry.</td></tr>
+          <tr><td>City</td><td>—</td><td>City of claiming bank. Optional — from registry.</td></tr>
+          <tr><td>Branch</td><td>—</td><td>Branch of claiming bank. Optional.</td></tr>
+          <tr><td>BIC / SWIFT Code</td><td>ATBJBJBJ</td><td>Machine-readable SWIFT identifier. Used for verification check.</td></tr>
+          <tr><td>Public key section label</td><td>"Please use this section to select the public key"</td><td>Instructional label for key selection</td></tr>
+          <tr><td>Public key</td><td>Select Public Key (dropdown)</td><td>The claiming institution's Ed25519 public key. Used to encrypt the bundle so only they can decrypt it. Must be selected before Transfer Ownership.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>I. Packaging Options section</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Value</th><th>Effect on notes</th></tr></thead>
+        <tbody>
+          <tr><td>Watermark</td><td>Simulation Only (dropdown)</td><td>Embeds a visible watermark text on generated note documents. "Simulation Only" marks notes as non-production. Production deployments use "None" or a custom watermark.</td></tr>
+          <tr><td>Marking</td><td>None (Original) (dropdown)</td><td>Visual marking applied to note images/PDFs. "None (Original)" = unmodified. Other options may include color overlays or stamps.</td></tr>
+          <tr><td>Note Size</td><td>Original (100%) (dropdown)</td><td>Size scaling of note document output. 100% = full size. Reduced size options for preview/specimen purposes.</td></tr>
+          <tr><td>Print Barcode checkbox</td><td>☑ Print barcode on note</td><td>When checked, a Code 128 barcode encoding the serial number is printed on each note. Used by validation desk for scanning. Barcode is the sole machine-readable identifier — QR codes are not used.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>J. Transfer Ownership button</h3>
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Transfer Ownership</span><span class="dp-btn-pane r">Right Pane — Primary Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Preconditions (ALL required)</div><div>
+            1. issuance.status = minted<br>
+            2. All 4 Transfer Readiness checks = green<br>
+            3. Vault authenticated (password + vault name set)<br>
+            4. Manifest verified (integrity_status = verified)<br>
+            5. Claiming Institution public key selected<br>
+            6. Transfer destination configured (email or SFTP credentials)
+          </div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Step-by-step</div><div>
+            1. Client validates all preconditions locally. Shows error for any failed check.<br>
+            2. Bundle encrypted with vault key + claiming institution's public key.<br>
+            3. POST /api/v2/cvib/batches/:id/send_bundle_email OR SFTP delivery via sshpass batch file executed in QtConcurrent background thread.<br>
+            4. On delivery success: all CBDCNotes.holder updated to claiming institution's holder_id.<br>
+            5. All notes.status → TRANSFERRED.<br>
+            6. issuance.status → transferred.<br>
+            7. Corridor Ops linked_outstanding updated.<br>
+            8. Audit log entry created: transferred_by, transferred_at, target_institution, delivery_method.
+          </div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Ledger impact</div><div>CBDCNote.holder = claiming institution holder_id. CBDCNote.status = TRANSFERRED. Corridor linked_outstanding += total_amount.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Failure: delivery error</div><div>Email bounce or SFTP timeout → notes remain ACTIVE, holder unchanged. Error dialog with retry option. issuance.status stays minted.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Failure: vault error</div><div>Wrong password → bundle encryption fails. "Vault authentication failed." Notes unchanged.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Failure: mid-transfer</div><div>If delivery fails after partial send (network cut): system rolls back CBDCNote status changes. Idempotent retry is safe — delivery_reference prevents double-send.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ §6 BUTTON SUMMARY ══════════════ -->
+    <div class="dp-section" id="buttons">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6</div>
+        <h2>Button-Level Summary</h2>
+      </div>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Button</th><th>Pane</th><th>Enabled when</th><th>API call</th><th>Success effect</th></tr></thead>
+        <tbody>
+          <tr><td>Refresh (left)</td><td>Left</td><td>Always</td><td>GET /corridors/:id, GET /fx_rate, GET /issuance_authorizations/latest</td><td>Left pane repopulated</td></tr>
+          <tr><td>Edit Plan</td><td>Left</td><td>status ∈ {draft, preview}</td><td>PATCH /issuance_drafts/:id</td><td>Fields editable, recalculates total</td></tr>
+          <tr><td>Refresh (middle)</td><td>Middle</td><td>Always</td><td>GET /cvib/batches/:id/notes</td><td>Registry table refreshed</td></tr>
+          <tr><td>Import Metadata</td><td>Middle</td><td>status = draft</td><td>POST /cvib/batches/:id/import_metadata</td><td>Draft pre-populated from file</td></tr>
+          <tr><td>Download/Verify Manifest</td><td>Middle</td><td>status ≥ generation</td><td>GET /cvib/batches/:id/manifest</td><td>File saved, hash verified</td></tr>
+          <tr><td>Authorize package</td><td>Right</td><td>status = preview, no auth exists</td><td>POST /issuance_authorizations</td><td>Auth created, notifies second operator</td></tr>
+          <tr><td>Authorize mint batch</td><td>Right</td><td>auth.status = approved, status = authorization</td><td>POST /cvib/batches</td><td>Batch + notes created, status → minted</td></tr>
+          <tr><td>Export send bundle</td><td>Right</td><td>status = minted, vault configured</td><td>POST /cvib/batches/:id/export_bundle</td><td>Bundle written, manifest hash populated</td></tr>
+          <tr><td>Transfer Ownership</td><td>Right</td><td>All 4 readiness checks green</td><td>POST /cvib/batches/:id/send_bundle_email</td><td>Notes → TRANSFERRED, holder updated</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ══════════════ §7 RULES ══════════════ -->
+    <div class="dp-section" id="rules">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§7</div>
+        <h2>System Rules &amp; Edge Cases</h2>
+      </div>
+
+      <h3>Authorization missing</h3>
+      <div class="dp-rule">Authorize mint batch button remains disabled. issuance.status cannot advance past authorization stage.</div>
+      <div class="dp-rule">If authorization expires (no second operator action within TTL): auth.status → expired. Operator must re-submit via Authorize package.</div>
+
+      <h3>Backing lock insufficient or expired</h3>
+      <div class="dp-callout dp-danger"><span class="dp-ci">⛔</span><div>If the LiquidityLock referenced in backing_lock_id has status != active at the time Authorize mint batch is clicked, the server returns HTTP 422 {code: "lock_insufficient", message: "..."}. Minting is blocked. Operator must return to Corridor Ops and create a new lock.</div></div>
+
+      <h3>Duplicate serial numbers</h3>
+      <div class="dp-rule">SerialAllocationService maintains a per-corridor sequence counter. Serials are allocated atomically in a DB transaction. Duplicate serial → HTTP 409 Conflict. Batch creation rolled back entirely.</div>
+      <div class="dp-rule">Import Metadata: if uploaded file contains a serial that already exists → entire import rejected. No partial import.</div>
+
+      <h3>Transfer fails mid-process</h3>
+      <div class="dp-rule">Email bounce after send: notes remain ACTIVE. Retry is safe — email delivery uses an idempotent delivery_reference token to prevent double-send.</div>
+      <div class="dp-rule">SFTP connection dropped mid-transfer: sshpass script detects partial upload. Status not updated. Full retry required.</div>
+
+      <h3>Manifest mismatch</h3>
+      <div class="dp-rule">Manifest.integrity_status → mismatch. Transfer Ownership button blocked. Manifest Verified readiness check → unchecked (red).</div>
+      <div class="dp-rule">Operator must re-export bundle (Export send bundle) which regenerates the manifest and recomputes the hash.</div>
+
+      <h3>Vault authentication failure</h3>
+      <div class="dp-rule">Wrong password → "Vault authentication failed." error. Vault Authenticated readiness check → unchecked.</div>
+      <div class="dp-rule">Vault name not found → "Vault not found." error. Output path field remains empty.</div>
+      <div class="dp-rule">Password mismatch (password ≠ confirm password): client-side validation prevents vault authentication attempt.</div>
+
+      <h3>Simulation vs Production watermark</h3>
+      <div class="dp-rule">Packaging Options watermark = "Simulation Only" is the default and safe value. Notes generated with this watermark are visually marked and cannot be mistaken for production notes.</div>
+      <div class="dp-rule">Production deployments must explicitly change watermark to "None" or a custom value. This is a mandatory operator action — no auto-promotion.</div>
+    </div>
+
+    <!-- ══════════════ §8 END-TO-END FLOW ══════════════ -->
+    <div class="dp-section" id="flow">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§8</div>
+        <h2>End-to-End Flow</h2>
+      </div>
+      <p>Complete walkthrough using the values visible in the mockup: GHA → MLI corridor, 5 × 10,000 XOF notes, claiming institution BANQUE ATLANTIQUE DU BENIN.</p>
+
+      <div class="dp-flow">
+        <div class="dp-step">
+          <h4>Operator creates issuance draft</h4>
+          <p>Selects GHA → MLI corridor. Left pane auto-populates with BCEAO metadata, L-XOF asset code, serial pattern N11A1. Selects "Linked", denomination 10,000, pieces 1. Status = draft.</p>
+        </div>
+        <div class="dp-step">
+          <h4>System generates preview</h4>
+          <p>Operator clicks Edit Plan → saves. Preview stage card shows: 🇬🇭 GHA → 🇲🇱 MLI / 10,000 × 5 / 50000.0. Status = preview.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Authorization submitted</h4>
+          <p>Operator clicks "Authorize package". POST /issuance_authorizations creates auth with status=pending, backing_lock_id=50d5ed31-…. Governor/second operator sees pending item in Governor Desk. Status = authorization.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Authorization approved (Four-Eyes)</h4>
+          <p>Second operator (Dr. Johnson Pandit Asiama) approves in Governor Desk. auth.status → approved. Green "Approved" banner appears in right pane. Stepper authorization card shows IDs. "Authorize mint batch" button enables.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Mint batch created</h4>
+          <p>Operator clicks "Authorize mint batch". POST /cvib/batches. SerialAllocationService allocates L-XOF-00000000001 through L-XOF-00000000005. 5 CBDCNote records created, all status=ACTIVE. Batch ID 70f75f6f-… generated. Registry table populates with 5 rows. Status = minted. Stepper shows "5 notes".</p>
+        </div>
+        <div class="dp-step">
+          <h4>Transfer configured</h4>
+          <p>Operator selects target institution BANQUE ATLANTIQUE DU BENIN, method Email, enters destination info@towerpointgroup.com. Selects Bank of Ghana BOG Primary Key as issuer. Selects vault, enters password. Claiming Institution Verified and Target Host Reachable checks turn green.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Bundle exported and manifest verified</h4>
+          <p>Operator clicks "Export send bundle". Bundle encrypted and written to output path. Manifest hash generated and shown in Manifest Hash field. Operator clicks "Download/Verify Manifest" — integrity_status = verified. Manifest Verified check turns green.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Ownership transferred</h4>
+          <p>All 4 readiness checks green. Operator clicks "Transfer Ownership". Bundle emailed to info@towerpointgroup.com. All 5 notes.holder → BANQUE ATLANTIQUE DU BENIN holder_id. All notes.status → TRANSFERRED. issuance.status → transferred. Corridor linked_outstanding += 50,000. Audit trail written.</p>
+        </div>
+      </div>
+
+      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>End state: 5 TRANSFERRED notes on L-XOF, holder = BANQUE ATLANTIQUE DU BENIN, corridor GHA→MLI linked_outstanding = 50,000 XOF, full audit trail from draft through transfer recorded, manifest verified by claiming institution.</div></div>
+    </div>
+
+  </div><!-- /dp-main -->
+
+  <div class="dp-footer">
+    bearerCORE™ &middot; Issuance Tab Specification &middot; TowerPoint Group &middot; April 2026
+  </div>
+</div>

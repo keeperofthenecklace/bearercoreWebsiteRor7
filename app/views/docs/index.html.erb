@@ -1,0 +1,322 @@
+<%# app/views/documents_portal/index.html.erb
+    Documentation Portal — Module Index %>
+
+<%= render 'docs/doc_styles' %>
+
+<div class="dp-wrap">
+
+  <!-- Top bar -->
+  <nav class="dp-topbar">
+    <a href="/" class="dp-topbar-back">
+      ← Back to bearerCORE™
+    </a>
+    <span class="dp-topbar-title">Documentation</span>
+    <span class="dp-topbar-tag">v1.0</span>
+  </nav>
+
+  <!-- Cover -->
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:700px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · TowerPoint Group</div>
+      <h1>System Documentation</h1>
+      <p class="dp-cover-desc">
+        Complete functional and technical reference for every module of the bearerCORE™
+        Central Bank Digital Currency platform. Use these guides for integration,
+        operator training, and audit compliance.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Platform <b>bearerCORE™ v1.0</b></div>
+        <div>Scope <b>54 AU Member States</b></div>
+        <div>Updated <b>April 2026</b></div>
+        <div>Classification <b>Internal / Research</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Module grid -->
+  <div style="max-width:1060px;margin:0 auto;padding:48px 48px 80px;">
+
+    <h2 style="font-family:Georgia,serif;font-size:18px;font-weight:normal;color:#0a1628;margin-bottom:6px;">
+      Platform Modules
+    </h2>
+    <p style="font-size:14px;color:#7a7f9a;margin-bottom:32px;">
+      Select a module to open its full specification.
+    </p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;">
+
+      <!-- Corridor Ops -->
+      <a href="/docs/corridor_ops" style="text-decoration:none;" class="dp-mod-card">
+        <div style="
+          background:#fff;border:1px solid #dde1ef;border-radius:12px;
+          padding:28px 24px;transition:all 0.2s;
+          display:flex;flex-direction:column;gap:12px;
+        " onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
+           onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="
+              width:44px;height:44px;background:#0a1628;border-radius:10px;
+              display:flex;align-items:center;justify-content:center;font-size:22px;
+            ">🏛</div>
+            <span style="background:#e8f5e9;color:#1b5e20;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;">COMPLETE</span>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#0a1628;margin-bottom:6px;">Corridor Operations</div>
+            <div style="font-size:13px;color:#4a4f6a;line-height:1.6;">
+              Cross-border CBDC liquidity management. Reserve pools, locks, FX rates, rebalancing, and governance escalation across 54 AU member corridors.
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Liquidity Locks</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Reserve Pools</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">FX Management</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:#0a1628;margin-top:4px;">
+            View documentation →
+          </div>
+        </div>
+      </a>
+
+      <!-- Issuance -->
+      <a href="/docs/issuance" style="text-decoration:none;">
+        <div style="
+          background:#fff;border:1px solid #dde1ef;border-radius:12px;
+          padding:28px 24px;transition:all 0.2s;
+          display:flex;flex-direction:column;gap:12px;
+        " onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
+           onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="
+              width:44px;height:44px;background:#152240;border-radius:10px;
+              display:flex;align-items:center;justify-content:center;font-size:22px;
+            ">🪙</div>
+            <span style="background:#e8f5e9;color:#1b5e20;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;">COMPLETE</span>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#0a1628;margin-bottom:6px;">Issuance Tab</div>
+            <div style="font-size:13px;color:#4a4f6a;line-height:1.6;">
+              CBDC batch creation, Ed25519 key management, governance sign-off, serial number allocation, and SFTP delivery to commercial banks.
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">CBDC Batches</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Ed25519 Keys</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">SFTP Delivery</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:#0a1628;margin-top:4px;">
+            View documentation →
+          </div>
+        </div>
+      </a>
+
+      <!-- Validation Desk -->
+      <a href="/docs/validation-desk" style="text-decoration:none;">
+        <div style="
+          background:#fff;border:1px solid #dde1ef;border-radius:12px;
+          padding:28px 24px;transition:all 0.2s;
+          display:flex;flex-direction:column;gap:12px;
+        " onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
+           onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="
+              width:44px;height:44px;background:#1e3260;border-radius:10px;
+              display:flex;align-items:center;justify-content:center;font-size:22px;
+            ">🔍</div>
+            <span style="background:#fff8e1;color:#e65100;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;">IN PROGRESS</span>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#0a1628;margin-bottom:6px;">Validation Desk</div>
+            <div style="font-size:13px;color:#4a4f6a;line-height:1.6;">
+              Inbound CBDC verification pipeline. QR/barcode parsing, Ed25519 signature verification, registry lookup, duplicate detection, and compliance actions.
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Signature Verify</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Registry Check</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Fraud Detection</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:#0a1628;margin-top:4px;">
+            View documentation →
+          </div>
+        </div>
+      </a>
+
+      <!-- Deposit & Burn -->
+      <a href="/docs/deposit-burn" style="text-decoration:none;">
+        <div style="
+          background:#fff;border:1px solid #dde1ef;border-radius:12px;
+          padding:28px 24px;transition:all 0.2s;
+          display:flex;flex-direction:column;gap:12px;
+        " onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
+           onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="
+              width:44px;height:44px;background:#c0392b;border-radius:10px;
+              display:flex;align-items:center;justify-content:center;font-size:22px;
+            ">🔥</div>
+            <span style="background:#fff8e1;color:#e65100;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;">IN PROGRESS</span>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#0a1628;margin-bottom:6px;">Deposit &amp; Burn</div>
+            <div style="font-size:13px;color:#4a4f6a;line-height:1.6;">
+              CBDC redemption workflow. Vault deposit ingestion, withdrawal processing, burn authorization, and audit trail from MINTED through BURNED lifecycle states.
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Redemption</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Burn Lifecycle</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Vault Sync</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:#0a1628;margin-top:4px;">
+            View documentation →
+          </div>
+        </div>
+      </a>
+
+      <!-- Governance -->
+      <a href="/docs/governance" style="text-decoration:none;">
+        <div style="
+          background:#fff;border:1px solid #dde1ef;border-radius:12px;
+          padding:28px 24px;transition:all 0.2s;
+          display:flex;flex-direction:column;gap:12px;
+        " onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
+           onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="
+              width:44px;height:44px;background:#6a1b9a;border-radius:10px;
+              display:flex;align-items:center;justify-content:center;font-size:22px;
+            ">⚖️</div>
+            <span style="background:#fff8e1;color:#e65100;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;">IN PROGRESS</span>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#0a1628;margin-bottom:6px;">Governance</div>
+            <div style="font-size:13px;color:#4a4f6a;line-height:1.6;">
+              Four-Eyes authorization framework. Proposals, voting, FX rate approval, limit change gating, escalation routing, and Governor dual-signature flows.
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Four-Eyes</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Proposals</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Governor Sign-off</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:#0a1628;margin-top:4px;">
+            View documentation →
+          </div>
+        </div>
+      </a>
+
+      <!-- System Events -->
+      <a href="/docs/system-events" style="text-decoration:none;" class="dp-mod-card">
+        <div style="
+          background:#fff;border:1px solid #dde1ef;border-radius:12px;
+          padding:28px 24px;transition:all 0.2s;
+          display:flex;flex-direction:column;gap:12px;
+        " onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
+           onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="
+              width:44px;height:44px;background:#1a1200;border-radius:10px;
+              display:flex;align-items:center;justify-content:center;font-size:22px;
+            ">&#9881;</div>
+            <span style="background:#fff8e1;color:#e65100;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;">IN PROGRESS</span>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#0a1628;margin-bottom:6px;">System Events</div>
+            <div style="font-size:13px;color:#4a4f6a;line-height:1.6;">
+              Forensic infrastructure workstation. Real-time event streaming, AUDIT authority signatures, node health monitoring, payload inspection, trace stacks, and RBAC-gated access for System Administrators.
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Node Health</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">AUDIT Stream</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Forensic Trace</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:#0a1628;margin-top:4px;">
+            View documentation →
+          </div>
+        </div>
+      </a>
+
+      <!-- Interface Standards -->
+      <a href="/docs/interface-standards" style="text-decoration:none;" class="dp-mod-card">
+        <div style="
+          background:#fff;border:1px solid #dde1ef;border-radius:12px;
+          padding:28px 24px;transition:all 0.2s;
+          display:flex;flex-direction:column;gap:12px;
+        " onmouseover="this.style.borderColor='#0B1E2D';this.style.boxShadow='0 4px 16px rgba(11,30,45,0.14)'"
+           onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="
+              width:44px;height:44px;background:#0B1E2D;border-radius:10px;
+              display:flex;align-items:center;justify-content:center;font-size:22px;
+            ">&#9681;</div>
+            <span style="background:#e8f5e9;color:#1b5e20;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;">COMPLETE</span>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#0a1628;margin-bottom:6px;">Interface Standards <span style="font-size:12px;color:#7a7f9a;font-weight:400;">§6.4</span></div>
+            <div style="font-size:13px;color:#4a4f6a;line-height:1.6;">
+              Sovereign Navy visual identity standard. Colour palette, QSS reference, screen-by-screen application rules, and enforcement policy for all bearerCORE™ operator interfaces.
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#e8eaf6;color:#283593;font-size:11px;padding:2px 8px;border-radius:4px;">Sovereign Navy</span>
+            <span style="background:#e8eaf6;color:#283593;font-size:11px;padding:2px 8px;border-radius:4px;">QSS Reference</span>
+            <span style="background:#e8eaf6;color:#283593;font-size:11px;padding:2px 8px;border-radius:4px;">UI Consistency</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:#0a1628;margin-top:4px;">
+            View documentation →
+          </div>
+        </div>
+      </a>
+
+      <!-- Audit & Reports -->
+      <a href="/docs/audit-report" style="text-decoration:none;" class="dp-mod-card">
+        <div style="
+          background:#fff;border:1px solid #dde1ef;border-radius:12px;
+          padding:28px 24px;transition:all 0.2s;
+          display:flex;flex-direction:column;gap:12px;
+        " onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
+           onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="
+              width:44px;height:44px;background:#1a3a5c;border-radius:10px;
+              display:flex;align-items:center;justify-content:center;font-size:22px;
+            ">🔎</div>
+            <span style="background:#e8f5e9;color:#1b5e20;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;">COMPLETE</span>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#0a1628;margin-bottom:6px;">Audit &amp; Reports</div>
+            <div style="font-size:13px;color:#4a4f6a;line-height:1.6;">
+              Forensic workstation with dual-registry architecture. Velocity anomaly detection, Ed25519 signature verification, Four-Eyes chain-of-custody, DLT snapshot anchoring, and certified compliance report generation.
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Forensic Audit</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">DLT Anchoring</span>
+            <span style="background:#f0f2f8;color:#4a4f6a;font-size:11px;padding:2px 8px;border-radius:4px;">Compliance Reports</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:#0a1628;margin-top:4px;">
+            View documentation →
+          </div>
+        </div>
+      </a>
+
+    </div><!-- /grid -->
+
+    <!-- API reference callout -->
+    <div class="dp-callout dp-info" style="margin-top:40px;">
+      <span class="dp-ci">ℹ</span>
+      <div>
+        <strong>API Reference:</strong> Full API specification available upon request.
+        Contact <a href="mailto:governors@bearercore.com" style="color:#1976d2;font-weight:600;">governors@bearercore.com</a> for integration credentials.
+        All endpoints follow the <code>/api/v2/</code> namespace with Doorkeeper OAuth2 authentication.
+      </div>
+    </div>
+
+  </div><!-- /main -->
+
+  <div class="dp-footer">
+    bearerCORE™ CBDC Platform &middot; TowerPoint Group &middot; Internal Documentation &middot; April 2026
+  </div>
+
+</div>

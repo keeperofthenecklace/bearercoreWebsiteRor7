@@ -1,0 +1,411 @@
+<%# app/views/documents_portal/corridor_ops.html.erb
+    Corridor Operations — Full System Specification %>
+
+<%= render 'docs/doc_styles' %>
+
+<div class="dp-wrap">
+
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">Corridor Operations</span>
+    <span class="dp-topbar-tag">Complete</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:680px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · Module Specification</div>
+      <h1>Corridor Operations System</h1>
+      <p class="dp-cover-desc">
+        The operational control centre for managing bilateral CBDC liquidity corridors
+        between African Union member states. Covers reserve pool management, lock lifecycle,
+        FX rates, rebalancing, governance escalation, and emergency actions.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>1.0</b></div>
+        <div>Scope <b>54 AU Member Corridors</b></div>
+        <div>Updated <b>April 2026</b></div>
+        <div>Status <b>Production Reference</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-secnav">
+    <a href="#overview">Overview</a>
+    <a href="#data-model">Data Model</a>
+    <a href="#left-pane">Left Pane</a>
+    <a href="#middle-pane">Middle Pane</a>
+    <a href="#right-pane">Right Pane</a>
+    <a href="#buttons">Buttons</a>
+    <a href="#rules">Rules</a>
+    <a href="#flow">End-to-End Flow</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <!-- §1 Overview -->
+    <div class="dp-section" id="overview">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§1</div>
+        <h2>System Overview</h2>
+      </div>
+      <p>
+        An operator at a central bank uses Corridor Ops to allocate reserve funds into locked pools
+        that back cross-border digital cash issuance, monitor real-time liquidity positions, enforce
+        risk limits, reconcile ledger state, and escalate anomalies to governance.
+      </p>
+
+      <div class="dp-pane-grid">
+        <div class="dp-pane dp-pane-left">
+          <h3>Left Pane — Identity</h3>
+          <ul>
+            <li>Select active corridor</li>
+            <li>Set operating mode</li>
+            <li>View FX snapshot</li>
+            <li>View liquidity summary</li>
+            <li>View corridor metadata</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-middle">
+          <h3>Middle Pane — Operations</h3>
+          <ul>
+            <li>Lock / release reserve funds</li>
+            <li>Rebalance pool allocation</li>
+            <li>View active locks table</li>
+            <li>Registry &amp; audit log</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-right">
+          <h3>Right Pane — Controls</h3>
+          <ul>
+            <li>Corridor limits &amp; safety</li>
+            <li>FX configuration</li>
+            <li>Liquidity position</li>
+            <li>Registry sync &amp; reconciliation</li>
+            <li>Governance escalation</li>
+            <li>Emergency actions</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Key Concepts</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Concept</th><th>Definition</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Corridor</strong></td><td>Bilateral arrangement between two central banks enabling CBDC transfers</td><td>GHA → MLI denominated in XOF</td></tr>
+          <tr><td><strong>Reserve Pool</strong></td><td>Named sub-account within a corridor holding pledged central bank funds. Three pools per corridor.</td><td>BCEAO-XOF-RESERVE-01</td></tr>
+          <tr><td><strong>Lock</strong></td><td>Immutable ledger entry reserving a specific amount from a reserve pool for a defined duration</td><td>50,000 XOF locked for 24h</td></tr>
+          <tr><td><strong>Linked Issuance</strong></td><td>A CBDC batch issued against the backing of one or more active locks</td><td>CBDC batch backed by LK-E0E7A9E1</td></tr>
+          <tr><td><strong>Net Position</strong></td><td>Domestic available liquidity minus linked outstanding issuance</td><td>50,000 − 0 = 50,000 XOF</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §2 Data Model -->
+    <div class="dp-section" id="data-model">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§2</div>
+        <h2>Data Model</h2>
+      </div>
+
+      <h3>Corridor</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Req</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td class="r">✓</td><td>Primary key</td></tr>
+          <tr><td class="f">code</td><td class="t">string</td><td class="r">✓</td><td>Human identifier e.g. <code>GHA-MLI</code></td></tr>
+          <tr><td class="f">source_country</td><td class="t">iso3</td><td class="r">✓</td><td>ISO 3166-1 alpha-3 of sending country</td></tr>
+          <tr><td class="f">target_country</td><td class="t">iso3</td><td class="r">✓</td><td>ISO 3166-1 alpha-3 of receiving country</td></tr>
+          <tr><td class="f">asset_code</td><td class="t">string</td><td class="r">✓</td><td>ISO 4217 currency denomination</td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td class="r">✓</td><td><code>active</code> | <code>paused</code> | <code>frozen</code> | <code>inactive</code></td></tr>
+          <tr><td class="f">mode</td><td class="t">enum</td><td></td><td><code>pilot</code> | <code>supervised</code> | <code>production</code></td></tr>
+          <tr><td class="f">daily_cap</td><td class="t">decimal</td><td></td><td>Maximum total issuance per calendar day</td></tr>
+          <tr><td class="f">velocity_limit</td><td class="t">decimal</td><td></td><td>Maximum rolling 1-hour issuance volume</td></tr>
+          <tr><td class="f">per_transaction_cap</td><td class="t">decimal</td><td></td><td>Hard ceiling per individual transfer</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>LiquidityLock</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Req</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td class="r">✓</td><td>Primary key</td></tr>
+          <tr><td class="f">lock_id</td><td class="t">string</td><td class="r">✓</td><td>Human reference e.g. <code>LK-E0E7A9E1-20260407142828</code></td></tr>
+          <tr><td class="f">corridor_id</td><td class="t">uuid FK</td><td class="r">✓</td><td>References Corridor</td></tr>
+          <tr><td class="f">amount</td><td class="t">decimal</td><td class="r">✓</td><td>Value in corridor asset currency</td></tr>
+          <tr><td class="f">reserve_pool</td><td class="t">string</td><td></td><td>Pool tag. NULL = pool-01 by convention</td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td class="r">✓</td><td><code>active</code> | <code>released</code> | <code>expired</code></td></tr>
+          <tr><td class="f">duration</td><td class="t">string</td><td></td><td>e.g. <code>24h</code>, <code>48h</code>, <code>custom</code></td></tr>
+          <tr><td class="f">expires_at</td><td class="t">timestamp</td><td></td><td>When lock auto-expires (UTC)</td></tr>
+          <tr><td class="f">release_reason</td><td class="t">string</td><td></td><td>Operator note on manual release</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>ReservePoolEvent (virtual accounting)</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">event_id</td><td class="t">string</td><td>Idempotency key: <code>RBL-{hex}-{timestamp}</code></td></tr>
+          <tr><td class="f">corridor_id</td><td class="t">uuid FK</td><td>References Corridor</td></tr>
+          <tr><td class="f">source_pool</td><td class="t">string</td><td>Pool funds moved from</td></tr>
+          <tr><td class="f">dest_pool</td><td class="t">string</td><td>Pool funds moved to</td></tr>
+          <tr><td class="f">amount</td><td class="t">decimal</td><td>Virtual amount transferred</td></tr>
+          <tr><td class="f">currency</td><td class="t">string</td><td>ISO 4217 currency code</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §3 Left Pane -->
+    <div class="dp-section" id="left-pane">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§3</div>
+        <h2>Left Pane — Corridor Selector</h2>
+      </div>
+
+      <h3>Corridor Dropdown</h3>
+      <p>Editable QComboBox with QCompleter (MatchContains, CaseInsensitive). Populated from <code>GET /api/v2/corridors</code>. Display format: <code>{flag} {SRC} → {flag} {DST}</code>. Fires on <code>activated</code> signal only — not on each keystroke.</p>
+
+      <h4>On Change — Full Reload Cascade</h4>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Load corridor identity</h4><p>GET /corridors/:id → ID, Code, Asset Code, Status, Agreement ID, Source, Target</p></div>
+        <div class="dp-step"><h4>Load FX rate</h4><p>GET /corridors/:id/fx_rate → sets current rate and FX snapshot labels</p></div>
+        <div class="dp-step"><h4>Load liquidity position</h4><p>GET /corridors/:id/liquidity_position → Domestic, Linked, Net labels</p></div>
+        <div class="dp-step"><h4>Load reserve pools</h4><p>GET /corridors/:id/reserve_pools → populates pool selector dropdown</p></div>
+        <div class="dp-step"><h4>Load active locks</h4><p>GET /api/v2/liquidity_locks?corridor_id=:id → populates active locks table</p></div>
+        <div class="dp-step"><h4>Load limits + apply status style</h4><p>GET /corridors/:id/limits → Risk Limits panel. applyCorridorStatusStyle() updates Danger Zone button.</p></div>
+      </div>
+
+      <h3>Mode Selector</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Mode</th><th>Daily Cap</th><th>Per-Tx Cap</th><th>Velocity</th><th>Governance Required</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Pilot</strong></td><td>500,000 XOF</td><td>10,000 XOF</td><td>100,000/hr</td><td>All lock operations</td></tr>
+          <tr><td><strong>Supervised</strong></td><td>2,500,000 XOF</td><td>500,000 XOF</td><td>1,000,000/hr</td><td>Locks &gt; 1M, FX changes</td></tr>
+          <tr><td><strong>Production</strong></td><td>Per corridor config</td><td>Per corridor config</td><td>Per corridor config</td><td>FX changes, limit changes</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §4 Middle Pane -->
+    <div class="dp-section" id="middle-pane">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4</div>
+        <h2>Middle Pane — Operations</h2>
+      </div>
+
+      <h3>Intent Action Bar</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Intent</th><th>Visible</th><th>Button</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Lock Liquidity</strong></td><td>Reserve Pool, Amount, 10M/50M/100M/MAX, Duration</td><td>Execute (blue)</td></tr>
+          <tr><td><strong>Release Liquidity</strong></td><td>Lock ID selector, read-only Amount, Release Reason</td><td>Release Selected</td></tr>
+          <tr><td><strong>Update FX Rate</strong></td><td>New Rate input, live % comparison, Effective Time</td><td>Propose Change (purple)</td></tr>
+          <tr><td><strong>Adjust Risk Limits</strong></td><td>Daily Cap, Velocity, Per-Tx cap inputs</td><td>Propose Change (purple)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Lock Liquidity — Validation Rules</h3>
+      <div class="dp-rule">amount &gt; 0</div>
+      <div class="dp-rule">amount ≤ pool_available</div>
+      <div class="dp-rule">amount ≤ per_transaction_cap</div>
+      <div class="dp-rule">daily_total + amount ≤ daily_cap</div>
+      <div class="dp-rule">hourly_total + amount ≤ velocity_limit</div>
+      <div class="dp-rule">corridor.status == 'active'</div>
+
+      <h3>Lock States</h3>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <span class="s-active">ACTIVE</span>
+        <span class="s-released">RELEASED</span>
+        <span class="s-expired">EXPIRED</span>
+      </div>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>State</th><th>Meaning</th><th>Transition</th></tr></thead>
+        <tbody>
+          <tr><td>ACTIVE</td><td>Funds committed. Backs linked issuances.</td><td>→ RELEASED (manual) or → EXPIRED (timer)</td></tr>
+          <tr><td>RELEASED</td><td>Funds returned to reserve pool. Audit record written.</td><td>Terminal</td></tr>
+          <tr><td>EXPIRED</td><td>Duration elapsed. System auto-marks. Funds need reconciliation.</td><td>Terminal</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Active Locks Table</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Column</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>✓ Checkbox</td><td>Qt::CheckStateRole col 0</td><td>Enables batch release. Full row clickable.</td></tr>
+          <tr><td>Corridor</td><td>lock.corridor.code</td><td>e.g. GHA-MLI</td></tr>
+          <tr><td>Lock ID</td><td>lock.lock_id</td><td>Truncated for display. DB UUID in UserRole+2.</td></tr>
+          <tr><td>Amount</td><td>lock.amount</td><td>Formatted with currency. UserRole+3 for combo auto-fill.</td></tr>
+          <tr><td>Expiry</td><td>lock.expires_at</td><td>YYYY-MM-DD HH:MM truncated</td></tr>
+          <tr><td>Status</td><td>lock.status</td><td>Coloured capsule pill: green=ACTIVE, blue=RELEASED, red=EXPIRED</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Rebalance Reserve Pools</h3>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Dialog</h4><p>Source Pool, Destination Pool (cannot equal), Amount. Preview panel shows projected balances before confirm.</p></div>
+        <div class="dp-step"><h4>POST /api/v2/liquidity_locks/rebalance</h4><p>corridor_id, source_pool, dest_pool, amount, rebalanced_at</p></div>
+        <div class="dp-step"><h4>Physical retag attempt</h4><p>Server selects locks on source_pool smallest-first. Resets reserve_pool column to dest_pool until amount exhausted.</p></div>
+        <div class="dp-step"><h4>Virtual event fallback</h4><p>If no individual lock ≤ remaining, writes ReservePoolEvent. reserve_pools endpoint applies as virtual adjustment.</p></div>
+      </div>
+    </div>
+
+    <!-- §5 Right Pane -->
+    <div class="dp-section" id="right-pane">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§5</div>
+        <h2>Right Pane — Controls &amp; Governance</h2>
+      </div>
+
+      <h3>Corridor Limits &amp; Safety</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Limit</th><th>Enforcement</th><th>Default</th></tr></thead>
+        <tbody>
+          <tr><td>Per-Transaction Cap</td><td>Server + client guardrail</td><td>500,000 XOF</td></tr>
+          <tr><td>Daily Corridor Cap</td><td>Server + client warning + utilisation bar</td><td>2,500,000 XOF</td></tr>
+          <tr><td>Monthly Cap</td><td>Server monthly sum check</td><td>25,000,000 XOF</td></tr>
+          <tr><td>Velocity Limit</td><td>Server rolling 1h window</td><td>4,000,000 XOF/hr</td></tr>
+        </tbody>
+      </table></div>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>Client-side validation provides real-time UX feedback only. The Rails server re-validates on every lock creation and returns HTTP 422 with a structured error if any limit is exceeded.</div></div>
+
+      <h3>Liquidity Position (read-only)</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Calculation</th></tr></thead>
+        <tbody>
+          <tr><td>Domestic Available</td><td>SUM of all active lock amounts for this corridor</td></tr>
+          <tr><td>Linked Outstanding</td><td>SUM of denominations of active + issued CBDC notes backed by this corridor</td></tr>
+          <tr><td>Net Position</td><td>Domestic Available − Linked Outstanding</td></tr>
+          <tr><td>Position Status</td><td>Surplus (net &gt; 0) | Balanced (net = 0) | Deficit (net &lt; 0) | At Risk (net &lt; −10% daily cap)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Emergency Actions</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Button</th><th>Action</th><th>Auth</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Manual Recon</strong></td><td>Full ledger reconciliation with operator reason. No funds moved.</td><td>Standard token</td></tr>
+          <tr><td><strong>System Override</strong></td><td>Forced sync bypassing validation. Reason + 4-digit PIN. Dialog stays open until server confirms.</td><td>PIN + ENV['OVERRIDE_PIN'] in production</td></tr>
+          <tr><td><strong>Request Support</strong></td><td>Pre-filled support ticket with corridor snapshot. Generates SUP-{code}-{timestamp}.</td><td>Standard token</td></tr>
+          <tr><td><strong>Deactivate / Reactivate</strong></td><td>Dynamic button. Red when active. Green when paused/frozen. Two-step confirm + reason for deactivation.</td><td>Standard token + mandatory reason</td></tr>
+        </tbody>
+      </table></div>
+      <div class="dp-callout dp-danger"><span class="dp-ci">⛔</span><div>The Deactivate / Reactivate button must always live in the Emergency Actions group box (grpEmergencyActions), behind a visual "⚠ Danger Zone" divider. It must never appear in the Action bar or alongside routine operations.</div></div>
+    </div>
+
+    <!-- §6 Buttons -->
+    <div class="dp-section" id="buttons">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6</div>
+        <h2>Button-Level Behaviour</h2>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Execute (Lock Liquidity)</span><span class="dp-btn-pane m">Middle Pane</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Inputs</div><div>Amount, Reserve Pool, Duration</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/liquidity_locks {corridor_id, amount, reserve_pool, duration, expires_at}</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>New ACTIVE row in locks table. Pool balance decremented. Liquidity position updated.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Failure</div><div>HTTP 422 → critical dialog with server error message.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Release Selected</span><span class="dp-btn-pane m">Middle Pane</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Inputs</div><div>Checked rows in locks table OR selected Lock ID from Release Liquidity panel</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/liquidity_locks/:id/release {reason?} — one call per lock</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>Rows show RELEASED. Pool balance restored. Lock ID combo refreshed after 600ms.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Failure</div><div>Warning dialog listing all failed lock IDs.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Rebalance Pools</span><span class="dp-btn-pane m">Middle Pane</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Inputs</div><div>Source Pool, Destination Pool (≠ source), Amount</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/liquidity_locks/rebalance</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>Physical lock retag if lock ≤ amount. Virtual ReservePoolEvent if no lock fits.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Propose Change — FX Rate</span><span class="dp-btn-pane m">Middle Pane</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Inputs</div><div>New FX Rate (high-precision decimal), Effective Time (Immediate | Scheduled)</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/corridors/:id/fx_rate {rate, effective_time}</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>Returns pending_four_eyes. Rate unchanged until approved by second operator.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Escalate to Governance</span><span class="dp-btn-pane r">Right Pane</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Inputs</div><div>Reason (mandatory dropdown), Proposal ID (auto-generated)</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/escalations {corridor_id, reason, proposal_id}</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Rule</div><div>Proposing operator cannot self-approve. Four-Eyes enforced server-side.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Deactivate / Reactivate Corridor</span><span class="dp-btn-pane r">Right Pane · Danger Zone</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Deactivate</div><div>Two-step dialog. Reason combo (6 options, mandatory). POST /corridors/:id/deactivate {reason} → status=paused</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Reactivate</div><div>Routes to onCreateCorridor. Detects already_exists (HTTP 200) and offers reactivation.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- §7 Rules -->
+    <div class="dp-section" id="rules">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§7</div>
+        <h2>System Rules &amp; Edge Cases</h2>
+      </div>
+
+      <h3>Liquidity = 0</h3>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>Execute button disabled with tooltip "Waiting for pool balance". Operator must rebalance from another pool or create a new lock. Issuance blocked. Corridor remains functional for FX and governance actions.</div></div>
+
+      <h3>Cap Exceeded</h3>
+      <div class="dp-rule">Client: validateAmountGuardrail() shows red warning. Execute disabled.</div>
+      <div class="dp-rule">Server: HTTP 422 {code: cap_exceeded}. QMessageBox::critical shown.</div>
+      <div class="dp-rule">Partial cap: MAX button fills to remaining headroom automatically.</div>
+
+      <h3>Corridor Status Capability Matrix</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Status</th><th>Lock Create</th><th>Lock Release</th><th>Issuance</th><th>FX Update</th></tr></thead>
+        <tbody>
+          <tr><td>ACTIVE</td><td>✓</td><td>✓</td><td>✓</td><td>Via governance</td></tr>
+          <tr><td>PAUSED</td><td>✗</td><td>✓</td><td>✗</td><td>Via governance</td></tr>
+          <tr><td>FROZEN</td><td>✗</td><td>✗</td><td>✗</td><td>Via governance only</td></tr>
+          <tr><td>INACTIVE</td><td>✗</td><td>✗</td><td>✗</td><td>Must reactivate first</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Rebalance with No Fitting Lock</h3>
+      <div class="dp-rule">If rebalance amount &lt; every individual lock: physical retag = 0. ReservePoolEvent written for full amount.</div>
+      <div class="dp-rule">reserve_pools endpoint: dest_pool += event.amount, source_pool -= event.amount (floored at 0).</div>
+    </div>
+
+    <!-- §8 End-to-End Flow -->
+    <div class="dp-section" id="flow">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§8</div>
+        <h2>End-to-End Flow</h2>
+      </div>
+      <p>Complete walkthrough: GHA → MLI corridor from selection through limit breach, governance escalation, and reconciliation.</p>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Select corridor</h4><p>Type "GHA" in corridor selector. GHA → MLI activates. Full reload fires. FX=50.5425, Pool BCEAO-XOF-RESERVE-01 Available=49,000 XOF (Low).</p></div>
+        <div class="dp-step"><h4>Lock liquidity</h4><p>Intent=Lock Liquidity. Click 10M → guardrail fires "Exceeds daily cap". Reduce to 2,000,000. Duration=24h. Execute. Lock LK-BF0B… ACTIVE created.</p></div>
+        <div class="dp-step"><h4>Issuance linked</h4><p>CBDC batch 1,800,000 XOF issued from Issuance tab, linked to new lock. Net Position = 200,000 XOF.</p></div>
+        <div class="dp-step"><h4>Limit reached</h4><p>Second lock attempt for 1,000,000 XOF. "Daily cap reached: 0 remaining today." Execute disabled.</p></div>
+        <div class="dp-step"><h4>Escalate to governance</h4><p>Reason="Temporary cap increase". Proposal GOV-2026040922 created. Supervisor approves in Governance tab. daily_cap raised to 5,000,000.</p></div>
+        <div class="dp-step"><h4>Reconcile</h4><p>Reconciliation Report POST /reconcile. Returns "2 active locks, 1 linked issuance, no discrepancies". Sync status: In Sync ✓.</p></div>
+      </div>
+      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>End state: 2 active locks on BCEAO-XOF-RESERVE-01, 1 linked CBDC batch, net position positive, all limits within bounds, full audit trail recorded.</div></div>
+    </div>
+
+  </div><!-- /dp-main -->
+
+  <div class="dp-footer">
+    bearerCORE™ &middot; Corridor Ops Specification &middot; TowerPoint Group &middot; April 2026
+  </div>
+</div>

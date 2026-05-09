@@ -1,0 +1,625 @@
+<%# app/views/documents_portal/validation_desk.html.erb
+    Validation Desk — Full System Specification %>
+
+<%= render 'docs/doc_styles' %>
+
+<div class="dp-wrap">
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">Validation Desk — Full Specification</span>
+    <span class="dp-topbar-tag" style="color:#1b5e20;border-color:rgba(27,94,32,0.35);">Production Reference</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:680px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · Module Specification</div>
+      <h1>Validation Desk</h1>
+      <p class="dp-cover-desc">
+        Full functional specification for the CBDC verification and compliance enforcement system.
+        Covers signature validation, registry lookup, duplicate detection, risk scoring,
+        approval workflows, and the complete Qt6 + Rails 7.1 implementation.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>1.0</b></div>
+        <div>Updated <b><%= Date.today.strftime("%B %Y") %></b></div>
+        <div>Status <b>Production Reference</b></div>
+        <div>Stack <b>Qt6 + Rails 7.1</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-secnav">
+    <a href="#overview">Overview</a>
+    <a href="#data-model">Data Model</a>
+    <a href="#left-pane">Left Pane</a>
+    <a href="#middle-pane">Middle Pane</a>
+    <a href="#right-pane">Right Pane</a>
+    <a href="#far-right">Properties Tab</a>
+    <a href="#buttons">Button Spec</a>
+    <a href="#edge-cases">Edge Cases</a>
+    <a href="#flow">E2E Flow</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <!-- ═══════════════════════════════════════════════════════ §1 OVERVIEW -->
+    <div class="dp-section" id="overview">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§1</div>
+        <h2>System Overview</h2>
+      </div>
+
+      <p>The Validation Desk is the primary compliance and verification interface for central bank operators reviewing CBDC (Central Bank Issuance Bill) digital banknotes submitted by commercial banks. It is a Qt6 desktop application backed by a Rails 7.1 API.</p>
+      <p>Every CBDC note entering the system must pass through the Validation Desk before it becomes live money. The desk enforces cryptographic authenticity, double-spend prevention, registry integrity, and compliance traceability.</p>
+
+      <div class="dp-pane-grid">
+        <div class="dp-pane dp-pane-left">
+          <h3>Left Pane</h3>
+          <ul>
+            <li>Batch summary bar</li>
+            <li>Status filter rail</li>
+            <li>Input mode selector</li>
+            <li>Search bar (debounced)</li>
+            <li>Import CBDC button</li>
+            <li>Clear Table button</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-middle">
+          <h3>Middle Pane</h3>
+          <ul>
+            <li>Validation queue table (8 cols)</li>
+            <li>Bulk Approve / Bulk Reject</li>
+            <li>Persistent CBDC Preview</li>
+            <li>Obverse + Reverse images</li>
+            <li>Zoom controls</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-right">
+          <h3>Right Pane + Properties</h3>
+          <ul>
+            <li>Security Evidence panel</li>
+            <li>Note details (read-only)</li>
+            <li>Liquidity &amp; Trade context</li>
+            <li>Decision controls</li>
+            <li>Risk Intelligence panel</li>
+            <li>Technical Manifest &amp; Compliance</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Key Responsibilities</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Responsibility</th><th>Mechanism</th></tr></thead>
+        <tbody>
+          <tr><td>Signature validation</td><td>Ed25519 verify against registered IssuerKey via RbNaCl</td></tr>
+          <tr><td>Double-spend detection</td><td>Serial lookup in CbdcNote registry; prior approval check</td></tr>
+          <tr><td>Registry lookup</td><td><code>GET /api/v2/validation/registry_lookup/:serial</code></td></tr>
+          <tr><td>Compliance verification</td><td>Gazette ref, backing type, seigniorage, authorization depth</td></tr>
+          <tr><td>Risk scoring</td><td>risk_score 0–100: velocity + geofence + blacklist + missing fields</td></tr>
+          <tr><td>Approval workflow</td><td><code>POST /api/v2/validation/approve</code> with operator signature</td></tr>
+          <tr><td>Rejection workflow</td><td><code>POST /api/v2/validation/reject</code> with mandatory reason code</td></tr>
+          <tr><td>Freeze (emergency)</td><td><code>POST /api/v2/validation/freeze</code> — locks asset system-wide</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ §2 DATA MODEL -->
+    <div class="dp-section" id="data-model">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§2</div>
+        <h2>Data Models</h2>
+      </div>
+
+      <h3>ValidationSession — primary object per ingested note</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">session_ref</td><td class="t">string</td><td>Generated VAL-{hex} at ingest — shown in UI banner</td></tr>
+          <tr><td class="f">serial</td><td class="t">string</td><td>From PNG serialNumber metadata</td></tr>
+          <tr><td class="f">asset_code</td><td class="t">string</td><td>ISO 4217 e.g. NGN, KES, TZS</td></tr>
+          <tr><td class="f">denomination</td><td class="t">integer</td><td>Face value — currency symbol stripped at ingest</td></tr>
+          <tr><td class="f">issuer</td><td class="t">string</td><td>Full central bank name</td></tr>
+          <tr><td class="f">issuer_key_id</td><td class="t">string</td><td>FK to issuer_keys.key_id</td></tr>
+          <tr><td class="f">manifest_hash</td><td class="t">string</td><td>SHA-256 of batch manifest.json</td></tr>
+          <tr><td class="f">payload_hash</td><td class="t">string</td><td>SHA-256 of individual note payload</td></tr>
+          <tr><td class="f">issuer_sig</td><td class="t">string</td><td>Ed25519 signature, Base64URL encoded</td></tr>
+          <tr><td class="f">signature_status</td><td class="t">enum</td><td><code>valid</code> | <code>invalid</code> | <code>unknown</code> | <code>pending</code></td></tr>
+          <tr><td class="f">duplication_status</td><td class="t">enum</td><td><code>unique</code> | <code>duplicate</code> | <code>unchecked</code></td></tr>
+          <tr><td class="f">final_decision</td><td class="t">enum</td><td><code>approved</code> | <code>rejected</code> | <code>flagged</code> | <code>frozen</code></td></tr>
+          <tr><td class="f">decision_reason</td><td class="t">string</td><td>Required for reject and flag actions</td></tr>
+          <tr><td class="f">decided_at</td><td class="t">datetime</td><td>UTC timestamp set on decision</td></tr>
+          <tr><td class="f">risk_score</td><td class="t">integer</td><td>0–100 computed at ingest by risk engine</td></tr>
+          <tr><td class="f">risk_flags</td><td class="t">jsonb[]</td><td>Array of triggered flags: velocity, geo, blacklist</td></tr>
+          <tr><td class="f">approval_chain</td><td class="t">jsonb[]</td><td>[{operator_id, timestamp, action}] — multi-sig trail</td></tr>
+          <tr><td class="f">required_approvals</td><td class="t">integer</td><td>Multi-sig threshold from governance config</td></tr>
+          <tr><td class="f">liquidity_lock_id</td><td class="t">string</td><td>FK to LiquidityLock backing this note</td></tr>
+          <tr><td class="f">batch_ref</td><td class="t">string</td><td>Links to CvibBatch from issuance system</td></tr>
+          <tr><td class="f">batch_note_index</td><td class="t">integer</td><td>Position within batch e.g. 45</td></tr>
+          <tr><td class="f">batch_note_total</td><td class="t">integer</td><td>Total notes in batch e.g. 1000</td></tr>
+          <tr><td class="f">obverse_image_path</td><td class="t">string</td><td>Absolute path in storage/validation_images/</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>ValidationEvent — immutable audit log</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">session_ref</td><td class="t">string</td><td>FK to ValidationSession</td></tr>
+          <tr><td class="f">serial</td><td class="t">string</td><td>Denormalized for fast audit queries</td></tr>
+          <tr><td class="f">event_type</td><td class="t">enum</td><td><code>ingested</code> | <code>sig_verified</code> | <code>registry_checked</code> | <code>approved</code> | <code>rejected</code> | <code>flagged</code> | <code>frozen</code> | <code>exported</code></td></tr>
+          <tr><td class="f">operator_id</td><td class="t">string</td><td>From Doorkeeper token</td></tr>
+          <tr><td class="f">timestamp</td><td class="t">datetime</td><td>UTC — immutable once written, never updated</td></tr>
+          <tr><td class="f">details</td><td class="t">jsonb</td><td>Event-specific payload e.g. { result: "invalid" }</td></tr>
+          <tr><td class="f">node_id</td><td class="t">string</td><td>Node that recorded the event</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Risk Score Factors</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Factor</th><th>Points</th><th>Trigger</th></tr></thead>
+        <tbody>
+          <tr><td>Velocity flag</td><td>+30</td><td>Serial appears in &gt;N transactions in rolling window</td></tr>
+          <tr><td>Geofence flag</td><td>+25</td><td>Origin country outside authorized corridor region</td></tr>
+          <tr><td>Blacklist flag</td><td>+45</td><td>Issuer, holder, or serial matches sanctions list</td></tr>
+          <tr><td>Unverified signature</td><td>+15</td><td>signature_status ≠ valid at scoring time</td></tr>
+          <tr><td>Missing backing lock</td><td>+10</td><td>liquidity_lock_id is null</td></tr>
+        </tbody>
+      </table></div>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Score Range</th><th>Level</th><th>Action Required</th></tr></thead>
+        <tbody>
+          <tr><td>0–39</td><td>Low</td><td>Standard review</td></tr>
+          <tr><td>40–74</td><td>Elevated</td><td>Senior operator must approve</td></tr>
+          <tr><td>75–100</td><td>HIGH RISK</td><td>Auto-flagged at ingest; explicit override confirmation required; excluded from bulk approve</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ §3 LEFT PANE -->
+    <div class="dp-section" id="left-pane">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§3</div>
+        <h2>Left Pane — Validation Queue &amp; Filters</h2>
+      </div>
+
+      <h3>Batch Summary Bar</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>Content</th><th>Update Trigger</th></tr></thead>
+        <tbody>
+          <tr><td class="f">lblValNodeStatus</td><td>● Online / ○ Offline</td><td>API reachability check</td></tr>
+          <tr><td class="f">lblValBatchRef</td><td>Batch UUID or "—"</td><td>First imported note's batch_ref</td></tr>
+          <tr><td class="f">lblValBatchTotal</td><td>{n} Notes pending</td><td>Every loadQueue() call</td></tr>
+          <tr><td class="f">lblValBatchSelected</td><td>{n} Selected</td><td>Every checkbox itemChanged signal</td></tr>
+          <tr><td class="f">lblValBatchProgress</td><td>{approved+rejected}/{total}</td><td>Every decision action</td></tr>
+          <tr><td class="f">lblValRiskSummary</td><td>{n} Flagged or "No Flags"</td><td>Every loadQueue() call</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Status Filter Rail</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>SQL Filter</th><th>Default</th></tr></thead>
+        <tbody>
+          <tr><td class="f">rdoValFilterAll</td><td>No WHERE clause</td><td>✓ Selected on startup</td></tr>
+          <tr><td class="f">rdoValFilterPending</td><td><code>final_decision IS NULL</code></td><td>—</td></tr>
+          <tr><td class="f">rdoValFilterApproved</td><td><code>final_decision = 'approved'</code></td><td>—</td></tr>
+          <tr><td class="f">rdoValFilterRejected</td><td><code>final_decision = 'rejected'</code></td><td>—</td></tr>
+          <tr><td class="f">rdoValFilterFlagged</td><td><code>final_decision IN ('flagged','frozen')</code></td><td>—</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Input Mode</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr><td class="f">rdoValImportFile</td><td>btnValImportCBDC becomes visible; inbox auto-refresh timer stops</td></tr>
+          <tr><td class="f">rdoValScanQR</td><td>Opens QR scanner dialog; result POSTs to <code>/api/v2/validation/parse_qr</code></td></tr>
+          <tr><td class="f">rdoValInbox</td><td>Loads from <code>GET /api/v2/validation/inbox</code>; starts 30-second QTimer auto-refresh</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Empty-Belt Startup</h3>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div><strong>The queue is always empty when the desk first opens.</strong> <code>m_tableCleared</code> defaults to <code>true</code>, so the automatic <code>loadQueue()</code> in <code>initialize()</code> is intentionally a no-op. The queue only populates after an explicit operator action: Import PNG, Scan QR, or switching to Inbox mode. This prevents stale sessions from a prior shift pre-populating the belt and guards against accidental double-approval of already-processed notes.</div></div>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Entry Point</th><th>Resets <code>m_tableCleared</code>?</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Application launch</td><td>No — starts <code>true</code></td><td>Belt is clear until the operator acts</td></tr>
+          <tr><td>Import PNG (file dialog)</td><td>Yes → <code>false</code></td><td>Set in <code>onImportCBDC()</code> before <code>ingestFiles()</code></td></tr>
+          <tr><td>Drag-and-drop PNG/ZIP</td><td>Yes → <code>false</code></td><td>Set in drop-zone <code>eventFilter</code> before <code>ingestFiles()</code></td></tr>
+          <tr><td>Scan QR</td><td>Yes → <code>false</code></td><td>Set on successful QR parse</td></tr>
+          <tr><td>Switch to Inbox mode</td><td>Yes → <code>false</code></td><td>Set in <code>onInputModeChanged()</code>; Inbox button also resets</td></tr>
+          <tr><td>Clear Table button</td><td>Yes → <code>true</code></td><td>Belt clears; stays blank until next import</td></tr>
+          <tr><td>Filter/search change</td><td>No</td><td><code>loadQueue()</code> returns early if already cleared</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Import CBDC — btnValImportCBDC</h3>
+      <div class="dp-rule">Accepted type: PNG only — validated by magic bytes 89 50 4E 47, not file extension.</div>
+      <div class="dp-rule">File dialog: QFileDialog::getOpenFileNames — multiple files allowed in a single operation.</div>
+      <div class="dp-rule">Endpoint: POST /api/v2/validation/ingest (multipart/form-data, file= param)</div>
+      <div class="dp-rule">On success: m_tableCleared = false; m_sessionFilePaths[session_ref] = local_path; loadQueue()</div>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>On 409 Conflict: show duplicate warning with existing session_ref — do not reload. On 422: show API error field, skip that file, continue with remaining files.</div></div>
+
+      <h3>PNG Parsing — Validation::IngestService</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>PNG Chunk</th><th>Keyword</th><th>Processing</th></tr></thead>
+        <tbody>
+          <tr><td>tEXt</td><td>Comment</td><td>Parse directly as key=value\nstring</td></tr>
+          <tr><td>zTXt</td><td>Comment</td><td>Skip keyword+null+compression_method byte, then Zlib::inflate</td></tr>
+          <tr><td>iTXt</td><td>Comment (comp_flag=1)</td><td>Zlib::inflate the compressed text portion</td></tr>
+        </tbody>
+      </table></div>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>PNG Field</th><th>Rails Field</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="f">serialNumber</td><td class="f">serial</td><td>Verbatim</td></tr>
+          <tr><td class="f">denomination</td><td class="f">denomination</td><td>gsub(/[^\d.]/, "").to_i — symbol stripped</td></tr>
+          <tr><td class="f">asset_code / iso4217code</td><td class="f">asset_code</td><td>Uppercase ISO 4217</td></tr>
+          <tr><td class="f">centralBank</td><td class="f">issuer</td><td>Full central bank name</td></tr>
+          <tr><td class="f">issued_at</td><td class="f">issue_timestamp</td><td>ISO 8601 parsed to datetime</td></tr>
+          <tr><td class="f">CBDCCreatedBy</td><td class="f">requested_by_operator</td><td>Minting operator handle</td></tr>
+          <tr><td class="f">manifest_hash</td><td class="f">manifest_hash</td><td>SHA-256 hex</td></tr>
+          <tr><td class="f">issuer_sig</td><td class="f">issuer_sig</td><td>Base64URL encoded Ed25519 signature</td></tr>
+          <tr><td class="f">payload_hash</td><td class="f">payload_hash</td><td>SHA-256 hex of note payload</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ §4 MIDDLE PANE -->
+    <div class="dp-section" id="middle-pane">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4</div>
+        <h2>Middle Pane — Validation Queue Table</h2>
+      </div>
+
+      <h3>Table Column Definitions — tblValQueue</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Index</th><th>Const</th><th>Column</th><th>Data Source</th><th>Formatting</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td class="f">COL_CHECK</td><td>Checkbox</td><td>UI-only Qt::CheckState</td><td>Qt::CheckState</td></tr>
+          <tr><td>1</td><td class="f">COL_RISK</td><td>Risk Badge</td><td>risk_score</td><td>● green &lt;40 / amber 40–74 / red ≥75</td></tr>
+          <tr><td>2</td><td class="f">COL_SERIAL</td><td>Serial</td><td>serial; full JSON in UserRole+1</td><td>Monospace, truncated 20 chars</td></tr>
+          <tr><td>3</td><td class="f">COL_DENOM</td><td>Denomination</td><td>"{denomination} {asset_code}"</td><td>Right-aligned monospace</td></tr>
+          <tr><td>4</td><td class="f">COL_ISSUER</td><td>Issuer</td><td>issuer</td><td>Left-aligned, stretches to fill</td></tr>
+          <tr><td>5</td><td class="f">COL_ISSUED</td><td>Issued</td><td>issue_timestamp</td><td>yyyy-MM-dd HH:mm local time</td></tr>
+          <tr><td>6</td><td class="f">COL_AGE</td><td>Age</td><td>now − issue_timestamp</td><td>{n}d {h}h or {n}h {m}m if &lt;1 day</td></tr>
+          <tr><td>7</td><td class="f">COL_STATUS</td><td>Status</td><td>final_decision or "Pending"</td><td>Coloured badge</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Status Colour Coding</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Status</th><th>Background</th><th>Text Colour</th></tr></thead>
+        <tbody>
+          <tr><td>Pending</td><td>#fff8e1 amber tint</td><td>#e65100</td></tr>
+          <tr><td>approved</td><td>#e8f5e9 green tint</td><td>#2e7d32</td></tr>
+          <tr><td>rejected</td><td>#ffebee red tint</td><td>#b71c1c</td></tr>
+          <tr><td>flagged</td><td>#fff3e0 orange tint</td><td>#e65100</td></tr>
+          <tr><td>frozen</td><td>#e3f2fd blue tint</td><td>#1565c0</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Bulk Actions</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Button</th><th>Precondition</th><th>Skipped Sessions</th><th>Endpoint</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Bulk Approve</strong> — <code>btnValBulkApprove</code></td><td>≥1 checkbox checked</td><td>sig ≠ valid OR dup ≠ unique OR risk_score ≥ 75</td><td><code>POST /api/v2/validation/approve</code></td></tr>
+          <tr><td><strong>Bulk Reject</strong> — <code>btnValBulkReject</code></td><td>≥1 checked + reason via QInputDialog</td><td>Sessions already approved</td><td><code>POST /api/v2/validation/reject</code></td></tr>
+          <tr><td><strong>Clear Table</strong> — <code>btnValClearTable</code></td><td>Confirm dialog required</td><td>N/A</td><td>Local only — m_tableCleared = true</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>CBDC Preview Panel — Persistent</h3>
+      <p>A fixed-height pane below the queue table. On row single-click, the preview updates instantly — no double-click, no popup. Allows operators to arrow-key through the list while the preview updates in real time.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>Content</th></tr></thead>
+        <tbody>
+          <tr><td class="f">lblValNoteObverse</td><td>QLabel scaledContents=true; front face PNG. Click-to-load when no cached path.</td></tr>
+          <tr><td class="f">lblValNoteReverse</td><td>Auto-detected as {base}_Back.png or {base}_Reverse.png adjacent to obverse.</td></tr>
+          <tr><td class="f">lblValPreviewSerial</td><td>serial value</td></tr>
+          <tr><td class="f">lblValPreviewDenom</td><td>"{denomination} {asset_code}"</td></tr>
+          <tr><td class="f">lblValPreviewIssuer</td><td>issuer value</td></tr>
+          <tr><td class="f">lblValPreviewTimestamp</td><td>yyyy-MM-dd HH:mm:ss UTC</td></tr>
+          <tr><td class="f">btnValZoomIn / Out / Fit</td><td>m_zoomFactor ± 0.25; Fit resets to 1.0</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ §5 RIGHT PANE -->
+    <div class="dp-section" id="right-pane">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§5</div>
+        <h2>Right Pane — Validation Controls &amp; Intelligence</h2>
+      </div>
+
+      <div class="dp-callout dp-warn"><span class="dp-ci">ℹ</span><div>Layout: QScrollArea, max width 320px, vertical scroll enabled. Ensures full panel usability on laptop screens without losing action buttons.</div></div>
+
+      <h3>Security Evidence Panel — grpValEvidence</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Badge</th><th>Widget</th><th>States</th></tr></thead>
+        <tbody>
+          <tr><td>Signature</td><td class="f">lblValSigBadge</td><td>✓ Valid (green) | ✗ Invalid (red) | ● Unknown (amber) | ○ Unverified (grey)</td></tr>
+          <tr><td>Double Spend</td><td class="f">lblValDoubleSpendBadge</td><td>✓ No Double Spend (green) | ✗ DOUBLE SPEND DETECTED (red) | ○ Not Checked (grey)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Note Details Fields — all readOnly QLineEdit</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>JSON Key</th><th>Formatting</th></tr></thead>
+        <tbody>
+          <tr><td class="f">txtValEvSerial</td><td>serial</td><td>Verbatim monospace</td></tr>
+          <tr><td class="f">txtValEvAsset</td><td>asset_code</td><td>Uppercase ISO 4217</td></tr>
+          <tr><td class="f">txtValEvDenom</td><td>denomination + asset_code</td><td>"{n} {code}"</td></tr>
+          <tr><td class="f">txtValEvIssuer</td><td>issuer</td><td>Full central bank name</td></tr>
+          <tr><td class="f">txtValEvKeyId</td><td>issuer_key_id</td><td>Key reference string</td></tr>
+          <tr><td class="f">txtValEvHash</td><td>manifest_hash</td><td>SHA-256 hex, 64 chars</td></tr>
+          <tr><td class="f">txtValEvIsoType</td><td>iso_message_type</td><td>e.g. pacs.009, MT103</td></tr>
+          <tr><td class="f">txtValEvRequestedBy</td><td>requested_by</td><td>Operator handle</td></tr>
+          <tr><td class="f">txtValEvBatchNote</td><td>computed</td><td>"{idx}/{total} (Batch {batch_ref})" or "—"</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Liquidity &amp; Trade Context</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>JSON Key</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="f">txtValEvLockId</td><td>liquidity_lock_id</td><td>UUID of backing LiquidityLock record</td></tr>
+          <tr><td class="f">txtValEvCoverage</td><td>coverage_status</td><td>covered / uncovered / unknown</td></tr>
+          <tr><td class="f">txtValEvTradeClaim</td><td>trade_claim_id</td><td>Reference to underlying cross-border trade</td></tr>
+          <tr><td class="f">txtValEvInvoicingParties</td><td>invoicing_parties</td><td>Comma-separated entity names</td></tr>
+          <tr><td class="f">txtValEvCorridorCap</td><td>corridor_cap</td><td>Max FX corridor allocation</td></tr>
+          <tr><td class="f">txtValEvApprovedBy</td><td>approval_chain</td><td>Comma-joined operator_id values</td></tr>
+          <tr><td class="f">txtValEvMultiSig</td><td>computed</td><td>"{n} / {required} signatures"</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Decision Controls</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Button</th><th>Widget</th><th>Enable Condition</th><th>Endpoint</th></tr></thead>
+        <tbody>
+          <tr><td>Approve &amp; Sign</td><td class="f">btnValApproveSign</td><td>sig = valid AND dup = unique</td><td><code>POST /api/v2/validation/approve</code></td></tr>
+          <tr><td>Reject</td><td class="f">btnValRejectNote</td><td>Session selected + cmbValRejectReason index &gt; 0</td><td><code>POST /api/v2/validation/reject</code></td></tr>
+          <tr><td>Flag for Investigation</td><td class="f">btnValFlagInvestigation</td><td>Any session selected</td><td><code>POST /api/v2/validation/flag</code></td></tr>
+          <tr><td>Freeze Note</td><td class="f">btnValFreezeNote</td><td>Any session (no reason required — emergency)</td><td><code>POST /api/v2/validation/freeze</code></td></tr>
+          <tr><td>Export Log</td><td class="f">btnValExportLog</td><td>Session selected</td><td><code>GET /api/v2/validation/logs/{serial}/export</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-rule">Reject reasons (cmbValRejectReason): Invalid Signature | Duplicate Serial | Registry Mismatch | Missing Manifest | Compliance Failure | Risk Too High | Operator Discretion</div>
+      <div class="dp-callout dp-danger"><span class="dp-ci">⛔</span><div>Index 0 of cmbValRejectReason is the "— Reason —" placeholder. The Reject button will not fire until index &gt; 0. This prevents accidental rejections without a documented reason.</div></div>
+
+      <h3>Risk Intelligence Panel</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>Content</th></tr></thead>
+        <tbody>
+          <tr><td class="f">prgValRiskScore</td><td>QProgressBar 0–100; green chunk &lt;40, orange 40–74, red ≥75</td></tr>
+          <tr><td class="f">lblValRiskLevel</td><td>Low / Elevated / HIGH RISK with matching colour</td></tr>
+          <tr><td class="f">lblValRiskFlags</td><td>Pipe-separated triggered flag strings, or "No flags" in grey</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ §6 FAR RIGHT -->
+    <div class="dp-section" id="far-right">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6</div>
+        <h2>Validation Properties Tab — Technical Manifest &amp; Compliance</h2>
+      </div>
+      <p>Layout: QScrollArea → QToolBox (toolValProperties) with three collapsible pages. Session banner (lblValPropSessionBanner) sits above — shows "{serial} · {session_ref}" or "No note selected".</p>
+
+      <h3>Page 1 — Technical Manifest</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>JSON Key</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="f">lblValPropKeyId</td><td>issuer_key_id</td><td>FK to IssuerKey.key_id</td></tr>
+          <tr><td class="f">lblValPropAlgorithm</td><td>algorithm</td><td>Defaults to "Ed25519" if absent</td></tr>
+          <tr><td class="f">lblValPropProtocol</td><td>iso_message_type</td><td>Falls back to "CBDC-1.0" if blank</td></tr>
+          <tr><td class="f">lblValPropManifestHash</td><td>manifest_hash</td><td>SHA-256 hex, 64 chars</td></tr>
+          <tr><td class="f">lblValPropPayloadHash</td><td>payload_hash</td><td>SHA-256 hex, 64 chars</td></tr>
+          <tr><td class="f">lblValPropSigResult</td><td>signature_status</td><td>Coloured badge: Valid / Invalid / Unverified</td></tr>
+        </tbody>
+      </table></div>
+      <div class="dp-rule">Integrity: manifest_hash = SHA-256 of canonical manifest.json. payload_hash = SHA-256 of note payload fields. issuer_sig = Ed25519 over hex-encoded payload_hash. All three must match for cryptographic integrity.</div>
+
+      <h3>Page 2 — Compliance History</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>JSON Key</th><th>Derivation</th></tr></thead>
+        <tbody>
+          <tr><td class="f">lblValPropGazetteRef</td><td>gazette_ref</td><td>Official gazette publication reference</td></tr>
+          <tr><td class="f">lblValPropSeigniorage</td><td>seigniorage_rate</td><td>"{rate:.2f} %" or "—" if -1</td></tr>
+          <tr><td class="f">lblValPropMintStation</td><td>node_id</td><td>Qt mint instance node ID</td></tr>
+          <tr><td class="f">lblValPropBackingType</td><td>liquidity_lock_id</td><td>"Reserve-Backed ({lock_id})" or "—"</td></tr>
+          <tr><td class="f">lblValPropCorridorUtil</td><td>corridor_cap</td><td>Corridor allocation string or "—"</td></tr>
+          <tr><td class="f">lblValPropTaxStatus</td><td>tax_status</td><td>Tax treatment status</td></tr>
+          <tr><td class="f">lblValPropAuthDepth</td><td>approval_chain</td><td>"{n} / {required} approvals"</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Page 3 — Risk Profile</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Widget</th><th>Derivation</th></tr></thead>
+        <tbody>
+          <tr><td class="f">lblValPropVelocity</td><td>First risk_flags entry containing "velocity"; else "—"</td></tr>
+          <tr><td class="f">lblValPropGeofence</td><td>First risk_flags entry containing "geo" or "region"; else "—"</td></tr>
+          <tr><td class="f">lblValPropBlacklist</td><td>First risk_flags entry containing "blacklist" or "sanction"; else "—"</td></tr>
+          <tr><td class="f">lblValPropRiskScore</td><td>"{score} / 100"</td></tr>
+          <tr><td class="f">lblValPropRiskBadge</td><td>Low (0–39) / Elevated (40–74) / HIGH RISK (75–100) coloured badge</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ §7 BUTTON SPEC -->
+    <div class="dp-section" id="buttons">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§7</div>
+        <h2>Button-Level Specification</h2>
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Button</th><th>Endpoint</th><th>Preconditions</th><th>Effect</th><th>On Failure</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Verify Signature</strong><br><code>btnValVerifySignature</code></td>
+            <td>POST /api/v2/validation/verify_signature</td>
+            <td>Row selected with serial + issuer_sig</td>
+            <td>SignatureVerificationService: 3-step issuer key match → Ed25519 verify → signature_status updated → badges update</td>
+            <td>Returns 200 with status "unknown"; never 422</td>
+          </tr>
+          <tr>
+            <td><strong>Registry Lookup</strong><br><code>btnValRegistryLookup</code></td>
+            <td>GET /api/v2/validation/registry_lookup/{serial}</td>
+            <td>Row selected with serial</td>
+            <td>CbdcNote queried → duplication_status set → Liquidity &amp; Trade fields populated</td>
+            <td>Show error; duplication_status unchanged; approve remains blocked</td>
+          </tr>
+          <tr>
+            <td><strong>Approve &amp; Sign</strong><br><code>btnValApproveSign</code></td>
+            <td>POST /api/v2/validation/approve</td>
+            <td>sig = valid AND dup = unique (enforced client + server)</td>
+            <td>Appends to approval_chain; if threshold met → final_decision = approved; settlement triggered</td>
+            <td>409 = already approved; 422 = precondition failed</td>
+          </tr>
+          <tr>
+            <td><strong>Reject</strong><br><code>btnValRejectNote</code></td>
+            <td>POST /api/v2/validation/reject</td>
+            <td>cmbValRejectReason index &gt; 0</td>
+            <td>final_decision = rejected; CbdcNote.status = rejected; ValidationEvent written</td>
+            <td>Show error; state unchanged</td>
+          </tr>
+          <tr>
+            <td><strong>Flag for Investigation</strong><br><code>btnValFlagInvestigation</code></td>
+            <td>POST /api/v2/validation/flag</td>
+            <td>Any session selected</td>
+            <td>final_decision = flagged; compliance workflow notification triggered</td>
+            <td>Show error; state unchanged</td>
+          </tr>
+          <tr>
+            <td><strong>Freeze Note</strong><br><code>btnValFreezeNote</code></td>
+            <td>POST /api/v2/validation/freeze</td>
+            <td>Any session selected (no reason required)</td>
+            <td>CbdcNote.status = frozen; ALL processing halted system-wide; all action buttons disabled</td>
+            <td>Show error; unfreeze requires governor-level action</td>
+          </tr>
+          <tr>
+            <td><strong>Bulk Approve</strong><br><code>btnValBulkApprove</code></td>
+            <td>POST /api/v2/validation/approve (per session)</td>
+            <td>≥1 checkbox checked</td>
+            <td>Skips: sig ≠ valid, dup ≠ unique, risk ≥ 75. Reports skipped in summary. loadQueue() after all.</td>
+            <td>Per-session error; operation continues for remaining</td>
+          </tr>
+          <tr>
+            <td><strong>Bulk Reject</strong><br><code>btnValBulkReject</code></td>
+            <td>POST /api/v2/validation/reject (per session)</td>
+            <td>≥1 checked + QInputDialog reason</td>
+            <td>Skips already-approved sessions. Single reason applies to all.</td>
+            <td>Per-session error; operation continues</td>
+          </tr>
+          <tr>
+            <td><strong>Import CBDC</strong><br><code>btnValImportCBDC</code></td>
+            <td>POST /api/v2/validation/ingest</td>
+            <td>rdoValImportFile selected</td>
+            <td>PNG magic byte check → chunk parse → ValidationSession created → loadQueue()</td>
+            <td>409 = duplicate; 422 = parse error; network = dialog</td>
+          </tr>
+          <tr>
+            <td><strong>Export Log</strong><br><code>btnValExportLog</code></td>
+            <td>GET /api/v2/validation/logs/{serial}/export</td>
+            <td>Session selected</td>
+            <td>QFileDialog::getSaveFileName → write JSON array of all ValidationEvents to disk</td>
+            <td>Show error dialog</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ §8 EDGE CASES -->
+    <div class="dp-section" id="edge-cases">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§8</div>
+        <h2>System Rules &amp; Edge Cases</h2>
+      </div>
+
+      <div class="dp-flow">
+        <div class="dp-step">
+          <h4>Invalid Signature</h4>
+          <p>signature_status = "invalid". btnValApproveSign disabled. Bulk approve skips this session. Both lblValSigBadge and lblValPropSigResult show red badge. ValidationEvent sig_verified written with details: { result: "invalid" }. Reject and Flag remain available.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Duplicate Serial — Double Spend</h4>
+          <p>duplication_status = "duplicate". lblValDoubleSpendBadge → red "✗ DOUBLE SPEND DETECTED". btnValApproveSign disabled. Note auto-flagged if risk_score below HIGH RISK threshold. Cannot be bulk-approved. High-visibility warning in evidence panel.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Registry Mismatch</h4>
+          <p>Serial exists in registry but issuer/denomination/asset_code don't match the submitted note. registry_verified = false; duplication_status = "duplicate" (conservative). Approve blocked; warning in evidence panel.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Missing Manifest</h4>
+          <p>manifest_hash is null after ingest. IngestService creates session with parse_warning. signature_status auto-set to "unknown" — cannot verify without payload hash. Risk score +10 applied. Operator must reject or flag; cannot approve.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Risk Score ≥ 75</h4>
+          <p>Session auto-flagged at ingest. Appears under "Flagged" filter immediately. btnValApproveSign shows override confirmation dialog — not disabled, but requires explicit acknowledge of HIGH RISK. Excluded from all bulk approve operations without exception.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Network Failure</h4>
+          <p>Verify / Approve / Reject / Flag / Freeze: show QMessageBox; no state change on client; no partial writes; operator retries manually. Import: per-file error shown; other files unaffected. Inbox auto-refresh: silent failure; retries on next 30-second tick.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Multi-Sig Threshold</h4>
+          <p>required_approvals &gt; 1: first approval appends to approval_chain but does not set final_decision. Session remains Pending visually. txtValEvMultiSig shows "{n} / {required}". Only when threshold met: final_decision = approved + settlement triggered.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Partial Batch Approval</h4>
+          <p>Each session independently approved/rejected — no system-level batch lock. lblValBatchProgress tracks processed count vs total. A batch is "complete" only when all sessions have a final_decision.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ §9 E2E FLOW -->
+    <div class="dp-section" id="flow">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§9</div>
+        <h2>End-to-End Flow</h2>
+      </div>
+
+      <div class="dp-flow">
+        <div class="dp-step">
+          <h4>Import</h4>
+          <p>rdoValImportFile → btnValImportCBDC → QFileDialog. For each PNG: magic byte check (89 50 4E 47) → chunk iteration (tEXt/zTXt/iTXt) → key=value parse → denomination symbol stripped → risk score computed → ValidationSession created → image copied to storage/validation_images/{ref}_obverse.png → session_ref returned. m_tableCleared = false; loadQueue() fires.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Signature Verification</h4>
+          <p>Operator clicks row → onRowSelected() → populateEvidencePanel() + populatePropertiesTab() + populatePreview(). Operator clicks btnValVerifySignature → POST verify_signature → 3-step issuer key match (exact → strip parens → SQL prefix) → Base64URL decode sig → hex decode payload_hash → RbNaCl Ed25519 verify → signature_status updated → badges refresh.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Registry Lookup</h4>
+          <p>btnValRegistryLookup → GET registry_lookup/{serial} → CbdcNote queried → duplication_status set (unique or duplicate) → Liquidity &amp; Trade section populated with lock_id, coverage_status, corridor_cap, trade_claim_id → btnValApproveSign enabled only when both unique + sig valid.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Risk Review</h4>
+          <p>Risk applied automatically at ingest. Operator reviews prgValRiskScore (colour-coded bar), lblValRiskLevel, lblValRiskFlags. Properties tab shows individual flag breakdown in Risk Profile page and lblValPropRiskBadge summary.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Operator Review</h4>
+          <p>Three layers: (1) Security Evidence — signature badge, double-spend badge, note details, liquidity context. (2) Validation Properties QToolBox — Technical Manifest, Compliance History, Risk Profile. (3) CBDC Preview — visual inspection of obverse + reverse banknote images with metadata.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Decision</h4>
+          <p>Approve: btnValApproveSign (sig=valid + dup=unique required; risk≥75 needs override). Reject: cmbValRejectReason required → btnValRejectNote. Flag: btnValFlagInvestigation + optional reason. Freeze: btnValFreezeNote — immediate, no reason, locks system-wide.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Ledger Update</h4>
+          <p>On approval: final_decision = approved; CbdcNote.status = active; approval_chain appended; if required_approvals threshold met → settlement triggered + LiquidityLock.used_amount += denomination + corridor utilization updated. On rejection: CbdcNote.status = rejected; no ledger credit. On freeze: CbdcNote.status = frozen; governor action required to unfreeze.</p>
+        </div>
+        <div class="dp-step">
+          <h4>Audit Trail</h4>
+          <p>Every step creates an immutable ValidationEvent. event_types: ingested | sig_verified | registry_checked | approved | rejected | flagged | frozen | exported. Accessible via btnValViewAuditTrail animated drawer, txtValEventLog timeline, or btnValExportLog export. No UPDATE or DELETE ever permitted on ValidationEvent records.</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dp-main -->
+
+  <div class="dp-footer">
+    bearerCORE™ &middot; Validation Desk Full Specification &middot; TowerPoint Group &middot; <%= Date.today.strftime("%B %Y") %>
+  </div>
+</div><!-- /dp-wrap -->
