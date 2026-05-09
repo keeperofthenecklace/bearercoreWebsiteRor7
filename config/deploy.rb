@@ -33,7 +33,8 @@ append :linked_dirs,
        "tmp/sockets",
        "vendor",
        "public/system",
-       "storage"
+       "storage",
+       "app/assets/builds"
 
 set :keep_releases, 3
 set :passenger_restart_with_touch, true
