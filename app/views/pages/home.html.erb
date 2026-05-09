@@ -26,7 +26,7 @@
 
 <%# ─── HERO ───────────────────────────────────────────────────────────────── %>
 <section class="relative flex flex-col items-center text-center overflow-hidden bg-white"
-         style="padding-top: 140px; padding-bottom: 100px;">
+         style="padding-top: 160px; padding-bottom: 100px;">
 
   <%# Guilloché SVG background — fine displaced-line security texture %>
   <svg class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
@@ -51,21 +51,21 @@
 
     <%# Logo with spinning dashed halo %>
     <div class="flex justify-center mb-10">
-      <div class="relative w-24 h-24">
-        <svg class="absolute -inset-4 w-32 h-32" viewBox="0 0 128 128" fill="none"
+      <div class="relative w-28 h-28">
+        <svg class="absolute -inset-4 w-36 h-36" viewBox="0 0 144 144" fill="none"
              style="animation: spin 40s linear infinite;">
-          <circle cx="64" cy="64" r="60" stroke="#C9A84C" stroke-width="1"
+          <circle cx="72" cy="72" r="68" stroke="#C9A84C" stroke-width="1"
                   stroke-dasharray="6 5" opacity="0.30"/>
         </svg>
-        <svg class="absolute -inset-8 w-40 h-40" viewBox="0 0 160 160" fill="none"
+        <svg class="absolute -inset-8 w-44 h-44" viewBox="0 0 176 176" fill="none"
              style="animation: spin 90s linear infinite reverse;">
-          <circle cx="80" cy="80" r="74" stroke="#C9A84C" stroke-width="0.6"
+          <circle cx="88" cy="88" r="82" stroke="#C9A84C" stroke-width="0.6"
                   stroke-dasharray="3 8" opacity="0.15"/>
         </svg>
         <%= image_tag "bearercore_logo.png",
               alt: "bearerCORE",
-              class: "relative w-24 h-24 rounded-full z-10",
-              style: "box-shadow: 0 8px 40px rgba(12,27,56,0.15);" %>
+              class: "relative w-28 h-28 rounded-full z-10",
+              style: "box-shadow: 0 10px 48px rgba(12,27,56,0.17);" %>
       </div>
     </div>
 
@@ -77,16 +77,10 @@
     </div>
 
     <%# Headline — Playfair Display serif %>
-    <h1 class="font-serif-display text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6"
+    <h1 class="font-serif-display text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-10"
         style="color: #0C1B38; letter-spacing: -0.01em;">
       Sovereign Payment<br>Infrastructure
     </h1>
-
-    <%# Tagline %>
-    <p class="text-xl md:text-2xl mb-12 max-w-xl mx-auto leading-relaxed" style="color: #6B7280;">
-      Bridging cash and digital systems.<br class="hidden md:block">
-      Seamless integration for Central Bank Digital Currencies.
-    </p>
 
     <%# CTAs %>
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
