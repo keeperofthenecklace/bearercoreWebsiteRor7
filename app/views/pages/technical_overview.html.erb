@@ -99,7 +99,7 @@
       <div class="rounded-2xl p-8 reveal reveal-delay-1" style="background: linear-gradient(135deg, #0C1B38 0%, #152545 100%);">
         <div class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C9A84C;">Layer 1</div>
         <h3 class="text-lg font-bold text-white mb-3">Representation Layer</h3>
-        <p class="text-gray-300 text-sm leading-relaxed">CVIB PNG banknotes — self-contained bearer instruments with embedded Ed25519 signatures, AES-256-GCM vault encryption, QR codes, and Code 128 barcodes. Transferable via email, SFTP, USB, NFC, or Bluetooth.</p>
+        <p class="text-gray-300 text-sm leading-relaxed">CBDC PNG banknotes — self-contained bearer instruments with embedded Ed25519 signatures, AES-256-GCM vault encryption, QR codes, and Code 128 barcodes. Transferable via email, SFTP, USB, NFC, or Bluetooth.</p>
       </div>
 
       <div class="rounded-2xl p-8 border border-gray-100 shadow-sm reveal reveal-delay-2">
@@ -129,7 +129,7 @@
             <div class="text-xs font-semibold tracking-widest uppercase" style="color: #C9A84C;">Component 1</div>
           </div>
           <h4 class="font-bold text-base mb-2" style="color: #0C1B38;">Qt6 Desktop Application</h4>
-          <p class="text-gray-500 text-sm leading-relaxed mb-3">Runs on Central Bank workstations (macOS ARM64). Mints, cryptographically signs, and delivers CVIB banknote files to commercial banks via email or SFTP.</p>
+          <p class="text-gray-500 text-sm leading-relaxed mb-3">Runs on Central Bank workstations (macOS ARM64). Mints, cryptographically signs, and delivers CBDC banknote files to commercial banks via email or SFTP.</p>
           <div class="flex flex-wrap gap-2">
             <span class="text-xs px-2 py-1 rounded-full font-mono" style="background: rgba(12,27,56,0.06); color: #0C1B38;">Qt6 / C++17</span>
             <span class="text-xs px-2 py-1 rounded-full font-mono" style="background: rgba(12,27,56,0.06); color: #0C1B38;">libsodium</span>
@@ -161,14 +161,14 @@
 </section>
 
 
-<%# ─── CVIB BEARER INSTRUMENT ─────────────────────────────────────────────── %>
+<%# ─── CBDC BEARER INSTRUMENT ─────────────────────────────────────────────── %>
 <section class="py-20 px-6" style="background: #F8F9FC;">
   <div class="max-w-5xl mx-auto" data-controller="fade-in">
     <div class="text-center mb-14">
       <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Core Instrument</div>
-      <h2 class="font-serif-display text-3xl md:text-4xl font-bold reveal" style="color: #0C1B38;">The CVIB Banknote</h2>
+      <h2 class="font-serif-display text-3xl md:text-4xl font-bold reveal" style="color: #0C1B38;">The CBDC Banknote</h2>
       <p class="text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed reveal reveal-delay-1">
-        CVIB — Cryptographic Visual Image Banknote — is a PNG file that behaves exactly like physical cash. Possession of the file constitutes ownership. No bank account required.
+        CBDC — Cryptographic Visual Image Banknote — is a PNG file that behaves exactly like physical cash. Possession of the file constitutes ownership. No bank account required.
       </p>
     </div>
 
@@ -177,7 +177,7 @@
 
       <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm reveal reveal-delay-1">
         <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Bearer Format</div>
-        <p class="text-gray-600 text-sm leading-relaxed">File possession = ownership. No account balance, no ledger entry, no identity disclosure required to hold a CVIB note — identical to physical cash.</p>
+        <p class="text-gray-600 text-sm leading-relaxed">File possession = ownership. No account balance, no ledger entry, no identity disclosure required to hold a CBDC note — identical to physical cash.</p>
       </div>
 
       <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm reveal reveal-delay-1">
@@ -202,7 +202,7 @@
 
       <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm reveal reveal-delay-3">
         <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">DLT Anchoring</div>
-        <p class="text-gray-600 text-sm leading-relaxed">Every CVIB note is registered on the distributed ledger at issuance. State changes — transfer, redemption, burn — are anchored as immutable events.</p>
+        <p class="text-gray-600 text-sm leading-relaxed">Every CBDC note is registered on the distributed ledger at issuance. State changes — transfer, redemption, burn — are anchored as immutable events.</p>
       </div>
 
     </div>
@@ -251,7 +251,7 @@
           <div>
             <div class="font-bold text-sm mb-1" style="color: #0C1B38;">Ed25519 · Issuance Signing</div>
             <div class="text-xs font-mono text-gray-400 mb-3">IETF RFC 8037 · 128-bit security · libsodium</div>
-            <p class="text-gray-500 text-sm leading-relaxed">Every CVIB note is signed by the issuing Central Bank using libsodium Ed25519. The 32-byte public key can be published in a government gazette. Signature verification requires no platform access — any party can confirm authenticity independently. Private keys are server-side only; the Qt desktop client never generates keys, only verifies.</p>
+            <p class="text-gray-500 text-sm leading-relaxed">Every CBDC note is signed by the issuing Central Bank using libsodium Ed25519. The 32-byte public key can be published in a government gazette. Signature verification requires no platform access — any party can confirm authenticity independently. Private keys are server-side only; the Qt desktop client never generates keys, only verifies.</p>
           </div>
         </div>
       </div>
@@ -311,7 +311,7 @@
           ["01", "Extract Metadata", "Read PNG iTXt 'Comment' chunk; zlib-decompress; parse key=value pairs"],
           ["02", "Reconstruct Payload", "Concatenate serialNumber + denomination + asset_code + issued_at + batch_id in canonical form"],
           ["03", "Verify Signature", "Verify issuer_sig against the canonical payload using the Central Bank's published Ed25519 public key"],
-          ["04", "Check Registry", "Cross-reference serial against the national CVIB registry to confirm the note has not been redeemed or burned"]
+          ["04", "Check Registry", "Cross-reference serial against the national CBDC registry to confirm the note has not been redeemed or burned"]
         ].each do |step, title, desc| %>
           <div>
             <div class="font-mono text-xs mb-2" style="color: #C9A84C;"><%= step %></div>
@@ -330,7 +330,7 @@
   <div class="max-w-5xl mx-auto" data-controller="fade-in">
     <div class="text-center mb-14">
       <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Issuance</div>
-      <h2 class="font-serif-display text-3xl md:text-4xl font-bold text-white reveal">CVIB Minting Pipeline</h2>
+      <h2 class="font-serif-display text-3xl md:text-4xl font-bold text-white reveal">CBDC Minting Pipeline</h2>
       <p class="text-gray-400 mt-4 max-w-xl mx-auto leading-relaxed reveal reveal-delay-1">
         End-to-end issuance from governance authorisation to commercial bank delivery — executed on the Central Bank's Qt6 desktop workstation.
       </p>
@@ -373,7 +373,7 @@
       <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Validation Desk</div>
       <h2 class="font-serif-display text-3xl md:text-4xl font-bold reveal" style="color: #0C1B38;">Five-Stage Validation Pipeline</h2>
       <p class="text-gray-500 mt-4 max-w-xl mx-auto leading-relaxed reveal reveal-delay-1">
-        Every inbound CVIB note traverses five mandatory stages before registry acceptance. Triggered server-side via a single API call.
+        Every inbound CBDC note traverses five mandatory stages before registry acceptance. Triggered server-side via a single API call.
       </p>
       <code class="block mt-3 text-xs font-mono reveal reveal-delay-2" style="color: #C9A84C;">POST /api/v2/validation/pipeline/run</code>
     </div>
@@ -382,7 +382,7 @@
       <% [
         ["Format Detection", "Magic bytes check: PNG (89 50 4E 47) or JPEG (FF D8). Never file extension.", "1"],
         ["Metadata Extraction", "iTXt 'Comment' chunk read. zlib-decompressed if comp_flag=1. key=value pairs parsed.", "2"],
-        ["Duplicate Check", "Serial cross-referenced against the CVIB Registry. Unique Mint Hash ID match rejects replay attacks.", "3"],
+        ["Duplicate Check", "Serial cross-referenced against the CBDC Registry. Unique Mint Hash ID match rejects replay attacks.", "3"],
         ["Signature Verification", "Ed25519 issuer_sig verified against canonical payload using stored IssuerKey.", "4"],
         ["Registry Admission", "ValidationSession created, ValidationEvent audit entry written. State transitions to ISSUED.", "5"]
       ].each do |title, desc, step| %>
@@ -487,7 +487,7 @@
     <div class="rounded-2xl p-7 reveal" style="background: linear-gradient(135deg, #0C1B38 0%, #152545 100%);">
       <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Sovereign Authority Rule</div>
       <p class="text-white text-sm leading-relaxed max-w-3xl">
-        Every participating Central Bank holds the exclusive cryptographic authority to mint CVIB digital banknotes denominated in its own national unit of account. No node can unilaterally issue the currency of another member nation. Legal accountability is therefore unambiguous: the issuing Central Bank is always the sovereign authority, and its Ed25519 signing key is the cryptographic proof of that authority.
+        Every participating Central Bank holds the exclusive cryptographic authority to mint CBDC digital banknotes denominated in its own national unit of account. No node can unilaterally issue the currency of another member nation. Legal accountability is therefore unambiguous: the issuing Central Bank is always the sovereign authority, and its Ed25519 signing key is the cryptographic proof of that authority.
       </p>
     </div>
   </div>
@@ -501,18 +501,18 @@
       <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Inclusion by Design</div>
       <h2 class="font-serif-display text-3xl md:text-4xl font-bold reveal" style="color: #0C1B38;">Offline-First by Design</h2>
       <p class="text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed reveal reveal-delay-1">
-        Because a CVIB note is a file, it can be transferred via any channel that can move data — encrypted email, SFTP, Bluetooth, NFC, USB, or SD card. A decisive advantage across the 54 African Union corridors where connectivity is intermittent.
+        Because a CBDC note is a file, it can be transferred via any channel that can move data — encrypted email, SFTP, Bluetooth, NFC, USB, or SD card. A decisive advantage across the 54 African Union corridors where connectivity is intermittent.
       </p>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
       <% [
-        ["No Bank Account", "File possession = ownership. No account, no identity disclosure required to hold a CVIB note.", "reveal reveal-delay-1"],
-        ["No Smartphone", "CVIB files transfer via USB, SD card, NFC, Bluetooth, email, or SMS attachment — any data transport.", "reveal reveal-delay-2"],
+        ["No Bank Account", "File possession = ownership. No account, no identity disclosure required to hold a CBDC note.", "reveal reveal-delay-1"],
+        ["No Smartphone", "CBDC files transfer via USB, SD card, NFC, Bluetooth, email, or SMS attachment — any data transport.", "reveal reveal-delay-2"],
         ["No Internet", "Fully offline capable. Registry sync happens retroactively when connectivity returns.", "reveal reveal-delay-2"],
         ["Low Financial Literacy", "Visual banknote format — recognisable denomination graphic, serial number printed on face.", "reveal reveal-delay-3"],
         ["Informal Economy", "Bearer instrument — no identity linkage required to hold. Linkage only at point of redemption.", "reveal reveal-delay-3"],
-        ["Rural Agents", "CVIB bundle delivered via SFTP/email. Agents distribute notes to customers with zero real-time connectivity.", "reveal reveal-delay-4"]
+        ["Rural Agents", "CBDC bundle delivered via SFTP/email. Agents distribute notes to customers with zero real-time connectivity.", "reveal reveal-delay-4"]
       ].each do |title, desc, reveal_class| %>
         <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm <%= reveal_class %>">
           <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;"><%= title %></div>
@@ -525,7 +525,7 @@
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 reveal">
       <div class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C9A84C;">Field Case Study</div>
       <blockquote class="text-gray-600 leading-relaxed text-sm max-w-3xl">
-        In a rural corridor village with no mobile network, a farmer receives payment of 5,000 NGN in CVIB notes transferred via a merchant's tablet over local Bluetooth. The farmer holds the CVIB files on a USB drive. Three weeks later, at the nearest town market, a CVIB-enabled terminal verifies the Ed25519 signature offline and accepts the notes. The farmer has participated in the digital monetary system without ever having a bank account, internet connection, or smartphone.
+        In a rural corridor village with no mobile network, a farmer receives payment of 5,000 NGN in CBDC notes transferred via a merchant's tablet over local Bluetooth. The farmer holds the CBDC files on a USB drive. Three weeks later, at the nearest town market, a CBDC-enabled terminal verifies the Ed25519 signature offline and accepts the notes. The farmer has participated in the digital monetary system without ever having a bank account, internet connection, or smartphone.
       </blockquote>
       <div class="mt-4 text-xs text-gray-400 italic">bearerCORE™ Platform Manual, April 2026 — TowerPoint Group</div>
     </div>
@@ -563,7 +563,7 @@
               ["API version", "v2", "RESTful JSON; OAuth2 via Doorkeeper"],
               ["Backend stack", "Rails 7.1 / Ruby 3.3.6", "PostgreSQL + Sidekiq + Redis"],
               ["Desktop client", "Qt6 / C++", "macOS ARM64; libsodium + Crypto++ + OpenSSL 3"],
-              ["CVIB format", "PNG iTXt", "zlib-compressed key=value metadata, magic bytes 89 50 4E 47"],
+              ["CBDC format", "PNG iTXt", "zlib-compressed key=value metadata, magic bytes 89 50 4E 47"],
               ["Ed25519 key size", "32 bytes", "Server-side only — never exported to desktop client"],
             ].each_with_index do |(metric, value, note), i| %>
               <tr style="background: <%= i.odd? ? 'rgba(248,249,252,0.6)' : 'white' %>">
@@ -587,7 +587,7 @@
       <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">Cross-Border</div>
       <h2 class="font-serif-display text-3xl md:text-4xl font-bold text-white reveal">54 Active Corridors</h2>
       <p class="text-gray-400 mt-4 max-w-xl mx-auto leading-relaxed reveal reveal-delay-1">
-        Bilateral liquidity corridors between African Union member Central Banks enable instant cross-border CVIB transfers with real-time FX settlement — without SWIFT or correspondent bank dependency.
+        Bilateral liquidity corridors between African Union member Central Banks enable instant cross-border CBDC transfers with real-time FX settlement — without SWIFT or correspondent bank dependency.
       </p>
     </div>
 
