@@ -27,16 +27,17 @@
 
   <p>
     Modelled on the physical cash metaphor — where possession equals ownership — bearerCORE&#8482;
-    introduces the <strong>CBDC Issuance Bill (CBIB)</strong>: a cryptographically signed digital
-    banknote that is minted by a central bank, delivered to commercial banks, and redeemable
-    instantly by any holder, anywhere on the continent.
+    introduces the <strong>Digital Money Bundle</strong>: a cryptographically signed digital
+    banknote that is minted by a central bank, delivered as <strong>Digital Money Bundles</strong>
+    via secure SFTP/NAS channels to commercial banks, and redeemable instantly by any holder,
+    anywhere on the continent.
   </p>
 
   <p>
     Unlike account-based CBDC systems that replicate commercial banking infrastructure,
-    bearerCORE&#8482; operates as a <strong>bearer instrument</strong>. A CBIB carries its own
-    value, identity, and provenance inside the file itself — enabling offline storage,
-    peer-to-peer transfer, and settlement without intermediary custody.
+    bearerCORE&#8482; operates as a <strong>bearer instrument</strong>. Each Digital Money Bundle
+    carries its own value, identity, and provenance inside the file itself — enabling offline
+    storage, peer-to-peer transfer, and settlement without intermediary custody.
   </p>
 
   <div class="stat-row">
@@ -127,18 +128,18 @@
 
   <p class="lead">
     bearerCORE&#8482; introduces a new class of digital monetary instrument: the
-    <strong>CBDC Issuance Bill (CBIB)</strong> — a cryptographically authenticated digital
+    <strong>Digital Money Bundle</strong> — a cryptographically authenticated digital
     banknote issued exclusively by a licensed central bank.
   </p>
 
   <h2>How It Works</h2>
 
   <p>
-    A CBIB is a PNG image file. Like a physical banknote, it carries denomination, issuer
-    identity, serial number, and security features — but embedded in the file itself using
-    cryptographic primitives rather than ink and paper. The central bank's Ed25519 private
-    key signs every note at the moment of minting. No entity other than the issuing central
-    bank can produce a valid note.
+    A Digital Money Bundle is a PNG image file. Like a physical banknote, it carries
+    denomination, issuer identity, serial number, and security features — embedded in the
+    file itself using cryptographic primitives rather than ink and paper. The central bank's
+    Ed25519 private key signs every bundle at the moment of minting. No entity other than
+    the issuing central bank can produce a valid bundle.
   </p>
 
   <h3>Three-Layer Architecture</h3>
@@ -146,13 +147,13 @@
   <ul>
     <li>
       <strong>Issuance Layer (Central Bank):</strong> A hardened desktop minting station
-      generates CBIB batches, embeds encrypted metadata, applies cryptographic signatures,
-      and delivers packages to commercial banks via secure channel.
+      generates Digital Money Bundles, embeds encrypted metadata, applies cryptographic
+      signatures, and delivers bundles to commercial banks via secure SFTP/NAS channels.
     </li>
     <li>
       <strong>Validation Layer (Commercial Banks):</strong> An API-based validation desk
-      ingests CBIB files, verifies signatures, checks for duplicates, and registers notes
-      in the sovereign ledger. Each note undergoes a full lifecycle audit.
+      ingests Digital Money Bundles, verifies signatures, checks for duplicates, and
+      registers bundles in the sovereign ledger. Each bundle undergoes a full lifecycle audit.
     </li>
     <li>
       <strong>Corridor Layer (Cross-Border Settlement):</strong> FX rate resolution,
@@ -170,14 +171,14 @@
       <th>Purpose</th>
     </tr>
     <tr>
-      <td>Note Signing</td>
+      <td>Bundle Signing</td>
       <td>Ed25519 (libsodium)</td>
-      <td>Unforgeable issuer authentication per note</td>
+      <td>Unforgeable issuer authentication per bundle</td>
     </tr>
     <tr>
-      <td>QR Payload</td>
-      <td>AES-128-GCM + zlib + Base64URL</td>
-      <td>Encrypted compact URL for mobile verification</td>
+      <td>Cash Codes (QR)</td>
+      <td>Accessible Cash Codes for instant smartphone verification</td>
+      <td>Encrypted mobile verification without specialist hardware</td>
     </tr>
     <tr>
       <td>Vault Storage</td>
@@ -258,24 +259,25 @@
   <h2>Financial Inclusion by Design</h2>
 
   <p>
-    Because CBIBs are bearer instruments — value in the file, not in an account — they
-    require no bank account, no credit history, and no KYC at the point of receipt.
-    A smallholder farmer in rural Uganda can receive a CBIB from a buyer in Nairobi as
-    easily as receiving a photograph.
+    Because Digital Money Bundles are bearer instruments — value in the file, not in an
+    account — they require no bank account, no credit history, and no KYC at the point of
+    receipt. A smallholder farmer in rural Uganda can receive a Digital Money Bundle from a
+    buyer in Nairobi as easily as receiving a photograph.
   </p>
 
   <ul>
-    <li><strong>No account required:</strong> CBIBs are held in local storage, not custodied by a bank</li>
-    <li><strong>Offline capable:</strong> Notes can be stored and transferred without internet connectivity</li>
-    <li><strong>Mobile first:</strong> Encrypted QR codes enable verification on any smartphone camera</li>
-    <li><strong>Sovereign backed:</strong> Each CBIB is a direct liability of the issuing central bank — not a private stablecoin</li>
+    <li><strong>No account required:</strong> Digital Money Bundles are held in local storage, not custodied by a bank</li>
+    <li><strong>Offline capable:</strong> Bundles can be stored and transferred without internet connectivity</li>
+    <li><strong>Mobile first:</strong> Cash Codes enable instant verification on any smartphone camera</li>
+    <li><strong>Sovereign backed:</strong> Each bundle is a direct liability of the issuing central bank — not a private stablecoin</li>
   </ul>
 
   <div class="callout">
     <p>
-      <strong>The target:</strong> 350M+ unbanked Africans currently excluded from
-      cross-border digital payments. bearerCORE&#8482; does not require them to join the
-      formal banking system — it brings sovereign-grade digital currency to them directly.
+      <strong>The target:</strong> 350M+ unbanked Africans. By digitizing the physical cash
+      metaphor, bearerCORE&#8482; achieves <strong>&#8216;Bottom-Up Sovereignty&#8217;</strong> —
+      ensuring that national financial security begins with the individual&#8217;s ability to
+      hold and transfer value without barriers.
     </p>
   </div>
 
@@ -305,31 +307,32 @@
   <ul>
     <li><strong>Governance proposals:</strong> Submitted on-chain, timestamped, and immutable</li>
     <li><strong>Voting thresholds:</strong> Configurable per corridor; default 67% supermajority</li>
-    <li><strong>Emergency freeze:</strong> Any central bank governor may freeze notes in their jurisdiction unilaterally</li>
-    <li><strong>Full audit trail:</strong> Every note lifecycle event — minting, delivery, validation, transfer, redemption — is logged with cryptographic linkage</li>
+    <li><strong>Emergency freeze:</strong> Any central bank governor may freeze bundles in their jurisdiction unilaterally</li>
+    <li><strong>Full audit trail:</strong> Every bundle lifecycle event — minting, delivery, validation, transfer, redemption — is logged with cryptographic linkage</li>
+    <li><strong>Real-Time Corridor Surveillance:</strong> Central Bank Governors maintain a Command Center view of all 1,431 bilateral corridors, allowing for instant adjustments to liquidity pools and risk limits to protect national currency stability</li>
   </ul>
 
   <h2>Pilot Programme</h2>
 
   <h3>Phase 1 — Bilateral Corridor Pilot</h3>
   <p>
-    Single corridor deployment (Nigeria ↔ Ghana). Central bank minting stations installed.
-    Commercial bank validation desks configured. 10,000 CBIB batch minted in Technical Pilot
-    mode (specimen grade, not legal tender). Full lifecycle validation completed.
+    Nigeria ↔ Ghana Corridor: Active reserve-backed issuance for cross-border trade.
+    Central bank minting stations installed. Commercial bank validation desks configured.
+    Full lifecycle validation completed across the NGN/GHS corridor.
   </p>
 
   <h3>Phase 2 — Regional Bloc Expansion</h3>
   <p>
     East African Community bloc (Kenya, Uganda, Tanzania, Rwanda). Multi-corridor FX
     resolution activated. Commercial bank API integrations across all participating institutions.
-    Retail-grade CBIBs issued for controlled user testing.
+    Retail-grade Digital Money Bundles issued for controlled user testing.
   </p>
 
   <h3>Phase 3 — AU Network Deployment</h3>
   <p>
-    Full 54-corridor activation. Production-grade CBIB issuance. Integration with existing
-    RTGS and payment switch infrastructure. Legal tender status subject to each central bank's
-    legislative framework.
+    Full 54-corridor activation. Production-grade Digital Money Bundle issuance. Integration
+    with existing RTGS and payment switch infrastructure. Legal tender status subject to each
+    central bank's legislative framework.
   </p>
 
   <h2>Engagement Process</h2>
