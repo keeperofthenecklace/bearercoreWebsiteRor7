@@ -1,1 +1,2 @@
-WickedPdf.config = {}
+WickedPdf.configure do |config|
+end
