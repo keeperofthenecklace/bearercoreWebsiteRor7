@@ -20,15 +20,17 @@ class GmailSendService
   end
 
   def send_confirmation(br)
-    send_plain(
-      to:      br.email,
-      subject: "Your Sovereign Briefing Request — bearerCORE™",
-      body:    confirmation_body(br)
+    ref = br.id.to_s.rjust(4, "0")
+    send_email(
+      to:           br.email,
+      subject:      "CONFIDENTIAL: Sovereign Briefing Coordination [Ref: #{ref}] — bearerCORE™ Protocol",
+      body:         confirmation_html(br, ref),
+      content_type: "text/html"
     )
   end
 
   def send_internal(br)
-    send_plain(
+    send_email(
       to:      INTERNAL_TO,
       subject: "[bearerCORE] New Briefing Request — #{br.institution}",
       body:    internal_body(br)
@@ -37,14 +39,14 @@ class GmailSendService
 
   private
 
-  def send_plain(to:, subject:, body:)
+  def send_email(to:, subject:, body:, content_type: "text/plain")
     token = get_access_token!
     raw   = [
       "MIME-Version: 1.0",
       "From: #{FROM_NAME} <#{FROM_EMAIL}>",
       "To: #{to}",
       "Subject: #{subject}",
-      "Content-Type: text/plain; charset=UTF-8",
+      "Content-Type: #{content_type}; charset=UTF-8",
       "",
       body
     ].join("\r\n")
@@ -88,32 +90,40 @@ class GmailSendService
     token
   end
 
-  def confirmation_body(br)
-    submitted = br.created_at.strftime("%B %d, %Y at %H:%M UTC")
-    <<~TEXT
-      #{br.name}
-      #{br.title}
-      #{br.institution}
+  def confirmation_html(br, ref)
+    date    = br.created_at.strftime("%d %B %Y")
+    surname = br.name.split.last
+    <<~HTML
+      <!DOCTYPE html>
+      <html>
+      <body style="font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; max-width: 620px; margin: 0 auto; padding: 40px 24px; line-height: 1.8; font-size: 15px;">
 
+        <p style="margin: 0 0 6px;"><strong>To:</strong> #{br.name}</p>
+        <p style="margin: 0 0 6px;"><strong>Authority:</strong> #{br.institution}</p>
+        <p style="margin: 0 0 28px;"><strong>Date:</strong> #{date}</p>
 
-      Your request for a Sovereign Briefing with the bearerCORE™ protocol team
-      has been received and logged.
+        <p style="margin: 0 0 20px;">Governor #{surname},</p>
 
-      Our team will review your credentials and contact you at this address to
-      coordinate a secure, private session. You will not be added to any
-      mailing list.
+        <p style="margin: 0 0 16px;">We acknowledge receipt of your request for a <strong>Sovereign Briefing</strong> regarding the bearerCORE&#8482; protocol.</p>
 
-      Request reference : #{br.id}
-      Submitted         : #{submitted}
+        <p style="margin: 0 0 24px;">This communication serves as formal confirmation that your credentials have been logged under Reference ID: <strong>#{ref}</strong>. Our Protocol Desk is currently conducting the necessary verification protocols required for high-level central bank engagements.</p>
 
+        <p style="margin: 0 0 12px;"><strong>Next Steps:</strong></p>
+        <ol style="margin: 0 0 24px; padding-left: 20px;">
+          <li style="margin-bottom: 10px;"><strong>Verification:</strong> Our team will finalize the review of your institutional credentials within 24&#8211;48 hours.</li>
+          <li style="margin-bottom: 10px;"><strong>Scheduling:</strong> A specialized liaison from the TowerPoint Group will contact you directly to establish a secure, encrypted channel for the session.</li>
+          <li style="margin-bottom: 10px;"><strong>Materials:</strong> Any preliminary documentation provided during the briefing remains under sovereign-grade confidentiality.</li>
+        </ol>
 
-      bearerCORE™ Protocol Desk
-      TowerPoint Group
+        <p style="margin: 0 0 28px;">This is an automated acknowledgment. No further action is required at this time.</p>
 
-      This is an automated transmission. Please do not reply to this address.
-      All communications from the bearerCORE™ team originate from
-      @bearercore.com addresses.
-    TEXT
+        <p style="margin: 0 0 4px;"><strong>Respectfully,</strong></p>
+        <p style="margin: 0 0 2px;"><strong>The bearerCORE&#8482; Protocol Desk</strong></p>
+        <p style="margin: 0; font-style: italic;">TowerPoint Group</p>
+
+      </body>
+      </html>
+    HTML
   end
 
   def internal_body(br)
