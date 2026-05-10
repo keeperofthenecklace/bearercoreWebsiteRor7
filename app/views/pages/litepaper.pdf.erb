@@ -178,27 +178,27 @@
     </tr>
     <tr>
       <td>Bundle Signing</td>
-      <td>Ed25519 (libsodium)</td>
+      <td class="tech-cell">Ed25519 (libsodium)</td>
       <td>Unforgeable issuer authentication per bundle</td>
     </tr>
     <tr>
       <td>Cash Codes (QR)</td>
-      <td>Accessible Cash Codes for instant smartphone verification</td>
+      <td class="tech-cell">AES-128-GCM + Base64URL</td>
       <td>Encrypted mobile verification without specialist hardware</td>
     </tr>
     <tr>
       <td>Vault Storage</td>
-      <td>AES-256-GCM</td>
+      <td class="tech-cell">AES-256-GCM</td>
       <td>Encrypted at-rest storage of mint data</td>
     </tr>
     <tr>
       <td>Batch Integrity</td>
-      <td>SHA-256 Merkle manifest</td>
+      <td class="tech-cell">SHA-256 Merkle manifest</td>
       <td>Tamper-evident batch authentication</td>
     </tr>
     <tr>
       <td>API Access</td>
-      <td>OAuth 2.0 (Doorkeeper)</td>
+      <td class="tech-cell">OAuth 2.0 (Doorkeeper)</td>
       <td>Commercial bank API authentication</td>
     </tr>
   </table>
@@ -318,6 +318,14 @@
     <li><strong>Real-Time Corridor Surveillance:</strong> Central Bank Governors maintain a Command Center view of all 1,431 bilateral corridors, allowing for instant adjustments to liquidity pools and risk limits to protect national currency stability</li>
   </ul>
 
+  <div class="gauge-wrap">
+    <div class="gauge-label">Default Corridor Voting Threshold</div>
+    <div class="gauge-track">
+      <div class="gauge-fill" style="width:67%"></div>
+    </div>
+    <div class="gauge-meta">67% supermajority required for cross-corridor governance decisions &mdash; configurable per corridor by participating central banks</div>
+  </div>
+
   <h2>Pilot Programme</h2>
 
   <h3>Phase 1 &mdash;Bilateral Corridor Pilot</h3>
@@ -350,9 +358,16 @@
     technical architecture, integration requirements, and governance terms.
   </p>
 
-  <p>
-    <strong>Request a briefing:</strong> bearercore.com &nbsp;&middot;&nbsp; briefing@bearercore.com
-  </p>
+  <div class="qr-block">
+    <div class="qr-left">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&amp;data=https://bearercore.com&amp;color=C9A84C&amp;bgcolor=1A2B3C" alt="bearercore.com">
+    </div>
+    <div class="qr-right">
+      <p><strong>bearercore.com</strong></p>
+      <p>Scan to visit the bearerCORE&#8482; Protocol Desk and submit a Sovereign Briefing request. All briefings are conducted under NDA and cover full technical architecture, integration requirements, and governance terms.</p>
+      <p class="qr-note">briefing@bearercore.com &nbsp;&middot;&nbsp; TowerPoint Group &nbsp;&middot;&nbsp; Confidential</p>
+    </div>
+  </div>
 
   <div class="footer">
     bearerCORE&#8482; &middot; Executive Litepaper v1.0 &middot; <%= Date.today.strftime("%B %Y") %> &middot;
