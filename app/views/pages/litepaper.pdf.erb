@@ -1,0 +1,352 @@
+<%# ── COVER ───────────────────────────────────────────────────────────── %>
+<div class="cover">
+  <div class="cover-eyebrow">TowerPoint Group · Confidential</div>
+  <div class="cover-title">bearer<span>CORE</span>&#8482;</div>
+  <div class="cover-subtitle">Sovereign Digital Currency Infrastructure for Africa</div>
+  <div class="cover-rule"></div>
+  <div class="cover-meta">
+    Executive Litepaper &nbsp;·&nbsp; Version 1.0 &nbsp;·&nbsp; <%= Date.today.strftime("%B %Y") %><br>
+    bearercore.com &nbsp;·&nbsp; briefing@bearercore.com
+  </div>
+</div>
+
+<%# ── PAGE 1 — EXECUTIVE SUMMARY ─────────────────────────────────────── %>
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-logo">bearer<span>CORE</span>&#8482;</div>
+    <div class="page-header-label">Executive Litepaper</div>
+  </div>
+
+  <h1>Executive Summary</h1>
+
+  <p class="lead">
+    bearerCORE&#8482; is a protocol-grade digital currency infrastructure that enables African
+    central banks to issue, validate, and settle CBDC banknotes across all 54 sovereign
+    corridors of the African Union — without requiring recipients to hold a bank account.
+  </p>
+
+  <p>
+    Modelled on the physical cash metaphor — where possession equals ownership — bearerCORE&#8482;
+    introduces the <strong>CBDC Issuance Bill (CBIB)</strong>: a cryptographically signed digital
+    banknote that is minted by a central bank, delivered to commercial banks, and redeemable
+    instantly by any holder, anywhere on the continent.
+  </p>
+
+  <p>
+    Unlike account-based CBDC systems that replicate commercial banking infrastructure,
+    bearerCORE&#8482; operates as a <strong>bearer instrument</strong>. A CBIB carries its own
+    value, identity, and provenance inside the file itself — enabling offline storage,
+    peer-to-peer transfer, and settlement without intermediary custody.
+  </p>
+
+  <div class="stat-row">
+    <div class="stat">
+      <span class="stat-number">54</span>
+      <span class="stat-label">Sovereign Corridors</span>
+    </div>
+    <div class="stat">
+      <span class="stat-number">350M+</span>
+      <span class="stat-label">Unbanked Africans Targeted</span>
+    </div>
+    <div class="stat">
+      <span class="stat-number">&lt;2s</span>
+      <span class="stat-label">Cross-Border Settlement</span>
+    </div>
+  </div>
+
+  <p>
+    The protocol is production-ready. A desktop minting station (Qt6, macOS ARM64) handles
+    issuance at the central bank level. A Rails 7 API validation desk handles commercial bank
+    ingestion, registry checks, and lifecycle audit. Both layers are connected through a
+    governance engine that enforces corridor rules, FX rates, and reserve backing.
+  </p>
+
+  <div class="footer">bearerCORE&#8482; · Executive Litepaper · TowerPoint Group · CONFIDENTIAL</div>
+</div>
+
+<%# ── PAGE 2 — THE PROBLEM ────────────────────────────────────────────── %>
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-logo">bearer<span>CORE</span>&#8482;</div>
+    <div class="page-header-label">The Challenge</div>
+  </div>
+
+  <h1>Africa's Payment Fragmentation Crisis</h1>
+
+  <p class="lead">
+    Africa is home to 54 sovereign currencies, 8 monetary unions, and a rapidly expanding
+    digital economy — yet cross-border payment costs remain among the highest in the world.
+  </p>
+
+  <h2>The Structural Problem</h2>
+
+  <p>
+    The average cost of sending money across African borders is <strong>8–12% of transaction
+    value</strong> — more than double the global average. A Nigerian exporter paying a Ghanaian
+    supplier loses a significant share of every transaction to correspondent banking fees,
+    currency conversion spreads, and multi-day settlement windows. The fundamental cause is
+    architectural: the continent lacks a shared digital currency standard.
+  </p>
+
+  <ul>
+    <li><strong>No unified CBDC layer:</strong> Each central bank operates independently with incompatible digital payment rails</li>
+    <li><strong>Correspondent banking bottlenecks:</strong> Most AU corridors route through New York or London, adding cost and latency</li>
+    <li><strong>Financial exclusion at scale:</strong> 57% of sub-Saharan Africa remains unbanked — excluded from formal digital payments entirely</li>
+    <li><strong>Remittance drain:</strong> The continent loses an estimated $5B+ annually to remittance fees that would be near-zero on a shared protocol</li>
+  </ul>
+
+  <h2>Why Existing Solutions Fall Short</h2>
+
+  <p>
+    Existing CBDC pilots — m-CBDC Bridge (BIS), Project Dunbar, mBridge — are designed
+    for wholesale interbank settlement between central banks, not for retail bearer circulation
+    accessible to individuals without bank accounts. Stablecoin alternatives introduce
+    private-sector custody risk incompatible with sovereign monetary policy.
+  </p>
+
+  <div class="callout">
+    <p>
+      <strong>The gap:</strong> There is currently no open-standard, central-bank-controlled
+      digital currency that can be held and transferred by an individual without a bank account,
+      across all 54 AU member state pairs, with cryptographic proof of authenticity.
+      bearerCORE&#8482; fills this gap.
+    </p>
+  </div>
+
+  <div class="footer">bearerCORE&#8482; · Executive Litepaper · TowerPoint Group · CONFIDENTIAL</div>
+</div>
+
+<%# ── PAGE 3 — THE SOLUTION ───────────────────────────────────────────── %>
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-logo">bearer<span>CORE</span>&#8482;</div>
+    <div class="page-header-label">The Solution</div>
+  </div>
+
+  <h1>The bearerCORE&#8482; Protocol</h1>
+
+  <p class="lead">
+    bearerCORE&#8482; introduces a new class of digital monetary instrument: the
+    <strong>CBDC Issuance Bill (CBIB)</strong> — a cryptographically authenticated digital
+    banknote issued exclusively by a licensed central bank.
+  </p>
+
+  <h2>How It Works</h2>
+
+  <p>
+    A CBIB is a PNG image file. Like a physical banknote, it carries denomination, issuer
+    identity, serial number, and security features — but embedded in the file itself using
+    cryptographic primitives rather than ink and paper. The central bank's Ed25519 private
+    key signs every note at the moment of minting. No entity other than the issuing central
+    bank can produce a valid note.
+  </p>
+
+  <h3>Three-Layer Architecture</h3>
+
+  <ul>
+    <li>
+      <strong>Issuance Layer (Central Bank):</strong> A hardened desktop minting station
+      generates CBIB batches, embeds encrypted metadata, applies cryptographic signatures,
+      and delivers packages to commercial banks via secure channel.
+    </li>
+    <li>
+      <strong>Validation Layer (Commercial Banks):</strong> An API-based validation desk
+      ingests CBIB files, verifies signatures, checks for duplicates, and registers notes
+      in the sovereign ledger. Each note undergoes a full lifecycle audit.
+    </li>
+    <li>
+      <strong>Corridor Layer (Cross-Border Settlement):</strong> FX rate resolution,
+      liquidity pool management, and governance enforcement across all 54 AU corridors.
+      Transfers settle in under 2 seconds.
+    </li>
+  </ul>
+
+  <h2>Security Architecture</h2>
+
+  <table>
+    <tr>
+      <th>Layer</th>
+      <th>Technology</th>
+      <th>Purpose</th>
+    </tr>
+    <tr>
+      <td>Note Signing</td>
+      <td>Ed25519 (libsodium)</td>
+      <td>Unforgeable issuer authentication per note</td>
+    </tr>
+    <tr>
+      <td>QR Payload</td>
+      <td>AES-128-GCM + zlib + Base64URL</td>
+      <td>Encrypted compact URL for mobile verification</td>
+    </tr>
+    <tr>
+      <td>Vault Storage</td>
+      <td>AES-256-GCM</td>
+      <td>Encrypted at-rest storage of mint data</td>
+    </tr>
+    <tr>
+      <td>Batch Integrity</td>
+      <td>SHA-256 Merkle manifest</td>
+      <td>Tamper-evident batch authentication</td>
+    </tr>
+    <tr>
+      <td>API Access</td>
+      <td>OAuth 2.0 (Doorkeeper)</td>
+      <td>Commercial bank API authentication</td>
+    </tr>
+  </table>
+
+  <div class="footer">bearerCORE&#8482; · Executive Litepaper · TowerPoint Group · CONFIDENTIAL</div>
+</div>
+
+<%# ── PAGE 4 — CORRIDORS & INCLUSION ─────────────────────────────────── %>
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-logo">bearer<span>CORE</span>&#8482;</div>
+    <div class="page-header-label">Corridors &amp; Financial Inclusion</div>
+  </div>
+
+  <h1>54-Corridor Network &amp; Financial Inclusion</h1>
+
+  <h2>The 54-Corridor Network</h2>
+
+  <p>
+    bearerCORE&#8482; covers every bilateral corridor between African Union member states —
+    1,431 unique sovereign pairs — through a unified FX resolution engine. Each corridor
+    maintains its own liquidity pool, rate oracle, and governance parameters set by the
+    participating central banks.
+  </p>
+
+  <p>
+    Priority corridors for Phase 1 deployment are selected on the basis of remittance
+    volume, existing bilateral trade agreements, and central bank readiness:
+  </p>
+
+  <table>
+    <tr>
+      <th>Corridor</th>
+      <th>Currency Pair</th>
+      <th>Annual Remittance Volume</th>
+    </tr>
+    <tr>
+      <td>Nigeria ↔ Ghana</td>
+      <td>NGN / GHS</td>
+      <td>~$3.2B</td>
+    </tr>
+    <tr>
+      <td>Kenya ↔ Uganda</td>
+      <td>KES / UGX</td>
+      <td>~$1.8B</td>
+    </tr>
+    <tr>
+      <td>South Africa ↔ Zimbabwe</td>
+      <td>ZAR / ZWL</td>
+      <td>~$2.1B</td>
+    </tr>
+    <tr>
+      <td>Senegal ↔ Côte d'Ivoire</td>
+      <td>XOF / XOF</td>
+      <td>~$0.9B</td>
+    </tr>
+    <tr>
+      <td>Ethiopia ↔ Djibouti</td>
+      <td>ETB / DJF</td>
+      <td>~$0.6B</td>
+    </tr>
+  </table>
+
+  <h2>Financial Inclusion by Design</h2>
+
+  <p>
+    Because CBIBs are bearer instruments — value in the file, not in an account — they
+    require no bank account, no credit history, and no KYC at the point of receipt.
+    A smallholder farmer in rural Uganda can receive a CBIB from a buyer in Nairobi as
+    easily as receiving a photograph.
+  </p>
+
+  <ul>
+    <li><strong>No account required:</strong> CBIBs are held in local storage, not custodied by a bank</li>
+    <li><strong>Offline capable:</strong> Notes can be stored and transferred without internet connectivity</li>
+    <li><strong>Mobile first:</strong> Encrypted QR codes enable verification on any smartphone camera</li>
+    <li><strong>Sovereign backed:</strong> Each CBIB is a direct liability of the issuing central bank — not a private stablecoin</li>
+  </ul>
+
+  <div class="callout">
+    <p>
+      <strong>The target:</strong> 350M+ unbanked Africans currently excluded from
+      cross-border digital payments. bearerCORE&#8482; does not require them to join the
+      formal banking system — it brings sovereign-grade digital currency to them directly.
+    </p>
+  </div>
+
+  <div class="footer">bearerCORE&#8482; · Executive Litepaper · TowerPoint Group · CONFIDENTIAL</div>
+</div>
+
+<%# ── PAGE 5 — GOVERNANCE & PILOT ────────────────────────────────────── %>
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-logo">bearer<span>CORE</span>&#8482;</div>
+    <div class="page-header-label">Governance &amp; Pilot Programme</div>
+  </div>
+
+  <h1>Governance &amp; Pilot Programme</h1>
+
+  <h2>Governance Framework</h2>
+
+  <p>
+    bearerCORE&#8482; is designed for central bank sovereignty. No private entity controls
+    the protocol. Each participating central bank retains full authority over its issuance
+    parameters, corridor eligibility, and redemption policies. Cross-corridor governance
+    decisions — such as adjusting FX rate oracles or modifying liquidity lock requirements —
+    are made through a structured proposal and voting mechanism requiring supermajority
+    approval from affected central banks.
+  </p>
+
+  <ul>
+    <li><strong>Governance proposals:</strong> Submitted on-chain, timestamped, and immutable</li>
+    <li><strong>Voting thresholds:</strong> Configurable per corridor; default 67% supermajority</li>
+    <li><strong>Emergency freeze:</strong> Any central bank governor may freeze notes in their jurisdiction unilaterally</li>
+    <li><strong>Full audit trail:</strong> Every note lifecycle event — minting, delivery, validation, transfer, redemption — is logged with cryptographic linkage</li>
+  </ul>
+
+  <h2>Pilot Programme</h2>
+
+  <h3>Phase 1 — Bilateral Corridor Pilot</h3>
+  <p>
+    Single corridor deployment (Nigeria ↔ Ghana). Central bank minting stations installed.
+    Commercial bank validation desks configured. 10,000 CBIB batch minted in Technical Pilot
+    mode (specimen grade, not legal tender). Full lifecycle validation completed.
+  </p>
+
+  <h3>Phase 2 — Regional Bloc Expansion</h3>
+  <p>
+    East African Community bloc (Kenya, Uganda, Tanzania, Rwanda). Multi-corridor FX
+    resolution activated. Commercial bank API integrations across all participating institutions.
+    Retail-grade CBIBs issued for controlled user testing.
+  </p>
+
+  <h3>Phase 3 — AU Network Deployment</h3>
+  <p>
+    Full 54-corridor activation. Production-grade CBIB issuance. Integration with existing
+    RTGS and payment switch infrastructure. Legal tender status subject to each central bank's
+    legislative framework.
+  </p>
+
+  <h2>Engagement Process</h2>
+
+  <p>
+    Central banks and qualified fintech institutions interested in participating in the
+    pilot programme are invited to request a <strong>Sovereign Briefing</strong> with the
+    bearerCORE&#8482; Protocol Desk. Briefings are conducted under NDA and cover the full
+    technical architecture, integration requirements, and governance terms.
+  </p>
+
+  <p>
+    <strong>Request a briefing:</strong> bearercore.com &nbsp;·&nbsp; briefing@bearercore.com
+  </p>
+
+  <div class="footer">
+    bearerCORE&#8482; · Executive Litepaper v1.0 · <%= Date.today.strftime("%B %Y") %> ·
+    TowerPoint Group · CONFIDENTIAL — NOT FOR PUBLIC DISTRIBUTION
+  </div>
+</div>

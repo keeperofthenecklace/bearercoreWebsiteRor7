@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      color: #1a1a2e;
+      font-size: 10.5pt;
+      line-height: 1.7;
+      background: #fff;
+    }
+
+    /* ── Cover page ─────────────────────────────── */
+    .cover {
+      width: 100%;
+      min-height: 100vh;
+      background: #0C1B38;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 72pt 64pt;
+      page-break-after: always;
+    }
+    .cover-eyebrow {
+      font-family: Arial, sans-serif;
+      font-size: 8pt;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #C9A84C;
+      margin-bottom: 28pt;
+    }
+    .cover-title {
+      font-size: 36pt;
+      font-weight: bold;
+      color: #fff;
+      line-height: 1.15;
+      margin-bottom: 6pt;
+    }
+    .cover-title span { color: #C9A84C; }
+    .cover-subtitle {
+      font-family: Arial, sans-serif;
+      font-size: 13pt;
+      color: rgba(255,255,255,0.65);
+      margin-bottom: 48pt;
+      font-weight: normal;
+    }
+    .cover-rule {
+      width: 56pt;
+      height: 3pt;
+      background: #C9A84C;
+      margin-bottom: 48pt;
+    }
+    .cover-meta {
+      font-family: Arial, sans-serif;
+      font-size: 8.5pt;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.8;
+    }
+
+    /* ── Body pages ─────────────────────────────── */
+    .page {
+      padding: 52pt 60pt 48pt 60pt;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: avoid; }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1pt solid #C9A84C;
+      padding-bottom: 8pt;
+      margin-bottom: 32pt;
+    }
+    .page-header-logo {
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      font-weight: bold;
+      color: #0C1B38;
+      letter-spacing: 1px;
+    }
+    .page-header-logo span { color: #C9A84C; }
+    .page-header-label {
+      font-family: Arial, sans-serif;
+      font-size: 7.5pt;
+      color: #999;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 22pt;
+      color: #0C1B38;
+      margin-bottom: 18pt;
+      line-height: 1.2;
+    }
+    h2 {
+      font-size: 14pt;
+      color: #0C1B38;
+      margin-top: 28pt;
+      margin-bottom: 10pt;
+      padding-bottom: 5pt;
+      border-bottom: 1pt solid #e8eaf0;
+    }
+    h3 {
+      font-size: 11pt;
+      color: #C9A84C;
+      margin-top: 18pt;
+      margin-bottom: 6pt;
+      font-family: Arial, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    p {
+      margin-bottom: 12pt;
+      color: #2a2a3e;
+    }
+    ul, ol {
+      margin: 0 0 14pt 20pt;
+    }
+    li {
+      margin-bottom: 5pt;
+      color: #2a2a3e;
+    }
+    strong { color: #0C1B38; }
+
+    .lead {
+      font-size: 12.5pt;
+      color: #0C1B38;
+      line-height: 1.75;
+      margin-bottom: 20pt;
+      border-left: 3pt solid #C9A84C;
+      padding-left: 14pt;
+    }
+
+    .stat-row {
+      display: table;
+      width: 100%;
+      margin: 20pt 0;
+    }
+    .stat {
+      display: table-cell;
+      width: 33%;
+      text-align: center;
+      padding: 14pt 10pt;
+      background: #f7f8fc;
+      border: 1pt solid #e8eaf0;
+    }
+    .stat-number {
+      font-size: 22pt;
+      font-weight: bold;
+      color: #C9A84C;
+      display: block;
+      line-height: 1.1;
+    }
+    .stat-label {
+      font-family: Arial, sans-serif;
+      font-size: 7.5pt;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      display: block;
+      margin-top: 4pt;
+    }
+
+    .callout {
+      background: #0C1B38;
+      color: #fff;
+      padding: 20pt 24pt;
+      margin: 22pt 0;
+      border-radius: 4pt;
+    }
+    .callout p { color: rgba(255,255,255,0.85); margin-bottom: 0; }
+    .callout strong { color: #C9A84C; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16pt 0;
+      font-size: 9.5pt;
+    }
+    th {
+      background: #0C1B38;
+      color: #C9A84C;
+      font-family: Arial, sans-serif;
+      font-size: 8pt;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 8pt 10pt;
+      text-align: left;
+    }
+    td {
+      padding: 7pt 10pt;
+      border-bottom: 1pt solid #e8eaf0;
+      color: #2a2a3e;
+    }
+    tr:nth-child(even) td { background: #f7f8fc; }
+
+    .footer {
+      font-family: Arial, sans-serif;
+      font-size: 7.5pt;
+      color: #aaa;
+      text-align: center;
+      margin-top: 36pt;
+      padding-top: 10pt;
+      border-top: 1pt solid #e8eaf0;
+    }
+  </style>
+</head>
+<body>
+  <%= yield %>
+</body>
+</html>
