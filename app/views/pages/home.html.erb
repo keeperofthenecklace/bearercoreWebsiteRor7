@@ -32,7 +32,7 @@
 
     <%# ── FORM STATE ─────────────────────────────────────────────────────── %>
     <div data-modal-target="formState">
-      <%= form_with url: briefing_requests_path, method: :post,
+      <%= form_with model: BriefingRequest.new, url: briefing_requests_path,
                     data: { action: "submit->modal#submit" },
                     class: "px-8 py-6" do |f| %>
 
