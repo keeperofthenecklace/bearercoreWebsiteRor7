@@ -20,22 +20,22 @@
   <h1>Executive Summary</h1>
 
   <p class="lead">
-    bearerCORE&#8482; is a protocol-grade digital currency infrastructure that enables African
-    central banks to issue, validate, and settle CBDC banknotes across all 54 sovereign
-    corridors of the African Union — without requiring recipients to hold a bank account.
+    bearerCORE&#8482; is a protocol-grade <strong>CBDC</strong> infrastructure that enables African
+    central banks to issue, validate, and settle sovereign digital currency across all 54 corridors
+    of the African Union — without requiring recipients to hold a bank account.
   </p>
 
   <p>
     Modelled on the physical cash metaphor — where possession equals ownership — bearerCORE&#8482;
-    introduces the <strong>Digital Money Bundle</strong>: a cryptographically signed digital
-    banknote that is minted by a central bank, delivered as <strong>Digital Money Bundles</strong>
+    introduces the <strong>CVIB</strong> (Central Bank Issuance Bill): a cryptographically signed
+    digital banknote that is minted by a central bank, delivered as <strong>Digital Money Bundles</strong>
     via secure SFTP/NAS channels to commercial banks, and redeemable instantly by any holder,
     anywhere on the continent.
   </p>
 
   <p>
     Unlike account-based CBDC systems that replicate commercial banking infrastructure,
-    bearerCORE&#8482; operates as a <strong>bearer instrument</strong>. Each Digital Money Bundle
+    bearerCORE&#8482; operates as a <strong>bearer instrument</strong>. Each CVIB
     carries its own value, identity, and provenance inside the file itself — enabling offline
     storage, peer-to-peer transfer, and settlement without intermediary custody.
   </p>
@@ -57,9 +57,9 @@
 
   <p>
     The protocol is production-ready. A desktop minting station (Qt6, macOS ARM64) handles
-    issuance at the central bank level. A Rails 7 API validation desk handles commercial bank
-    ingestion, registry checks, and lifecycle audit. Both layers are connected through a
-    governance engine that enforces corridor rules, FX rates, and reserve backing.
+    CVIB issuance at the central bank level. A Rails 7 API validation desk handles commercial
+    bank ingestion, CBDC registry checks, and full lifecycle audit. Both layers are connected
+    through a governance engine that enforces corridor rules, FX rates, and reserve backing.
   </p>
 
   <div class="footer">bearerCORE&#8482; · Executive Litepaper · TowerPoint Group · CONFIDENTIAL</div>
@@ -108,8 +108,8 @@
   <div class="callout">
     <p>
       <strong>The gap:</strong> There is currently no open-standard, central-bank-controlled
-      digital currency that can be held and transferred by an individual without a bank account,
-      across all 54 AU member state pairs, with cryptographic proof of authenticity.
+      <strong>CBDC</strong> that can be held and transferred by an individual without a bank
+      account, across all 54 AU member state pairs, with cryptographic proof of authenticity.
       bearerCORE&#8482; fills this gap.
     </p>
   </div>
@@ -128,18 +128,19 @@
 
   <p class="lead">
     bearerCORE&#8482; introduces a new class of digital monetary instrument: the
-    <strong>Digital Money Bundle</strong> — a cryptographically authenticated digital
-    banknote issued exclusively by a licensed central bank.
+    <strong>CVIB</strong> (Central Bank Issuance Bill) — a cryptographically authenticated
+    digital banknote issued exclusively by a licensed central bank, delivered to commercial
+    banks as <strong>Digital Money Bundles</strong>.
   </p>
 
   <h2>How It Works</h2>
 
   <p>
-    A Digital Money Bundle is a PNG image file. Like a physical banknote, it carries
-    denomination, issuer identity, serial number, and security features — embedded in the
-    file itself using cryptographic primitives rather than ink and paper. The central bank's
-    Ed25519 private key signs every bundle at the moment of minting. No entity other than
-    the issuing central bank can produce a valid bundle.
+    A CVIB is a PNG image file. Like a physical banknote, it carries denomination, issuer
+    identity, serial number, and security features — embedded in the file itself using
+    cryptographic primitives rather than ink and paper. The central bank's Ed25519 private
+    key signs every CVIB at the moment of minting. No entity other than the issuing central
+    bank can produce a valid CBDC unit.
   </p>
 
   <h3>Three-Layer Architecture</h3>
@@ -147,18 +148,23 @@
   <ul>
     <li>
       <strong>Issuance Layer (Central Bank):</strong> A hardened desktop minting station
-      generates Digital Money Bundles, embeds encrypted metadata, applies cryptographic
-      signatures, and delivers bundles to commercial banks via secure SFTP/NAS channels.
+      allows the Governor to initialize <strong>Digital Money Bundles</strong>. The system
+      generates <strong>CVIB</strong> units, embeds encrypted metadata, and applies
+      <strong>CBDC</strong>-grade Ed25519 cryptographic signatures before delivering packages
+      via secure SFTP/NAS channels.
     </li>
     <li>
       <strong>Validation Layer (Commercial Banks):</strong> An API-based validation desk
-      ingests Digital Money Bundles, verifies signatures, checks for duplicates, and
-      registers bundles in the sovereign ledger. Each bundle undergoes a full lifecycle audit.
+      ingests <strong>CVIB</strong> files to verify signature integrity and check against the
+      National Registry. This layer ensures that every <strong>CBDC</strong> unit in
+      circulation undergoes a full lifecycle audit — from initial minting to final redemption.
     </li>
     <li>
-      <strong>Corridor Layer (Cross-Border Settlement):</strong> FX rate resolution,
-      liquidity pool management, and governance enforcement across all 54 AU corridors.
-      Transfers settle in under 2 seconds.
+      <strong>Corridor Layer (Cross-Border Settlement):</strong> A specialised engine manages
+      FX rate resolution and liquidity pool backing across all 54 African Union corridors.
+      This layer enforces the <strong>Economic Sovereignty</strong> of participating nations
+      by ensuring that all issued <strong>CVIBs</strong> are backed 1:1 by locked reserves
+      within the specified trade corridor.
     </li>
   </ul>
 
@@ -259,17 +265,17 @@
   <h2>Financial Inclusion by Design</h2>
 
   <p>
-    Because Digital Money Bundles are bearer instruments — value in the file, not in an
-    account — they require no bank account, no credit history, and no KYC at the point of
-    receipt. A smallholder farmer in rural Uganda can receive a Digital Money Bundle from a
-    buyer in Nairobi as easily as receiving a photograph.
+    Because CVIBs are bearer instruments — value in the file, not in an account — they
+    require no bank account, no credit history, and no KYC at the point of receipt. A
+    smallholder farmer in rural Uganda can receive a Digital Money Bundle from a buyer in
+    Nairobi as easily as receiving a photograph.
   </p>
 
   <ul>
-    <li><strong>No account required:</strong> Digital Money Bundles are held in local storage, not custodied by a bank</li>
-    <li><strong>Offline capable:</strong> Bundles can be stored and transferred without internet connectivity</li>
-    <li><strong>Mobile first:</strong> Cash Codes enable instant verification on any smartphone camera</li>
-    <li><strong>Sovereign backed:</strong> Each bundle is a direct liability of the issuing central bank — not a private stablecoin</li>
+    <li><strong>No account required:</strong> CVIB files are held in local storage, not custodied by a bank</li>
+    <li><strong>Offline capable:</strong> CVIBs can be stored and transferred without internet connectivity</li>
+    <li><strong>Mobile first:</strong> Cash Codes enable instant verification of any CVIB on any smartphone camera</li>
+    <li><strong>Sovereign backed:</strong> Each CVIB is a direct CBDC liability of the issuing central bank — not a private stablecoin</li>
   </ul>
 
   <div class="callout">
@@ -308,7 +314,7 @@
     <li><strong>Governance proposals:</strong> Submitted on-chain, timestamped, and immutable</li>
     <li><strong>Voting thresholds:</strong> Configurable per corridor; default 67% supermajority</li>
     <li><strong>Emergency freeze:</strong> Any central bank governor may freeze bundles in their jurisdiction unilaterally</li>
-    <li><strong>Full audit trail:</strong> Every bundle lifecycle event — minting, delivery, validation, transfer, redemption — is logged with cryptographic linkage</li>
+    <li><strong>Full audit trail:</strong> Every CVIB lifecycle event — minting, delivery, validation, transfer, redemption — is logged with cryptographic linkage</li>
     <li><strong>Real-Time Corridor Surveillance:</strong> Central Bank Governors maintain a Command Center view of all 1,431 bilateral corridors, allowing for instant adjustments to liquidity pools and risk limits to protect national currency stability</li>
   </ul>
 
