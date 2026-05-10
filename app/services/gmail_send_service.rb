@@ -7,9 +7,9 @@ class GmailSendService
   CLIENT_ID     = ENV.fetch("GMAIL_CLIENT_ID",     "")
   CLIENT_SECRET = ENV.fetch("GMAIL_CLIENT_SECRET",  "")
   REFRESH_TOKEN = ENV.fetch("GMAIL_REFRESH_TOKEN",  "")
-  FROM_EMAIL    = "noreply@bearercore.com"
-  FROM_NAME     = "bearerCORE™ Protocol Desk"
-  INTERNAL_TO   = ENV.fetch("BRIEFING_NOTIFY_EMAIL", "governors@bearercore.com")
+  FROM_EMAIL    = "briefing@bearercore.com"
+  FROM_NAME     = "bearerCORE Briefing Desk"
+  INTERNAL_TO   = ENV.fetch("BRIEFING_NOTIFY_EMAIL", "briefing@bearercore.com")
 
   def self.send_briefing_confirmation(briefing_request)
     new.send_confirmation(briefing_request)
