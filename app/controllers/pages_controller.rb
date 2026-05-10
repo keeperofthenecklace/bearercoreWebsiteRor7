@@ -11,6 +11,7 @@ class PagesController < ApplicationController
         render pdf:         "bearerCORE-Litepaper-#{Date.today.strftime('%Y%m')}",
                layout:      "pdf",
                disposition:  "attachment",
+               encoding:    "UTF-8",
                page_size:   "A4",
                dpi:         150,
                margin:      { top: 0, bottom: 0, left: 0, right: 0 }
