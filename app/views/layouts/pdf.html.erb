@@ -3,40 +3,38 @@
 <head>
   <meta charset="utf-8">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Inter', Arial, sans-serif;
+      font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
       color: #1a1a2e;
       font-size: 10.5pt;
       line-height: 1.65;
       background: #fff;
     }
 
-    /* ── Cover ─────────────────────────────────────── */
-    .cover {
+    /* ── Cover (table-based — flex breaks page-break-after in wkhtmltopdf) ── */
+    .cover-table {
       width: 100%;
-      min-height: 100vh;
-      background: #fff;
+      height: 841pt;
+      border-collapse: collapse;
       page-break-after: always;
-      display: flex;
-      flex-direction: column;
-      padding: 0;
+      background: #fff;
     }
-    .cover-inner {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 64pt 60pt 40pt;
+    .cover-top-cell {
+      text-align: center;
+      vertical-align: middle;
+      padding: 0 60pt;
     }
     .cover-card {
+      display: block;
       width: 68%;
-      background: #0C1B38;
-      padding: 34pt 44pt 28pt;
-      border-bottom: 5pt solid #C9A84C;
+      margin: 0 auto;
+      background: #0A192F;
+      padding: 36pt 44pt 30pt;
+      border-bottom: 5pt solid #C5A059;
       text-align: center;
     }
     .cover-eyebrow {
@@ -44,237 +42,190 @@
       font-weight: 400;
       color: rgba(255,255,255,0.45);
       letter-spacing: 1px;
-      margin-bottom: 18pt;
+      margin-bottom: 20pt;
     }
     .cover-title {
-      font-size: 30pt;
-      font-weight: 700;
+      font-family: 'Playfair Display', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+      font-size: 32pt;
+      font-weight: 900;
       color: #fff;
       line-height: 1.1;
       margin-bottom: 8pt;
     }
-    .cover-title span { color: #C9A84C; }
-    .cover-subtitle {
-      font-size: 10.5pt;
-      font-weight: 400;
-      color: #C9A84C;
-      margin-bottom: 18pt;
-    }
-    .cover-rule {
-      width: 36pt;
-      height: 1pt;
-      background: rgba(255,255,255,0.2);
-      margin: 0 auto 18pt;
-    }
-    .cover-meta {
-      font-size: 8pt;
-      color: rgba(255,255,255,0.4);
-      line-height: 1.9;
-    }
+    .cover-title span { color: #C5A059; }
+    .cover-subtitle { font-size: 10.5pt; color: #C5A059; margin-bottom: 20pt; }
+    .cover-rule { width: 36pt; height: 1pt; background: rgba(255,255,255,0.2); margin: 0 auto 20pt; }
+    .cover-meta { font-size: 8pt; color: rgba(255,255,255,0.38); line-height: 1.9; }
+    .cover-bottom-cell { vertical-align: bottom; padding: 0; height: 1pt; }
 
-    /* ── Stat row (used on cover) ──────────────────── */
-    .stat-row {
-      display: table;
-      width: 100%;
-      background: #1A2B3C;
-    }
+    /* ── Stat row ─────────────────────────────────────── */
+    .stat-row { display: table; width: 100%; background: #0A192F; }
     .stat {
-      display: table-cell;
-      width: 33%;
-      text-align: center;
+      display: table-cell; width: 33%; text-align: center;
       padding: 22pt 10pt;
       border-right: 1pt solid rgba(255,255,255,0.07);
     }
     .stat:last-child { border-right: none; }
     .stat-number {
-      font-size: 28pt;
-      font-weight: 700;
-      color: #C9A84C;
-      display: block;
-      line-height: 1.05;
+      font-family: 'Playfair Display', 'Palatino Linotype', Georgia, serif;
+      font-size: 28pt; font-weight: 700; color: #C5A059;
+      display: block; line-height: 1.05;
     }
     .stat-label {
-      font-size: 7pt;
-      font-weight: 500;
-      color: rgba(255,255,255,0.55);
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      display: block;
-      margin-top: 5pt;
+      font-size: 6.5pt; font-weight: 600; color: rgba(255,255,255,0.5);
+      text-transform: uppercase; letter-spacing: 1.5px;
+      display: block; margin-top: 5pt;
     }
 
-    /* ── Body pages ─────────────────────────────────── */
-    .page {
-      padding: 44pt 52pt 38pt;
-      page-break-after: always;
-    }
+    /* ── Body pages ───────────────────────────────────── */
+    .page { padding: 44pt 52pt 38pt; page-break-after: always; display: block; }
     .page:last-child { page-break-after: avoid; }
 
-    .page-header {
-      margin-bottom: 16pt;
-    }
+    .page-header { margin-bottom: 12pt; }
     .page-header-logo { display: none; }
     .page-header-label {
-      font-size: 7.5pt;
-      font-weight: 600;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 2px;
+      font-size: 7pt; font-weight: 700; color: #999;
+      text-transform: uppercase; letter-spacing: 2.5px;
     }
 
     h1 {
-      font-size: 20pt;
-      font-weight: 700;
-      color: #1A2B3C;
-      line-height: 1.2;
-      margin-bottom: 0;
-      padding-bottom: 10pt;
-      border-bottom: 2pt solid #1A2B3C;
-      margin-bottom: 18pt;
+      font-family: 'Playfair Display', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+      font-size: 22pt; font-weight: 700; color: #0A192F; line-height: 1.2;
+      padding-bottom: 10pt; border-bottom: 2pt solid #0A192F; margin-bottom: 18pt;
     }
     h2 {
-      font-size: 11.5pt;
-      font-weight: 700;
-      color: #1A2B3C;
-      margin-top: 20pt;
-      margin-bottom: 8pt;
-      padding-bottom: 5pt;
-      border-bottom: 1pt solid #dde1ea;
+      font-family: 'Playfair Display', 'Palatino Linotype', Georgia, serif;
+      font-size: 12pt; font-weight: 700; color: #0A192F;
+      margin-top: 20pt; margin-bottom: 8pt;
+      padding-bottom: 5pt; border-bottom: 1pt solid #dde1ea;
     }
-    h3 {
-      font-size: 10.5pt;
-      font-weight: 700;
-      color: #1A2B3C;
-      margin-top: 14pt;
-      margin-bottom: 5pt;
-    }
-    p {
-      margin-bottom: 10pt;
-      color: #1a1a2e;
-      text-align: justify;
-    }
-    ul, ol {
-      margin: 0 0 12pt 18pt;
-    }
-    li {
-      margin-bottom: 6pt;
-      color: #1a1a2e;
-      text-align: justify;
-    }
-    strong { color: #1A2B3C; }
+    h3 { font-size: 10.5pt; font-weight: 700; color: #0A192F; margin-top: 14pt; margin-bottom: 5pt; }
+    p { margin-bottom: 10pt; color: #1a1a2e; text-align: justify; }
+    ul, ol { margin: 0 0 12pt 18pt; }
+    li { margin-bottom: 6pt; color: #1a1a2e; text-align: justify; }
+    strong { color: #0A192F; }
+    .lead { font-size: 10.5pt; color: #0A192F; line-height: 1.7; margin-bottom: 12pt; text-align: justify; }
 
-    .lead {
-      font-size: 10.5pt;
-      color: #1A2B3C;
-      line-height: 1.7;
-      margin-bottom: 12pt;
-      text-align: justify;
-    }
+    /* ── Callout ──────────────────────────────────────── */
+    .callout { background: #f4f6fb; padding: 14pt 18pt; margin: 14pt 0; border-left: 3pt solid #0A192F; }
+    .callout p { color: #1a1a2e; margin-bottom: 0; }
+    .callout strong { color: #0A192F; }
 
-    /* ── Callout ─────────────────────────────────────── */
-    .callout {
-      background: #f4f6fb;
-      padding: 14pt 18pt;
-      margin: 16pt 0;
-      border-left: 3pt solid #1A2B3C;
+    /* ── Exec summary sidebar layout ─────────────────── */
+    .sidebar-table { width: 100%; border-collapse: collapse; margin-top: 0; }
+    .sidebar-cell {
+      width: 26%; background: #0A192F;
+      vertical-align: top; padding: 18pt 12pt;
     }
-    .callout p { color: #1a1a2e; margin-bottom: 0; text-align: justify; }
-    .callout strong { color: #1A2B3C; }
-
-    /* ── Tables ──────────────────────────────────────── */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 14pt 0;
-      font-size: 9.5pt;
+    .content-cell { width: 74%; vertical-align: top; padding: 0 0 0 22pt; }
+    .sidebar-heading {
+      font-size: 6.5pt; font-weight: 700; color: #C5A059;
+      text-transform: uppercase; letter-spacing: 2px;
+      text-align: center; margin-bottom: 14pt;
+      padding-bottom: 8pt; border-bottom: 1pt solid rgba(255,255,255,0.1);
     }
-    th {
-      background: #1A2B3C;
-      color: #C9A84C;
-      font-size: 8pt;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      padding: 8pt 10pt;
-      text-align: left;
-      border: 1pt solid #1A2B3C;
+    .sidebar-stat {
+      text-align: center; padding: 12pt 0;
+      border-bottom: 1pt solid rgba(255,255,255,0.07);
     }
-    td {
-      padding: 7pt 10pt;
-      border: 1pt solid #dde1ea;
-      color: #1a1a2e;
+    .sidebar-stat:last-child { border-bottom: none; }
+    .sidebar-stat-num {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20pt; font-weight: 700; color: #C5A059;
+      display: block; line-height: 1;
     }
-    tr:nth-child(even) td { background: #f8f9fc; }
-    .tech-cell { background: #edf0f7 !important; }
-
-    /* ── Governance threshold info box ───────────────── */
-    .gauge-wrap {
-      margin: 14pt 0 8pt;
-      border: 1pt solid #dde1ea;
-      padding: 14pt 18pt;
-      text-align: center;
-    }
-    .gauge-label {
-      font-size: 8.5pt;
-      font-weight: 700;
-      color: #1A2B3C;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 6pt;
-    }
-    .gauge-meta {
-      font-size: 9pt;
-      color: #444;
-      text-align: center;
+    .sidebar-stat-label {
+      font-size: 6pt; font-weight: 600; color: rgba(255,255,255,0.5);
+      text-transform: uppercase; letter-spacing: 1px;
+      display: block; margin-top: 4pt;
     }
 
-    /* ── QR engagement block ─────────────────────────── */
-    .qr-block {
-      display: table;
-      width: 100%;
-      margin-top: 14pt;
-      border: 1pt solid #dde1ea;
-      padding: 16pt;
+    /* ── Three-layer architecture infographic ─────────── */
+    .arch-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 16pt 0 0; }
+    .arch-box {
+      width: 31%; background: #0A192F;
+      padding: 14pt 12pt; vertical-align: top;
     }
-    .qr-left {
-      display: table-cell;
-      vertical-align: middle;
-      width: 86pt;
+    .arch-arrow-cell {
+      width: 3.5%; text-align: center; vertical-align: middle;
+      font-size: 18pt; color: #C5A059; font-weight: 700;
     }
-    .qr-left img {
-      width: 70pt;
-      height: 70pt;
+    .arch-layer-num {
+      font-size: 7pt; font-weight: 700; color: #C5A059;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      display: block; margin-bottom: 5pt;
+    }
+    .arch-layer-title {
+      font-size: 9pt; font-weight: 700; color: #fff;
+      display: block; margin-bottom: 4pt;
+    }
+    .arch-layer-sub {
+      font-size: 7pt; color: rgba(255,255,255,0.4);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      display: block; margin-bottom: 8pt;
+      padding-bottom: 8pt; border-bottom: 1pt solid rgba(255,255,255,0.1);
+    }
+    .arch-layer-desc { font-size: 8.5pt; color: rgba(255,255,255,0.78); line-height: 1.5; text-align: left; }
+
+    /* ── Security blueprint grid ──────────────────────── */
+    .blueprint-table { width: 100%; border-collapse: separate; border-spacing: 4pt; margin: 14pt 0; }
+    .blueprint-cell {
+      background: #f4f6fb; border-left: 3pt solid #C5A059;
+      padding: 9pt 10pt; vertical-align: top; width: 50%;
+    }
+    .bp-label { font-size: 7pt; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2pt; }
+    .bp-tech { font-family: 'Courier New', Courier, monospace; font-size: 8.5pt; color: #0A192F; font-weight: 700; margin-bottom: 2pt; }
+    .bp-desc { font-size: 8pt; color: #555; }
+
+    /* ── Standard tables ──────────────────────────────── */
+    table.data-table { width: 100%; border-collapse: collapse; margin: 14pt 0; font-size: 9.5pt; }
+    table.data-table th {
+      background: #0A192F; color: #C5A059;
+      font-size: 8pt; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1px;
+      padding: 8pt 10pt; text-align: left;
+      border: 1pt solid #0A192F;
+    }
+    table.data-table td { padding: 7pt 10pt; border: 1pt solid #dde1ea; color: #1a1a2e; }
+    table.data-table tr:nth-child(even) td { background: #f8f9fc; }
+
+    /* ── Governance info box ──────────────────────────── */
+    .gauge-wrap { margin: 14pt 0; border: 1pt solid #dde1ea; padding: 14pt 18pt; text-align: center; }
+    .gauge-label { font-size: 8.5pt; font-weight: 700; color: #0A192F; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6pt; }
+    .gauge-meta { font-size: 9pt; color: #444; }
+
+    /* ── Vision/engagement page ───────────────────────── */
+    .vision-page {
+      background: #0A192F;
+      padding: 56pt 52pt 48pt;
+      page-break-before: always;
       display: block;
-      border: 2pt solid #dde1ea;
+      min-height: 741pt;
     }
-    .qr-right {
-      display: table-cell;
-      vertical-align: middle;
-      padding-left: 16pt;
+    .vision-eyebrow {
+      font-size: 7.5pt; color: #C5A059;
+      text-transform: uppercase; letter-spacing: 3px;
+      margin-bottom: 22pt; display: block;
     }
-    .qr-right p {
-      color: #1a1a2e;
-      margin-bottom: 5pt;
-      font-size: 9.5pt;
-      text-align: left;
+    .vision-rule { width: 36pt; height: 2pt; background: #C5A059; margin-bottom: 22pt; }
+    .vision-statement {
+      font-family: 'Playfair Display', 'Palatino Linotype', Georgia, serif;
+      font-size: 22pt; font-weight: 700; color: #fff;
+      line-height: 1.3; margin-bottom: 20pt;
+      border-left: 4pt solid #C5A059; padding-left: 18pt;
     }
-    .qr-right strong { color: #1A2B3C; font-size: 10.5pt; }
-    .qr-right .qr-note {
-      font-size: 7.5pt;
-      color: #C9A84C;
-      margin-bottom: 0;
-      text-align: left;
-    }
+    .vision-body { font-size: 10pt; color: rgba(255,255,255,0.68); line-height: 1.7; margin-bottom: 28pt; text-align: justify; }
+    .vision-qr-table { width: 100%; border-collapse: collapse; border: 1pt solid rgba(255,255,255,0.12); margin-top: 22pt; }
+    .vision-qr-left { width: 88pt; vertical-align: middle; padding: 16pt; }
+    .vision-qr-left img { width: 70pt; height: 70pt; display: block; }
+    .vision-qr-right { vertical-align: middle; padding: 16pt 16pt 16pt 0; }
+    .vision-qr-right p { color: rgba(255,255,255,0.72); font-size: 9.5pt; margin-bottom: 5pt; text-align: left; }
+    .vision-qr-right strong { color: #C5A059; font-size: 11pt; }
+    .vision-qr-note { font-size: 7pt; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0; text-align: left; }
+    .vision-footer { font-size: 7pt; color: rgba(255,255,255,0.25); text-align: center; margin-top: 32pt; padding-top: 8pt; border-top: 1pt solid rgba(255,255,255,0.08); }
 
-    /* ── Footer ──────────────────────────────────────── */
-    .footer {
-      font-size: 7pt;
-      color: #aaa;
-      text-align: center;
-      margin-top: 28pt;
-      padding-top: 8pt;
-      border-top: 1pt solid #dde1ea;
-    }
+    /* ── Footer ───────────────────────────────────────── */
+    .footer { font-size: 7pt; color: #bbb; text-align: center; margin-top: 28pt; padding-top: 8pt; border-top: 1pt solid #dde1ea; }
   </style>
 </head>
 <body>

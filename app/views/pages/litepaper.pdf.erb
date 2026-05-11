@@ -1,32 +1,38 @@
 <%# ── COVER ───────────────────────────────────────────────────────────── %>
-<div class="cover">
-  <div class="cover-inner">
-    <div class="cover-card">
-      <div class="cover-eyebrow">TowerPoint Group &middot; Confidential</div>
-      <div class="cover-title">bearer<span>CORE</span>&#8482;</div>
-      <div class="cover-subtitle">Sovereign Digital Currency Infrastructure for Africa</div>
-      <div class="cover-rule"></div>
-      <div class="cover-meta">
-        Executive Litepaper &middot; Version 1.1 &middot; <%= Date.today.strftime("%B %Y") %><br>
-        bearercore.com &middot; briefing@bearercore.com
+<table class="cover-table">
+  <tr>
+    <td class="cover-top-cell">
+      <div class="cover-card">
+        <div class="cover-eyebrow">TowerPoint Group &middot; Confidential</div>
+        <div class="cover-title">bearer<span>CORE</span>&#8482;</div>
+        <div class="cover-subtitle">Sovereign Digital Currency Infrastructure for Africa</div>
+        <div class="cover-rule"></div>
+        <div class="cover-meta">
+          Executive Litepaper &middot; Version 1.1 &middot; <%= Date.today.strftime("%B %Y") %><br>
+          bearercore.com &middot; briefing@bearercore.com
+        </div>
       </div>
-    </div>
-  </div>
-  <div class="stat-row">
-    <div class="stat">
-      <span class="stat-number">54</span>
-      <span class="stat-label">Sovereign Corridors</span>
-    </div>
-    <div class="stat">
-      <span class="stat-number">350M+</span>
-      <span class="stat-label">Unbanked Africans Targeted</span>
-    </div>
-    <div class="stat">
-      <span class="stat-number">&lt;2s</span>
-      <span class="stat-label">Cross-Border Settlement</span>
-    </div>
-  </div>
-</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="cover-bottom-cell">
+      <div class="stat-row">
+        <div class="stat">
+          <span class="stat-number">54</span>
+          <span class="stat-label">Sovereign Corridors</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">350M+</span>
+          <span class="stat-label">Unbanked Africans Targeted</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">&lt;2s</span>
+          <span class="stat-label">Cross-Border Settlement</span>
+        </div>
+      </div>
+    </td>
+  </tr>
+</table>
 
 <%# ── PAGE 1 &mdash; EXECUTIVE SUMMARY ──────────────────────────────────── %>
 <div class="page">
@@ -37,33 +43,58 @@
 
   <h1>Executive Summary</h1>
 
-  <p class="lead">
-    bearerCORE&#8482; is a protocol-grade <strong>CBDC</strong> infrastructure that enables African
-    central banks to issue, validate, and settle sovereign digital currency across all 54 corridors
-    of the African Union &mdash; without requiring recipients to hold a bank account.
-  </p>
+  <table class="sidebar-table">
+    <tr>
+      <td class="sidebar-cell">
+        <div class="sidebar-heading">At a Glance</div>
+        <div class="sidebar-stat">
+          <span class="sidebar-stat-num">54</span>
+          <span class="sidebar-stat-label">AU Corridors</span>
+        </div>
+        <div class="sidebar-stat">
+          <span class="sidebar-stat-num">350M+</span>
+          <span class="sidebar-stat-label">Unbanked Targeted</span>
+        </div>
+        <div class="sidebar-stat">
+          <span class="sidebar-stat-num">&lt;2s</span>
+          <span class="sidebar-stat-label">Settlement Time</span>
+        </div>
+        <div class="sidebar-stat">
+          <span class="sidebar-stat-num">1,431</span>
+          <span class="sidebar-stat-label">Sovereign Pairs</span>
+        </div>
+      </td>
+      <td class="content-cell">
+        <p class="lead">
+          bearerCORE&#8482; is a protocol-grade <strong>CBDC</strong> infrastructure that enables African
+          central banks to issue, validate, and settle sovereign digital currency across all 54 corridors
+          of the African Union &mdash; without requiring recipients to hold a bank account.
+        </p>
 
-  <p>
-    Modelled on the physical cash metaphor &mdash; where possession equals ownership &mdash; bearerCORE&#8482;
-    introduces the <strong>CVIB</strong> (Cryptographic Visual Image Banknote): a cryptographically signed
-    digital banknote minted by a central bank, delivered as <strong>Digital Money Bundles</strong>
-    via secure SFTP/NAS channels to commercial banks, and redeemable instantly by any holder,
-    anywhere on the continent.
-  </p>
+        <p>
+          Modelled on the physical cash metaphor &mdash; where possession equals ownership &mdash; bearerCORE&#8482;
+          introduces the <strong>CVIB</strong> (Cryptographic Visual Image Banknote): a cryptographically signed
+          digital banknote minted by a central bank, delivered as <strong>Digital Money Bundles</strong>
+          via secure SFTP/NAS channels to commercial banks, and redeemable instantly by any holder,
+          anywhere on the continent.
+        </p>
 
-  <p>
-    Unlike account-based CBDC systems that replicate commercial banking infrastructure,
-    bearerCORE&#8482; operates as a <strong>bearer instrument</strong>. Each CVIB
-    carries its own value, identity, and provenance inside the file itself &mdash; enabling offline
-    storage, peer-to-peer transfer, and settlement without intermediary custody.
-  </p>
+        <p>
+          Unlike account-based CBDC systems that replicate commercial banking infrastructure,
+          bearerCORE&#8482; operates as a <strong>bearer instrument</strong>. Each CVIB
+          carries its own value, identity, and provenance inside the file itself &mdash; enabling offline
+          storage, peer-to-peer transfer, and settlement without intermediary custody.
+        </p>
 
-  <p>
-    The protocol is production-ready. A desktop minting station (Qt6, macOS ARM64) handles
-    CVIB issuance at the central bank level. A Rails 7 API validation desk handles commercial
-    bank ingestion, CBDC registry checks, and full lifecycle audit. Both layers are connected
-    through a governance engine that enforces corridor rules, FX rates, and reserve backing.
-  </p>
+        <p>
+          The protocol is production-ready. A desktop minting station (Qt6, macOS ARM64) handles
+          CVIB issuance at the central bank level. A Rails 7 API validation desk handles commercial
+          bank ingestion, CBDC registry checks, and full lifecycle audit. Both layers are connected
+          through a governance engine that enforces corridor rules, FX rates, and reserve backing.
+        </p>
+      </td>
+    </tr>
+  </table>
 
   <div class="footer">bearerCORE&#8482; &middot; Executive Litepaper &middot; TowerPoint Group &middot; CONFIDENTIAL</div>
 </div>
@@ -136,8 +167,6 @@
     banks as <strong>Digital Money Bundles</strong>.
   </p>
 
-  <h2>How It Works</h2>
-
   <p>
     A CVIB is a PNG image file. Like a physical banknote, it carries denomination, issuer
     identity, serial number, and security features &mdash; embedded in the file itself using
@@ -148,61 +177,69 @@
 
   <h2>Three-Layer Architecture</h2>
 
-  <ul>
-    <li>
-      <strong>Representation Layer (Central Bank):</strong> A hardened desktop minting station
-      allows the Governor to initialise <strong>Digital Money Bundles</strong>. The system
-      generates <strong>CVIB</strong> units, embeds encrypted metadata, and applies
-      <strong>CBDC</strong>-grade Ed25519 cryptographic signatures before delivering packages
-      via secure SFTP/NAS channels.
-    </li>
-    <li>
-      <strong>Registry Layer (Commercial Banks):</strong> An API-based validation desk
-      ingests <strong>CVIB</strong> files to verify signature integrity and check against the
-      National Registry. This layer ensures that every <strong>CBDC</strong> unit in
-      circulation undergoes a full lifecycle audit &mdash; from initial minting to final redemption.
-    </li>
-    <li>
-      <strong>Corridor Layer (Cross-Border Settlement):</strong> A specialised DLT engine manages
-      FX rate resolution and liquidity pool backing across all 54 African Union corridors.
-      This layer enforces the economic sovereignty of participating nations by ensuring that
-      all issued <strong>CVIBs</strong> are backed 1:1 by locked reserves within the specified
-      trade corridor.
-    </li>
-  </ul>
+  <table class="arch-table">
+    <tr>
+      <td class="arch-box">
+        <span class="arch-layer-num">Layer 01</span>
+        <span class="arch-layer-title">Representation Layer</span>
+        <span class="arch-layer-sub">Central Bank &mdash; Minting Station</span>
+        <div class="arch-layer-desc">A hardened desktop minting station allows the Governor to initialise Digital Money Bundles. Generates CVIB units with Ed25519 cryptographic signatures, delivered via secure SFTP/NAS channels.</div>
+      </td>
+      <td class="arch-arrow-cell">&#8594;</td>
+      <td class="arch-box">
+        <span class="arch-layer-num">Layer 02</span>
+        <span class="arch-layer-title">Registry Layer</span>
+        <span class="arch-layer-sub">Commercial Banks &mdash; API Validation Desk</span>
+        <div class="arch-layer-desc">An API-based validation desk ingests CVIB files, verifies signature integrity, and checks against the National Registry. Ensures every CBDC unit undergoes a full lifecycle audit from minting to redemption.</div>
+      </td>
+      <td class="arch-arrow-cell">&#8594;</td>
+      <td class="arch-box">
+        <span class="arch-layer-num">Layer 03</span>
+        <span class="arch-layer-title">Corridor Layer</span>
+        <span class="arch-layer-sub">Cross-Border Settlement &mdash; DLT Engine</span>
+        <div class="arch-layer-desc">A specialised DLT engine manages FX rate resolution and liquidity pool backing across all 54 AU corridors, enforcing economic sovereignty with 1:1 reserve backing per corridor pair.</div>
+      </td>
+    </tr>
+  </table>
 
   <h2>Security Architecture</h2>
 
-  <table>
+  <table class="blueprint-table">
     <tr>
-      <th>Layer</th>
-      <th>Technology</th>
-      <th>Purpose</th>
+      <td class="blueprint-cell">
+        <div class="bp-label">Bundle Signing</div>
+        <div class="bp-tech">Ed25519 (libsodium)</div>
+        <div class="bp-desc">Unforgeable issuer authentication per bundle</div>
+      </td>
+      <td class="blueprint-cell">
+        <div class="bp-label">Cash Codes (QR)</div>
+        <div class="bp-tech">AES-128-GCM + Base64URL</div>
+        <div class="bp-desc">Encrypted mobile verification without specialist hardware</div>
+      </td>
     </tr>
     <tr>
-      <td>Bundle Signing</td>
-      <td class="tech-cell">Ed25519 (libsodium)</td>
-      <td>Unforgeable issuer authentication per bundle</td>
+      <td class="blueprint-cell">
+        <div class="bp-label">Vault Storage</div>
+        <div class="bp-tech">AES-256-GCM</div>
+        <div class="bp-desc">Encrypted at-rest storage of mint data</div>
+      </td>
+      <td class="blueprint-cell">
+        <div class="bp-label">Batch Integrity</div>
+        <div class="bp-tech">SHA-256 Merkle Manifest</div>
+        <div class="bp-desc">Tamper-evident batch authentication</div>
+      </td>
     </tr>
     <tr>
-      <td>Cash Codes (QR)</td>
-      <td class="tech-cell">AES-128-GCM + Base64URL</td>
-      <td>Encrypted mobile verification without specialist hardware</td>
-    </tr>
-    <tr>
-      <td>Vault Storage</td>
-      <td class="tech-cell">AES-256-GCM</td>
-      <td>Encrypted at-rest storage of mint data</td>
-    </tr>
-    <tr>
-      <td>Batch Integrity</td>
-      <td class="tech-cell">SHA-256 Merkle manifest</td>
-      <td>Tamper-evident batch authentication</td>
-    </tr>
-    <tr>
-      <td>API Access</td>
-      <td class="tech-cell">OAuth 2.0 (Doorkeeper)</td>
-      <td>Commercial bank API authentication</td>
+      <td class="blueprint-cell">
+        <div class="bp-label">API Access</div>
+        <div class="bp-tech">OAuth 2.0 (Doorkeeper)</div>
+        <div class="bp-desc">Commercial bank API authentication</div>
+      </td>
+      <td class="blueprint-cell">
+        <div class="bp-label">Transport Security</div>
+        <div class="bp-tech">SFTP / TLS 1.3</div>
+        <div class="bp-desc">Encrypted delivery of Digital Money Bundles</div>
+      </td>
     </tr>
   </table>
 
@@ -232,7 +269,7 @@
     volume, existing bilateral trade agreements, and central bank readiness:
   </p>
 
-  <table>
+  <table class="data-table">
     <tr>
       <th>Corridor</th>
       <th>Currency Pair</th>
@@ -318,7 +355,7 @@
     <li><strong>Voting thresholds:</strong> Configurable per corridor; default 67% supermajority</li>
     <li><strong>Emergency freeze:</strong> Any central bank governor may freeze bundles in their jurisdiction unilaterally</li>
     <li><strong>Full audit trail:</strong> Every CVIB lifecycle event &mdash; minting, delivery, validation, transfer, redemption &mdash; is logged with cryptographic linkage</li>
-    <li><strong>Real-Time Corridor Surveillance:</strong> Central Bank Governors maintain a Command Centre view of all 1,431 bilateral corridors, allowing instant adjustments to liquidity pools and risk limits to protect national currency stability</li>
+    <li><strong>Real-Time Corridor Surveillance:</strong> Central Bank Governors maintain a Command Centre view of all 1,431 bilateral corridors, allowing instant adjustments to liquidity pools and risk limits</li>
   </ul>
 
   <div class="gauge-wrap">
@@ -349,27 +386,48 @@
     central bank&#8217;s legislative framework.
   </p>
 
-  <h2>Engagement Process</h2>
+  <div class="footer">bearerCORE&#8482; &middot; Executive Litepaper &middot; TowerPoint Group &middot; CONFIDENTIAL</div>
+</div>
 
-  <p>
-    Central banks and qualified fintech institutions interested in participating in the
-    pilot programme are invited to request a <strong>Sovereign Briefing</strong> with the
-    bearerCORE&#8482; Protocol Desk. Briefings are conducted under NDA and cover the full
-    technical architecture, integration requirements, and governance terms.
-  </p>
+<%# ── VISION PAGE &mdash; ENGAGEMENT & NEXT STEPS ─────────────────────────── %>
+<div class="vision-page">
+  <span class="vision-eyebrow">Engagement &middot; TowerPoint Group &middot; Confidential</span>
+  <div class="vision-rule"></div>
 
-  <div class="qr-block">
-    <div class="qr-left">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&amp;data=https://bearercore.com&amp;color=C9A84C&amp;bgcolor=1A2B3C" alt="bearercore.com">
-    </div>
-    <div class="qr-right">
-      <p><strong>bearercore.com</strong></p>
-      <p>Scan to visit the bearerCORE&#8482; Protocol Desk and submit a Sovereign Briefing request. All briefings are conducted under NDA and cover full technical architecture, integration requirements, and governance terms.</p>
-      <p class="qr-note">briefing@bearercore.com &middot; TowerPoint Group &middot; Confidential</p>
-    </div>
+  <div class="vision-statement">
+    Redefining Monetary Sovereignty Across the African Union
   </div>
 
-  <div class="footer">
+  <div class="vision-body">
+    bearerCORE&#8482; represents a fundamental shift in how sovereign monetary value is issued,
+    transferred, and held. By digitising the physical cash metaphor &mdash; where possession equals
+    ownership &mdash; we enable central banks to reach every citizen, in every corridor, without
+    requiring the infrastructure of commercial banking. The result is a continent-scale monetary
+    network that is cryptographically sovereign, operationally resilient, and financially inclusive
+    by design.
+  </div>
+
+  <div class="vision-body">
+    Central banks and qualified fintech institutions interested in participating in the pilot
+    programme are invited to request a <strong style="color:#C5A059;">Sovereign Briefing</strong>
+    with the bearerCORE&#8482; Protocol Desk. Briefings are conducted under NDA and cover the full
+    technical architecture, integration requirements, and governance terms.
+  </div>
+
+  <table class="vision-qr-table">
+    <tr>
+      <td class="vision-qr-left">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&amp;data=https://bearercore.com&amp;color=C5A059&amp;bgcolor=0A192F" alt="bearercore.com">
+      </td>
+      <td class="vision-qr-right">
+        <p><strong>bearercore.com</strong></p>
+        <p>Scan to visit the bearerCORE&#8482; Protocol Desk and submit a Sovereign Briefing request. All briefings are conducted under NDA and cover full technical architecture, integration requirements, and governance terms.</p>
+        <p class="vision-qr-note">briefing@bearercore.com &middot; TowerPoint Group &middot; Confidential</p>
+      </td>
+    </tr>
+  </table>
+
+  <div class="vision-footer">
     bearerCORE&#8482; &middot; Executive Litepaper v1.1 &middot; <%= Date.today.strftime("%B %Y") %> &middot;
     TowerPoint Group &middot; CONFIDENTIAL &mdash; NOT FOR PUBLIC DISTRIBUTION
   </div>
