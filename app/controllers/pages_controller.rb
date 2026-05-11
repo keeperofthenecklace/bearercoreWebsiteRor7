@@ -10,6 +10,12 @@ class PagesController < ApplicationController
   def protocol_desk
   end
 
+  def privacy
+  end
+
+  def terms
+  end
+
   def litepaper
     respond_to do |format|
       format.pdf do

@@ -1,0 +1,159 @@
+<%# ─── NAV ─────────────────────────────────────────────────────────────────── %>
+<nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
+     data-controller="nav">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-3">
+      <%= image_tag "bearercore_logo.png", alt: "bearerCORE", class: "h-9 w-9 rounded-full" %>
+      <span class="text-xl font-light tracking-wide" style="color: #0C1B38;">
+        bearer<span class="font-bold" style="color: #C9A84C;">CORE</span><sup class="text-xs font-normal ml-0.5 opacity-50">™</sup>
+      </span>
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="/public-vision.pdf" download class="text-sm font-medium hover:opacity-70 transition-colors" style="color: #0C1B38;">Public Vision</a>
+      <a href="/protocol-desk"     class="text-sm font-medium hover:opacity-70 transition-colors" style="color: #0C1B38;">Request Briefing</a>
+      <a href="/central-bank-access"
+         class="text-sm font-semibold px-5 py-2 rounded-full border-2 transition-all hover:bg-gray-50"
+         style="border-color: #0C1B38; color: #0C1B38;">
+        Central Bank Access
+      </a>
+    </div>
+  </div>
+</nav>
+
+
+<%# ─── PAGE HEADER ────────────────────────────────────────────────────────── %>
+<div style="padding-top: 73px;">
+  <div class="py-16 px-6 border-b border-gray-100 bg-white">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-xs font-semibold tracking-widest uppercase mb-3" style="color: #C9A84C;">
+        TowerPoint Group · bearerCORE™
+      </div>
+      <h1 class="text-3xl md:text-4xl font-bold mb-4" style="color: #0C1B38; letter-spacing: -0.01em;">
+        Terms of Engagement
+      </h1>
+      <p class="text-base text-gray-500 leading-relaxed max-w-xl">
+        Access to bearerCORE™ infrastructure is granted exclusively to authorised
+        Central Banks and designated institutional partners of TowerPoint Group Ltd.
+      </p>
+      <div class="flex items-center gap-3 mt-6 text-xs text-gray-400">
+        <span>Effective: January 2026</span>
+        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+        <span>TowerPoint Group Ltd.</span>
+        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+        <span>Ghana · Pan-African · International</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<%# ─── TERMS ──────────────────────────────────────────────────────────────── %>
+<div class="py-16 px-6 bg-gray-50">
+  <div class="max-w-3xl mx-auto">
+
+    <% sections = [
+      {
+        number: "01",
+        title:  "Authorised Use",
+        body:   "bearerCORE™ is sovereign CBDC infrastructure licensed exclusively to Central Banks and authorised financial institutions. Unauthorised access, reverse engineering, or reproduction of any component of the bearerCORE™ platform is strictly prohibited and may constitute a criminal offence under applicable law."
+      },
+      {
+        number: "02",
+        title:  "Institutional Access",
+        body:   "Central Bank Access credentials are issued solely at the discretion of TowerPoint Group Ltd. Credentials are non-transferable and must not be shared outside the designated institutional team. Any suspected compromise must be reported immediately to the TowerPoint protocol team."
+      },
+      {
+        number: "03",
+        title:  "Intellectual Property",
+        body:   "All intellectual property embodied in bearerCORE™ — including cryptographic protocols, CVIB issuance architecture, validation pipeline logic, and associated software — remains the exclusive property of TowerPoint Group Ltd. No licence, express or implied, is granted beyond the scope of a signed bilateral agreement."
+      },
+      {
+        number: "04",
+        title:  "Limitation of Liability",
+        body:   "TowerPoint Group Ltd. provides bearerCORE™ infrastructure on an \"as-is\" basis for authorised pilot and production deployments governed by executed bilateral agreements. TowerPoint Group's aggregate liability shall not exceed the amounts paid under the applicable agreement in the preceding twelve-month period."
+      },
+      {
+        number: "05",
+        title:  "Governing Law",
+        body:   "These terms are governed by the laws of the Republic of Ghana. Any disputes shall be subject to the exclusive jurisdiction of the courts of Ghana, without prejudice to TowerPoint Group's right to seek injunctive relief in any competent jurisdiction."
+      }
+    ] %>
+
+    <div class="space-y-6">
+      <% sections.each do |s| %>
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden"
+             style="box-shadow: 0 2px 16px rgba(12,27,56,0.05);">
+          <div class="flex gap-0">
+
+            <%# Number sidebar %>
+            <div class="flex-shrink-0 w-14 flex items-start justify-center pt-7"
+                 style="background: #0C1B38;">
+              <span class="text-xs font-bold" style="color: rgba(201,168,76,0.6); letter-spacing: 1px;"><%= s[:number] %></span>
+            </div>
+
+            <%# Content %>
+            <div class="px-7 py-6 flex-1">
+              <h2 class="text-base font-bold mb-3" style="color: #0C1B38;"><%= s[:title] %></h2>
+              <p class="text-sm text-gray-500 leading-relaxed"><%= s[:body] %></p>
+            </div>
+
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+
+    <%# Full legal instrument link %>
+    <div class="mt-12 pt-8 border-t border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div>
+        <p class="text-sm font-semibold mb-1" style="color: #0C1B38;">Full Legal Instrument</p>
+        <p class="text-xs text-gray-400 leading-relaxed max-w-sm">
+          The sections above summarise our engagement conditions.
+          The complete bilateral framework is available upon executed NDA.
+        </p>
+      </div>
+      <a href="/protocol-desk"
+         class="flex-shrink-0 inline-flex items-center gap-2 text-sm font-semibold px-5 py-3 rounded-xl border-2 transition-all hover:bg-gray-50"
+         style="border-color: #0C1B38; color: #0C1B38;">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+        </svg>
+        Request Engagement
+      </a>
+    </div>
+
+  </div>
+</div>
+
+
+<%# ─── FOOTER ─────────────────────────────────────────────────────────────── %>
+<footer class="border-t border-gray-100 bg-white py-10 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <%= image_tag "bearercore_logo.png", alt: "bearerCORE", class: "h-7 w-7 rounded-full" %>
+        <span class="font-light text-lg" style="color: #0C1B38;">
+          bearer<span class="font-bold" style="color: #C9A84C;">CORE</span><sup class="text-xs opacity-50 ml-0.5">™</sup>
+        </span>
+        <span class="hidden sm:block text-gray-200 mx-2">|</span>
+        <span class="hidden sm:block text-xs text-gray-400 tracking-wide uppercase">Sovereign CBDC Infrastructure</span>
+      </div>
+      <div class="flex items-center gap-8 text-sm text-gray-400">
+        <a href="/privacy" class="hover:text-gray-700 transition-colors">Privacy</a>
+        <a href="/terms"   class="hover:text-gray-700 transition-colors font-medium" style="color: #C9A84C;">Terms</a>
+        <a href="https://towerpointgroup.com" target="_blank" rel="noopener" class="hover:text-gray-700 transition-colors">TowerPoint Group</a>
+        <a href="https://www.linkedin.com/company/bearercore/" target="_blank" rel="noopener"
+           class="hover:text-gray-700 transition-colors flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+          </svg>
+          LinkedIn
+        </a>
+      </div>
+    </div>
+    <div class="mt-6 pt-6 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-gray-300">
+      <span>&copy; <%= Date.current.year %> TowerPoint Group Ltd. All rights reserved.</span>
+      <span>Ed25519 &nbsp;·&nbsp; AES-256-GCM</span>
+    </div>
+  </div>
+</footer>

@@ -5,6 +5,8 @@ Rails.application.routes.draw do
   get  "technical-overview", to: "pages#technical_overview"
   get  "litepaper",          to: "pages#litepaper"
   get  "protocol-desk",      to: "pages#protocol_desk"
+  get  "privacy",            to: "pages#privacy"
+  get  "terms",              to: "pages#terms"
 
   get    "central-bank-access", to: "central_bank_sessions#new",     as: :central_bank_login
   post   "central-bank-access", to: "central_bank_sessions#create",  as: :central_bank_session
