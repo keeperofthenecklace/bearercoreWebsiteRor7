@@ -12,12 +12,16 @@
 
     <div class="hidden md:flex items-center gap-8">
       <a href="/technical-overview" class="text-sm font-semibold transition-colors" style="color: #C9A84C;">Technical Overview</a>
-      <a href="/#access"            class="text-sm font-medium transition-colors hover:opacity-70" style="color: #0C1B38;">Central Bank Access</a>
-      <a href="/#contact"
-         class="text-sm font-semibold px-5 py-2 rounded-full transition-all hover:opacity-90"
-         style="background: #C9A84C; color: #0C1B38;">
-        Contact Our Governors' Desk
-      </a>
+      <a href="/docs" class="text-sm font-medium transition-colors hover:opacity-70" style="color: #0C1B38;">Platform Documentation</a>
+      <div class="flex items-center gap-2 pl-4 border-l border-gray-100">
+        <span class="flex items-center gap-1.5 text-xs font-medium" style="color: #6B7280;">
+          <span class="w-1.5 h-1.5 rounded-full" style="background: #16a34a;"></span>
+          Secure Session
+        </span>
+        <%= button_to "Logout", central_bank_logout_path, method: :delete,
+              class: "text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all hover:opacity-80",
+              style: "background: transparent; border-color: #0C1B38; color: #0C1B38; cursor: pointer;" %>
+      </div>
     </div>
 
     <button class="md:hidden p-2" style="color: #0C1B38;"
@@ -32,12 +36,10 @@
   <div class="hidden" data-nav-target="menu">
     <div class="flex flex-col gap-4 px-6 pb-5 pt-2 border-t border-gray-100 bg-white">
       <a href="/technical-overview" class="text-sm font-semibold" style="color: #C9A84C;">Technical Overview</a>
-      <a href="/#access"            class="text-sm font-medium" style="color: #0C1B38;">Central Bank Access</a>
-      <a href="/#contact"
-         class="text-sm font-semibold px-5 py-2 rounded-full text-center transition-all"
-         style="background: #C9A84C; color: #0C1B38;">
-        Contact Our Governors' Desk
-      </a>
+      <a href="/docs" class="text-sm font-medium" style="color: #0C1B38;">Platform Documentation</a>
+      <%= button_to "End Secure Session", central_bank_logout_path, method: :delete,
+            class: "text-sm font-semibold px-5 py-2 rounded-full text-center",
+            style: "background: transparent; border: 1.5px solid #0C1B38; color: #0C1B38; cursor: pointer;" %>
     </div>
   </div>
 </nav>

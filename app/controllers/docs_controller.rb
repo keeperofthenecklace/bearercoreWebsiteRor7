@@ -1,5 +1,6 @@
 class DocsController < ApplicationController
   layout 'application'
+  before_action :require_central_bank_access
 
   def index
   end

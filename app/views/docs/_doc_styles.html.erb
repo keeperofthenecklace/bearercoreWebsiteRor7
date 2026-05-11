@@ -2,6 +2,23 @@
     Shared stylesheet for all documentation pages.
     Render at the top of every documents_portal view. %>
 
+<%# ── Secure session badge (fixed top-right on all doc pages) ── %>
+<div style="position:fixed;top:0;right:0;z-index:9999;display:flex;align-items:center;gap:10px;
+            padding:7px 14px;background:#0C1B38;border-bottom-left-radius:8px;
+            border-bottom:1px solid rgba(201,168,76,0.18);border-left:1px solid rgba(201,168,76,0.18);">
+  <span style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;
+               color:rgba(255,255,255,0.45);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+               letter-spacing:0.5px;text-transform:uppercase;">
+    <span style="width:6px;height:6px;border-radius:50%;background:#16a34a;display:inline-block;"></span>
+    Secure Session
+  </span>
+  <%= button_to "Logout", central_bank_logout_path, method: :delete,
+        style: "background:transparent;border:1px solid rgba(201,168,76,0.4);color:#C9A84C;
+                font-size:10px;font-weight:700;padding:4px 12px;border-radius:5px;cursor:pointer;
+                font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0.5px;
+                text-transform:uppercase;" %>
+</div>
+
 <style>
 :root {
   --navy:       #0C1B38;

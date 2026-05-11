@@ -1,4 +1,6 @@
 class PagesController < ApplicationController
+  before_action :require_central_bank_access, only: [:technical_overview]
+
   def home
   end
 

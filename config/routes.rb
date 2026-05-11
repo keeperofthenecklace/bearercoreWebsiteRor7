@@ -6,6 +6,10 @@ Rails.application.routes.draw do
   get  "litepaper",          to: "pages#litepaper"
   get  "protocol-desk",      to: "pages#protocol_desk"
 
+  get    "central-bank-access", to: "central_bank_sessions#new",     as: :central_bank_login
+  post   "central-bank-access", to: "central_bank_sessions#create",  as: :central_bank_session
+  delete "central-bank-access", to: "central_bank_sessions#destroy", as: :central_bank_logout
+
   resources :briefing_requests, only: [:create]
 
   get "docs",                       to: "docs#index"

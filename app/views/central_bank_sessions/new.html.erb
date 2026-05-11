@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%= csrf_meta_tags %>
+  <title>Central Bank Access — bearerCORE™</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #0C1B38;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Top bar ── */
+    .gateway-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 32px;
+      border-bottom: 1px solid rgba(201,168,76,0.12);
+    }
+    .gateway-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .gateway-brand img {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+    }
+    .gateway-brand-name {
+      font-size: 16px;
+      font-weight: 300;
+      color: #fff;
+      letter-spacing: 0.01em;
+    }
+    .gateway-brand-name strong { font-weight: 700; color: #C9A84C; }
+    .gateway-brand-name sup { font-size: 9px; font-weight: 400; opacity: 0.45; vertical-align: super; margin-left: 1px; }
+    .gateway-topbar-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(201,168,76,0.7);
+      border: 1px solid rgba(201,168,76,0.25);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* ── Main layout ── */
+    .gateway-main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 20px;
+    }
+
+    /* ── Card ── */
+    .gateway-card {
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .gateway-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #C9A84C;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .gateway-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #C9A84C;
+    }
+
+    .gateway-heading {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .gateway-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+
+    /* ── Form panel ── */
+    .gateway-panel {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+    }
+
+    .gateway-panel-header {
+      background: #0C1B38;
+      border-bottom: 1px solid rgba(201,168,76,0.18);
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .gateway-lock-icon {
+      width: 32px;
+      height: 32px;
+      background: rgba(201,168,76,0.12);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .gateway-lock-icon svg { color: #C9A84C; }
+    .gateway-panel-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.01em;
+    }
+    .gateway-panel-title span {
+      display: block;
+      font-size: 10px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .gateway-form { padding: 28px; }
+
+    .gateway-alert {
+      background: rgba(192,57,43,0.08);
+      border: 1px solid rgba(192,57,43,0.25);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 12.5px;
+      color: #c0392b;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #0C1B38;
+      margin-bottom: 8px;
+    }
+
+    .field-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #0C1B38;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      font-family: inherit;
+      letter-spacing: 0.05em;
+    }
+    .field-input:focus {
+      border-color: #C9A84C;
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+    }
+    .field-hint {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #9CA3AF;
+    }
+
+    .gateway-submit {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      background: #C9A84C;
+      color: #0C1B38;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .gateway-submit:hover { opacity: 0.88; }
+
+    .gateway-divider {
+      margin: 22px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #D1D5DB;
+      font-size: 11px;
+    }
+    .gateway-divider::before,
+    .gateway-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #E5E7EB;
+    }
+
+    .gateway-request-link {
+      display: block;
+      text-align: center;
+      font-size: 12.5px;
+      color: #6B7280;
+      text-decoration: none;
+      padding: 10px;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 10px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .gateway-request-link:hover {
+      border-color: #C9A84C;
+      color: #0C1B38;
+    }
+    .gateway-request-link strong { color: #0C1B38; }
+
+    .gateway-verification {
+      margin-top: 18px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.0);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ── Footer ── */
+    .gateway-footer {
+      padding: 20px 32px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: rgba(255,255,255,0.22);
+    }
+    .gateway-footer a {
+      color: rgba(255,255,255,0.22);
+      text-decoration: none;
+    }
+    .gateway-footer a:hover { color: rgba(255,255,255,0.5); }
+    .gateway-footer-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .gateway-footer-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(201,168,76,0.25);
+    }
+    .gateway-footer-dot:first-child { background: rgba(201,168,76,0.6); }
+  </style>
+</head>
+<body>
+
+  <%# ── Top bar ── %>
+  <header class="gateway-topbar">
+    <a href="/" class="gateway-brand">
+      <%= image_tag "bearercore_logo.png", alt: "bearerCORE" %>
+      <span class="gateway-brand-name">
+        bearer<strong>CORE</strong><sup>™</sup>
+      </span>
+    </a>
+    <div class="gateway-topbar-badge">Sovereign Gateway</div>
+  </header>
+
+  <%# ── Main ── %>
+  <main class="gateway-main">
+    <div class="gateway-card">
+
+      <div class="gateway-eyebrow">Restricted Access</div>
+      <h1 class="gateway-heading">Central Bank Access</h1>
+      <p class="gateway-sub">
+        This area is reserved for validated central bank officials,
+        monetary authority staff, and accredited institutional partners.
+      </p>
+
+      <div class="gateway-panel">
+
+        <div class="gateway-panel-header">
+          <div class="gateway-lock-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+          </div>
+          <div class="gateway-panel-title">
+            Secure Authentication
+            <span>Ed25519 · AES-256-GCM · Zero-log session</span>
+          </div>
+        </div>
+
+        <div class="gateway-form">
+
+          <% if flash[:alert] %>
+            <div class="gateway-alert">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+              </svg>
+              <%= flash[:alert] %>
+            </div>
+          <% end %>
+
+          <%= form_with url: central_bank_session_path, method: :post, local: true do |f| %>
+
+            <div style="margin-bottom: 20px;">
+              <label class="field-label" for="access_code">Institutional Access Code</label>
+              <%= f.password_field :access_code,
+                    id: "access_code",
+                    placeholder: "Enter your secure access code",
+                    required: true,
+                    autocomplete: "current-password",
+                    class: "field-input" %>
+              <p class="field-hint">
+                Codes are issued by the bearerCORE protocol team. Access restricted to
+                <code style="background:#f3f4f6;padding:1px 5px;border-radius:3px;font-size:10px;">.gov</code>
+                and official institutional domains.
+              </p>
+            </div>
+
+            <button type="submit" class="gateway-submit">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+              Enter Secure Environment
+            </button>
+
+          <% end %>
+
+          <div class="gateway-divider">or</div>
+
+          <a href="/protocol-desk" class="gateway-request-link">
+            Don't have an access code? &nbsp;<strong>Request Credentials &rarr;</strong>
+          </a>
+
+        </div>
+      </div>
+
+      <p style="margin-top:18px;font-size:11px;color:rgba(255,255,255,0.22);text-align:center;line-height:1.6;">
+        Access is granted exclusively to validated institutional counterparties.<br>
+        No personal accounts. No public registration.
+      </p>
+
+    </div>
+  </main>
+
+  <%# ── Footer ── %>
+  <footer class="gateway-footer">
+    <span>&copy; <%= Date.current.year %> bearerCORE™ · TowerPoint Group</span>
+    <div class="gateway-footer-dots">
+      <div class="gateway-footer-dot"></div>
+      <div class="gateway-footer-dot"></div>
+      <div class="gateway-footer-dot"></div>
+    </div>
+    <a href="/privacy">Privacy</a>
+  </footer>
+
+</body>
+</html>
