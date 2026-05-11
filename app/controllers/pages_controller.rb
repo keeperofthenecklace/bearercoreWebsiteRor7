@@ -5,6 +5,9 @@ class PagesController < ApplicationController
   def technical_overview
   end
 
+  def protocol_desk
+  end
+
   def litepaper
     respond_to do |format|
       format.pdf do

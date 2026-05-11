@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   root "pages#home"
   get  "technical-overview", to: "pages#technical_overview"
   get  "litepaper",          to: "pages#litepaper"
+  get  "protocol-desk",      to: "pages#protocol_desk"
 
   resources :briefing_requests, only: [:create]
 
