@@ -1,9 +1,20 @@
+<%
+  require 'base64'
+  _inter_b64    = Base64.strict_encode64(File.binread(Rails.root.join('public','fonts','inter-var.woff2')))
+  _playfair_b64 = Base64.strict_encode64(File.binread(Rails.root.join('public','fonts','playfair-var.woff2')))
+%>
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+    @font-face { font-family:'Inter'; font-weight:300; src:url(data:font/woff2;base64,<%= _inter_b64 %>) format('woff2'); }
+    @font-face { font-family:'Inter'; font-weight:400; src:url(data:font/woff2;base64,<%= _inter_b64 %>) format('woff2'); }
+    @font-face { font-family:'Inter'; font-weight:500; src:url(data:font/woff2;base64,<%= _inter_b64 %>) format('woff2'); }
+    @font-face { font-family:'Inter'; font-weight:600; src:url(data:font/woff2;base64,<%= _inter_b64 %>) format('woff2'); }
+    @font-face { font-family:'Inter'; font-weight:700; src:url(data:font/woff2;base64,<%= _inter_b64 %>) format('woff2'); }
+    @font-face { font-family:'Playfair Display'; font-weight:700; src:url(data:font/woff2;base64,<%= _playfair_b64 %>) format('woff2'); }
+    @font-face { font-family:'Playfair Display'; font-weight:900; src:url(data:font/woff2;base64,<%= _playfair_b64 %>) format('woff2'); }
 
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; margin: 0; padding: 0; }
 
