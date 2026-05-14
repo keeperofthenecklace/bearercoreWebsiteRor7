@@ -126,8 +126,7 @@
           <%# form state %>
           <div id="pd-form-state" class="px-8 py-8">
             <%= form_with model: BriefingRequest.new, url: briefing_requests_path,
-                          html: { id: "pd-form" },
-                          data: { turbo: false } do |f| %>
+                          html: { id: "pd-form", data: { turbo: "false" } } do |f| %>
 
               <div class="space-y-5">
 
