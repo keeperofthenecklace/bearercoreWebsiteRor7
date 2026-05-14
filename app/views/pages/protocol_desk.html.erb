@@ -127,7 +127,7 @@
           <div id="pd-form-state" class="px-8 py-8">
             <%= form_with model: BriefingRequest.new, url: briefing_requests_path,
                           html: { id: "pd-form" },
-                          local: false do |f| %>
+                          data: { turbo: false } do |f| %>
 
               <div class="space-y-5">
 
@@ -285,17 +285,25 @@
   }
 
   function pdShowEmailError(msg) {
-    const el = document.getElementById('pd-email-error');
+    const el    = document.getElementById('pd-email-error');
+    const field = document.querySelector('#pd-form [type="email"]');
     el.textContent = msg;
     el.classList.remove('hidden');
-    const field = document.querySelector('#pd-form [type="email"]');
-    if (field) { field.style.borderColor = '#DC2626'; field.style.boxShadow = '0 0 0 3px rgba(220,38,38,0.12)'; }
+    if (field) {
+      field.style.borderColor = '#DC2626';
+      field.style.boxShadow   = '0 0 0 3px rgba(220,38,38,0.12)';
+    }
   }
 
   function pdClearEmailError() {
-    const el = document.getElementById('pd-email-error');
+    const el    = document.getElementById('pd-email-error');
+    const field = document.querySelector('#pd-form [type="email"]');
     el.textContent = '';
     el.classList.add('hidden');
+    if (field) {
+      field.style.borderColor = '#E5E7EB';
+      field.style.boxShadow   = 'none';
+    }
   }
 
   // Real-time check on blur
@@ -307,35 +315,55 @@
     }
   });
 
-  // Guard on submit
-  document.getElementById("pd-form").addEventListener("ajax:before", function(e) {
+  // Submit via fetch() — Turbo is disabled on this form, so this is the only submit path
+  document.getElementById('pd-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
     pdClearEmailError();
+    document.getElementById('pd-error').classList.add('hidden');
+
     const emailField = document.querySelector('#pd-form [type="email"]');
     if (emailField && pdIsPublicEmail(emailField.value)) {
       pdShowEmailError('Public email providers are not accepted. Please use your institutional address.');
-      e.preventDefault();
-      return false;
+      return;
     }
-    const btn = document.getElementById("pd-submit");
+
+    const btn = document.getElementById('pd-submit');
     btn.disabled    = true;
-    btn.textContent = "Submitting…";
-  });
+    btn.textContent = 'Submitting…';
 
-  document.getElementById("pd-form").addEventListener("ajax:success", function(e) {
-    const data = e.detail[0];
-    if (data.success) {
-      document.getElementById("pd-form-state").classList.add("hidden");
-      document.getElementById("pd-success").classList.remove("hidden");
-    }
-  });
-
-  document.getElementById("pd-form").addEventListener("ajax:error", function(e) {
-    const data = e.detail[0];
-    const msg  = (data && data.errors) ? data.errors.join(", ") : "An error occurred. Please try again.";
-    const el   = document.getElementById("pd-error");
-    el.textContent = msg;
-    el.classList.remove("hidden");
-    document.getElementById("pd-submit").disabled = false;
-    document.getElementById("pd-submit").textContent = "Submit Briefing Request";
+    const form = this;
+    fetch(form.action, {
+      method:  'POST',
+      headers: {
+        'Accept':       'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+      },
+      body: new FormData(form)
+    })
+    .then(function(res) {
+      return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+    })
+    .then(function(result) {
+      if (result.ok && result.data.success) {
+        document.getElementById('pd-form-state').classList.add('hidden');
+        document.getElementById('pd-success').classList.remove('hidden');
+      } else {
+        const errors = result.data && result.data.errors;
+        const msg    = errors ? errors.join(', ') : 'An error occurred. Please try again.';
+        const el     = document.getElementById('pd-error');
+        el.textContent = msg;
+        el.classList.remove('hidden');
+        btn.disabled    = false;
+        btn.textContent = 'Submit Briefing Request';
+      }
+    })
+    .catch(function() {
+      const el = document.getElementById('pd-error');
+      el.textContent = 'Connection error — please try again.';
+      el.classList.remove('hidden');
+      btn.disabled    = false;
+      btn.textContent = 'Submit Briefing Request';
+    });
   });
 </script>
