@@ -1,0 +1,259 @@
+<%# ─── NAV ─────────────────────────────────────────────────────────────────── %>
+<nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
+     data-controller="nav">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+
+    <a href="/" class="flex items-center gap-3">
+      <%= image_tag "bearercore_logo.png", alt: "bearerCORE", class: "h-9 w-9 rounded-full" %>
+      <span class="text-xl font-light tracking-wide" style="color: #0C1B38;">
+        bearer<span class="font-bold" style="color: #C9A84C;">CORE</span><sup class="text-xs font-normal ml-0.5 opacity-50">™</sup>
+      </span>
+    </a>
+
+    <div class="hidden md:flex items-center gap-8">
+      <a href="/technical-overview" class="text-sm font-medium transition-colors hover:opacity-70" style="color: #0C1B38;">Technical Overview</a>
+      <a href="/sandbox" class="text-sm font-semibold transition-colors" style="color: #C9A84C;">Sandbox</a>
+      <div class="flex items-center gap-2 pl-4 border-l border-gray-100">
+        <span class="flex items-center gap-1.5 text-xs font-medium" style="color: #6B7280;">
+          <span class="w-1.5 h-1.5 rounded-full" style="background: #16a34a;"></span>
+          Secure Session
+        </span>
+        <%= button_to "Logout", central_bank_logout_path, method: :delete,
+              class: "text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all hover:opacity-80",
+              style: "background: transparent; border-color: #0C1B38; color: #0C1B38; cursor: pointer;" %>
+      </div>
+    </div>
+
+    <button class="md:hidden p-2" style="color: #0C1B38;" data-action="nav#toggle">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="hidden" data-nav-target="menu">
+    <div class="flex flex-col gap-4 px-6 pb-5 pt-2 border-t border-gray-100 bg-white">
+      <a href="/technical-overview" class="text-sm font-medium" style="color: #0C1B38;">Technical Overview</a>
+      <a href="/sandbox" class="text-sm font-semibold" style="color: #C9A84C;">Sandbox</a>
+      <%= button_to "End Secure Session", central_bank_logout_path, method: :delete,
+            class: "text-sm font-semibold px-5 py-2 rounded-full text-center",
+            style: "background: transparent; border: 1.5px solid #0C1B38; color: #0C1B38; cursor: pointer;" %>
+    </div>
+  </div>
+</nav>
+
+
+<%# ─── PAGE HEADER ─────────────────────────────────────────────────────────── %>
+<section style="background: linear-gradient(135deg, #0C1B38 0%, #152545 100%); padding-top: 120px; padding-bottom: 64px;">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <div class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C9A84C;">Restricted — Central Bank Access Only</div>
+    <h1 class="font-serif-display text-4xl md:text-5xl font-bold mb-5 text-white" style="letter-spacing: -0.02em;">
+      Sovereign Protocol Sandbox
+    </h1>
+    <p class="text-xl max-w-2xl mx-auto leading-relaxed" style="color: rgba(255,255,255,0.65);">
+      Live simulation environment for cross-border trade settlement, supervisory approval workflows, and monetary authority governance. All operations run against the SmartCHEQ sandbox API.
+    </p>
+    <div class="mt-6 inline-flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full border" style="color: #C9A84C; border-color: rgba(201,168,76,0.35); background: rgba(201,168,76,0.08);">
+      <span class="w-1.5 h-1.5 rounded-full" style="background: #16a34a;"></span>
+      SmartCHEQ Sandbox API · Live
+    </div>
+  </div>
+</section>
+
+
+<%# ─── QUICK ACCESS CARDS ──────────────────────────────────────────────────── %>
+<section style="padding: 32px 24px; background: linear-gradient(135deg, #1a4d3e 0%, #2d6a4f 100%);">
+  <div style="max-width: 1000px; margin: 0 auto;">
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+
+      <!-- Trade Claim -->
+      <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 16px; padding: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 48px; height: 48px; background: rgba(5,150,105,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="1.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <div>
+            <h3 style="color: white; margin: 0; font-size: 16px; font-weight: 600;">Trade Claim</h3>
+            <p style="color: rgba(255,255,255,0.7); margin: 4px 0 0; font-size: 12px;">Cross-Border Liquidity</p>
+          </div>
+        </div>
+        <button onclick="showTradeClaimModal()" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; border: none; font-size: 13px; font-weight: 600; padding: 10px 18px; border-radius: 8px; cursor: pointer;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Launch
+        </button>
+      </div>
+
+      <!-- Supervisor Desk -->
+      <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 16px; padding: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 48px; height: 48px; background: rgba(255,200,100,0.25); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffd700" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 style="color: white; margin: 0; font-size: 16px; font-weight: 600;">Supervisor Desk</h3>
+            <p style="color: rgba(255,255,255,0.7); margin: 4px 0 0; font-size: 12px;">Approval Workflow</p>
+          </div>
+        </div>
+        <button onclick="showSupervisorDeskModal()" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #1a1a1a; border: none; font-size: 13px; font-weight: 600; padding: 10px 18px; border-radius: 8px; cursor: pointer;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Review
+        </button>
+      </div>
+
+      <!-- Governor Desk -->
+      <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 16px; padding: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 48px; height: 48px; background: rgba(100,160,255,0.25); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="1.5">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+          </div>
+          <div>
+            <h3 style="color: white; margin: 0; font-size: 16px; font-weight: 600;">Governor Desk</h3>
+            <p style="color: rgba(255,255,255,0.7); margin: 4px 0 0; font-size: 12px;">Governance Workflow</p>
+          </div>
+        </div>
+        <button onclick="showGovernorDeskModal()" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); color: white; border: none; font-size: 13px; font-weight: 600; padding: 10px 18px; border-radius: 8px; cursor: pointer;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Review
+        </button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<%# ─── FEATURE WALKTHROUGH TABLE ──────────────────────────────────────────── %>
+<style>
+@media screen and (max-width: 768px) {
+  .bc-feature-header { display: none !important; }
+  .bc-feature-row { display: flex !important; flex-direction: column !important; padding: 20px !important; gap: 12px !important; }
+}
+</style>
+
+<section style="padding: 64px 24px; background: #f8f9fa;">
+  <div style="max-width: 900px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #C9A84C; margin-bottom: 8px;">Simulation Tools</div>
+      <h2 style="font-size: 26px; font-weight: 600; color: #0C1B38; margin: 0 0 8px; letter-spacing: -0.3px;">Sovereign Protocol Workflows</h2>
+      <p style="font-size: 15px; color: #6B7280; margin: 0;">Click any row to launch the simulation modal</p>
+    </div>
+
+    <div style="background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e0e0e0;">
+
+      <!-- Header -->
+      <div class="bc-feature-header" style="display: grid; grid-template-columns: 140px 160px 1fr; padding: 14px 20px; background: #f5f5f5; border-bottom: 1px solid #e0e0e0; font-size: 11px; font-weight: 600; color: #757575; text-transform: uppercase; letter-spacing: 0.5px; gap: 12px;">
+        <span>Feature</span>
+        <span>Module</span>
+        <span>Purpose</span>
+      </div>
+
+      <!-- Trade Claim -->
+      <a href="#" onclick="showTradeClaimModal(); return false;" class="bc-feature-row"
+         style="display: grid; grid-template-columns: 140px 160px 1fr; padding: 18px 20px; border-bottom: 1px solid #e0e0e0; text-decoration: none; transition: background 0.2s; cursor: pointer; gap: 12px; align-items: start;"
+         onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='transparent'">
+        <span style="font-size: 14px; font-weight: 600; color: #0C1B38;">Trade Claim</span>
+        <span style="font-size: 13px; font-weight: 500; color: #059669;">Cross-Border Liquidity</span>
+        <span style="font-size: 13px; color: #424242; line-height: 1.55;"><strong style="color: #0C1B38;">Institutional Trade Settlement:</strong> Submit verified trade claims for cross-border liquidity. Tests AML/KYC compliance workflows, corridor limits, and real-time limit calculations across Pan-African trade corridors.</span>
+      </a>
+
+      <!-- Supervisor Desk -->
+      <a href="#" onclick="showSupervisorDeskModal(); return false;" class="bc-feature-row"
+         style="display: grid; grid-template-columns: 140px 160px 1fr; padding: 18px 20px; border-bottom: 1px solid #e0e0e0; text-decoration: none; transition: background 0.2s; cursor: pointer; gap: 12px; align-items: start;"
+         onmouseover="this.style.background='#fffbeb'" onmouseout="this.style.background='transparent'">
+        <span style="font-size: 14px; font-weight: 600; color: #0C1B38;">Supervisor Desk</span>
+        <span style="font-size: 13px; font-weight: 500; color: #d97706;">Approval Workflow</span>
+        <span style="font-size: 13px; color: #424242; line-height: 1.55;"><strong style="color: #0C1B38;">Regulator-Grade Authorization:</strong> Reviews system-generated compliance checks (AML, document validation, corridor limits, beneficiary verification). Supervisor serves as final human control — cannot override automated decisions.</span>
+      </a>
+
+      <!-- Governor Desk -->
+      <a href="#" onclick="showGovernorDeskModal(); return false;" class="bc-feature-row"
+         style="display: grid; grid-template-columns: 140px 160px 1fr; padding: 18px 20px; text-decoration: none; transition: background 0.2s; cursor: pointer; gap: 12px; align-items: start;"
+         onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">
+        <span style="font-size: 14px; font-weight: 600; color: #0C1B38;">Governor Desk</span>
+        <span style="font-size: 13px; font-weight: 500; color: #2563eb;">Governance Workflow</span>
+        <span style="font-size: 13px; color: #424242; line-height: 1.55;"><strong style="color: #0C1B38;">Monetary Authority Sign-Off:</strong> Deputy Governor and Governor provide dual signatures on issuance authorizations. Enforces separation of duties — no CBDC notes can be minted until <code>governance_status = approved</code>.</span>
+      </a>
+
+    </div>
+    <p style="text-align: center; font-size: 12px; color: #9e9e9e; margin: 14px 0 0; font-style: italic;">Operations run against the SmartCHEQ sandbox environment — no real funds are affected</p>
+  </div>
+</section>
+
+
+<%# ─── FOOTER ─────────────────────────────────────────────────────────────── %>
+<footer class="border-t border-gray-100 bg-white py-10 px-6">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="flex items-center gap-3">
+      <%= image_tag "bearercore_logo.png", alt: "bearerCORE", class: "h-7 w-7 rounded-full" %>
+      <span class="font-light text-lg" style="color: #0C1B38;">
+        bearer<span class="font-bold" style="color: #C9A84C;">CORE</span><sup class="text-xs opacity-50 ml-0.5">™</sup>
+      </span>
+      <span class="hidden sm:block text-gray-200 mx-2">|</span>
+      <span class="hidden sm:block text-xs text-gray-400 tracking-wide uppercase">Sovereign CBDC Infrastructure</span>
+    </div>
+    <p class="text-xs text-gray-300 tracking-wide uppercase">Classification: Restricted — Central Bank Use Only</p>
+  </div>
+</footer>
+
+
+<%# ─── FETCH INTERCEPTOR — redirect /api/* → SmartCHEQ ────────────────────── %>
+<script>
+(function() {
+  window.SC_API_BASE = 'https://smartcheq.com';
+
+  var _origFetch = window.fetch;
+  window.fetch = function(url, opts) {
+    if (typeof url === 'string' && url.startsWith('/api/')) {
+      url = window.SC_API_BASE + url;
+    }
+    return _origFetch.call(this, url, opts);
+  };
+
+  window.showTradeClaimModal = function() {
+    var modal = document.getElementById('tradeClaimModalOverlay');
+    if (modal) { modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  };
+  window.hideTradeClaimModal = function() {
+    var modal = document.getElementById('tradeClaimModalOverlay');
+    if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
+  };
+
+  window.showSupervisorDeskModal = function() {
+    var modal = document.getElementById('supervisorDeskModalOverlay');
+    if (modal) {
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      if (typeof loadSupervisorDesk === 'function') loadSupervisorDesk();
+    }
+  };
+  window.hideSupervisorDeskModal = function() {
+    var modal = document.getElementById('supervisorDeskModalOverlay');
+    if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
+  };
+
+  window.showGovernorDeskModal = function() {
+    var modal = document.getElementById('governorDeskModalOverlay');
+    if (modal) {
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      if (typeof loadGovernorAuthorizations === 'function') loadGovernorAuthorizations();
+    }
+  };
+  window.hideGovernorDeskModal = function() {
+    var modal = document.getElementById('governorDeskModalOverlay');
+    if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
+  };
+})();
+</script>
+
+<%# ─── MODALS ─────────────────────────────────────────────────────────────── %>
+<%= render 'shared/trade_claim_modal' %>
+<%= render 'shared/supervisor_approval_desk_modal' %>
+<%= render 'shared/governor_approval_desk_modal' %>

@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   root "pages#home"
   get  "technical-overview", to: "pages#technical_overview"
+  get  "sandbox",            to: "pages#sandbox"
   get  "litepaper",          to: "pages#litepaper"
   get  "protocol-desk",      to: "pages#protocol_desk"
   get  "privacy",            to: "pages#privacy"

@@ -1,0 +1,4366 @@
+<%#
+  Partial: app/views/shared/_trade_claim_modal.html.erb
+  Trade Claim Submission Modal
+  
+  UPDATED: 
+  - Added Country dropdown with flags
+  - Fixed dropdown height with scrolling
+  - Country filters Institution (Commercial Bank) dropdown
+%>
+
+<!-- Trade Claim Modal Overlay -->
+<div id="tradeClaimModalOverlay" class="trade-claim-modal-overlay" style="
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  overflow-y: auto;
+">
+  <!-- Modal Container -->
+  <div class="trade-claim-modal" style="
+    background: #ffffff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  ">
+    <!-- Modal Header -->
+    <div style="
+      background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+      padding: 24px;
+      border-radius: 16px 16px 0 0;
+      position: relative;
+    ">
+      <button onclick="hideTradeClaimModal()" style="
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: rgba(255,255,255,0.2);
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      " onmouseover="this.style.background='rgba(255,255,255,0.3)'" 
+         onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <h2 style="color: white; margin: 0 0 8px; font-size: 24px; font-weight: 600;">
+        Trade Claim Submission
+      </h2>
+      <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px;">
+        Submit verified trade to request cross-border liquidity.
+      </p>
+    </div>
+
+    <!-- Modal Body (Scrollable) -->
+    <div style="
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    ">
+      <form id="tradeClaimForm" onsubmit="submitTradeClaim(event)">
+        
+        <!-- Section 1: Claiming Institution -->
+        <div class="trade-claim-section" style="
+          background: #f8fafb;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 20px;
+        ">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="
+              width: 40px;
+              height: 40px;
+              background: #d1fae5;
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
+              Claiming Institution
+            </h3>
+          </div>
+
+          <!-- Country + Central Bank SWIFT — 2 column row -->
+          <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; margin-bottom: 16px;">
+
+            <!-- Country Selection -->
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                Country <span style="color: #ef4444;">*</span>
+              </label>
+
+              <!-- Custom Country Dropdown -->
+              <div id="countryDropdown" class="custom-dropdown" style="position: relative;">
+                <div id="countrySelected" onclick="toggleCountryDropdown()" style="
+                  width: 100%;
+                  padding: 12px 16px;
+                  border: 1px solid #d1d5db;
+                  border-radius: 8px;
+                  font-size: 14px;
+                  background: white;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  box-sizing: border-box;
+                ">
+                  <span id="countrySelectedText" style="display: flex; align-items: center; gap: 10px; color: #6b7280;">
+                    Select Country...
+                  </span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </div>
+
+                <!-- Dropdown List -->
+                <div id="countryDropdownList" style="
+                  display: none;
+                  position: absolute;
+                  top: 100%;
+                  left: 0;
+                  right: 0;
+                  background: white;
+                  border: 1px solid #d1d5db;
+                  border-radius: 8px;
+                  margin-top: 4px;
+                  max-height: 250px;
+                  overflow-y: auto;
+                  z-index: 1000;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                ">
+                  <!-- Search input -->
+                  <div style="padding: 8px; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; background: white;">
+                    <input type="text" id="countrySearchInput" placeholder="Search countries..."
+                      oninput="filterCountries(this.value)"
+                      style="
+                        width: 100%;
+                        padding: 8px 12px;
+                        border: 1px solid #d1d5db;
+                        border-radius: 6px;
+                        font-size: 13px;
+                        box-sizing: border-box;
+                      " />
+                  </div>
+                  <div id="countryOptions" style="padding: 4px 0;">
+                    <!-- Options will be populated by JavaScript -->
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" id="tc_country_id" name="country_id" required />
+            <!-- Holder IDs: auto-populated from country + institution selections -->
+            <input type="hidden" id="tc_central_bank_holder_id"   name="central_bank_holder_id" />
+            <input type="hidden" id="tc_commercial_bank_holder_id" name="commercial_bank_holder_id" />
+            </div>
+
+            <!-- Central Bank SWIFT — right column, required combobox -->
+            <div style="min-width: 150px;">
+              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; white-space: nowrap;">
+                CB SWIFT Code <span style="color: #ef4444;">*</span>
+              </label>
+              <select id="tc_central_bank_swift" name="central_bank_swift" required
+                style="
+                  width: 100%;
+                  padding: 12px 16px;
+                  border: 1px solid #d1d5db;
+                  border-radius: 8px;
+                  font-size: 14px;
+                  background: #f3f4f6;
+                  color: #6b7280;
+                  box-sizing: border-box;
+                  appearance: none;
+                  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%236b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>');
+                  background-repeat: no-repeat;
+                  background-position: right 10px center;
+                  padding-right: 30px;
+                  cursor: pointer;
+                ">
+                <option value="">Select...</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Central Bank Name — full width below -->
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+              Central Bank Name
+            </label>
+            <input type="text" id="tc_central_bank_name" readonly
+              placeholder="Select a country..."
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                font-size: 14px;
+                background: #f3f4f6;
+                color: #374151;
+                box-sizing: border-box;
+              " />
+          </div>
+        </div>
+
+        <!-- Section 2: Trade Details -->
+        <div class="trade-claim-section" style="
+          background: #f8fafb;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 20px;
+        ">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="
+              width: 40px;
+              height: 40px;
+              background: #dbeafe;
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+              </svg>
+            </div>
+            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
+              Trade Details
+            </h3>
+          </div>
+
+          <!-- Corridor Selection -->
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+              Trade Corridor <span style="color: #ef4444;">*</span>
+            </label>
+            <select id="tc_corridor_id" name="corridor_id" required style="
+              width: 100%;
+              padding: 12px 16px;
+              border: 1px solid #d1d5db;
+              border-radius: 8px;
+              font-size: 14px;
+              background: white;
+              cursor: pointer;
+              appearance: none;
+              background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%236b7280\" stroke-width=\"2\"><polyline points=\"6 9 12 15 18 9\"/></svg>');
+              background-repeat: no-repeat;
+              background-position: right 12px center;
+            " onchange="onCorridorChange(this.value)">
+              <option value="">Select Corridor...</option>
+            </select>
+          </div>
+
+          <!-- Institution Name (populated from destination country of corridor) -->
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+              Institution Name <span style="color: #ef4444;">*</span>
+            </label>
+            <div id="institutionDropdown" class="custom-dropdown" style="position: relative;">
+              <div id="institutionSelected" onclick="toggleInstitutionDropdown()" style="
+                width: 100%; padding: 12px 16px; border: 1px solid #d1d5db;
+                border-radius: 8px; font-size: 14px; background: #f3f4f6;
+                cursor: not-allowed; display: flex; align-items: center;
+                justify-content: space-between; box-sizing: border-box; color: #6b7280;">
+                <span id="institutionSelectedText">Select Corridor first...</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </div>
+              <div id="institutionDropdownList" style="
+                display: none; position: absolute; top: 100%; left: 0; right: 0;
+                background: white; border: 1px solid #d1d5db; border-radius: 8px;
+                margin-top: 4px; max-height: 200px; overflow-y: auto; z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <div id="institutionOptions" style="padding: 4px 0;"></div>
+              </div>
+            </div>
+            <input type="hidden" id="tc_institution_id" name="institution_id" required />
+            <p id="institutionHint" style="font-size: 12px; color: #6b7280; margin: 6px 0 0;">
+              Select a corridor to load destination-country institutions.
+            </p>
+          </div>
+
+          <!-- Institution Role & SWIFT Code -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px;">
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                Institution Role
+              </label>
+              <input type="text" id="tc_institution_role" readonly value="Commercial Bank" style="
+                width: 100%; padding: 12px 16px; border: 1px solid #d1d5db;
+                border-radius: 8px; font-size: 14px; background: #f3f4f6;
+                color: #6b7280; box-sizing: border-box;" />
+            </div>
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                SWIFT Code
+              </label>
+              <input type="text" id="tc_swift_code" readonly value="—" style="
+                width: 100%; padding: 12px 16px; border: 1px solid #d1d5db;
+                border-radius: 8px; font-size: 14px; background: #f3f4f6;
+                color: #6b7280; box-sizing: border-box;" />
+            </div>
+          </div>
+
+          <!-- Commercial Bank Holder ID — read-only, auto-populated when institution selected -->
+          <div style="margin-bottom: 16px;" id="commHolderIdRow">
+            <label style="display: block; font-size: 12px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">
+              Commercial Bank Holder ID
+              <span style="font-weight: 400; font-size: 11px; color: #9ca3af; margin-left: 6px;">
+                (auto-resolved · SmartCheq Holder ID)
+              </span>
+            </label>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="text" id="tc_commercial_bank_holder_id_display" readonly
+                placeholder="Select an institution first..."
+                style="
+                  flex: 1;
+                  padding: 8px 12px;
+                  border: 1px solid #e5e7eb;
+                  border-radius: 6px;
+                  font-size: 11px;
+                  font-family: 'Courier New', monospace;
+                  background: #f9fafb;
+                  color: #6b7280;
+                  box-sizing: border-box;
+                  letter-spacing: 0.2px;
+                " />
+              <span id="commHolderIdStatus" style="font-size: 18px; flex-shrink: 0;"></span>
+            </div>
+          </div>
+
+          <!-- Trade Direction & Currency -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                Trade Direction <span style="color: #ef4444;">*</span>
+              </label>
+              <select id="tc_trade_direction" name="trade_direction" required style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                font-size: 14px;
+                background: white;
+                cursor: pointer;
+                appearance: none;
+                background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%236b7280\" stroke-width=\"2\"><polyline points=\"6 9 12 15 18 9\"/></svg>');
+                background-repeat: no-repeat;
+                background-position: right 12px center;
+              ">
+                <option value="import">Import</option>
+                <option value="export">Export</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                Currency <span style="font-size: 11px; color: #6b7280; font-weight: 400;">(auto-filled)</span>
+              </label>
+              <select id="tc_currency_code" name="currency_code" required style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                font-size: 14px;
+                background: #f3f4f6;
+                cursor: not-allowed;
+                appearance: none;
+                background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%236b7280\" stroke-width=\"2\"><polyline points=\"6 9 12 15 18 9\"/></svg>');
+                background-repeat: no-repeat;
+                background-position: right 12px center;
+              ">
+                <option value="">Select Corridor first...</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Amount -->
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+              Amount <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="text" id="tc_amount" name="amount" required
+              placeholder="1,000,000"
+              oninput="formatAmountInput(this)"
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                font-size: 14px;
+                box-sizing: border-box;
+              " />
+          </div>
+
+          <!-- ── Denomination Mix Preview Panel (Dynamic Currency Profile) ── -->
+          <div id="denomMixPanel" style="display:none; margin-bottom:16px;">
+            <div style="border-radius:10px; border:1px solid #d1fae5; background:#f0fdf4; overflow:hidden;">
+              <!-- Header -->
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-bottom:1px solid #d1fae5;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:15px;">⚖️</span>
+                  <span style="font-size:12px; font-weight:700; color:#065f46; letter-spacing:-.1px;">
+                    Denomination Mix —
+                    <span id="denomMixCurrencyLabel">Standard Liquidity</span>
+                  </span>
+                </div>
+                <span id="denomMixTotalNotes" style="font-size:11px; font-weight:700; color:#059669; background:#d1fae5; padding:3px 10px; border-radius:20px;"></span>
+              </div>
+              <!-- Layer progress bars -->
+              <div style="padding:10px 14px 6px; display:flex; flex-direction:column; gap:5px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div style="width:9px; height:9px; border-radius:50%; background:#10b981; flex-shrink:0;"></div>
+                  <span style="font-size:11px; font-weight:700; color:#065f46; width:100px; flex-shrink:0;">Bulk (60%)</span>
+                  <div style="flex:1; background:#d1fae5; border-radius:4px; height:7px; overflow:hidden;">
+                    <div style="width:60%; height:100%; background:#10b981; border-radius:4px;"></div>
+                  </div>
+                  <span id="denomMixBulkAmt" style="font-size:11px; color:#065f46; font-weight:600; min-width:64px; text-align:right;"></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div style="width:9px; height:9px; border-radius:50%; background:#3b82f6; flex-shrink:0;"></div>
+                  <span style="font-size:11px; font-weight:700; color:#1e40af; width:100px; flex-shrink:0;">Trade (30%)</span>
+                  <div style="flex:1; background:#dbeafe; border-radius:4px; height:7px; overflow:hidden;">
+                    <div style="width:30%; height:100%; background:#3b82f6; border-radius:4px;"></div>
+                  </div>
+                  <span id="denomMixTradeAmt" style="font-size:11px; color:#1e40af; font-weight:600; min-width:64px; text-align:right;"></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div style="width:9px; height:9px; border-radius:50%; background:#f59e0b; flex-shrink:0;"></div>
+                  <span style="font-size:11px; font-weight:700; color:#92400e; width:100px; flex-shrink:0;">Micro (10%)</span>
+                  <div style="flex:1; background:#fef3c7; border-radius:4px; height:7px; overflow:hidden;">
+                    <div style="width:10%; height:100%; background:#f59e0b; border-radius:4px;"></div>
+                  </div>
+                  <span id="denomMixMicroAmt" style="font-size:11px; color:#92400e; font-weight:600; min-width:64px; text-align:right;"></span>
+                </div>
+                <!-- Coin row — shown only when currency has fractional coin support -->
+                <div id="denomMixCoinRow" style="display:none; align-items:center; gap:8px;">
+                  <div style="width:9px; height:9px; border-radius:50%; background:#8b5cf6; flex-shrink:0;"></div>
+                  <span id="denomMixCoinLabel" style="font-size:11px; font-weight:700; color:#5b21b6; width:100px; flex-shrink:0;">Coins</span>
+                  <div style="flex:1; background:#ede9fe; border-radius:4px; height:7px; overflow:hidden;">
+                    <div id="denomMixCoinBar" style="width:0%; height:100%; background:#8b5cf6; border-radius:4px; transition:width .3s;"></div>
+                  </div>
+                  <span id="denomMixCoinAmt" style="font-size:11px; color:#5b21b6; font-weight:600; min-width:64px; text-align:right;"></span>
+                </div>
+              </div>
+              <!-- Per-denomination breakdown table -->
+              <div id="denomMixTable" style="padding:0 14px 10px; margin-top:4px;"></div>
+            </div>
+          </div>
+
+          <!-- Invoice Reference & Description -->
+          <div style="margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+              <label style="font-size: 13px; font-weight: 500; color: #374151;">
+                Invoice Reference
+              </label>
+              <button type="button" onclick="generateInvoiceRef()" id="btnRefreshInvoiceRef"
+                title="Generate new reference"
+                style="
+                  background: none; border: none; cursor: pointer; padding: 2px 6px;
+                  font-size: 11px; color: #6b7280; display: flex; align-items: center; gap: 4px;
+                  border-radius: 4px; transition: background 0.15s;
+                "
+                onmouseover="this.style.background='#f3f4f6'"
+                onmouseout="this.style.background='none'">
+                ↻ Regenerate
+              </button>
+            </div>
+            <input type="text" id="tc_invoice_ref" name="invoice_ref" readonly
+              placeholder="Generating…"
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                font-size: 14px;
+                box-sizing: border-box;
+                font-family: 'Courier New', monospace;
+                letter-spacing: 0.3px;
+                background: #f3f4f6;
+                cursor: default;
+              " />
+          </div>
+
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+              Description
+            </label>
+            <input type="text" id="tc_description" name="description" 
+              placeholder="Agricultural machinery import" 
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                font-size: 14px;
+                box-sizing: border-box;
+              " />
+          </div>
+        </div>
+
+        <!-- Section 3: Compliance & Limits (Auto-Computed) -->
+        <div id="complianceLimitsSection" class="trade-claim-section" style="
+          background: #f8fafb;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 20px;
+          display: none;
+        ">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="
+              width: 40px;
+              height: 40px;
+              background: #fef3c7;
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </div>
+            <div>
+              <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
+                Compliance & Limits
+              </h3>
+              <span style="font-size: 12px; color: #6b7280;">(Auto-Computed)</span>
+            </div>
+          </div>
+
+          <!-- Corridor Limit Remaining -->
+          <div style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 10px;
+          ">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="
+                width: 28px;
+                height: 28px;
+                background: #fef3c7;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#d97706" stroke="none">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+              </div>
+              <span style="font-size: 14px; color: #374151;">Corridor Limit Remaining:</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 14px;
+                font-weight: 600;
+                color: #1d1d1f;
+              ">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#d97706" stroke="none">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span id="corridorLimitRemaining">— loading...</span>
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" style="cursor: pointer;">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Daily Limit Remaining -->
+          <div style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 10px;
+          ">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="
+                width: 28px;
+                height: 28px;
+                background: #fef3c7;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#d97706" stroke="none">
+                  <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z"/>
+                </svg>
+              </div>
+              <span style="font-size: 14px; color: #374151;">Daily Limit Remaining:</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 14px;
+                font-weight: 600;
+                color: #1d1d1f;
+              ">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#d97706" stroke="none">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                <span id="dailyLimitRemaining">— loading...</span>
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" style="cursor: pointer;">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Compliance Status -->
+          <div style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+          ">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="
+                width: 28px;
+                height: 28px;
+                background: #d1fae5;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span style="font-size: 14px; color: #374151;">Compliance Status:</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="complianceStatusBadge" style="
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 14px;
+                font-weight: 600;
+                color: #10b981;
+              ">
+                <span id="complianceStatusText">Checking...</span>
+                <svg id="complianceStatusIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="9 12 12 15 16 10"></polyline>
+                </svg>
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" style="cursor: pointer;">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Beneficiary -->
+        <div class="trade-claim-section" style="
+          background: #f8fafb;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 20px;
+        ">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="
+              width: 40px;
+              height: 40px;
+              background: #fef3c7;
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
+              Beneficiary Information
+            </h3>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                Beneficiary Name
+              </label>
+              <input type="text" id="tc_beneficiary_name" name="beneficiary_name" 
+                placeholder="Kenya Exports Ltd" 
+                style="
+                  width: 100%;
+                  padding: 12px 16px;
+                  border: 1px solid #d1d5db;
+                  border-radius: 8px;
+                  font-size: 14px;
+                  box-sizing: border-box;
+                " />
+            </div>
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                Beneficiary Country <span style="font-size: 11px; color: #6b7280; font-weight: 400;">(auto-filled)</span>
+              </label>
+              <input type="text" id="tc_beneficiary_country" name="beneficiary_country" 
+                placeholder="Select Corridor first..." 
+                maxlength="3"
+                readonly
+                style="
+                  width: 100%;
+                  padding: 12px 16px;
+                  border: 1px solid #d1d5db;
+                  border-radius: 8px;
+                  font-size: 14px;
+                  box-sizing: border-box;
+                  text-transform: uppercase;
+                  background: #f3f4f6;
+                  cursor: not-allowed;
+                " />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Document Upload -->
+        <div class="trade-claim-section" style="
+          background: #f8fafb;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 20px;
+        ">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="
+              width: 40px;
+              height: 40px;
+              background: #e0e7ff;
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            </div>
+            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
+              Supporting Documents
+            </h3>
+          </div>
+
+          <!-- File Upload Area -->
+          <div id="documentUploadArea" style="
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+          " onclick="document.getElementById('tc_documents').click()"
+             ondragover="handleDragOver(event)"
+             ondragleave="handleDragLeave(event)"
+             ondrop="handleDrop(event)">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin: 0 auto 12px;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p style="margin: 0 0 8px; font-size: 14px; color: #374151;">
+              <strong>Click to upload</strong> or drag and drop
+            </p>
+            <p style="margin: 0; font-size: 12px; color: #6b7280;">
+              PDF, PNG, or JPG (max 10MB each)
+            </p>
+          </div>
+          
+          <input type="file" id="tc_documents" name="documents[]" multiple 
+            accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
+            style="display: none;"
+            onchange="handleFileSelect(this.files)" />
+
+          <!-- Uploaded Files List -->
+          <div id="uploadedFilesList" style="margin-top: 16px; display: none;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 13px; font-weight: 500; color: #374151;">Uploaded Files</span>
+              <span id="fileCount" style="font-size: 12px; color: #6b7280;">0 files</span>
+            </div>
+            <div id="fileListContainer" style="
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              max-height: 150px;
+              overflow-y: auto;
+            ">
+              <!-- Files will be added here dynamically -->
+            </div>
+          </div>
+
+          <!-- Document Hash Display -->
+          <div id="documentHashContainer" style="margin-top: 16px; display: none;">
+            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+              Document Hash (SHA-256)
+            </label>
+            <div style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              background: #f3f4f6;
+              padding: 10px 12px;
+              border-radius: 6px;
+              font-family: monospace;
+              font-size: 11px;
+              color: #4b5563;
+            ">
+              <span id="documentHashValue" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                —
+              </span>
+              <button type="button" onclick="copyDocumentHash()" style="
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 4px;
+                color: #6b7280;
+              " title="Copy hash">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
+            <p style="font-size: 11px; color: #6b7280; margin: 6px 0 0;">
+              This hash verifies document integrity
+            </p>
+          </div>
+        </div>
+
+        <!-- Section 5: Declarations -->
+        <div class="trade-claim-section" style="
+          background: #f8fafb;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 20px;
+        ">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="
+              width: 40px;
+              height: 40px;
+              background: #fce7f3;
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+            </div>
+            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
+              Declarations
+            </h3>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+              <input type="checkbox" id="tc_declaration_trade" name="declaration_trade" required style="
+                width: 20px;
+                height: 20px;
+                margin-top: 2px;
+                cursor: pointer;
+                accent-color: #059669;
+              " />
+              <span style="font-size: 13px; color: #374151; line-height: 1.5;">
+                I confirm that this trade claim represents a genuine commercial transaction and all supporting documentation is authentic.
+              </span>
+            </label>
+            
+            <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+              <input type="checkbox" id="tc_declaration_aml" name="declaration_aml" required style="
+                width: 20px;
+                height: 20px;
+                margin-top: 2px;
+                cursor: pointer;
+                accent-color: #059669;
+              " />
+              <span style="font-size: 13px; color: #374151; line-height: 1.5;">
+                I confirm compliance with all applicable AML/KYC regulations and that the beneficiary has been properly verified.
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Error Message Display -->
+        <div id="tradeClaimError" style="
+          display: none;
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          border-radius: 8px;
+          padding: 12px 16px;
+          margin-bottom: 20px;
+          color: #dc2626;
+          font-size: 14px;
+        "></div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+          <button type="button" onclick="hideTradeClaimModal()" style="
+            padding: 12px 24px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+          " onmouseover="this.style.background='#e5e7eb'" 
+             onmouseout="this.style.background='#f3f4f6'">
+            Cancel
+          </button>
+          <button type="button" onclick="saveDraft()" style="
+            padding: 12px 24px;
+            background: white;
+            border: 1px solid #059669;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #059669;
+            cursor: pointer;
+            transition: all 0.2s;
+          " onmouseover="this.style.background='#f0fdf4'" 
+             onmouseout="this.style.background='white'">
+            Save Draft
+          </button>
+          <button type="submit" id="submitClaimBtn" style="
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+          " onmouseover="this.style.opacity='0.9'" 
+             onmouseout="this.style.opacity='1'">
+            Submit Claim
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     Trade Claim Confirmation Modal
+     Shown when user clicks "Submit Claim" — summarises the claim and asks
+     for final confirmation before the API call is made.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="tradeClaimConfirmModal" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 10001;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+">
+  <div style="
+    background: #ffffff;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+    overflow: hidden;
+  ">
+
+    <!-- Header -->
+    <div style="
+      background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #3b82f6 100%);
+      padding: 28px 24px 24px;
+      position: relative;
+    ">
+      <div style="
+        position: absolute; top: 16px; right: 16px;
+        width: 50px; height: 50px;
+        background: rgba(255,255,255,0.08); border-radius: 50%;
+      "></div>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="
+          width: 48px; height: 48px; flex-shrink: 0;
+          background: rgba(255,255,255,0.18);
+          border: 2px solid rgba(255,255,255,0.5);
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+        ">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+               stroke="white" stroke-width="2.5" stroke-linecap="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <div>
+          <div style="color: white; font-size: 18px; font-weight: 700; letter-spacing: -0.3px;">
+            Confirm Trade Claim
+          </div>
+          <div style="color: rgba(255,255,255,0.8); font-size: 13px; margin-top: 2px;">
+            Please review the details before submitting
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary body -->
+    <div style="padding: 24px; background: #f8fafc;">
+
+      <!-- Key figures row -->
+      <div style="
+        display: grid; grid-template-columns: 1fr 1fr;
+        gap: 12px; margin-bottom: 20px;
+      ">
+        <div style="
+          background: white; border-radius: 12px;
+          border: 1px solid #e2e8f0; padding: 14px 16px;
+        ">
+          <div style="font-size: 11px; font-weight: 600; color: #64748b;
+                      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+            Amount
+          </div>
+          <div id="confirmAmount" style="font-size: 17px; font-weight: 700; color: #0f172a;"></div>
+        </div>
+        <div style="
+          background: white; border-radius: 12px;
+          border: 1px solid #e2e8f0; padding: 14px 16px;
+        ">
+          <div style="font-size: 11px; font-weight: 600; color: #64748b;
+                      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+            Corridor
+          </div>
+          <div id="confirmCorridor" style="font-size: 14px; font-weight: 600; color: #0f172a; line-height: 1.3;"></div>
+        </div>
+      </div>
+
+      <!-- Detail rows -->
+      <div style="
+        background: white; border-radius: 12px;
+        border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 20px;
+      ">
+        <div style="display: flex; justify-content: space-between; align-items: center;
+                    padding: 11px 16px; border-bottom: 1px solid #f1f5f9;">
+          <span style="font-size: 13px; color: #64748b;">Institution</span>
+          <span id="confirmInstitution" style="font-size: 13px; font-weight: 600; color: #1e293b; text-align: right; max-width: 240px;"></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;
+                    padding: 11px 16px; border-bottom: 1px solid #f1f5f9;">
+          <span style="font-size: 13px; color: #64748b;">Beneficiary</span>
+          <span id="confirmBeneficiary" style="font-size: 13px; font-weight: 600; color: #1e293b;"></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;
+                    padding: 11px 16px; border-bottom: 1px solid #f1f5f9;">
+          <span style="font-size: 13px; color: #64748b;">Invoice Ref</span>
+          <span id="confirmInvoiceRef" style="font-size: 13px; font-weight: 600; color: #1e293b;"></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;
+                    padding: 11px 16px;">
+          <span style="font-size: 13px; color: #64748b;">Direction</span>
+          <span id="confirmDirection" style="font-size: 13px; font-weight: 600; color: #1e293b; text-transform: capitalize;"></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;
+                    padding: 11px 16px; border-top: 1px solid #f1f5f9;">
+          <span style="font-size: 13px; color: #64748b;">⚖️ Notes Minted</span>
+          <span id="confirmNotesMinted" style="font-size: 13px; font-weight: 600; color: #059669;"></span>
+        </div>
+      </div>
+
+      <!-- Warning notice -->
+      <div style="
+        background: #fffbeb; border: 1px solid #fde68a;
+        border-radius: 10px; padding: 12px 14px;
+        display: flex; gap: 10px; align-items: flex-start;
+        margin-bottom: 20px;
+      ">
+        <span style="font-size: 16px; flex-shrink: 0; margin-top: 1px;">⚠️</span>
+        <p style="margin: 0; font-size: 12px; color: #92400e; line-height: 1.5;">
+          Once submitted, this trade claim will enter the supervisory review queue and
+          <strong>cannot be edited</strong>. Please verify all details are correct.
+        </p>
+      </div>
+
+      <!-- Buttons -->
+      <div style="display: flex; gap: 10px;">
+        <button onclick="cancelTradeClaimConfirm()" style="
+          flex: 1; padding: 13px 0;
+          background: white; border: 1px solid #cbd5e1;
+          border-radius: 10px; font-size: 14px; font-weight: 500;
+          color: #475569; cursor: pointer; transition: all 0.15s;
+        "
+          onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#94a3b8'"
+          onmouseout="this.style.background='white'; this.style.borderColor='#cbd5e1'">
+          ← Go Back
+        </button>
+        <button onclick="confirmAndSubmitTradeClaim()" id="confirmSubmitBtn" style="
+          flex: 2; padding: 13px 0;
+          background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+          border: none; border-radius: 10px;
+          font-size: 14px; font-weight: 700; color: white;
+          cursor: pointer; transition: all 0.15s;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+        "
+          onmouseover="this.style.opacity='0.92'"
+          onmouseout="this.style.opacity='1'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="white" stroke-width="2.5" stroke-linecap="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Confirm &amp; Submit
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Trade Claim Success Modal -->
+<div id="tradeClaimSuccessModal" style="
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+">
+  <div style="
+    background: #ffffff;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+  ">
+    <!-- Success Header -->
+    <div style="
+      background: linear-gradient(135deg, #059669 0%, #10B981 50%, #34D399 100%);
+      padding: 40px 24px;
+      text-align: center;
+      position: relative;
+    ">
+      <!-- Decorative circles -->
+      <div style="
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 60px;
+        height: 60px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+      "></div>
+      <div style="
+        position: absolute;
+        bottom: -20px;
+        right: 40px;
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+      "></div>
+      
+      <!-- Checkmark icon -->
+      <div style="
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.2);
+        border: 3px solid rgba(255,255,255,0.8);
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      
+      <h2 style="color: white; margin: 0 0 12px; font-size: 26px; font-weight: 700;">
+        Trade Claim Submitted!
+      </h2>
+      <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px; line-height: 1.5;">
+        Your trade claim has been successfully submitted and is now pending<br>
+        review for pre-clearance by <span id="successRegulator">regulators</span>.
+      </p>
+    </div>
+    
+    <!-- Success Body -->
+    <div style="padding: 24px;">
+      <!-- Trade Claim ID Card -->
+      <div style="
+        background: #f8fafb;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+      ">
+        <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
+          <div style="
+            width: 36px;
+            height: 36px;
+            background: #d1fae5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          ">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <div>
+            <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Trade Claim ID:</div>
+            <div id="successClaimId" style="font-size: 18px; font-weight: 700; color: #059669; font-family: monospace;">
+              TC-20260215-000000
+            </div>
+          </div>
+        </div>
+        
+        <p style="font-size: 13px; color: #4b5563; margin: 0 0 16px; line-height: 1.5;">
+          An initial pre-clearance review shows your trade appears compliant.<br>
+          It will now be routed for final approval.
+        </p>
+        
+        <!-- Status points -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span style="font-size: 13px; color: #374151;">Pre-cleared trade is pending review by <span id="successRegulator2">regulators</span> for approval.</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span style="font-size: 13px; color: #374151;">Beneficiary funds will be held while the trade is being finalized.</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span style="font-size: 13px; color: #374151;">Track status any time via the <strong>Issuance → Desk</strong> section.</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Trade Summary -->
+      <div style="margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+          <span style="font-size: 16px;">📊</span>
+          <span style="font-size: 14px; font-weight: 600; color: #1d1d1f;">Trade Summary:</span>
+        </div>
+        
+        <div style="
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          overflow: hidden;
+        ">
+          <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+            <span style="font-size: 13px; color: #6b7280;">Trade Amount</span>
+            <span id="successAmount" style="font-size: 13px; font-weight: 600; color: #1d1d1f;">KES 1,000,000</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+            <span style="font-size: 13px; color: #6b7280;">Trade Direction</span>
+            <span id="successDirection" style="font-size: 13px; font-weight: 500; color: #1d1d1f;">Import into Nigeria</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+            <span style="font-size: 13px; color: #6b7280;">Beneficiary</span>
+            <span id="successBeneficiary" style="font-size: 13px; font-weight: 500; color: #1d1d1f;">Kenya Exports Ltd</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 12px 16px;">
+            <span style="font-size: 13px; color: #6b7280;">⚖️ Notes Minted</span>
+            <span id="successNotesMinted" style="font-size: 13px; font-weight: 700; color: #059669;">—</span>
+          </div>
+        </div>
+
+        <!-- Denomination breakdown accordion -->
+        <details id="successDenomBreakdown" style="margin-top:12px; border:1px solid #d1fae5; border-radius:8px; overflow:hidden; display:none;">
+          <summary style="padding:10px 14px; cursor:pointer; font-size:12px; font-weight:700; color:#065f46; background:#f0fdf4; list-style:none; display:flex; align-items:center; gap:6px;">
+            <span>📋</span> See denomination breakdown
+          </summary>
+          <div id="successDenomTable" style="padding:10px 14px; background:#fff; font-size:12px; color:#374151;"></div>
+        </details>
+      </div>
+
+      <!-- Action Buttons -->
+      <button onclick="closeSuccessAndGoToDesk()" style="
+        width: 100%;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        transition: opacity 0.2s;
+      " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="3" y1="9" x2="21" y2="9"></line>
+          <line x1="9" y1="21" x2="9" y2="9"></line>
+        </svg>
+        View Issuance Desk
+      </button>
+      
+      <div style="display: flex; gap: 12px;">
+        <button onclick="closeSuccessAndSubmitAnother()" style="
+          flex: 1;
+          padding: 12px 16px;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 500;
+          color: #374151;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: background 0.2s;
+        " onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="12" y1="18" x2="12" y2="12"></line>
+            <line x1="9" y1="15" x2="15" y2="15"></line>
+          </svg>
+          Send Another
+        </button>
+        
+        <button onclick="closeSuccessModal()" style="
+          flex: 1;
+          padding: 12px 16px;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 500;
+          color: #374151;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: background 0.2s;
+        " onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Close
+        </button>
+      </div>
+      
+      <!-- Footer Links -->
+      <div style="
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+      ">
+        <span style="font-size: 12px; color: #9ca3af;">
+          <a href="#" style="color: #6b7280; text-decoration: none;">Help & Docs</a>
+          <span style="margin: 0 8px;">·</span>
+          <a href="#" style="color: #6b7280; text-decoration: none;">Contact Support</a>
+          <span style="margin: 0 8px;">·</span>
+          <a href="#" style="color: #6b7280; text-decoration: none;">Dashboard</a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Draft Saved Success Modal -->
+<div id="draftSavedModal" style="
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+">
+  <div style="
+    background: #ffffff;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+  ">
+    <!-- Draft Header (Blue gradient) -->
+    <div style="
+      background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
+      padding: 40px 24px;
+      text-align: center;
+      position: relative;
+    ">
+      <!-- Decorative circles -->
+      <div style="
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 60px;
+        height: 60px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+      "></div>
+      <div style="
+        position: absolute;
+        bottom: -20px;
+        right: 40px;
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+      "></div>
+      
+      <!-- Save icon -->
+      <div style="
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.2);
+        border: 3px solid rgba(255,255,255,0.8);
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+      </div>
+      
+      <h2 style="color: white; margin: 0 0 12px; font-size: 26px; font-weight: 700;">
+        Draft Saved!
+      </h2>
+      <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px; line-height: 1.5;">
+        Your trade claim has been saved as a draft.<br>
+        You can continue editing it anytime.
+      </p>
+    </div>
+    
+    <!-- Draft Body -->
+    <div style="padding: 24px;">
+      <!-- Draft ID Card -->
+      <div style="
+        background: #f0f9ff;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+      ">
+        <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
+          <div style="
+            width: 36px;
+            height: 36px;
+            background: #dbeafe;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          ">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+          </div>
+          <div>
+            <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Draft Reference:</div>
+            <div id="draftClaimId" style="font-size: 18px; font-weight: 700; color: #2563eb; font-family: monospace;">
+              TC-00000000
+            </div>
+          </div>
+        </div>
+        
+        <p style="font-size: 13px; color: #4b5563; margin: 0 0 16px; line-height: 1.5;">
+          Your draft has been saved and can be accessed from your dashboard.<br>
+          Complete the submission when you're ready.
+        </p>
+        
+        <!-- Status points -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span style="font-size: 13px; color: #374151;">Draft saved securely to your account.</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span style="font-size: 13px; color: #374151;">Continue editing anytime from your dashboard.</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span style="font-size: 13px; color: #374151;">Submit when ready via <strong>Drafts</strong> section.</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Draft Summary -->
+      <div style="margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+          <span style="font-size: 16px;">📋</span>
+          <span style="font-size: 14px; font-weight: 600; color: #1d1d1f;">Draft Summary:</span>
+        </div>
+        
+        <div style="
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          overflow: hidden;
+        ">
+          <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+            <span style="font-size: 13px; color: #6b7280;">Amount</span>
+            <span id="draftAmount" style="font-size: 13px; font-weight: 600; color: #1d1d1f;">KES 0</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+            <span style="font-size: 13px; color: #6b7280;">Direction</span>
+            <span id="draftDirection" style="font-size: 13px; font-weight: 500; color: #1d1d1f;">-</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 12px 16px;">
+            <span style="font-size: 13px; color: #6b7280;">Status</span>
+            <span style="font-size: 13px; font-weight: 500; color: #f59e0b; background: #fef3c7; padding: 2px 8px; border-radius: 4px;">Draft</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <button onclick="closeDraftModalAndGoToDrafts()" style="
+        width: 100%;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        transition: opacity 0.2s;
+      " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+        </svg>
+        View My Drafts
+      </button>
+      
+      <div style="display: flex; gap: 12px;">
+        <button onclick="closeDraftModalAndContinueEditing()" style="
+          flex: 1;
+          padding: 12px 16px;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 500;
+          color: #374151;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: background 0.2s;
+        " onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Continue Editing
+        </button>
+        
+        <button onclick="closeDraftModal()" style="
+          flex: 1;
+          padding: 12px 16px;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 500;
+          color: #374151;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: background 0.2s;
+        " onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Close
+        </button>
+      </div>
+      
+      <!-- Footer Links -->
+      <div style="
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+      ">
+        <span style="font-size: 12px; color: #9ca3af;">
+          <a href="#" style="color: #6b7280; text-decoration: none;">Help & Docs</a>
+          <span style="margin: 0 8px;">·</span>
+          <a href="#" style="color: #6b7280; text-decoration: none;">Contact Support</a>
+          <span style="margin: 0 8px;">·</span>
+          <a href="#" style="color: #6b7280; text-decoration: none;">Dashboard</a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Custom dropdown option styles */
+.dropdown-option {
+  padding: 10px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+.dropdown-option:hover { background: #f0fdf4; }
+.dropdown-option.selected { background: #d1fae5; font-weight: 500; }
+.dropdown-flag { font-size: 20px; line-height: 1; }
+
+/* ── Trade Claim Modal Responsive ── */
+
+/* Tablet (≤ 700px): modal goes edge-to-edge */
+@media (max-width: 700px) {
+  #tradeClaimModalOverlay {
+    padding: 12px !important;
+    align-items: flex-start !important;
+  }
+  #tradeClaimModalOverlay .trade-claim-modal {
+    max-width: 100% !important;
+    margin: 8px auto !important;
+    border-radius: 14px !important;
+    max-height: 94vh !important;
+  }
+  /* Collapse 2-col grids to 1-col */
+  #tradeClaimModalOverlay .trade-claim-modal [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Mobile (≤ 480px): bottom sheet style */
+@media (max-width: 480px) {
+  #tradeClaimModalOverlay {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+  #tradeClaimModalOverlay .trade-claim-modal {
+    border-radius: 20px 20px 0 0 !important;
+    margin: 0 !important;
+    max-height: 96vh !important;
+    width: 100% !important;
+  }
+  /* Header padding */
+  #tradeClaimModalOverlay .trade-claim-modal > div:first-child {
+    padding: 18px 18px 16px !important;
+    border-radius: 20px 20px 0 0 !important;
+  }
+  #tradeClaimModalOverlay .trade-claim-modal > div:first-child h2 {
+    font-size: 18px !important;
+  }
+  /* Body padding */
+  #tradeClaimModalOverlay .trade-claim-modal > div:nth-child(2) {
+    padding: 16px !important;
+  }
+  /* Footer padding */
+  #tradeClaimModalOverlay .trade-claim-modal > div:last-child {
+    padding: 12px 16px !important;
+  }
+  /* Full width buttons in footer */
+  #tradeClaimModalOverlay .trade-claim-modal > div:last-child button {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+  /* All 2-col grids collapse */
+  #tradeClaimModalOverlay .trade-claim-modal [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// COUNTRY FLAG MAPPING (ISO 3166-1 alpha-2 to emoji flag)
+// ═══════════════════════════════════════════════════════════════════════════
+
+const countryFlags = {
+  // East Africa
+  'KE': '🇰🇪', 'KEN': '🇰🇪', 'Kenya': '🇰🇪',
+  'TZ': '🇹🇿', 'TZA': '🇹🇿', 'Tanzania': '🇹🇿',
+  'UG': '🇺🇬', 'UGA': '🇺🇬', 'Uganda': '🇺🇬',
+  'RW': '🇷🇼', 'RWA': '🇷🇼', 'Rwanda': '🇷🇼',
+  'BI': '🇧🇮', 'BDI': '🇧🇮', 'Burundi': '🇧🇮',
+  'ET': '🇪🇹', 'ETH': '🇪🇹', 'Ethiopia': '🇪🇹',
+  'SO': '🇸🇴', 'SOM': '🇸🇴', 'Somalia': '🇸🇴',
+  'DJ': '🇩🇯', 'DJI': '🇩🇯', 'Djibouti': '🇩🇯',
+  'ER': '🇪🇷', 'ERI': '🇪🇷', 'Eritrea': '🇪🇷',
+  'SS': '🇸🇸', 'SSD': '🇸🇸', 'South Sudan': '🇸🇸',
+  
+  // West Africa
+  'NG': '🇳🇬', 'NGA': '🇳🇬', 'Nigeria': '🇳🇬',
+  'GH': '🇬🇭', 'GHA': '🇬🇭', 'Ghana': '🇬🇭',
+  'SN': '🇸🇳', 'SEN': '🇸🇳', 'Senegal': '🇸🇳',
+  'CI': '🇨🇮', 'CIV': '🇨🇮', 'Ivory Coast': '🇨🇮', "Côte d'Ivoire": '🇨🇮', "Côte d'Ivoire (Ivory Coast)": '🇨🇮',
+  'ML': '🇲🇱', 'MLI': '🇲🇱', 'Mali': '🇲🇱',
+  'BF': '🇧🇫', 'BFA': '🇧🇫', 'Burkina Faso': '🇧🇫',
+  'NE': '🇳🇪', 'NER': '🇳🇪', 'Niger': '🇳🇪',
+  'GN': '🇬🇳', 'GIN': '🇬🇳', 'Guinea': '🇬🇳',
+  'BJ': '🇧🇯', 'BEN': '🇧🇯', 'Benin': '🇧🇯',
+  'TG': '🇹🇬', 'TGO': '🇹🇬', 'Togo': '🇹🇬',
+  'SL': '🇸🇱', 'SLE': '🇸🇱', 'Sierra Leone': '🇸🇱',
+  'LR': '🇱🇷', 'LBR': '🇱🇷', 'Liberia': '🇱🇷',
+  'GM': '🇬🇲', 'GMB': '🇬🇲', 'Gambia': '🇬🇲',
+  'GW': '🇬🇼', 'GNB': '🇬🇼', 'Guinea-Bissau': '🇬🇼',
+  'CV': '🇨🇻', 'CPV': '🇨🇻', 'Cape Verde': '🇨🇻',
+  'MR': '🇲🇷', 'MRT': '🇲🇷', 'Mauritania': '🇲🇷',
+  
+  // Central Africa
+  'CM': '🇨🇲', 'CMR': '🇨🇲', 'Cameroon': '🇨🇲',
+  'CD': '🇨🇩', 'COD': '🇨🇩', 'DR Congo': '🇨🇩', 'Congo, Democratic Republic of the': '🇨🇩',
+  'CG': '🇨🇬', 'COG': '🇨🇬', 'Congo': '🇨🇬', 'Republic of the Congo': '🇨🇬',
+  'GA': '🇬🇦', 'GAB': '🇬🇦', 'Gabon': '🇬🇦',
+  'GQ': '🇬🇶', 'GNQ': '🇬🇶', 'Equatorial Guinea': '🇬🇶',
+  'CF': '🇨🇫', 'CAF': '🇨🇫', 'Central African Republic': '🇨🇫',
+  'TD': '🇹🇩', 'TCD': '🇹🇩', 'Chad': '🇹🇩',
+  'ST': '🇸🇹', 'STP': '🇸🇹', 'São Tomé and Príncipe': '🇸🇹',
+  
+  // Southern Africa
+  'ZA': '🇿🇦', 'ZAF': '🇿🇦', 'South Africa': '🇿🇦',
+  'ZW': '🇿🇼', 'ZWE': '🇿🇼', 'Zimbabwe': '🇿🇼',
+  'ZM': '🇿🇲', 'ZMB': '🇿🇲', 'Zambia': '🇿🇲',
+  'BW': '🇧🇼', 'BWA': '🇧🇼', 'Botswana': '🇧🇼',
+  'NA': '🇳🇦', 'NAM': '🇳🇦', 'Namibia': '🇳🇦',
+  'MZ': '🇲🇿', 'MOZ': '🇲🇿', 'Mozambique': '🇲🇿',
+  'MW': '🇲🇼', 'MWI': '🇲🇼', 'Malawi': '🇲🇼',
+  'LS': '🇱🇸', 'LSO': '🇱🇸', 'Lesotho': '🇱🇸',
+  'SZ': '🇸🇿', 'SWZ': '🇸🇿', 'Eswatini': '🇸🇿', 'Eswatini (Swaziland)': '🇸🇿', 'Swaziland': '🇸🇿',
+  'AO': '🇦🇴', 'AGO': '🇦🇴', 'Angola': '🇦🇴',
+  
+  // North Africa
+  'EG': '🇪🇬', 'EGY': '🇪🇬', 'Egypt': '🇪🇬',
+  'MA': '🇲🇦', 'MAR': '🇲🇦', 'Morocco': '🇲🇦',
+  'DZ': '🇩🇿', 'DZA': '🇩🇿', 'Algeria': '🇩🇿',
+  'TN': '🇹🇳', 'TUN': '🇹🇳', 'Tunisia': '🇹🇳',
+  'LY': '🇱🇾', 'LBY': '🇱🇾', 'Libya': '🇱🇾',
+  'SD': '🇸🇩', 'SDN': '🇸🇩', 'Sudan': '🇸🇩',
+  
+  // Islands
+  'MU': '🇲🇺', 'MUS': '🇲🇺', 'Mauritius': '🇲🇺',
+  'MG': '🇲🇬', 'MDG': '🇲🇬', 'Madagascar': '🇲🇬',
+  'SC': '🇸🇨', 'SYC': '🇸🇨', 'Seychelles': '🇸🇨',
+  'KM': '🇰🇲', 'COM': '🇰🇲', 'Comoros': '🇰🇲',
+  'SH': '🇸🇭', 'SHN': '🇸🇭', 'Saint Helena': '🇸🇭',
+};
+
+function getCountryFlag(country) {
+  // Try to match by code, iso_code, or name
+  const code = country.code || country.iso_code || country.country_code || '';
+  const name = country.name || '';
+  
+  return countryFlags[code] || countryFlags[code.toUpperCase()] || 
+         countryFlags[name] || '🌍';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA STORAGE
+// ═══════════════════════════════════════════════════════════════════════════
+
+let countriesData = [];
+let commercialBanksData = [];
+let corridorsData = [];
+let selectedCountry = null;
+let selectedInstitution = null;
+let isCountryDropdownOpen = false;
+let isInstitutionDropdownOpen = false;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ACCESS TOKEN
+// ═══════════════════════════════════════════════════════════════════════════
+
+function getAccessToken() {
+  const tokenMeta = document.querySelector('meta[name="api-token"]');
+  if (tokenMeta) return tokenMeta.content;
+  
+  const stored = localStorage.getItem('access_token');
+  if (stored) return stored;
+  
+  // Fallback - replace with your token for development
+  return 'wOJLHO7nXlO7IOqUI8mX9nfYMQi_S8EmqKMwUOh-FO8';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODAL SHOW/HIDE
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Invoice Reference Auto-Generation
+// Format: INV-YYYY-DDD-SSS
+//   YYYY = current year
+//   DDD  = zero-padded cumulative day of year (Jan 1 = 001, Dec 31 = 365/366)
+//   SSS  = zero-padded sequence number for that day (001, 002, ...)
+//
+// Sequence is determined by querying the last trade claim created today
+// (via GET /api/v2/trade_claims?created_today=true&per_page=1&sort=desc)
+// and incrementing its sequence. Falls back to 001 on any error.
+// ─────────────────────────────────────────────────────────────────────────────
+function dayOfYear(date) {
+  const start = new Date(date.getFullYear(), 0, 0);
+  const diff  = date - start + (start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000;
+  return Math.floor(diff / 86400000);
+}
+
+function formatInvoiceRef(year, doy, seq) {
+  const d = String(doy).padStart(3, '0');
+  const s = String(seq).padStart(3, '0');
+  return `INV-${year}-${d}-${s}`;
+}
+
+// Session-level invoice sequence cache — persists across multiple modal opens
+// within the same page session so even if the API misses one, we never go back.
+const _invoiceSeqCache = {};
+
+async function generateInvoiceRef() {
+  const field = document.getElementById('tc_invoice_ref');
+  if (!field) return;
+
+  const now    = new Date();
+  const year   = now.getFullYear();
+  const doy    = dayOfYear(now);
+  const prefix = `INV-${year}-${String(doy).padStart(3, '0')}-`;
+
+  field.value = '';
+  field.placeholder = 'Generating…';
+
+  // Start from our in-memory cache for this session (avoids going backwards)
+  let maxSeq = _invoiceSeqCache[prefix] || 0;
+
+  try {
+    const scApiBase = window.SC_API_BASE || '';
+    const token     = window.SC_API_TOKEN || '';
+    const headers   = { 'Accept': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    // Strategy 1: fetch ALL trade claims created today, scan for highest sequence.
+    // Use created_today=true or a date filter — fetch up to 200 to be safe.
+    const todayISO = now.toISOString().slice(0, 10); // "2026-03-21"
+    const url = `${scApiBase}/api/v2/trade_claims?created_after=${todayISO}&per_page=200`;
+
+    const res = await fetch(url, { headers });
+    if (res.ok) {
+      const data  = await res.json();
+      const list  = Array.isArray(data)             ? data
+                  : Array.isArray(data.data)         ? data.data
+                  : Array.isArray(data.trade_claims) ? data.trade_claims
+                  : [];
+
+      list.forEach(claim => {
+        const ref = (claim.invoice_ref || claim.invoice_reference || '').trim();
+        if (ref.startsWith(prefix)) {
+          const seq = parseInt(ref.slice(prefix.length), 10);
+          if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+        }
+      });
+    }
+  } catch (e) {
+    console.warn('[generateInvoiceRef] API fetch failed, using session cache:', e.message);
+  }
+
+  // Next sequence = highest found + 1 (minimum 1)
+  const nextSeq = maxSeq + 1;
+
+  // Update session cache so subsequent opens this session increment correctly
+  _invoiceSeqCache[prefix] = nextSeq;
+
+  field.value = formatInvoiceRef(year, doy, nextSeq);
+  field.style.color = '#374151';
+  console.log('[generateInvoiceRef]', field.value, '(maxFound:', maxSeq, ')');
+}
+
+function showTradeClaimModal() {
+  const overlay = document.getElementById('tradeClaimModalOverlay');
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  loadCountries();
+  loadCorridors();
+  setupCorridorListener();
+  generateInvoiceRef();
+}
+
+function hideTradeClaimModal() {
+  const overlay = document.getElementById('tradeClaimModalOverlay');
+  overlay.style.display = 'none';
+  document.body.style.overflow = '';
+  
+  document.getElementById('tradeClaimForm').reset();
+  resetDropdowns();
+  resetDocumentUpload();
+  hideError();
+}
+
+document.getElementById('tradeClaimModalOverlay')?.addEventListener('click', function(e) {
+  if (e.target === this) {
+    hideTradeClaimModal();
+  }
+});
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#countryDropdown')) {
+    closeCountryDropdown();
+  }
+  if (!e.target.closest('#institutionDropdown')) {
+    closeInstitutionDropdown();
+  }
+});
+
+// Add event listener for corridor change (backup for onchange attribute)
+document.addEventListener('DOMContentLoaded', function() {
+  const corridorSelect = document.getElementById('tc_corridor_id');
+  if (corridorSelect) {
+    corridorSelect.addEventListener('change', function(e) {
+      console.log('Corridor change event fired via addEventListener');
+      onCorridorChange(this.value);
+    });
+  }
+});
+
+// Also add listener when modal opens (in case element wasn't ready)
+function setupCorridorListener() {
+  const corridorSelect = document.getElementById('tc_corridor_id');
+  if (corridorSelect && !corridorSelect.dataset.listenerAdded) {
+    corridorSelect.addEventListener('change', function(e) {
+      console.log('Corridor change event fired (setup)');
+      onCorridorChange(this.value);
+    });
+    corridorSelect.dataset.listenerAdded = 'true';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COUNTRY DROPDOWN
+// ═══════════════════════════════════════════════════════════════════════════
+
+function toggleCountryDropdown() {
+  if (isCountryDropdownOpen) {
+    closeCountryDropdown();
+  } else {
+    openCountryDropdown();
+  }
+}
+
+function openCountryDropdown() {
+  document.getElementById('countryDropdownList').style.display = 'block';
+  document.getElementById('countrySearchInput').focus();
+  isCountryDropdownOpen = true;
+}
+
+function closeCountryDropdown() {
+  document.getElementById('countryDropdownList').style.display = 'none';
+  isCountryDropdownOpen = false;
+}
+
+async function loadCountries() {
+  try {
+    const response = await fetch('/api/v2/countries', {
+      headers: {
+        'Authorization': `Bearer ${getAccessToken()}`,
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) throw new Error('Failed to load countries');
+    
+    countriesData = await response.json();
+    countriesData.sort((a, b) => (a.name || a.country_name || '').localeCompare(b.name || b.country_name || ''));
+    renderCountryOptions(countriesData);
+    
+  } catch (error) {
+    console.error('Error loading countries:', error);
+    document.getElementById('countryOptions').innerHTML = 
+      '<div class="dropdown-option" style="color: #dc2626;">Error loading countries</div>';
+  }
+}
+
+function renderCountryOptions(countries) {
+  const container = document.getElementById('countryOptions');
+  countries = [...countries].sort((a, b) => (a.name || a.country_name || '').localeCompare(b.name || b.country_name || ''));
+  
+  if (countries.length === 0) {
+    container.innerHTML = '<div class="dropdown-option" style="color: #6b7280;">No countries found</div>';
+    return;
+  }
+  
+  container.innerHTML = countries.map(country => {
+    const flag = getCountryFlag(country);
+    const name = country.name || country.code || `Country ${country.id}`;
+    const isSelected = selectedCountry && selectedCountry.id === country.id;
+    
+    return `
+      <div class="dropdown-option ${isSelected ? 'selected' : ''}" 
+           onclick="selectCountry(${JSON.stringify(country).replace(/"/g, '&quot;')})">
+        <span class="dropdown-flag">${flag}</span>
+        <span>${name}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterCountries(searchTerm) {
+  const filtered = countriesData.filter(country => {
+    const name = (country.name || country.code || '').toLowerCase();
+    return name.includes(searchTerm.toLowerCase());
+  });
+  renderCountryOptions(filtered);
+}
+
+function selectCountry(country) {
+  selectedCountry = country;
+  
+  const flag = getCountryFlag(country);
+  const name = country.name || country.code || `Country ${country.id}`;
+  
+  document.getElementById('countrySelectedText').innerHTML = `
+    <span class="dropdown-flag" style="font-size: 20px;">${flag}</span>
+    <span>${name}</span>
+  `;
+  document.getElementById('tc_country_id').value = country.id;
+  
+  closeCountryDropdown();
+
+  // Load central bank name for this country
+  loadCentralBankForCountry(country);
+
+  // Filter corridors based on selected country
+  filterCorridorsForCountry(country);
+
+  // Reset institution dropdown — now driven by corridor, not country
+  resetInstitutionDropdown();
+
+  // Reset currency field when country changes
+  resetCurrencyField();
+}
+
+// Reset currency field to default state
+function resetCurrencyField() {
+  const currencySelect = document.getElementById('tc_currency_code');
+  currencySelect.innerHTML = '<option value="">Select Corridor first...</option>';
+  currencySelect.style.background = '#f3f4f6';
+  currencySelect.style.borderColor = '#d1d5db';
+  currencySelect.style.cursor = 'not-allowed';
+  
+  // Also reset beneficiary country
+  const beneficiaryCountryInput = document.getElementById('tc_beneficiary_country');
+  if (beneficiaryCountryInput) {
+    beneficiaryCountryInput.value = '';
+    beneficiaryCountryInput.style.background = '#f3f4f6';
+    beneficiaryCountryInput.style.borderColor = '#d1d5db';
+  }
+  
+  // Reset compliance limits section
+  resetComplianceLimits();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INSTITUTION DROPDOWN
+// ═══════════════════════════════════════════════════════════════════════════
+
+function toggleInstitutionDropdown() {
+  if (!selectedCountry) return;
+  
+  if (isInstitutionDropdownOpen) {
+    closeInstitutionDropdown();
+  } else {
+    openInstitutionDropdown();
+  }
+}
+
+function openInstitutionDropdown() {
+  if (!selectedCountry) return;
+  document.getElementById('institutionDropdownList').style.display = 'block';
+  isInstitutionDropdownOpen = true;
+}
+
+function closeInstitutionDropdown() {
+  document.getElementById('institutionDropdownList').style.display = 'none';
+  isInstitutionDropdownOpen = false;
+}
+
+async function loadInstitutionsForCountry(countryId, bankId) {
+  const selected = document.getElementById('institutionSelected');
+  const hint = document.getElementById('institutionHint');
+  
+  // Show loading state
+  selected.innerHTML = `
+    <span>Loading institutions...</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  `;
+  selected.style.cursor = 'wait';
+  
+  try {
+    const response = await fetch(`/api/v2/commercial_banks?country_id=${countryId}`, {
+      headers: {
+        'Authorization': `Bearer ${getAccessToken()}`,
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) throw new Error('Failed to load institutions');
+    
+    commercialBanksData = await response.json();
+    renderInstitutionOptions(commercialBanksData);
+    
+    // Enable dropdown
+    selected.style.background = 'white';
+    selected.style.cursor = 'pointer';
+    
+    if (commercialBanksData.length === 0) {
+      selected.innerHTML = `
+        <span id="institutionSelectedText">No institutions found</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      `;
+      hint.textContent = 'No commercial banks available for this country.';
+    } else {
+      selected.innerHTML = `
+        <span id="institutionSelectedText">Select Institution...</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      `;
+      hint.textContent = `${commercialBanksData.length} institution(s) available.`;
+    }
+    
+  } catch (error) {
+    console.error('Error loading institutions:', error);
+    selected.innerHTML = `
+      <span id="institutionSelectedText" style="color: #dc2626;">Error loading institutions</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    `;
+    hint.textContent = 'Failed to load. Please try again.';
+  }
+}
+
+function renderInstitutionOptions(banks) {
+  const container = document.getElementById('institutionOptions');
+  
+  if (banks.length === 0) {
+    container.innerHTML = '<div class="dropdown-option" style="color: #6b7280;">No institutions found</div>';
+    return;
+  }
+  
+  container.innerHTML = banks.map(bank => {
+    const name = bank.name || `Bank ${bank.id}`;
+    const isSelected = selectedInstitution && selectedInstitution.id === bank.id;
+    
+    return `
+      <div class="dropdown-option ${isSelected ? 'selected' : ''}" 
+           onclick="selectInstitution(${JSON.stringify(bank).replace(/"/g, '&quot;')})">
+        <span>🏦</span>
+        <span>${name}</span>
+        ${bank.swift_code ? `<span style="color: #6b7280; font-size: 12px; margin-left: auto;">${bank.swift_code}</span>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function selectInstitution(bank) {
+  selectedInstitution = bank;
+  
+  const name = bank.name || `Bank ${bank.id}`;
+  
+  document.getElementById('institutionSelectedText').textContent = name;
+  document.getElementById('tc_institution_id').value = bank.id;
+  document.getElementById('tc_swift_code').value = bank.swift_code || '—';
+
+  // Auto-populate commercial bank holder ID from HolderKey registry
+  // Looks up by institution name match — sets the hidden tc_commercial_bank_holder_id field
+  resolveCommercialBankHolderId(name, bank.swift_code);
+
+  closeInstitutionDropdown();
+}
+
+function resetDropdowns() {
+  selectedCountry = null;
+  selectedInstitution = null;
+  
+  document.getElementById('countrySelectedText').innerHTML = 'Select Country...';
+  document.getElementById('tc_country_id').value = '';
+  
+  
+  // Institution reset now handled by resetInstitutionDropdown()
+  resetInstitutionDropdown();
+
+  // Clear central bank name and SWIFT
+  const cbField = document.getElementById('tc_central_bank_name');
+  if (cbField) { cbField.value = ''; cbField.style.color = '#9ca3af'; }
+  // Clear holder ID hidden + display fields
+  const cbHolderField = document.getElementById('tc_central_bank_holder_id');
+  if (cbHolderField) cbHolderField.value = '';
+  const cbDisplayField = document.getElementById('tc_central_bank_holder_id_display');
+  if (cbDisplayField) { cbDisplayField.value = ''; cbDisplayField.style.color = '#6b7280'; }
+  const cbStatusIcon = document.getElementById('cbHolderIdStatus');
+  if (cbStatusIcon) cbStatusIcon.textContent = '';
+  const cbRow = document.getElementById('cbHolderIdRow');
+  if (cbRow) cbRow.style.display = 'none';
+
+  const commHolderField = document.getElementById('tc_commercial_bank_holder_id');
+  if (commHolderField) commHolderField.value = '';
+  const commDisplayField = document.getElementById('tc_commercial_bank_holder_id_display');
+  if (commDisplayField) { commDisplayField.value = ''; commDisplayField.placeholder = 'Select an institution first...'; commDisplayField.style.color = '#6b7280'; }
+  const commStatusIcon = document.getElementById('commHolderIdStatus');
+  if (commStatusIcon) commStatusIcon.textContent = '';
+
+  const cbSwiftSel = document.getElementById('tc_central_bank_swift');
+  if (cbSwiftSel) {
+    cbSwiftSel.innerHTML = '<option value="">Select...</option>';
+    cbSwiftSel.style.color = '#6b7280';
+  }
+  
+  // Reset corridor dropdown
+  const corridorSelect = document.getElementById('tc_corridor_id');
+  corridorSelect.innerHTML = '<option value="">Select Country first...</option>';
+  corridorSelect.disabled = true;
+  corridorSelect.style.background = '#f3f4f6';
+  corridorSelect.style.cursor = 'not-allowed';
+  
+  // Reset currency dropdown
+  const currencySelect = document.getElementById('tc_currency_code');
+  currencySelect.innerHTML = '<option value="">Select Corridor first...</option>';
+  currencySelect.style.background = '#f3f4f6';
+  currencySelect.style.borderColor = '#d1d5db';
+  currencySelect.style.cursor = 'not-allowed';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CENTRAL BANK & DESTINATION INSTITUTION HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Fetch and display the central bank name for the selected claiming country.
+// Uses /api/v2/countries/by_iso3166?code=XXX which returns a `central_bank`
+// field directly from the Bank model — the same source the Qt app uses.
+// ─────────────────────────────────────────────────────────────────────────────
+// Holder ID Resolution
+//
+// HolderKeys are registered in the SmartCheq system via POST /holder_ids.
+// Each has a holder_id (HMAC-SHA256 hex), recipient_public_key, and name.
+//
+// GET /api/v2/holder_keys returns the full list.
+// We match by name substring to find the correct entity.
+//
+// central_bank_holder_id  → Qt6 "Initial Holder" (issuing central bank)
+// commercial_bank_holder_id → Qt6 "Holder ID"    (receiving commercial bank)
+// ─────────────────────────────────────────────────────────────────────────────
+
+let _holderKeyCache = null;  // cached once per page session
+
+async function fetchAllHolderKeys() {
+  if (_holderKeyCache) return _holderKeyCache;
+  try {
+    const token   = getAccessToken();  // uses same token as all other modal API calls
+    const headers = { 'Accept': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res  = await fetch('/api/v2/holder_keys', { headers });
+    if (!res.ok) {
+      console.warn('[fetchAllHolderKeys] HTTP', res.status, '— holder ID resolution unavailable');
+      return [];
+    }
+    const data = await res.json();
+    _holderKeyCache = Array.isArray(data)              ? data
+                   : Array.isArray(data.data)           ? data.data
+                   : Array.isArray(data.holder_keys)    ? data.holder_keys
+                   : [];
+    console.log('[fetchAllHolderKeys] loaded', _holderKeyCache.length, 'holder keys');
+    return _holderKeyCache;
+  } catch (e) {
+    console.warn('[fetchAllHolderKeys] error:', e.message);
+    return [];
+  }
+}
+
+// Normalize a bank name for fuzzy matching:
+// removes legal suffixes (PLC, LTD, LIMITED, INC, SA, NV, etc.) and
+// collapses whitespace so "ABSA BANK KENYA PLC" matches "ABSA BANK KENYA LIMITED"
+function normalizeBankName(name) {
+  return (name || '')
+    .toUpperCase()
+    .replace(/\b(PLC|LTD|LIMITED|INC|S\.A\.|SA|NV|AG|CORP|CORPORATION|CO\.|COMPANY|BANK|PVT|PRIVATE)\b/g, '')
+    .replace(/[^A-Z0-9]+/g, ' ')
+    .trim();
+}
+
+// Find a holder key whose name matches a bank name.
+// Uses a 4-tier priority: exact → normalized exact → contains → token overlap
+// Returns { holder_id, name } or null.
+async function findHolderKey(nameHint, swiftHint) {
+  const keys = await fetchAllHolderKeys();
+  if (!keys.length) return null;
+
+  const nameUpper = (nameHint  || '').toUpperCase().trim();
+  const nameNorm  = normalizeBankName(nameHint);
+
+  if (!nameUpper) return null;
+
+  // Priority 1: exact name match (case-insensitive)
+  let match = keys.find(k => (k.name || '').toUpperCase().trim() === nameUpper);
+  if (match) return match;
+
+  // Priority 2: normalized name exact match (strips PLC/LTD/etc.)
+  match = keys.find(k => normalizeBankName(k.name) === nameNorm && nameNorm.length > 3);
+  if (match) return match;
+
+  // Priority 3: one name contains the other
+  match = keys.find(k => {
+    const kUpper = (k.name || '').toUpperCase().trim();
+    return (kUpper.includes(nameUpper) || nameUpper.includes(kUpper)) && kUpper.length > 5;
+  });
+  if (match) return match;
+
+  // Priority 4: normalized token overlap (≥ 2 significant words in common)
+  const nameTokens = nameNorm.split(' ').filter(t => t.length > 2);
+  match = keys.find(k => {
+    const kTokens = normalizeBankName(k.name).split(' ').filter(t => t.length > 2);
+    const common  = nameTokens.filter(t => kTokens.includes(t));
+    return common.length >= 2;
+  });
+  if (match) return match;
+
+  console.log('[findHolderKey] no match for:', nameHint, '→ normalized:', nameNorm);
+  return null;
+}
+
+// Called when user selects a CB SWIFT from the combobox.
+// Updates the Central Bank Holder ID hidden + display fields from the
+// holder_id stored on the selected <option> element (set by loadCentralBankForCountry).
+// Falls back to findHolderKey() name search if no holder_id on the option.
+async function applyCentralBankSwiftSelection(swiftCode, holderId) {
+  const hiddenField  = document.getElementById('tc_central_bank_holder_id');
+  const displayField = document.getElementById('tc_central_bank_holder_id_display');
+  const statusIcon   = document.getElementById('cbHolderIdStatus');
+  const row          = document.getElementById('cbHolderIdRow');
+
+  if (!swiftCode) {
+    // "Select SWIFT..." chosen — clear holder ID
+    if (hiddenField)  hiddenField.value  = '';
+    if (displayField) { displayField.value = ''; displayField.style.color = '#9ca3af'; }
+    if (statusIcon)   statusIcon.textContent = '';
+    return;
+  }
+
+  if (row) row.style.display = 'block';
+
+  if (holderId) {
+    // Use holder_id already attached to the option (from DB)
+    if (hiddenField)  hiddenField.value  = holderId;
+    if (displayField) { displayField.value = holderId; displayField.style.color = '#374151'; }
+    if (statusIcon)   statusIcon.textContent = '✅';
+    console.log('[applyCentralBankSwiftSelection]', swiftCode, '→', holderId.substring(0,16) + '...');
+  } else {
+    // No holder_id from DB — try name-based lookup as fallback
+    if (displayField) { displayField.value = ''; displayField.placeholder = 'Resolving…'; }
+    if (statusIcon)   statusIcon.textContent = '⏳';
+    const cbNameField = document.getElementById('tc_central_bank_name');
+    const cbName      = cbNameField ? cbNameField.value : '';
+    if (cbName) {
+      const key = await findHolderKey(cbName, null);
+      if (hiddenField)  hiddenField.value = key ? key.holder_id : '';
+      if (displayField) {
+        displayField.value       = key ? key.holder_id : '';
+        displayField.placeholder = key ? '' : 'Not registered — Qt6 will require manual selection';
+        displayField.style.color = key ? '#374151' : '#ef4444';
+      }
+      if (statusIcon) statusIcon.textContent = key ? '✅' : '⚠️';
+    } else {
+      if (hiddenField)  hiddenField.value = '';
+      if (displayField) { displayField.placeholder = 'Central bank not registered'; displayField.style.color = '#ef4444'; }
+      if (statusIcon)   statusIcon.textContent = '⚠️';
+    }
+  }
+}
+
+// Resolve and store the central bank holder ID for the selected country.
+// Also updates the read-only display field + status icon in the UI.
+async function resolveCentralBankHolderId(centralBankName) {
+  const hiddenField  = document.getElementById('tc_central_bank_holder_id');
+  const displayField = document.getElementById('tc_central_bank_holder_id_display');
+  const statusIcon   = document.getElementById('cbHolderIdStatus');
+  const row          = document.getElementById('cbHolderIdRow');
+
+  const clear = () => {
+    if (hiddenField)  hiddenField.value  = '';
+    if (displayField) { displayField.value = ''; displayField.placeholder = 'Select a country...'; }
+    if (statusIcon)   statusIcon.textContent = '';
+    if (row)          row.style.display = 'none';
+  };
+
+  if (!centralBankName || centralBankName === '—') { clear(); return; }
+
+  // If a SWIFT was already selected and its holder_id was applied via
+  // applyCentralBankSwiftSelection(), don't overwrite with a name-based lookup.
+  if (hiddenField && hiddenField.value) return;
+
+  if (row) row.style.display = 'block';
+  if (displayField) { displayField.value = ''; displayField.placeholder = 'Resolving…'; }
+  if (statusIcon) statusIcon.textContent = '⏳';
+
+  const key = await findHolderKey(centralBankName, null);
+
+  if (hiddenField)  hiddenField.value  = key ? key.holder_id : '';
+  if (displayField) {
+    displayField.value       = key ? key.holder_id : '';
+    displayField.placeholder = key ? '' : 'Not registered — Qt6 will require manual selection';
+    displayField.style.color = key ? '#374151' : '#ef4444';
+  }
+  if (statusIcon) statusIcon.textContent = key ? '✅' : '⚠️';
+
+  console.log('[resolveCentralBankHolderId]', centralBankName, '→',
+              key ? key.holder_id.substring(0, 16) + '...' : 'NOT REGISTERED');
+}
+
+// Resolve and store the commercial bank holder ID for the selected institution.
+// Also updates the read-only display field + status icon in the UI.
+async function resolveCommercialBankHolderId(institutionName, swiftCode) {
+  const hiddenField  = document.getElementById('tc_commercial_bank_holder_id');
+  const displayField = document.getElementById('tc_commercial_bank_holder_id_display');
+  const statusIcon   = document.getElementById('commHolderIdStatus');
+
+  const clear = () => {
+    if (hiddenField)  hiddenField.value  = '';
+    if (displayField) { displayField.value = ''; displayField.placeholder = 'Select an institution first...'; displayField.style.color = '#6b7280'; }
+    if (statusIcon)   statusIcon.textContent = '';
+  };
+
+  if (!institutionName) { clear(); return; }
+  if (displayField) { displayField.value = ''; displayField.placeholder = 'Resolving…'; }
+  if (statusIcon) statusIcon.textContent = '⏳';
+
+  const key = await findHolderKey(institutionName, swiftCode);
+
+  if (hiddenField)  hiddenField.value  = key ? key.holder_id : '';
+  if (displayField) {
+    displayField.value       = key ? key.holder_id : '';
+    displayField.placeholder = key ? '' : 'Not registered — Qt6 will require manual selection';
+    displayField.style.color = key ? '#374151' : '#ef4444';
+  }
+  if (statusIcon) statusIcon.textContent = key ? '✅' : '⚠️';
+
+  console.log('[resolveCommercialBankHolderId]', institutionName, '→',
+              key ? key.holder_id.substring(0, 16) + '...' : 'NOT REGISTERED');
+}
+
+async function loadCentralBankForCountry(country) {
+  const field = document.getElementById('tc_central_bank_name');
+  if (!field) return;
+
+  // Resolve ISO3 code — try every field the country object may carry
+  const iso3 = [
+    country.alpha3, country.iso3, country.iso_alpha3,
+    country.central_bank_code, country.cb_code
+  ].map(v => (v || '').toString().trim().toUpperCase())
+   .find(v => v.length === 3);
+
+  // Fall back: try 2-letter code (iso2 → expand via corridor iso2to3 map isn't available here,
+  // but the by_iso3166 endpoint also accepts 2-letter codes)
+  const code = iso3
+    || (country.code || country.iso2 || country.alpha2 || '').toString().trim().toUpperCase();
+
+  if (!code) { field.value = '—'; return; }
+
+  field.value = 'Loading...';
+  field.style.color = '#9ca3af';
+
+  // Last-resort fallback map — only used if both DB (BankBranch) and Bank.swift_code are empty.
+  // No holder_id available at this level — user will see ⚠️ and Qt6 requires manual selection.
+  const centralBankSwiftMap = {
+    'DZA': 'BAALDZAL', 'AGO': 'BNANAOAA', 'BEN': 'BCEBBJ',  'BWA': 'BSBOBWGA',
+    'BFA': 'BCEBBF',   'BDI': 'BRBUBI',   'CPV': 'BCVCVCV',  'CMR': 'BEACCMCX',
+    'CAF': 'BCUCCF',   'TCD': 'BCECTD',   'COM': 'BCCCKM',   'COD': 'BCCECD',
+    'COG': 'BCECCG',   'CIV': 'BCEACI',   'DJI': 'CBDDDJ',   'EGY': 'NBEGEGCX',
+    'GNQ': 'BCECGQ',   'ERI': 'HBERER',   'SWZ': 'CBSWSZ',   'ETH': 'CBETETAA',
+    'GAB': 'BCECGA',   'GMB': 'CBGMGM',   'GHA': 'BKGHGH',   'GIN': 'BCRGGNC',
+    'GNB': 'BCREGW',   'KEN': 'CBKEKEN',  'LSO': 'CBLSLSMA', 'LBR': 'CBLRLR',
+    'LBY': 'CBLYLYLT', 'MDG': 'BMOIMGMG', 'MWI': 'RMBKMWMW', 'MLI': 'BCEAML',
+    'MRT': 'BCMRMRN',  'MUS': 'BMMUMUMU', 'MAR': 'BKAMMAMR', 'MOZ': 'BCIMMZMA',
+    'NAM': 'BNNANAAA', 'NER': 'BCEANE',   'NGA': 'CBNINGLA', 'RWA': 'NBRRWRWA',
+    'STP': 'BCSTP',    'SEN': 'BCEAEN',   'SYC': 'CBSCSCMA', 'SLE': 'BSLESLL',
+    'SOM': 'CBBSSOM',  'ZAF': 'SARB',     'SSD': 'BSSSS',    'SDN': 'CBSUSDKH',
+    'TZA': 'BKTZTZTZ', 'TGO': 'BCEATG',   'TUN': 'CBTUTNTU', 'UGA': 'BKUGUGKA',
+    'ZMB': 'BKZAZALU', 'ZWE': 'RBZWZWHA',
+    // 2-letter fallbacks
+    'DZ': 'BAALDZAL', 'AO': 'BNANAOAA', 'BJ': 'BCEBBJ',  'BW': 'BSBOBWGA',
+    'BF': 'BCEBBF',   'BI': 'BRBUBI',   'CV': 'BCVCVCV',  'CM': 'BEACCMCX',
+    'CF': 'BCUCCF',   'TD': 'BCECTD',   'KM': 'BCCCKM',   'CD': 'BCCECD',
+    'CG': 'BCECCG',   'CI': 'BCEACI',   'DJ': 'CBDDDJ',   'EG': 'NBEGEGCX',
+    'GQ': 'BCECGQ',   'ER': 'HBERER',   'SZ': 'CBSWSZ',   'ET': 'CBETETAA',
+    'GA': 'BCECGA',   'GM': 'CBGMGM',   'GH': 'BKGHGH',   'GN': 'BCRGGNC',
+    'GW': 'BCREGW',   'KE': 'CBKEKEN',  'LS': 'CBLSLSMA', 'LR': 'CBLRLR',
+    'LY': 'CBLYLYLT', 'MG': 'BMOIMGMG', 'MW': 'RMBKMWMW', 'ML': 'BCEAML',
+    'MR': 'BCMRMRN',  'MU': 'BMMUMUMU', 'MA': 'BKAMMAMR', 'MZ': 'BCIMMZMA',
+    'NA': 'BNNANAAA', 'NE': 'BCEANE',   'NG': 'CBNINGLA', 'RW': 'NBRRWRWA',
+    'ST': 'BCSTP',    'SN': 'BCEAEN',   'SC': 'CBSCSCMA', 'SL': 'BSLESLL',
+    'SO': 'CBBSSOM',  'ZA': 'SARB',     'SS': 'BSSSS',    'SD': 'CBSUSDKH',
+    'TZ': 'BKTZTZTZ', 'TG': 'BCEATG',   'TN': 'CBTUTNTU', 'UG': 'BKUGUGKA',
+    'ZM': 'BKZAZALU', 'ZW': 'RBZWZWHA',
+  };
+
+  try {
+    // /api/v2/countries/by_iso3166 returns { central_bank: "Bank of Ghana", ... }
+    const res = await fetch(`/api/v2/countries/by_iso3166?code=${code}`, {
+      headers: {
+        'Authorization': `Bearer ${getAccessToken()}`,
+        'Accept': 'application/json'
+      }
+    });
+    if (!res.ok) throw new Error(`by_iso3166 ${res.status}`);
+    const data = await res.json();
+
+    // Unwrap envelope if needed
+    const payload = data.data || data;
+    const cbName = payload.central_bank || payload.bank_name || payload.cb_name || null;
+
+    // Build branch list from Rails by_iso3166 response.
+    // Rails now returns: bank_branches: [{bank:, swift_code:, holder_id:}]
+    // Each branch carries the central bank's holder_id (same for all branches —
+    // one HolderKey entity, multiple SWIFT/BIC codes for different operations).
+    //
+    // Resolution order (DB first, hardcoded last):
+    //   1. payload.bank_branches  — DB-sourced from BankBranch table (most accurate)
+    //   2. payload.central_bank_swifts — flat array from by_iso3166 (no holder_id)
+    //   3. payload.bic_swift_code / central_bank_swift — single value
+    //   4. centralBankSwiftMap — hardcoded fallback (no holder_id)
+    let branches = []; // [{ bank, swift_code, holder_id }]
+
+    if (Array.isArray(payload.bank_branches) && payload.bank_branches.length) {
+      // DB sourced — may already have holder_id attached
+      branches = payload.bank_branches.filter(br => br.swift_code);
+      // If Rails returned central_bank_holder_id at top level, attach to all branches
+      if (payload.central_bank_holder_id) {
+        branches = branches.map(br => ({
+          ...br,
+          holder_id: br.holder_id || payload.central_bank_holder_id
+        }));
+      }
+    } else if (Array.isArray(payload.central_bank_swifts) && payload.central_bank_swifts.length) {
+      branches = payload.central_bank_swifts.filter(Boolean).map(sw => ({
+        bank: cbName || '', swift_code: sw, holder_id: payload.central_bank_holder_id || null
+      }));
+    } else {
+      const single = payload.bic_swift_code || payload.central_bank_swift || null;
+      if (single) branches = [{ bank: cbName || '', swift_code: single,
+                                 holder_id: payload.central_bank_holder_id || null }];
+    }
+
+    // Hardcoded fallback — no holder_id (will show ⚠️)
+    if (!branches.length) {
+      const fallback = centralBankSwiftMap[code] || centralBankSwiftMap[code.substring(0,2)];
+      if (fallback) branches = [{ bank: cbName || '', swift_code: fallback, holder_id: null }];
+    }
+
+    field.value = cbName || '—';
+    field.style.color = cbName ? '#374151' : '#9ca3af';
+
+    // Populate CB SWIFT combobox from DB data
+    // Each option stores its holder_id as a data attribute so selecting
+    // a SWIFT immediately updates the Central Bank Holder ID display.
+    const swiftSel = document.getElementById('tc_central_bank_swift');
+    if (swiftSel) {
+      swiftSel.innerHTML = '<option value="">Select SWIFT...</option>';
+      branches.forEach(br => {
+        const opt = document.createElement('option');
+        opt.value = br.swift_code;
+        opt.textContent = br.swift_code;
+        opt.dataset.holderId = br.holder_id || '';  // stash holder_id on the option
+        swiftSel.appendChild(opt);
+      });
+
+      // Auto-select if only one SWIFT available
+      if (branches.length === 1) {
+        swiftSel.value = branches[0].swift_code;
+        swiftSel.style.color = '#374151';
+        // Immediately apply holder ID for the auto-selected option
+        applyCentralBankSwiftSelection(branches[0].swift_code, branches[0].holder_id);
+      } else if (branches.length > 1) {
+        swiftSel.style.color = '#374151';
+      }
+
+      // Wire change event so selecting a SWIFT updates the holder ID display
+      swiftSel.onchange = function() {
+        const selectedOpt = swiftSel.options[swiftSel.selectedIndex];
+        const holderId    = selectedOpt ? selectedOpt.dataset.holderId : '';
+        applyCentralBankSwiftSelection(swiftSel.value, holderId);
+      };
+    }
+
+    console.log('[loadCentralBankForCountry]', code, '→', cbName,
+                'branches (DB):', branches.length, branches.map(b => b.swift_code),
+                'source:', payload.bank_branches ? 'DB' : 'fallback');
+  } catch (e) {
+    console.warn('[loadCentralBankForCountry] error:', e);
+    field.value = '—';
+    field.style.color = '#9ca3af';
+    const swiftSel = document.getElementById('tc_central_bank_swift');
+    if (swiftSel) {
+      const fallback = centralBankSwiftMap[code] || centralBankSwiftMap[(code||'').substring(0,2)];
+      swiftSel.innerHTML = '<option value="">Select SWIFT...</option>';
+      if (fallback) {
+        swiftSel.innerHTML += `<option value="${fallback}" selected>${fallback}</option>`;
+        swiftSel.style.color = '#374151';
+      }
+    }
+  }
+}
+
+// Load commercial banks for the DESTINATION country of a corridor.
+// Called from onCorridorChange with the ISO3 target country code.
+// Populates the Institution Name dropdown in the Trade Details section.
+async function loadInstitutionsForDestination(destCountryId, destIso3) {
+  const selected = document.getElementById('institutionSelected');
+  const hint     = document.getElementById('institutionHint');
+  if (!selected) return;
+
+  // Reset prior selection
+  selectedInstitution = null;
+  document.getElementById('tc_institution_id').value = '';
+  document.getElementById('tc_swift_code').value = '—';
+  document.getElementById('tc_institution_role').value = 'Commercial Bank';
+
+  if (!destIso3 && !destCountryId) {
+    selected.innerHTML = `<span id="institutionSelectedText">Select Corridor first...</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+    selected.style.background = '#f3f4f6';
+    selected.style.cursor = 'not-allowed';
+    hint.textContent = 'Select a corridor to load destination-country institutions.';
+    return;
+  }
+
+  selected.innerHTML = `<span>Loading institutions...</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+  selected.style.cursor = 'wait';
+
+  // Build URL — prefer numeric country_id if available, fall back to ISO3 country_code
+  const url = destCountryId
+    ? `/api/v2/commercial_banks?country_id=${destCountryId}`
+    : `/api/v2/commercial_banks?country_code=${destIso3}`;
+
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${getAccessToken()}`,
+        'Accept': 'application/json'
+      }
+    });
+    if (!res.ok) throw new Error('Failed to load institutions');
+
+    commercialBanksData = await res.json();
+    if (!Array.isArray(commercialBanksData)) {
+      commercialBanksData = commercialBanksData.data || commercialBanksData.banks || [];
+    }
+    renderInstitutionOptions(commercialBanksData);
+
+    selected.style.background = 'white';
+    selected.style.cursor = 'pointer';
+
+    if (commercialBanksData.length === 0) {
+      selected.innerHTML = `<span id="institutionSelectedText">No institutions found for ${destIso3}</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+      hint.textContent = `No commercial banks available for ${destIso3}.`;
+    } else {
+      selected.innerHTML = `<span id="institutionSelectedText">Select Institution (${destIso3})...</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+      hint.textContent = `${commercialBanksData.length} institution(s) in ${destIso3}.`;
+    }
+  } catch (err) {
+    console.error('[loadInstitutionsForDestination] error:', err);
+    selected.innerHTML = `<span id="institutionSelectedText" style="color:#dc2626;">Error loading institutions</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+    hint.textContent = 'Failed to load. Please try again.';
+  }
+}
+
+// Reset institution dropdown to corridor-not-selected state
+function resetInstitutionDropdown() {
+  selectedInstitution = null;
+  const sel = document.getElementById('institutionSelected');
+  if (sel) {
+    sel.innerHTML = `<span id="institutionSelectedText">Select Corridor first...</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+    sel.style.background = '#f3f4f6';
+    sel.style.cursor = 'not-allowed';
+  }
+  const hint = document.getElementById('institutionHint');
+  if (hint) hint.textContent = 'Select a corridor to load destination-country institutions.';
+  const opts = document.getElementById('institutionOptions');
+  if (opts) opts.innerHTML = '';
+  const hidden = document.getElementById('tc_institution_id');
+  if (hidden) hidden.value = '';
+  const swift = document.getElementById('tc_swift_code');
+  if (swift) swift.value = '—';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CORRIDORS
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function loadCorridors() {
+  const select = document.getElementById('tc_corridor_id');
+  
+  try {
+    const response = await fetch('/api/v2/corridors', {
+      headers: {
+        'Authorization': `Bearer ${getAccessToken()}`,
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) throw new Error('Failed to load corridors');
+    
+    const raw = await response.json();
+    // Unwrap common envelope shapes: { data: [...] } or { corridors: [...] } or plain array
+    corridorsData = Array.isArray(raw)             ? raw
+                 : Array.isArray(raw.data)          ? raw.data
+                 : (raw.data && Array.isArray(raw.data.corridors)) ? raw.data.corridors
+                 : Array.isArray(raw.corridors)     ? raw.corridors
+                 : raw.results || [];
+
+    console.log('[Corridors] Loaded', corridorsData.length, 'corridors');
+    if (corridorsData.length > 0) {
+      console.log('[Corridors] Sample fields:', Object.keys(corridorsData[0]));
+    }
+
+    // If user already selected a country before corridors finished loading, filter now
+    if (selectedCountry) {
+      filterCorridorsForCountry(selectedCountry);
+    } else {
+      select.innerHTML = '<option value="">Select Country first...</option>';
+      select.disabled = true;
+      select.style.background = '#f3f4f6';
+      select.style.cursor = 'not-allowed';
+    }
+
+  } catch (error) {
+    console.error('[Corridors] Error loading:', error);
+    select.innerHTML = '<option value="">Error loading corridors</option>';
+  }
+}
+
+// Filter corridors based on selected country
+function filterCorridorsForCountry(country) {
+  const select = document.getElementById('tc_corridor_id');
+
+  if (!country) {
+    select.innerHTML = '<option value="">Select Country first...</option>';
+    select.disabled = true;
+    select.style.background = '#f3f4f6';
+    select.style.cursor = 'not-allowed';
+    return;
+  }
+
+  // If corridors not loaded yet, wait — loadCorridors will call us again
+  if (!corridorsData || corridorsData.length === 0) {
+    select.innerHTML = '<option value="">Loading corridors...</option>';
+    select.disabled = true;
+    select.style.background = '#f3f4f6';
+    select.style.cursor = 'not-allowed';
+    console.log('[Corridors] Not loaded yet, will retry when loadCorridors completes');
+    return;
+  }
+
+  // ── Build identifier set for this country ─────────────────────────────
+  const iso2to3 = {
+    'DZ':'DZA','AO':'AGO','BJ':'BEN','BW':'BWA','BF':'BFA','BI':'BDI',
+    'CV':'CPV','CM':'CMR','CF':'CAF','TD':'TCD','KM':'COM','CG':'COG',
+    'CD':'COD','DJ':'DJI','EG':'EGY','GQ':'GNQ','ER':'ERI','SZ':'SWZ',
+    'ET':'ETH','GA':'GAB','GM':'GMB','GH':'GHA','GN':'GIN','GW':'GNB',
+    'CI':'CIV','KE':'KEN','LS':'LSO','LR':'LBR','LY':'LBY','MG':'MDG',
+    'MW':'MWI','ML':'MLI','MR':'MRT','MU':'MUS','MA':'MAR','MZ':'MOZ',
+    'NA':'NAM','NE':'NER','NG':'NGA','RW':'RWA','ST':'STP','SN':'SEN',
+    'SC':'SYC','SL':'SLE','SO':'SOM','ZA':'ZAF','SS':'SSD','SD':'SDN',
+    'TZ':'TZA','TG':'TGO','TN':'TUN','UG':'UGA','ZM':'ZMB','ZW':'ZWE'
+  };
+  const iso3to2 = Object.fromEntries(Object.entries(iso2to3).map(([k,v])=>[v,k]));
+  const nameToAlpha3 = {
+    'GHANA':'GHA','NIGERIA':'NGA','KENYA':'KEN','SOUTH AFRICA':'ZAF',
+    'TANZANIA':'TZA','UGANDA':'UGA','RWANDA':'RWA','ETHIOPIA':'ETH',
+    'EGYPT':'EGY','MOROCCO':'MAR','SENEGAL':'SEN','TOGO':'TGO',
+    "COTE D'IVOIRE":'CIV',"CÔTE D'IVOIRE":'CIV','IVORY COAST':'CIV',
+    'ZAMBIA':'ZMB','ZIMBABWE':'ZWE','BOTSWANA':'BWA','CAMEROON':'CMR',
+    'ANGOLA':'AGO','MOZAMBIQUE':'MOZ','NAMIBIA':'NAM','MALI':'MLI',
+    'NIGER':'NER','BURKINA FASO':'BFA','GUINEA':'GIN','BENIN':'BEN',
+    'SIERRA LEONE':'SLE','LIBERIA':'LBR','GAMBIA':'GMB','MALAWI':'MWI',
+    'GUINEA-BISSAU':'GNB','EQUATORIAL GUINEA':'GNQ','GABON':'GAB',
+    'REPUBLIC OF THE CONGO':'COG','DEMOCRATIC REPUBLIC OF THE CONGO':'COD',
+    'MADAGASCAR':'MDG','MAURITIUS':'MUS','CAPE VERDE':'CPV',
+    'DJIBOUTI':'DJI','SOMALIA':'SOM','ERITREA':'ERI','SUDAN':'SDN',
+    'SOUTH SUDAN':'SSD','MAURITANIA':'MRT','COMOROS':'COM',
+    'SAO TOME AND PRINCIPE':'STP','SEYCHELLES':'SYC','LESOTHO':'LSO',
+    'ESWATINI':'SWZ','SWAZILAND':'SWZ','LIBYA':'LBY','ALGERIA':'DZA',
+    'TUNISIA':'TUN','CHAD':'TCD','CENTRAL AFRICAN REPUBLIC':'CAF',
+    'CONGO':'COG','DRC':'COD'
+  };
+
+  const ids = new Set();
+
+  // Collect every possible code field
+  [country.code, country.iso_code, country.country_code,
+   country.alpha2, country.alpha3, country.iso2, country.iso3,
+   country.cb_code, country.central_bank_code, country.iso_alpha2, country.iso_alpha3
+  ].forEach(f => {
+    if (!f) return;
+    const v = f.toString().toUpperCase().trim();
+    if (!v) return;
+    ids.add(v);
+    if (v.length === 2 && iso2to3[v]) ids.add(iso2to3[v]);
+    if (v.length === 3 && iso3to2[v]) ids.add(iso3to2[v]);
+  });
+
+  // Name-based lookup — most reliable since country.name is always present
+  const nameKey = (country.name || '').toUpperCase().trim();
+  if (nameKey) {
+    ids.add(nameKey);
+    const a3 = nameToAlpha3[nameKey];
+    if (a3) {
+      ids.add(a3);
+      if (iso3to2[a3]) ids.add(iso3to2[a3]);
+    }
+  }
+
+  console.log('[Corridors] Filtering for:', country.name, '| ids:', [...ids]);
+
+  // ── Match corridors ───────────────────────────────────────────────────
+  const filteredCorridors = corridorsData.filter(corridor => {
+    // Every possible source field on a corridor object
+    const srcRaw = [
+      corridor.source_country, corridor.from_country,
+      corridor.from_cb_code, corridor.source_cb_code,
+      corridor.origin_country, corridor.from_iso, corridor.source_iso,
+      corridor.source, corridor.from
+    ].filter(Boolean).map(v => v.toString().toUpperCase().trim());
+
+    // Expand src codes to both alpha-2 and alpha-3
+    const srcSet = new Set(srcRaw);
+    srcRaw.forEach(s => {
+      if (s.length === 2 && iso2to3[s]) srcSet.add(iso2to3[s]);
+      if (s.length === 3 && iso3to2[s]) srcSet.add(iso3to2[s]);
+      // Name lookup
+      const a3 = nameToAlpha3[s];
+      if (a3) { srcSet.add(a3); if (iso3to2[a3]) srcSet.add(iso3to2[a3]); }
+    });
+
+    const tgtRaw = [
+      corridor.target_country, corridor.to_country,
+      corridor.to_cb_code, corridor.target_cb_code,
+      corridor.destination_country, corridor.to_iso, corridor.target_iso,
+      corridor.target, corridor.to
+    ].filter(Boolean).map(v => v.toString().toUpperCase().trim());
+
+    const tgtSet = new Set(tgtRaw);
+    tgtRaw.forEach(t => {
+      if (t.length === 2 && iso2to3[t]) tgtSet.add(iso2to3[t]);
+      if (t.length === 3 && iso3to2[t]) tgtSet.add(iso3to2[t]);
+    });
+
+    const isSource = [...ids].some(id => srcSet.has(id));
+    return isSource; // include same-country (domestic) corridors
+  });
+
+  console.log('[Corridors] Matched', filteredCorridors.length, 'of', corridorsData.length);
+  if (filteredCorridors.length === 0 && corridorsData.length > 0) {
+    console.warn('[Corridors] ZERO MATCH — country obj:', JSON.stringify(country));
+    console.warn('[Corridors] First corridor:', JSON.stringify(corridorsData[0]));
+  }
+
+  // Populate the select with filtered corridor options
+  if (filteredCorridors.length === 0) {
+    select.innerHTML = '<option value="">No corridors available for this country</option>';
+    select.disabled = true;
+    select.style.background = '#f3f4f6';
+    select.style.cursor = 'not-allowed';
+    return;
+  }
+
+  // Helper: resolve flag emoji for a raw country code or name string
+  function getCorridorFlag(codeOrName) {
+    if (!codeOrName) return '🌍';
+    const v = codeOrName.toString().trim();
+    return countryFlags[v] || countryFlags[v.toUpperCase()] || '🌍';
+  }
+
+  // Build entries — domestic (GHA→GHA) pinned first, cross-border sorted by target code.
+  // Add both source and target flags: 🇬🇭 GHA → 🇰🇪 KEN
+  const domesticEntries = [];
+  const crossBorderEntries = [];
+
+  // Determine source country code from the first corridor's source field (all share the same source)
+  const sourceCode = (filteredCorridors[0]
+    ? (filteredCorridors[0].source_country || filteredCorridors[0].from_country || filteredCorridors[0].from || '')
+    : '').toString().trim().toUpperCase();
+
+  // Check whether a domestic corridor record already exists
+  const hasDomesticRecord = filteredCorridors.some(function(corridor) {
+    const from = (corridor.source_country || corridor.from_country || corridor.from || '').toString().trim().toUpperCase();
+    const to   = (corridor.target_country || corridor.to_country   || corridor.to   || '').toString().trim().toUpperCase();
+    return from && to && (from === to ||
+      (from.length === 2 && iso2to3[from] && iso2to3[from] === to) ||
+      (to.length   === 2 && iso2to3[to]   && iso2to3[to]   === from));
+  });
+
+  // If no domestic corridor record exists, synthesise a placeholder so the user always sees it.
+  // value="__domestic__" is handled in onCorridorChange to set asset_type=domestic client-side.
+  if (!hasDomesticRecord && sourceCode) {
+    const srcFlag = getCorridorFlag(sourceCode);
+    domesticEntries.push({
+      id: '__domestic__',
+      displayLabel: srcFlag + ' ' + sourceCode + ' → ' + srcFlag + ' ' + sourceCode + ' (Domestic CBDC)',
+      sortKey: ''
+    });
+  }
+
+  filteredCorridors.forEach(function(corridor) {
+    const from     = (corridor.source_country || corridor.from_country || corridor.from || '').toString().trim().toUpperCase();
+    const to       = (corridor.target_country || corridor.to_country   || corridor.to   || '').toString().trim().toUpperCase();
+    const fromFlag = getCorridorFlag(from);
+    const toFlag   = getCorridorFlag(to);
+
+    const isDomestic = from && to && (from === to ||
+      (from.length === 2 && iso2to3[from] && iso2to3[from] === to) ||
+      (to.length   === 2 && iso2to3[to]   && iso2to3[to]   === from));
+
+    if (isDomestic) {
+      domesticEntries.push({
+        id: corridor.id,
+        displayLabel: fromFlag + ' ' + from + ' → ' + fromFlag + ' ' + from + ' (Domestic CBDC)',
+        sortKey: ''
+      });
+    } else {
+      crossBorderEntries.push({
+        id: corridor.id,
+        displayLabel: fromFlag + ' ' + from + ' → ' + toFlag + ' ' + to,
+        sortKey: to
+      });
+    }
+  });
+
+  // Synthesise virtual corridors for every African AU member state not already
+  // covered by a real DB record.  id = '__virtual__ALPHA3' is parsed in onCorridorChange.
+  var ALL_AFRICAN_AU_ALPHA3 = [
+    'DZA','AGO','BEN','BWA','BFA','BDI','CMR','CPV','CAF','TCD','COM','COG','COD',
+    'CIV','DJI','EGY','GNQ','ERI','SWZ','ETH','GAB','GMB','GHA','GIN','GNB','KEN',
+    'LSO','LBR','LBY','MDG','MWI','MLI','MRT','MUS','MAR','MOZ','NAM','NER','NGA',
+    'RWA','STP','SEN','SYC','SLE','SOM','ZAF','SSD','SDN','TZA','TGO','TUN','UGA',
+    'ZMB','ZWE'
+  ];
+  var srcAlpha3 = (sourceCode.length === 2 ? (iso2to3[sourceCode] || sourceCode) : sourceCode);
+  var coveredTargets = new Set();
+  filteredCorridors.forEach(function(c) {
+    var to = (c.target_country || c.to_country || c.to || '').toString().trim().toUpperCase();
+    if (to) {
+      coveredTargets.add(to);
+      if (to.length === 3 && iso3to2[to]) coveredTargets.add(iso3to2[to]);
+      if (to.length === 2 && iso2to3[to]) coveredTargets.add(iso2to3[to]);
+    }
+  });
+  ALL_AFRICAN_AU_ALPHA3
+    .filter(function(destCode) {
+      return destCode !== srcAlpha3 &&
+             !coveredTargets.has(destCode) &&
+             !coveredTargets.has(iso3to2[destCode] || '');
+    })
+    .forEach(function(destCode) {
+      crossBorderEntries.push({
+        id: '__virtual__' + srcAlpha3 + '__' + destCode,
+        displayLabel: getCorridorFlag(srcAlpha3) + ' ' + srcAlpha3 + ' → ' +
+                      getCorridorFlag(destCode) + ' ' + destCode,
+        sortKey: destCode
+      });
+    });
+
+  crossBorderEntries.sort(function(a, b) { return a.sortKey.localeCompare(b.sortKey); });
+
+  const allEntries = domesticEntries.concat(crossBorderEntries);
+
+  select.innerHTML = '<option value="">Select Trade Corridor...</option>' +
+    allEntries.map(function(e) {
+      return '<option value="' + e.id + '">' + e.displayLabel + '</option>';
+    }).join('');
+
+  // Enable dropdown
+  select.disabled = false;
+  select.style.background = 'white';
+  select.style.cursor = 'pointer';
+}
+
+function onCorridorChange(corridorId) {
+  const currencySelect = document.getElementById('tc_currency_code');
+  
+  console.log('=== onCorridorChange ===');
+  console.log('corridorId:', corridorId);
+  console.log('corridorsData:', corridorsData);
+  
+  if (!corridorId || corridorId === '') {
+    currencySelect.innerHTML = '<option value="">Select Corridor first...</option>';
+    currencySelect.style.background = '#f3f4f6';
+    currencySelect.style.borderColor = '#d1d5db';
+    return;
+  }
+
+  // Synthetic domestic placeholder — no real corridor record yet.
+  if (corridorId === '__domestic__') {
+    const _sc = selectedCountry || {};
+
+    // Self-contained lookup maps (iso2to3 and nameToAlpha3 are local to filterCorridorsForCountry,
+    // so we inline compact versions here for the domestic resolver).
+    const _iso2to3 = {
+      'DZ':'DZA','AO':'AGO','BJ':'BEN','BW':'BWA','BF':'BFA','BI':'BDI',
+      'CV':'CPV','CM':'CMR','CF':'CAF','TD':'TCD','KM':'COM','CG':'COG',
+      'CD':'COD','DJ':'DJI','EG':'EGY','GQ':'GNQ','ER':'ERI','SZ':'SWZ',
+      'ET':'ETH','GA':'GAB','GM':'GMB','GH':'GHA','GN':'GIN','GW':'GNB',
+      'KE':'KEN','LS':'LSO','LR':'LBR','LY':'LBY','MG':'MDG','MW':'MWI',
+      'ML':'MLI','MR':'MRT','MU':'MUS','MA':'MAR','MZ':'MOZ','NA':'NAM',
+      'NE':'NER','NG':'NGA','RW':'RWA','ST':'STP','SN':'SEN','SC':'SYC',
+      'SL':'SLE','SO':'SOM','ZA':'ZAF','SS':'SSD','SD':'SDN','TZ':'TZA',
+      'TG':'TGO','TN':'TUN','UG':'UGA','ZM':'ZMB','ZW':'ZWE','CI':'CIV'
+    };
+    const _nameToAlpha3 = {
+      'GHANA':'GHA','NIGERIA':'NGA','KENYA':'KEN','TANZANIA':'TZA','UGANDA':'UGA',
+      'RWANDA':'RWA','ETHIOPIA':'ETH','EGYPT':'EGY','MOROCCO':'MAR','SENEGAL':'SEN',
+      'SOUTH AFRICA':'ZAF','IVORY COAST':'CIV','BENIN':'BEN',
+      'BURKINA FASO':'BFA','MALI':'MLI','NIGER':'NER','TOGO':'TGO','GAMBIA':'GMB',
+      'GUINEA':'GIN','GUINEA-BISSAU':'GNB','SIERRA LEONE':'SLE','LIBERIA':'LBR',
+      'CAPE VERDE':'CPV','MAURITANIA':'MRT','ZAMBIA':'ZMB','ZIMBABWE':'ZWE',
+      'BOTSWANA':'BWA','NAMIBIA':'NAM','MOZAMBIQUE':'MOZ','MALAWI':'MWI',
+      'LESOTHO':'LSO','ESWATINI':'SWZ','ANGOLA':'AGO','BURUNDI':'BDI',
+      'DJIBOUTI':'DJI','ERITREA':'ERI','SOUTH SUDAN':'SSD','SOMALIA':'SOM',
+      'DR CONGO':'COD','CONGO':'COG','CAMEROON':'CMR','GABON':'GAB',
+      'EQUATORIAL GUINEA':'GNQ','SAO TOME AND PRINCIPE':'STP','LIBYA':'LBY',
+      'ALGERIA':'DZA','TUNISIA':'TUN','SUDAN':'SDN','MAURITIUS':'MUS',
+      'MADAGASCAR':'MDG','SEYCHELLES':'SYC','COMOROS':'COM','CENTRAL AFRICAN REPUBLIC':'CAF',
+      'CHAD':'TCD','RWANDA':'RWA'
+    };
+
+    // Resolve: prefer explicit alpha3 fields, then expand iso2 → iso3, then name lookup
+    let srcCode = [_sc.alpha3, _sc.iso3, _sc.iso_alpha3, _sc.central_bank_code, _sc.cb_code]
+      .map(v => (v || '').toString().trim().toUpperCase())
+      .find(v => v.length === 3) || '';
+
+    if (!srcCode) {
+      const two = [_sc.alpha2, _sc.iso2, _sc.iso_alpha2, _sc.code, _sc.iso_code, _sc.country_code]
+        .map(v => (v || '').toString().trim().toUpperCase())
+        .find(v => v.length === 2) || '';
+      if (two) srcCode = _iso2to3[two] || '';
+    }
+
+    if (!srcCode && _sc.name) {
+      srcCode = _nameToAlpha3[(_sc.name || '').toUpperCase().trim()] || '';
+    }
+
+    console.log('[Domestic] selectedCountry:', _sc, '| resolved srcCode:', srcCode);
+    const domesticCurrencyMap = {
+      'NGA':'NGN','GHA':'GHS','KEN':'KES','TZA':'TZS','UGA':'UGX','RWA':'RWF',
+      'ZAF':'ZAR','EGY':'EGP','MAR':'MAD','ETH':'ETB','SEN':'XOF','CIV':'XOF',
+      'CMR':'XAF','BFA':'XOF','MLI':'XOF','NER':'XOF','BEN':'XOF','TGO':'XOF',
+      'GMB':'GMD','GIN':'GNF','SLE':'SLL','LBR':'LRD','GNB':'XOF','CPV':'CVE',
+      'MRT':'MRU','ZMB':'ZMW','ZWE':'ZWL','BWA':'BWP','NAM':'NAD','MOZ':'MZN',
+      'MWI':'MWK','LSO':'LSL','SWZ':'SZL','AGO':'AOA','BDI':'BIF','DJI':'DJF',
+      'ERI':'ERN','SSD':'SSP','SOM':'SOS','COD':'CDF','COG':'XAF','CAF':'XAF',
+      'TCD':'XAF','GAB':'XAF','GNQ':'XAF','STP':'STN','LBY':'LYD','DZA':'DZD',
+      'TUN':'TND','SDN':'SDG','MUS':'MUR','MDG':'MGA','SYC':'SCR','COM':'KMF',
+    };
+    const currency = domesticCurrencyMap[srcCode] || '';
+    if (currency) {
+      const flag = countryFlags[srcCode] || '💰';
+      currencySelect.innerHTML = '<option value="' + currency + '" selected>' + flag + ' ' + currency + '</option>';
+      currencySelect.value = currency;
+      currencySelect.style.background = '#f0fdf4';
+      currencySelect.style.borderColor = '#10b981';
+    }
+    const benField = document.getElementById('tc_beneficiary_country');
+    // Always write 3-letter code to beneficiary country
+    const benCode = (srcCode.length === 2 && iso2to3[srcCode]) ? iso2to3[srcCode] : srcCode;
+    if (benField && benCode) {
+      benField.value = benCode;
+      benField.style.background = '#f0fdf4';
+      benField.style.borderColor = '#10b981';
+    }
+    document.getElementById('complianceLimitsSection').style.display = 'none';
+    return;
+  }
+
+  // Handle virtual (synthesised) corridor — destination not in DB but valid AU member state.
+  // id format: '__virtual__ALPHA3'  e.g. '__virtual__NGA'
+  if (typeof corridorId === 'string' && corridorId.startsWith('__virtual__')) {
+    // Format: '__virtual__SRC__DEST'  e.g. '__virtual__GHA__NGA'
+    // Legacy fallback: '__virtual__DEST'  (single segment, no source encoded)
+    const _vParts = corridorId.slice('__virtual__'.length).split('__');
+    const destCode = _vParts.length >= 2 ? _vParts[1] : _vParts[0];  // e.g. "NGA"
+
+    // Inline map — mirrors countryCurrencyMap declared later in this function (avoids TDZ)
+    const _virtualCurrencyMap = {
+      'KEN':'KES','TZA':'TZS','UGA':'UGX','RWA':'RWF','BDI':'BIF','ETH':'ETB',
+      'SOM':'SOS','DJI':'DJF','ERI':'ERN','SSD':'SSP',
+      'NGA':'NGN','GHA':'GHS','SEN':'XOF','CIV':'XOF','MLI':'XOF','BFA':'XOF',
+      'NER':'XOF','BEN':'XOF','TGO':'XOF','GMB':'GMD','GIN':'GNF','SLE':'SLL',
+      'LBR':'LRD','GNB':'XOF','CPV':'CVE','MRT':'MRU',
+      'ZAF':'ZAR','BWA':'BWP','NAM':'NAD','ZMB':'ZMW','ZWE':'ZWL','MOZ':'MZN',
+      'MWI':'MWK','LSO':'LSL','SWZ':'SZL','AGO':'AOA',
+      'CMR':'XAF','COD':'CDF','COG':'XAF','CAF':'XAF','TCD':'XAF','GAB':'XAF',
+      'GNQ':'XAF','STP':'STN',
+      'EGY':'EGP','LBY':'LYD','TUN':'TND','DZA':'DZD','MAR':'MAD','SDN':'SDG',
+      'MUS':'MUR','MDG':'MGA','SYC':'SCR','COM':'KMF',
+    };
+    const _virtualCurrencyNames = {
+      'KES':'Kenyan Shilling','TZS':'Tanzanian Shilling','UGX':'Ugandan Shilling',
+      'RWF':'Rwandan Franc','BIF':'Burundian Franc','ETB':'Ethiopian Birr',
+      'SOS':'Somali Shilling','DJF':'Djiboutian Franc','ERN':'Eritrean Nakfa',
+      'SSP':'South Sudanese Pound','NGN':'Nigerian Naira','GHS':'Ghanaian Cedi',
+      'XOF':'CFA Franc BCEAO','GMD':'Gambian Dalasi','GNF':'Guinean Franc',
+      'SLL':'Sierra Leonean Leone','LRD':'Liberian Dollar','CVE':'Cape Verdean Escudo',
+      'MRU':'Mauritanian Ouguiya','ZAR':'South African Rand','BWP':'Botswana Pula',
+      'NAD':'Namibian Dollar','ZMW':'Zambian Kwacha','ZWL':'Zimbabwean Dollar',
+      'MZN':'Mozambican Metical','MWK':'Malawian Kwacha','LSL':'Lesotho Loti',
+      'SZL':'Swazi Lilangeni','AOA':'Angolan Kwanza','XAF':'CFA Franc BEAC',
+      'CDF':'Congolese Franc','STN':'Sao Tome Dobra','EGP':'Egyptian Pound',
+      'LYD':'Libyan Dinar','TND':'Tunisian Dinar','DZD':'Algerian Dinar',
+      'MAD':'Moroccan Dirham','SDG':'Sudanese Pound','MUR':'Mauritian Rupee',
+      'MGA':'Malagasy Ariary','SCR':'Seychellois Rupee','KMF':'Comorian Franc',
+    };
+
+    const currencyCode = _virtualCurrencyMap[destCode];
+    if (currencyCode) {
+      const currencyName = _virtualCurrencyNames[currencyCode] || currencyCode;
+      const flag = countryFlags[destCode] || '💰';
+      currencySelect.innerHTML = `<option value="${currencyCode}" selected>${flag} ${currencyCode} - ${currencyName}</option>`;
+      currencySelect.value = currencyCode;
+      currencySelect.style.background = '#f0fdf4';
+      currencySelect.style.borderColor = '#10b981';
+    } else {
+      currencySelect.innerHTML = '<option value="">Select Currency...</option>';
+      currencySelect.style.background = 'white';
+      currencySelect.style.borderColor = '#d1d5db';
+    }
+
+    const benField2 = document.getElementById('tc_beneficiary_country');
+    if (benField2 && destCode) {
+      benField2.value = destCode;
+      benField2.style.background = '#f0fdf4';
+      benField2.style.borderColor = '#10b981';
+    }
+
+    document.getElementById('complianceLimitsSection').style.display = 'none';
+    loadInstitutionsForDestination(null, destCode);
+    return;
+  }
+
+  // Find the selected corridor - compare as strings
+  let corridor = null;
+  const searchId = String(corridorId);
+  
+  for (let i = 0; i < corridorsData.length; i++) {
+    const cId = String(corridorsData[i].id);
+    if (cId === searchId) {
+      corridor = corridorsData[i];
+      console.log('Found match at index', i);
+      break;
+    }
+  }
+  
+  if (!corridor) {
+    console.error('Corridor not found! Looking for:', searchId);
+    console.log('Available IDs:', corridorsData.map(c => String(c.id)));
+    currencySelect.innerHTML = '<option value="">Currency unavailable</option>';
+    return;
+  }
+  
+  console.log('Selected corridor:', corridor);
+  
+  // Get target country code - try multiple fields
+  let targetCountry = corridor.to_country || corridor.target_country || corridor.to_cb_code || '';
+  targetCountry = String(targetCountry).toUpperCase();
+  
+  console.log('Target country:', targetCountry);
+  
+  // Map country codes to currencies (3-letter ISO codes)
+  const countryCurrencyMap = {
+    // East Africa
+    'KEN': 'KES', 'TZA': 'TZS', 'UGA': 'UGX', 'RWA': 'RWF', 'BDI': 'BIF',
+    'ETH': 'ETB', 'SOM': 'SOS', 'DJI': 'DJF', 'ERI': 'ERN', 'SSD': 'SSP',
+    // West Africa
+    'NGA': 'NGN', 'GHA': 'GHS', 'SEN': 'XOF', 'CIV': 'XOF', 'MLI': 'XOF',
+    'BFA': 'XOF', 'NER': 'XOF', 'BEN': 'XOF', 'TGO': 'XOF', 'GMB': 'GMD',
+    'GIN': 'GNF', 'SLE': 'SLL', 'LBR': 'LRD', 'GNB': 'XOF', 'CPV': 'CVE', 'MRT': 'MRU',
+    // Southern Africa
+    'ZAF': 'ZAR', 'BWA': 'BWP', 'NAM': 'NAD', 'ZMB': 'ZMW', 'ZWE': 'ZWL',
+    'MOZ': 'MZN', 'MWI': 'MWK', 'LSO': 'LSL', 'SWZ': 'SZL', 'AGO': 'AOA',
+    // Central Africa
+    'CMR': 'XAF', 'COD': 'CDF', 'COG': 'XAF', 'CAF': 'XAF', 'TCD': 'XAF',
+    'GAB': 'XAF', 'GNQ': 'XAF', 'STP': 'STN',
+    // North Africa
+    'EGY': 'EGP', 'LBY': 'LYD', 'TUN': 'TND', 'DZA': 'DZD', 'MAR': 'MAD', 'SDN': 'SDG',
+    // Islands
+    'MUS': 'MUR', 'MDG': 'MGA', 'SYC': 'SCR', 'COM': 'KMF',
+  };
+  
+  // Currency display names
+  const currencyNames = {
+    'KES': 'Kenyan Shilling', 'TZS': 'Tanzanian Shilling', 'UGX': 'Ugandan Shilling',
+    'RWF': 'Rwandan Franc', 'BIF': 'Burundian Franc', 'ETB': 'Ethiopian Birr',
+    'SOS': 'Somali Shilling', 'DJF': 'Djiboutian Franc', 'ERN': 'Eritrean Nakfa',
+    'SSP': 'South Sudanese Pound', 'NGN': 'Nigerian Naira', 'GHS': 'Ghanaian Cedi',
+    'XOF': 'CFA Franc BCEAO', 'GMD': 'Gambian Dalasi', 'GNF': 'Guinean Franc',
+    'SLL': 'Sierra Leonean Leone', 'LRD': 'Liberian Dollar', 'CVE': 'Cape Verdean Escudo',
+    'MRU': 'Mauritanian Ouguiya', 'ZAR': 'South African Rand', 'BWP': 'Botswana Pula',
+    'NAD': 'Namibian Dollar', 'ZMW': 'Zambian Kwacha', 'ZWL': 'Zimbabwean Dollar',
+    'MZN': 'Mozambican Metical', 'MWK': 'Malawian Kwacha', 'LSL': 'Lesotho Loti',
+    'SZL': 'Swazi Lilangeni', 'AOA': 'Angolan Kwanza', 'XAF': 'CFA Franc BEAC',
+    'CDF': 'Congolese Franc', 'STN': 'Sao Tome Dobra', 'EGP': 'Egyptian Pound',
+    'LYD': 'Libyan Dinar', 'TND': 'Tunisian Dinar', 'DZD': 'Algerian Dinar',
+    'MAD': 'Moroccan Dirham', 'SDG': 'Sudanese Pound', 'MUR': 'Mauritian Rupee',
+    'MGA': 'Malagasy Ariary', 'SCR': 'Seychellois Rupee', 'KMF': 'Comorian Franc',
+  };
+  
+  // Get currency for target country
+  const currencyCode = countryCurrencyMap[targetCountry];
+  console.log('Currency code for', targetCountry, ':', currencyCode);
+  
+  if (currencyCode) {
+    const currencyName = currencyNames[currencyCode] || currencyCode;
+    const flag = countryFlags[targetCountry] || '💰';
+    
+    // Update currency dropdown
+    currencySelect.innerHTML = `<option value="${currencyCode}" selected>${flag} ${currencyCode} - ${currencyName}</option>`;
+    currencySelect.value = currencyCode;
+    currencySelect.style.background = '#f0fdf4';
+    currencySelect.style.borderColor = '#10b981';
+    
+    console.log('Currency auto-filled:', currencyCode);
+  } else {
+    console.warn('No currency mapping for:', targetCountry);
+    currencySelect.innerHTML = `
+      <option value="">Select Currency...</option>
+      <option value="USD">🇺🇸 USD - US Dollar</option>
+      <option value="EUR">🇪🇺 EUR - Euro</option>
+    `;
+    currencySelect.style.background = 'white';
+    currencySelect.style.borderColor = '#d1d5db';
+  }
+  
+  // Auto-fill beneficiary country based on target country
+  const beneficiaryCountryInput = document.getElementById('tc_beneficiary_country');
+  if (beneficiaryCountryInput && targetCountry) {
+    beneficiaryCountryInput.value = targetCountry;
+    beneficiaryCountryInput.style.background = '#f0fdf4';
+    beneficiaryCountryInput.style.borderColor = '#10b981';
+    console.log('Beneficiary country auto-filled:', targetCountry);
+  }
+  
+  // Load commercial banks for the DESTINATION country of the corridor
+  // so Institution Name shows Kenya banks (not Ghana) for GHA→KEN
+  // NOTE: serializer emits target_country (not to_country/destination_country_id),
+  // so targetCountry is already resolved above — call unconditionally.
+  loadInstitutionsForDestination(null, targetCountry);
+
+  // Fetch and display compliance limits for the selected corridor
+  fetchComplianceLimits(corridorId, currencyCode);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COMPLIANCE & LIMITS
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function fetchComplianceLimits(corridorId, currencyCode) {
+  const section = document.getElementById('complianceLimitsSection');
+  const corridorLimitEl = document.getElementById('corridorLimitRemaining');
+  const dailyLimitEl = document.getElementById('dailyLimitRemaining');
+  const complianceStatusText = document.getElementById('complianceStatusText');
+  const complianceStatusIcon = document.getElementById('complianceStatusIcon');
+  
+  // Show the section
+  section.style.display = 'block';
+  
+  // Set loading state
+  corridorLimitEl.textContent = '— loading...';
+  dailyLimitEl.textContent = '— loading...';
+  complianceStatusText.textContent = 'Checking...';
+  
+  try {
+    // Fetch corridor details to get limits
+    const response = await fetch(`/api/v2/corridors/${corridorId}`, {
+      headers: {
+        'Authorization': `Bearer ${getAccessToken()}`,
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch corridor limits');
+    }
+    
+    const corridorData = await response.json();
+    console.log('Corridor limits data:', corridorData);
+    
+    // Format currency for display
+    const currency = currencyCode || 'USD';
+    
+    // Format numbers with commas
+    const formatNumber = (num) => {
+      if (num === null || num === undefined || isNaN(parseFloat(num))) return '—';
+      return Number(parseFloat(num)).toLocaleString('en-US');
+    };
+    
+    // Parse the remaining_limits structure from LimitCheckService
+    // Structure: { corridor: { daily: { remaining: "500000000.0" } }, institution: { daily: { remaining: null } } }
+    
+    let corridorDailyRemaining = null;
+    let institutionDailyRemaining = null;
+    
+    if (corridorData.remaining_limits) {
+      // Corridor daily remaining
+      if (corridorData.remaining_limits.corridor?.daily?.remaining) {
+        corridorDailyRemaining = parseFloat(corridorData.remaining_limits.corridor.daily.remaining);
+      } else if (corridorData.remaining_limits.corridor?.daily) {
+        // Maybe it's just a number
+        corridorDailyRemaining = parseFloat(corridorData.remaining_limits.corridor.daily);
+      }
+      
+      // Institution daily remaining
+      if (corridorData.remaining_limits.institution?.daily?.remaining) {
+        institutionDailyRemaining = parseFloat(corridorData.remaining_limits.institution.daily.remaining);
+      } else if (corridorData.remaining_limits.institution?.daily) {
+        institutionDailyRemaining = parseFloat(corridorData.remaining_limits.institution.daily);
+      }
+    }
+    
+    // Fallback to corridor limits if remaining not available
+    if (corridorDailyRemaining === null || isNaN(corridorDailyRemaining)) {
+      const dailyLimit = corridorData.limits?.daily || corridorData.daily_limit || 500000000;
+      corridorDailyRemaining = parseFloat(dailyLimit);
+    }
+    
+    // Fallback for institution - use institution's daily limit or a default
+    if (institutionDailyRemaining === null || isNaN(institutionDailyRemaining)) {
+      // Try to get from selected institution or use default
+      if (selectedInstitution?.daily_limit) {
+        institutionDailyRemaining = parseFloat(selectedInstitution.daily_limit);
+      } else {
+        institutionDailyRemaining = 500000000; // Default 500M
+      }
+    }
+    
+    console.log('Parsed remaining limits:', { 
+      corridorDailyRemaining, 
+      institutionDailyRemaining 
+    });
+    
+    // Update display
+    // Corridor Limit Remaining - shows how much of corridor's daily limit is left
+    corridorLimitEl.innerHTML = `${currency} ${formatNumber(corridorDailyRemaining)} <span style="color: #6b7280; font-weight: 400;">remaining</span>`;
+    
+    // Daily Limit Remaining - shows institution's daily limit remaining
+    dailyLimitEl.innerHTML = `${currency} ${formatNumber(institutionDailyRemaining)} <span style="color: #6b7280; font-weight: 400;">remaining</span>`;
+    
+    // Set compliance status to Pre-Cleared (assuming initial check passes)
+    complianceStatusText.textContent = 'Pre-Cleared';
+    complianceStatusText.style.color = '#10b981';
+    complianceStatusIcon.innerHTML = `
+      <circle cx="12" cy="12" r="10" fill="none" stroke="#10b981" stroke-width="2"></circle>
+      <polyline points="9 12 12 15 16 10" fill="none" stroke="#10b981" stroke-width="2"></polyline>
+    `;
+    
+  } catch (error) {
+    console.error('Error fetching compliance limits:', error);
+    
+    // Show default values on error
+    const currency = currencyCode || 'USD';
+    corridorLimitEl.innerHTML = `${currency} 500,000,000 <span style="color: #6b7280; font-weight: 400;">remaining</span>`;
+    dailyLimitEl.innerHTML = `${currency} 500,000,000 <span style="color: #6b7280; font-weight: 400;">remaining</span>`;
+    complianceStatusText.textContent = 'Pre-Cleared';
+    complianceStatusText.style.color = '#10b981';
+  }
+}
+
+function resetComplianceLimits() {
+  const section = document.getElementById('complianceLimitsSection');
+  section.style.display = 'none';
+  
+  document.getElementById('corridorLimitRemaining').textContent = '— loading...';
+  document.getElementById('dailyLimitRemaining').textContent = '— loading...';
+  document.getElementById('complianceStatusText').textContent = 'Checking...';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FORM HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function formatAmountInput(input) {
+  let value = input.value.replace(/[^\d]/g, '');
+  if (value) {
+    value = parseInt(value, 10).toLocaleString('en-US');
+  }
+  input.value = value;
+  renderDenomMixPanel();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GLOBAL CURRENCY PROFILE (GCP) — Dynamic Denomination Mix Engine
+//
+// Auto-Scale Distribution:
+//   Bulk  (60%) — top 2 banknotes by face value
+//   Trade (30%) — next 3 banknotes
+//   Micro (10%) — remaining banknotes + fractional coins
+//
+// Each profile: notes (high→low), coins (fractional sub-units, high→low),
+//               coin_name (display label), coin_decimals (precision).
+// ═══════════════════════════════════════════════════════════════════════════
+
+const CURRENCY_PROFILES = {
+  GHS: { notes:[200,100,50,20,10,5,2,1],       coins:[0.50,0.20,0.10,0.05,0.01], coin_name:'Pesewas',    coin_decimals:2 },
+  NGN: { notes:[1000,500,200,100,50,20,10,5],   coins:[0.50,0.25,0.10,0.05],      coin_name:'Kobo',       coin_decimals:2 },
+  KES: { notes:[1000,500,200,100,50,20,10],     coins:[5,2,1],                    coin_name:'Cents',      coin_decimals:0 },
+  ZAR: { notes:[200,100,50,20,10,5],            coins:[2,1,0.50,0.20,0.10,0.05], coin_name:'Cents',      coin_decimals:2 },
+  BWP: { notes:[200,100,50,20,10,5],            coins:[2,1,0.50,0.25,0.10,0.05], coin_name:'Thebe',      coin_decimals:2 },
+  UGX: { notes:[50000,20000,10000,5000,2000,1000,500,200], coins:[100],           coin_name:'Cents',      coin_decimals:0 },
+  TZS: { notes:[10000,5000,2000,1000,500,200],  coins:[100,50],                   coin_name:'Senti',      coin_decimals:0 },
+  XOF: { notes:[10000,5000,2000,1000,500,200,100,50], coins:[25,10,5],            coin_name:'Centimes',   coin_decimals:0 },
+  XAF: { notes:[10000,5000,2000,1000,500,200,100,50], coins:[25,10,5],            coin_name:'Centimes',   coin_decimals:0 },
+  EGP: { notes:[200,100,50,20,10,5],            coins:[1,0.50,0.25,0.10,0.05],   coin_name:'Piastres',   coin_decimals:2 },
+  MAD: { notes:[200,100,50,20,10,5],            coins:[1,0.50,0.20,0.10,0.05],   coin_name:'Centimes',   coin_decimals:2 },
+  ETB: { notes:[1000,500,200,100,50,10,5],      coins:[1,0.50,0.25,0.10,0.05],   coin_name:'Santim',     coin_decimals:2 },
+  ZMW: { notes:[500,100,50,20,10,5],            coins:[2,1,0.50,0.10,0.05],      coin_name:'Ngwe',       coin_decimals:2 },
+  RWF: { notes:[5000,2000,1000,500,200,100],    coins:[],                         coin_name:'',           coin_decimals:0 },
+  MWK: { notes:[5000,2000,1000,500,200,100,50], coins:[],                         coin_name:'',           coin_decimals:0 },
+  MZN: { notes:[1000,500,200,100,50,20,10],     coins:[5,2,1,0.50,0.20,0.10],    coin_name:'Centavos',   coin_decimals:2 },
+  SZL: { notes:[200,100,50,20,10,5],            coins:[2,1,0.50,0.20,0.10,0.05], coin_name:'Cents',      coin_decimals:2 },
+  NAD: { notes:[200,100,50,20,10,5],            coins:[2,1,0.50,0.20,0.10,0.05], coin_name:'Cents',      coin_decimals:2 },
+  _fallback: { notes:[1000,500,200,100,50,20,10,5], coins:[], coin_name:'', coin_decimals:0 },
+};
+
+function normCcyCode(raw) {
+  const m = (raw || '').toUpperCase().trim().match(/^([A-Z]{3})/);
+  return m ? m[1] : '';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// computeDenomMix  — auto-scale GCP engine
+// Returns: { noteItems, coinItems, totalNotes, totalCoins, layerSums, ccy, profile }
+// ─────────────────────────────────────────────────────────────────────────────
+function computeDenomMix(total, currencyCode) {
+  const ccy     = normCcyCode(currencyCode);
+  const profile = CURRENCY_PROFILES[ccy] || CURRENCY_PROFILES._fallback;
+  const notes   = profile.notes;  // already sorted high → low
+  const coins   = profile.coins;  // fractional, high → low
+
+  // Auto-scale: position-based layer assignment
+  const bulkNotes  = notes.slice(0, 2);
+  const tradeNotes = notes.slice(2, 5);
+  const microNotes = notes.slice(5);
+
+  // Round total to nearest coin (fractional precision)
+  const minUnit  = coins.length > 0 ? coins[coins.length - 1] : 1;
+  const rounded  = Math.round(total / minUnit) * minUnit;
+
+  const bulkTarget  = Math.round(rounded * 0.60);
+  const tradeTarget = Math.round(rounded * 0.30);
+  const microTarget = rounded - bulkTarget - tradeTarget;
+
+  const noteItems = [];
+
+  function greedyFill(denomArr, budget, layerKey) {
+    let rem = budget;
+    for (const face of denomArr) {
+      if (rem < face) continue;
+      const cnt = Math.floor(rem / face);
+      if (cnt > 0) {
+        noteItems.push({ face, layer: layerKey, count: cnt, subtotal: cnt * face });
+        rem -= cnt * face;
+      }
+    }
+    return rem; // unspent
+  }
+
+  let rem = greedyFill(bulkNotes,  bulkTarget,  'bulk');
+      rem += greedyFill(tradeNotes, tradeTarget, 'transactional');
+      rem += greedyFill(microNotes, microTarget, 'micro');
+
+  // Cascade any note-level remainder to smallest available note
+  if (rem > 0) {
+    const fallbackNote = [...notes].reverse().find(f => f <= rem);
+    if (fallbackNote) {
+      const cnt = Math.floor(rem / fallbackNote);
+      if (cnt > 0) {
+        const ex = noteItems.find(i => i.face === fallbackNote);
+        if (ex) { ex.count += cnt; ex.subtotal += cnt * fallbackNote; }
+        else noteItems.push({ face: fallbackNote, layer: 'micro', count: cnt, subtotal: cnt * fallbackNote });
+        rem -= cnt * fallbackNote;
+      }
+    }
+  }
+
+  // Fill residual with fractional coins
+  const coinItems = [];
+  if (coins.length > 0 && rem > 0) {
+    for (const face of coins) {
+      if (rem < face - 0.0001) continue;
+      const cnt = Math.floor((rem + 0.0001) / face);
+      if (cnt > 0) {
+        coinItems.push({ face, layer: 'coins', count: cnt, subtotal: +(cnt * face).toFixed(4) });
+        rem = +(rem - cnt * face).toFixed(4);
+      }
+    }
+  }
+
+  // Layer sums
+  const layerSums = { bulk: 0, transactional: 0, micro: 0, coins: 0 };
+  noteItems.forEach(i => { layerSums[i.layer] = +(layerSums[i.layer] + i.subtotal).toFixed(4); });
+  coinItems.forEach(i => { layerSums.coins    = +(layerSums.coins    + i.subtotal).toFixed(4); });
+
+  const totalNotes = noteItems.reduce((s, i) => s + i.count, 0);
+  const totalCoins = coinItems.reduce((s, i) => s + i.count, 0);
+
+  return { noteItems, coinItems, totalNotes, totalCoins, layerSums, ccy, profile, rounded };
+}
+
+function denomFmtNum(n, decimals) {
+  return n.toLocaleString('en-US', {
+    minimumFractionDigits:  decimals ?? 0,
+    maximumFractionDigits:  decimals ?? 0
+  });
+}
+
+function renderDenomMixPanel() {
+  const panel = document.getElementById('denomMixPanel');
+  const total = getNumericAmount();
+  const ccy   = document.getElementById('tc_currency_code')?.value || '';
+
+  if (!total || total <= 0) { panel.style.display = 'none'; return; }
+
+  const mix  = computeDenomMix(total, ccy);
+  const p    = mix.profile;
+  const sym  = ccy ? ccy + ' ' : '';
+  const dec  = p.coin_decimals || 0;
+
+  panel.style.display = 'block';
+
+  // Header currency label
+  document.getElementById('denomMixCurrencyLabel').textContent =
+    ccy ? `${ccy} Currency Profile` : 'Standard Liquidity';
+
+  // Total pill
+  const pillParts = [`${denomFmtNum(mix.totalNotes)} notes`];
+  if (mix.totalCoins > 0)
+    pillParts.push(`${denomFmtNum(mix.totalCoins)} ${p.coin_name || 'coins'}`);
+  document.getElementById('denomMixTotalNotes').textContent = pillParts.join(' + ');
+
+  // Layer amount spans
+  document.getElementById('denomMixBulkAmt').textContent  = sym + denomFmtNum(mix.layerSums.bulk || 0);
+  document.getElementById('denomMixTradeAmt').textContent = sym + denomFmtNum(mix.layerSums.transactional || 0);
+  document.getElementById('denomMixMicroAmt').textContent = sym + denomFmtNum(mix.layerSums.micro || 0);
+
+  // Coin row
+  const coinRow = document.getElementById('denomMixCoinRow');
+  if (mix.totalCoins > 0 && p.coin_name) {
+    coinRow.style.display = 'flex';
+    document.getElementById('denomMixCoinLabel').textContent =
+      `Digital ${p.coin_name}`;
+    const coinPct = Math.round((mix.layerSums.coins / mix.rounded) * 100);
+    document.getElementById('denomMixCoinBar').style.width = Math.max(coinPct, 2) + '%';
+    document.getElementById('denomMixCoinAmt').textContent =
+      sym + denomFmtNum(mix.layerSums.coins, dec);
+  } else {
+    coinRow.style.display = 'none';
+  }
+
+  // Breakdown table
+  const layerColor = { bulk:'#10b981', transactional:'#3b82f6', micro:'#f59e0b', coins:'#8b5cf6' };
+  const layerLabel = { bulk:'🟢 Bulk', transactional:'🔵 Trade', micro:'🟡 Micro', coins:'🪙 Coin' };
+
+  const allItems = [
+    ...mix.noteItems,
+    ...mix.coinItems
+  ];
+
+  document.getElementById('denomMixTable').innerHTML =
+    `<table style="width:100%; border-collapse:collapse; font-size:11px;">
+      <thead>
+        <tr style="color:#6b7280; border-bottom:1px solid #d1fae5;">
+          <th style="text-align:left;padding:4px 0;font-weight:600;">Denomination</th>
+          <th style="text-align:center;padding:4px 0;font-weight:600;">Layer</th>
+          <th style="text-align:right;padding:4px 0;font-weight:600;">Count</th>
+          <th style="text-align:right;padding:4px 0;font-weight:600;">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${allItems.map(i => {
+          const isCoin = i.layer === 'coins';
+          const faceStr = isCoin
+            ? sym + denomFmtNum(i.face, dec) + (p.coin_name ? ` ${p.coin_name.slice(0,-1)}` : '')
+            : sym + denomFmtNum(i.face);
+          return `<tr style="border-bottom:1px solid #f0fdf4;">
+            <td style="padding:3px 0;font-weight:700;color:${isCoin ? '#5b21b6' : '#065f46'};">${faceStr}</td>
+            <td style="padding:3px 0;text-align:center;color:${layerColor[i.layer]};font-weight:600;font-size:10px;">${layerLabel[i.layer]}</td>
+            <td style="padding:3px 0;text-align:right;color:#374151;">× ${denomFmtNum(i.count)}</td>
+            <td style="padding:3px 0;text-align:right;font-weight:700;color:${isCoin ? '#5b21b6' : '#065f46'};">${sym}${denomFmtNum(i.subtotal, dec)}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+// Re-used by confirm + success modals
+function getCurrentDenomMix() {
+  const total = getNumericAmount();
+  const ccy   = document.getElementById('tc_currency_code')?.value || '';
+  return total > 0 ? computeDenomMix(total, ccy) : null;
+}
+
+function getNumericAmount() {
+  const amountStr = document.getElementById('tc_amount').value;
+  return parseFloat(amountStr.replace(/,/g, '')) || 0;
+}
+
+function showError(message) {
+  const errorDiv = document.getElementById('tradeClaimError');
+  errorDiv.textContent = message;
+  errorDiv.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('tradeClaimError').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DOCUMENT UPLOAD
+// ═══════════════════════════════════════════════════════════════════════════
+
+let uploadedFiles = [];
+let documentHash = null;
+
+function handleDragOver(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  const uploadArea = document.getElementById('documentUploadArea');
+  uploadArea.style.borderColor = '#059669';
+  uploadArea.style.background = '#f0fdf4';
+}
+
+function handleDragLeave(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  const uploadArea = document.getElementById('documentUploadArea');
+  uploadArea.style.borderColor = '#d1d5db';
+  uploadArea.style.background = 'white';
+}
+
+function handleDrop(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  
+  const uploadArea = document.getElementById('documentUploadArea');
+  uploadArea.style.borderColor = '#d1d5db';
+  uploadArea.style.background = 'white';
+  
+  const files = event.dataTransfer.files;
+  handleFileSelect(files);
+}
+
+function handleFileSelect(files) {
+  if (!files || files.length === 0) return;
+  
+  const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    
+    // Validate type
+    if (!validTypes.includes(file.type)) {
+      showError(`Invalid file type: ${file.name}. Only PDF, PNG, and JPG are allowed.`);
+      continue;
+    }
+    
+    // Validate size
+    if (file.size > maxSize) {
+      showError(`File too large: ${file.name}. Maximum size is 10MB.`);
+      continue;
+    }
+    
+    // Check for duplicates
+    if (uploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
+      continue;
+    }
+    
+    uploadedFiles.push(file);
+  }
+  
+  renderUploadedFiles();
+  calculateDocumentHash();
+}
+
+function renderUploadedFiles() {
+  const listContainer = document.getElementById('uploadedFilesList');
+  const fileListContainer = document.getElementById('fileListContainer');
+  const fileCount = document.getElementById('fileCount');
+  
+  if (uploadedFiles.length === 0) {
+    listContainer.style.display = 'none';
+    return;
+  }
+  
+  listContainer.style.display = 'block';
+  fileCount.textContent = `${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''}`;
+  
+  fileListContainer.innerHTML = uploadedFiles.map((file, index) => {
+    const icon = file.type === 'application/pdf' ? '📄' : '🖼️';
+    const size = formatFileSize(file.size);
+    
+    return `
+      <div style="
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+      ">
+        <span style="font-size: 20px;">${icon}</span>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 13px; font-weight: 500; color: #374151; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            ${file.name}
+          </div>
+          <div style="font-size: 11px; color: #6b7280;">${size}</div>
+        </div>
+        <button type="button" onclick="removeFile(${index})" style="
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 4px;
+          color: #9ca3af;
+          transition: color 0.2s;
+        " onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#9ca3af'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function removeFile(index) {
+  uploadedFiles.splice(index, 1);
+  renderUploadedFiles();
+  calculateDocumentHash();
+  
+  // Reset the file input
+  document.getElementById('tc_documents').value = '';
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+async function calculateDocumentHash() {
+  const hashContainer = document.getElementById('documentHashContainer');
+  const hashValue = document.getElementById('documentHashValue');
+  
+  if (uploadedFiles.length === 0) {
+    hashContainer.style.display = 'none';
+    documentHash = null;
+    return;
+  }
+  
+  hashContainer.style.display = 'block';
+  hashValue.textContent = 'Calculating...';
+  
+  try {
+    // Calculate SHA-256 hash of all files combined
+    const hashes = [];
+    
+    for (const file of uploadedFiles) {
+      const buffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      hashes.push(hashHex);
+    }
+    
+    // Combine all hashes and hash again
+    const combinedHash = hashes.sort().join('');
+    const encoder = new TextEncoder();
+    const data = encoder.encode(combinedHash);
+    const finalHashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const finalHashArray = Array.from(new Uint8Array(finalHashBuffer));
+    documentHash = finalHashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    // Display truncated hash
+    hashValue.textContent = documentHash.substring(0, 16) + '...' + documentHash.substring(48);
+    hashValue.title = documentHash;
+    
+  } catch (error) {
+    console.error('Error calculating hash:', error);
+    hashValue.textContent = 'Error calculating hash';
+    documentHash = null;
+  }
+}
+
+function copyDocumentHash() {
+  if (!documentHash) return;
+  
+  navigator.clipboard.writeText(documentHash).then(() => {
+    // Show brief feedback
+    const btn = event.currentTarget;
+    const originalColor = btn.style.color;
+    btn.style.color = '#059669';
+    setTimeout(() => { btn.style.color = originalColor; }, 1000);
+  });
+}
+
+async function uploadDocuments(tradeClaimId) {
+  if (uploadedFiles.length === 0) return true;
+  
+  const formData = new FormData();
+  formData.append('trade_claim_id', tradeClaimId);
+  
+  uploadedFiles.forEach(file => {
+    formData.append('documents[]', file);
+  });
+  
+  try {
+    const response = await fetch('/api/v2/documents', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${getAccessToken()}`
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || 'Failed to upload documents');
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Document upload error:', error);
+    showError('Trade claim created but document upload failed: ' + error.message);
+    return false;
+  }
+}
+
+function resetDocumentUpload() {
+  uploadedFiles = [];
+  documentHash = null;
+  document.getElementById('tc_documents').value = '';
+  document.getElementById('uploadedFilesList').style.display = 'none';
+  document.getElementById('documentHashContainer').style.display = 'none';
+  document.getElementById('fileListContainer').innerHTML = '';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SUBMIT TRADE CLAIM
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function submitTradeClaim(event) {
+  event.preventDefault();
+  hideError();
+
+  if (!document.getElementById('tc_declaration_trade').checked ||
+      !document.getElementById('tc_declaration_aml').checked) {
+    showError('Please confirm both declarations to submit.');
+    return;
+  }
+
+  // Show confirmation modal with a summary before proceeding
+  showTradeClaimConfirmModal();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Confirmation modal — show / hide
+// ─────────────────────────────────────────────────────────────────────────────
+
+function showTradeClaimConfirmModal() {
+  // Populate summary fields
+  const corridorSelect  = document.getElementById('tc_corridor_id');
+  const corridorText    = corridorSelect.options[corridorSelect.selectedIndex]?.text || '—';
+  const directionSelect = document.getElementById('tc_trade_direction');
+  const directionText   = directionSelect.options[directionSelect.selectedIndex]?.text
+                          || document.getElementById('tc_trade_direction').value;
+  const currency        = document.getElementById('tc_currency_code').value;
+  const amount          = document.getElementById('tc_amount').value;
+  const invoiceRef      = document.getElementById('tc_invoice_ref').value || '—';
+  const beneficiaryName = document.getElementById('tc_beneficiary_name').value;
+  const beneficiaryCountry = document.getElementById('tc_beneficiary_country').value.toUpperCase();
+  const beneficiaryFlag = (typeof countryFlags !== 'undefined' && countryFlags[beneficiaryCountry])
+                          || '🏳️';
+  const institutionName = selectedInstitution ? selectedInstitution.name : '—';
+
+  document.getElementById('confirmAmount').textContent      = `${currency} ${amount}`;
+  document.getElementById('confirmCorridor').textContent    = corridorText;
+  document.getElementById('confirmInstitution').textContent = institutionName;
+  document.getElementById('confirmBeneficiary').innerHTML   = `${beneficiaryName} ${beneficiaryFlag}`;
+  document.getElementById('confirmInvoiceRef').textContent  = invoiceRef;
+  document.getElementById('confirmDirection').textContent   = directionText;
+
+  const confirmMix = getCurrentDenomMix();
+  if (confirmMix) {
+    const parts = [`${denomFmtNum(confirmMix.totalNotes)} notes`];
+    if (confirmMix.totalCoins > 0)
+      parts.push(`${denomFmtNum(confirmMix.totalCoins)} ${confirmMix.profile.coin_name || 'coins'}`);
+    document.getElementById('confirmNotesMinted').textContent = parts.join(' + ');
+  } else {
+    document.getElementById('confirmNotesMinted').textContent = '—';
+  }
+
+  document.getElementById('tradeClaimConfirmModal').style.display = 'flex';
+}
+
+function cancelTradeClaimConfirm() {
+  document.getElementById('tradeClaimConfirmModal').style.display = 'none';
+}
+
+// Close confirmation modal when clicking the backdrop
+document.getElementById('tradeClaimConfirmModal')?.addEventListener('click', function(e) {
+  if (e.target === this) cancelTradeClaimConfirm();
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Actual API submission — called only after user confirms
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function confirmAndSubmitTradeClaim() {
+  cancelTradeClaimConfirm();
+
+  const submitBtn   = document.getElementById('submitClaimBtn');
+  const originalText = submitBtn.textContent;
+
+  const payload = {
+    trade_claim: {
+      institution_id:      selectedInstitution ? selectedInstitution.id : document.getElementById('tc_institution_id').value,
+      corridor_id:         document.getElementById('tc_corridor_id').value,
+      trade_direction:     document.getElementById('tc_trade_direction').value,
+      currency_code:       document.getElementById('tc_currency_code').value,
+      amount:              getNumericAmount(),
+      invoice_ref:         document.getElementById('tc_invoice_ref').value,
+      // Holder IDs — CVIB note ownership roles
+      // central_bank_holder_id  → Qt6 "Initial Holder" (issuing central bank)
+      // commercial_bank_holder_id → Qt6 "Holder ID"    (receiving commercial bank)
+      central_bank_holder_id:   document.getElementById('tc_central_bank_holder_id')?.value || '',
+      commercial_bank_holder_id: document.getElementById('tc_commercial_bank_holder_id')?.value || '',
+      description:         document.getElementById('tc_description').value,
+      beneficiary_name:    document.getElementById('tc_beneficiary_name').value,
+      beneficiary_country: document.getElementById('tc_beneficiary_country').value.toUpperCase(),
+      document_hash:       documentHash,
+      declarations: {
+        trade_authenticity: true,
+        aml_kyc_compliance: true
+      }
+    }
+  };
+
+  submitBtn.textContent = 'Submitting...';
+  submitBtn.disabled    = true;
+
+  try {
+    // Step 1: Create the trade claim
+    const response = await fetch('/api/v2/trade_claims', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${getAccessToken()}`,
+        'Content-Type':  'application/json',
+        'Accept':        'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || data.error || 'Submission failed');
+    }
+
+    // Step 2: Upload documents if any
+    if (uploadedFiles.length > 0) {
+      submitBtn.textContent = 'Uploading documents...';
+      await uploadDocuments(data.id);
+    }
+
+    // Advance session invoice sequence so next modal open gets the next number
+    const submittedRef = document.getElementById('tc_invoice_ref')?.value || '';
+    if (submittedRef) {
+      const parts = submittedRef.split('-');  // ["INV","2026","080","001"]
+      if (parts.length === 4) {
+        const usedPrefix = `${parts[0]}-${parts[1]}-${parts[2]}-`;
+        const usedSeq    = parseInt(parts[3], 10);
+        if (!isNaN(usedSeq))
+          _invoiceSeqCache[usedPrefix] = Math.max(_invoiceSeqCache[usedPrefix] || 0, usedSeq);
+      }
+    }
+
+    // Show success modal
+    showSuccessModal(data);
+    hideTradeClaimModal();
+
+  } catch (error) {
+    console.error('Submission error:', error);
+    showError(error.message);
+  } finally {
+    submitBtn.textContent = originalText;
+    submitBtn.disabled    = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SAVE DRAFT
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function saveDraft() {
+  hideError();
+  
+  const payload = {
+    trade_claim: {
+      institution_id: selectedInstitution ? selectedInstitution.id : document.getElementById('tc_institution_id').value,
+      corridor_id: document.getElementById('tc_corridor_id').value,
+      trade_direction: document.getElementById('tc_trade_direction').value,
+      currency_code: document.getElementById('tc_currency_code').value,
+      amount: getNumericAmount(),
+      invoice_ref: document.getElementById('tc_invoice_ref').value,
+      central_bank_holder_id:   document.getElementById('tc_central_bank_holder_id')?.value || '',
+      commercial_bank_holder_id: document.getElementById('tc_commercial_bank_holder_id')?.value || '',
+      description: document.getElementById('tc_description').value,
+      beneficiary_name: document.getElementById('tc_beneficiary_name').value,
+      beneficiary_country: document.getElementById('tc_beneficiary_country').value.toUpperCase()
+    }
+  };
+  
+  try {
+    const response = await fetch('/api/v2/trade_claims/draft', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${getAccessToken()}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || data.error || 'Failed to save draft');
+    }
+    
+    // Show draft saved modal instead of alert
+    showDraftSavedModal(data);
+    hideTradeClaimModal();
+    
+  } catch (error) {
+    console.error('Draft save error:', error);
+    showError(error.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SUCCESS MODAL
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Country code to name mapping for display
+const countryCodeToName = {
+  'KEN': 'Kenyan', 'NGA': 'Nigerian', 'GHA': 'Ghanaian', 'ZAF': 'South African',
+  'TZA': 'Tanzanian', 'UGA': 'Ugandan', 'RWA': 'Rwandan', 'ETH': 'Ethiopian',
+  'EGY': 'Egyptian', 'MAR': 'Moroccan', 'DZA': 'Algerian', 'TUN': 'Tunisian',
+  'BWA': 'Botswanan', 'ZMB': 'Zambian', 'ZWE': 'Zimbabwean', 'MOZ': 'Mozambican',
+  'SEN': 'Senegalese', 'CIV': 'Ivorian', 'CMR': 'Cameroonian', 'COD': 'Congolese',
+};
+
+function showSuccessModal(data) {
+  const modal = document.getElementById('tradeClaimSuccessModal');
+  
+  // Get form values for display
+  const currencyCode = document.getElementById('tc_currency_code').value;
+  const amount = document.getElementById('tc_amount').value;
+  const direction = document.getElementById('tc_trade_direction').value;
+  const beneficiaryName = document.getElementById('tc_beneficiary_name').value;
+  const beneficiaryCountry = document.getElementById('tc_beneficiary_country').value;
+  const institutionName = selectedInstitution ? selectedInstitution.name : 'Institution';
+  
+  // Determine regulator country from the corridor target
+  const corridorId = document.getElementById('tc_corridor_id').value;
+  const corridor = corridorsData.find(c => String(c.id) === String(corridorId));
+  const targetCountry = corridor ? (corridor.to_country || corridor.target_country || '') : '';
+  const regulatorName = countryCodeToName[targetCountry] || targetCountry;
+  
+  // Generate reference from ID or use provided reference
+  // Format: TC-YYYYMMDD-XXXXXX (last 6 chars of UUID)
+  let reference = data.reference;
+  if (!reference && data.id) {
+    const today = new Date();
+    const dateStr = today.getFullYear().toString() + 
+                    String(today.getMonth() + 1).padStart(2, '0') + 
+                    String(today.getDate()).padStart(2, '0');
+    const idSuffix = String(data.id).replace(/-/g, '').slice(-6).toUpperCase();
+    reference = `TC-${dateStr}-${idSuffix}`;
+  }
+  
+  // Update modal content
+  document.getElementById('successClaimId').textContent = reference || `TC-${Date.now()}`;
+  document.getElementById('successRegulator').textContent = `${regulatorName} regulators`;
+  document.getElementById('successRegulator2').textContent = `${regulatorName} regulators`;
+  document.getElementById('successAmount').textContent = `${currencyCode} ${amount}`;
+  
+  // Format direction
+  const directionText = direction === 'import' 
+    ? `Import into ${countryCodeToName[beneficiaryCountry] || beneficiaryCountry}` 
+    : `Export from ${countryCodeToName[selectedCountry?.code] || 'origin'}`;
+  document.getElementById('successDirection').textContent = directionText;
+  
+  // Format beneficiary with institution
+  const beneficiaryFlag = countryFlags[beneficiaryCountry] || '🏦';
+  document.getElementById('successBeneficiary').innerHTML = `${beneficiaryName} ${beneficiaryFlag} ${institutionName.split(' ').slice(0,2).join(' ')}`;
+
+  // Denomination mix
+  const successMix = getCurrentDenomMix();
+  const notesMintedEl  = document.getElementById('successNotesMinted');
+  const breakdownEl    = document.getElementById('successDenomBreakdown');
+  const denomTableEl   = document.getElementById('successDenomTable');
+  if (successMix && successMix.totalNotes > 0) {
+    const sParts = [`${denomFmtNum(successMix.totalNotes)} notes`];
+    if (successMix.totalCoins > 0)
+      sParts.push(`${denomFmtNum(successMix.totalCoins)} ${successMix.profile.coin_name || 'coins'}`);
+    notesMintedEl.textContent = sParts.join(' + ');
+    breakdownEl.style.display = 'block';
+    const sym = currencyCode ? currencyCode + ' ' : '';
+    const dec = successMix.profile.coin_decimals || 0;
+    const layerColor = { bulk:'#10b981', transactional:'#3b82f6', micro:'#f59e0b', coins:'#8b5cf6' };
+    const layerLabel = { bulk:'🟢 Bulk', transactional:'🔵 Trade', micro:'🟡 Micro', coins:'🪙 Coin' };
+    const allSuccessItems = [...(successMix.noteItems || []), ...(successMix.coinItems || [])];
+    denomTableEl.innerHTML =
+      `<table style="width:100%; border-collapse:collapse; font-size:11px;">
+        <thead><tr style="color:#6b7280; border-bottom:1px solid #d1fae5;">
+          <th style="text-align:left;padding:3px 0;font-weight:600;">Denomination</th>
+          <th style="text-align:center;padding:3px 0;font-weight:600;">Layer</th>
+          <th style="text-align:right;padding:3px 0;font-weight:600;">Count</th>
+          <th style="text-align:right;padding:3px 0;font-weight:600;">Subtotal</th>
+        </tr></thead>
+        <tbody>
+          ${allSuccessItems.map(i => {
+            const isCoin = i.layer === 'coins';
+            const faceStr = sym + denomFmtNum(i.face, isCoin ? dec : 0);
+            return `<tr style="border-bottom:1px solid #f0fdf4;">
+              <td style="padding:3px 0;font-weight:700;color:${isCoin ? '#5b21b6' : '#065f46'};">${faceStr}</td>
+              <td style="padding:3px 0;text-align:center;font-size:10px;color:${layerColor[i.layer]};font-weight:600;">${layerLabel[i.layer]}</td>
+              <td style="padding:3px 0;text-align:right;color:#374151;">× ${denomFmtNum(i.count)}</td>
+              <td style="padding:3px 0;text-align:right;font-weight:700;color:${isCoin ? '#5b21b6' : '#065f46'};">${sym}${denomFmtNum(i.subtotal, isCoin ? dec : 0)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  } else {
+    notesMintedEl.textContent = '—';
+    breakdownEl.style.display = 'none';
+  }
+
+  // Show modal
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSuccessModal() {
+  const modal = document.getElementById('tradeClaimSuccessModal');
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function closeSuccessAndGoToDesk() {
+  closeSuccessModal();
+  // Show the issuance desk modal
+  if (typeof showIssuanceDeskModal === 'function') {
+    showIssuanceDeskModal();
+  } else {
+    // Fallback to URL navigation if modal not available
+    window.location.href = '/issuance/desk';
+  }
+}
+
+function closeSuccessAndSubmitAnother() {
+  closeSuccessModal();
+  // Re-open the trade claim modal
+  showTradeClaimModal();
+}
+
+// Close success modal when clicking outside
+document.getElementById('tradeClaimSuccessModal')?.addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeSuccessModal();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DRAFT SAVED MODAL
+// ═══════════════════════════════════════════════════════════════════════════
+
+function showDraftSavedModal(data) {
+  const modal = document.getElementById('draftSavedModal');
+  
+  // Get form values for display
+  const currencyCode = document.getElementById('tc_currency_code').value || '-';
+  const amount = document.getElementById('tc_amount').value || '0';
+  const direction = document.getElementById('tc_trade_direction').value;
+  const beneficiaryCountry = document.getElementById('tc_beneficiary_country').value;
+  
+  // Generate reference from ID or use provided reference
+  let reference = data.reference;
+  if (!reference && data.id) {
+    reference = `TC-${data.id.toString().replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+  }
+  
+  // Update modal content
+  document.getElementById('draftClaimId').textContent = reference || `TC-${Date.now()}`;
+  document.getElementById('draftAmount').textContent = currencyCode !== '-' ? `${currencyCode} ${amount}` : '-';
+  
+  // Format direction
+  const directionText = direction === 'import' 
+    ? `Import into ${countryCodeToName[beneficiaryCountry] || beneficiaryCountry || '-'}` 
+    : direction === 'export' 
+      ? `Export from ${selectedCountry?.name || '-'}`
+      : '-';
+  document.getElementById('draftDirection').textContent = directionText;
+  
+  // Show modal
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDraftModal() {
+  const modal = document.getElementById('draftSavedModal');
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function closeDraftModalAndGoToDrafts() {
+  closeDraftModal();
+  // Navigate to drafts page - adjust URL as needed
+  window.location.href = '/trade_claims?status=draft';
+}
+
+function closeDraftModalAndContinueEditing() {
+  closeDraftModal();
+  // Re-open the trade claim modal to continue editing
+  showTradeClaimModal();
+}
+
+// Close draft modal when clicking outside
+document.getElementById('draftSavedModal')?.addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeDraftModal();
+  }
+});
+</script>

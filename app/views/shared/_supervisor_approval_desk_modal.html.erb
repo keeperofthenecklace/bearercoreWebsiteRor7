@@ -1,0 +1,2264 @@
+<%#
+  View: app/views/shared/_supervisor_approval_desk_modal.html.erb
+  
+  SUPERVISOR APPROVAL DESK
+  ========================
+  A regulator-grade interface for reviewing and authorizing trade claims.
+  
+  KEY PRINCIPLES:
+  - Review checks are SYSTEM-DRIVEN, not manual judgments
+  - Supervisor reviews automated outputs, not raw data
+  - Supervisor cannot modify or override compliance results
+  - All decisions are audit-logged
+  
+  AUTOMATED CHECK PIPELINE:
+  1. DocumentValidationService → document_status
+  2. AMLCheckService → aml_status
+  3. LimitCheckService → limit_status
+  4. BeneficiaryVerificationService → beneficiary_status
+  5. ComplianceStatusAggregator → compliance_status (pre_cleared/manual_review/blocked)
+%>
+
+<!-- Supervisor Approval Desk Modal Overlay -->
+<div id="supervisorDeskModalOverlay" style="
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+">
+  <div style="
+    background: #f5f5f7;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 980px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+  ">
+    <!-- Header -->
+    <div style="
+      background: linear-gradient(135deg, #1a4d3e 0%, #2d6a4f 50%, #1a4d3e 100%);
+      padding: 24px 28px;
+      position: relative;
+      overflow: hidden;
+    ">
+      <!-- Subtle pattern overlay -->
+      <div style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.08) 1px, transparent 0);
+        background-size: 24px 24px;
+        pointer-events: none;
+      "></div>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div style="
+            width: 52px;
+            height: 52px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+          ">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 6v6l4 2"></path>
+              <path d="M16.24 7.76l1.42-1.42"></path>
+              <path d="M18 12h2"></path>
+            </svg>
+          </div>
+          <div>
+            <h2 style="
+              margin: 0;
+              font-size: 22px;
+              font-weight: 600;
+              color: #ffffff;
+              letter-spacing: -0.3px;
+            ">Supervisor Approval Desk</h2>
+            <p style="
+              margin: 4px 0 0;
+              font-size: 13px;
+              color: rgba(255, 255, 255, 0.75);
+            ">Review and authorize trade claims and governance proposals.</p>
+          </div>
+        </div>
+        
+        <button onclick="hideSupervisorDeskModal()" style="
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          border: none;
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          font-size: 20px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.2s;
+        " onmouseover="this.style.background='rgba(255,255,255,0.3)'"
+           onmouseout="this.style.background='rgba(255,255,255,0.2)'">×</button>
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div style="
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      background: #f5f5f7;
+    ">
+      <!-- Search Bar -->
+      <div style="
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      ">
+        <div style="
+          flex: 1;
+          display: flex;
+          align-items: center;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          padding: 0 16px;
+        ">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input id="supervisorSearchInput" 
+                 type="text" 
+                 placeholder="Search by ID, institution or invoice ref..."
+                 oninput="applySupervisorFilters()"
+                 style="
+                   flex: 1;
+                   border: none;
+                   outline: none;
+                   padding: 14px 12px;
+                   font-size: 14px;
+                   background: transparent;
+                 ">
+        </div>
+        <button onclick="loadSupervisorClaims()" style="
+          background: #1a4d3e;
+          color: white;
+          border: none;
+          border-radius: 12px;
+          padding: 0 20px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+        ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Section 1: Pending Items Queue -->
+      <div style="
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        border: 1px solid #e5e7eb;
+      ">
+        <div onclick="toggleSupervisorSection('pendingQueueContent')" style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px 20px;
+          cursor: pointer;
+          border-bottom: 1px solid #e5e7eb;
+          background: #fafafa;
+        ">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="
+              width: 28px;
+              height: 28px;
+              background: #d1fae5;
+              border-radius: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
+              Pending Items Queue
+            </h3>
+            <span id="pendingQueueCount" style="
+              background: #fef3c7;
+              color: #d97706;
+              padding: 3px 10px;
+              border-radius: 12px;
+              font-size: 12px;
+              font-weight: 600;
+            ">0</span>
+          </div>
+          <svg id="pendingQueueContentChevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" style="transition: transform 0.2s;">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+        
+        <div id="pendingQueueContent">
+          <div style="
+            display: grid;
+            grid-template-columns: 40px 180px 140px 120px 140px 130px 90px;
+            gap: 8px;
+            padding: 12px 20px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">
+            <span>#</span>
+            <span>Claim ID</span>
+            <span>Institution</span>
+            <span>Amount</span>
+            <span>Corridor</span>
+            <span>Compliance Status</span>
+            <span>Submitted</span>
+          </div>
+          
+          <div id="supervisorClaimsLoading" style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: #6b7280;
+            font-size: 14px;
+          ">
+            <span style="margin-right: 8px;">⏳</span> Loading claims...
+          </div>
+          
+          <div id="supervisorClaimsRows"></div>
+          
+          <div style="
+            display: flex;
+            justify-content: center;
+            padding: 16px;
+            border-top: 1px solid #f3f4f6;
+          ">
+            <div style="display: flex; gap: 4px; align-items: center;">
+              <button onclick="supervisorPrevPage()" id="supervisorPrevBtn" style="
+                padding: 6px 10px;
+                background: white;
+                border: 1px solid #e5e7eb;
+                border-radius: 6px;
+                cursor: pointer;
+                color: #9ca3af;
+              ">‹</button>
+              <span id="supervisorPageNumbers" style="display: flex; gap: 4px;"></span>
+              <button onclick="supervisorNextPage()" id="supervisorNextBtn" style="
+                padding: 6px 10px;
+                background: white;
+                border: 1px solid #e5e7eb;
+                border-radius: 6px;
+                cursor: pointer;
+                color: #9ca3af;
+              ">›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Approve Trade Claim -->
+      <div id="approvalSection" style="
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        border: 1px solid #e5e7eb;
+        display: none;
+      ">
+        <div onclick="toggleSupervisorSection('approvalContent')" style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px 20px;
+          cursor: pointer;
+          border-bottom: 1px solid #e5e7eb;
+          background: #fafafa;
+        ">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="
+              width: 28px;
+              height: 28px;
+              background: #d1fae5;
+              border-radius: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
+              Approve Trade Claim
+            </h3>
+          </div>
+          <svg id="approvalContentChevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+        
+        <div id="approvalContent" style="padding: 24px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <!-- Left Column: Claim Details -->
+            <div>
+              <div style="
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 20px;
+                padding-bottom: 16px;
+                border-bottom: 1px solid #e5e7eb;
+              ">
+                <div id="approvalInstitutionFlag" style="
+                  width: 44px;
+                  height: 44px;
+                  background: #f3f4f6;
+                  border-radius: 10px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 24px;
+                ">🏦</div>
+                <div>
+                  <div id="approvalInstitutionName" style="font-size: 17px; font-weight: 600; color: #1d1d1f;">—</div>
+                  <div id="approvalInstitutionType" style="font-size: 12px; color: #6b7280;">Authorized Dealer Bank</div>
+                </div>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                  <div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">Trade Direction</div>
+                  <div id="approvalDirection" style="font-size: 14px; color: #1d1d1f; font-weight: 500;">—</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">Corridor</div>
+                  <div id="approvalCorridor" style="font-size: 14px; color: #1d1d1f; font-weight: 500;">—</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">Trade Amount</div>
+                  <div id="approvalAmount" style="font-size: 14px; color: #1d1d1f; font-weight: 600;">—</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">Invoice Reference</div>
+                  <div id="approvalInvoiceRef" style="font-size: 14px; color: #1d1d1f; font-weight: 500;">—</div>
+                </div>
+              </div>
+              
+              <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                <div style="font-size: 13px; font-weight: 600; color: #1d1d1f; margin-bottom: 12px;">Beneficiary Info</div>
+                <div style="background: #f9fafb; border-radius: 10px; padding: 14px;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="
+                      width: 32px;
+                      height: 32px;
+                      background: #e5e7eb;
+                      border-radius: 8px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                    ">👤</div>
+                    <div>
+                      <div style="font-size: 12px; color: #9ca3af;">Beneficiary Name:</div>
+                      <div id="approvalBeneficiaryName" style="font-size: 14px; color: #1d1d1f; font-weight: 500;">—</div>
+                    </div>
+                  </div>
+                  <div style="margin-top: 10px; display: flex; gap: 20px;">
+                    <div>
+                      <div style="font-size: 11px; color: #9ca3af;">Bank</div>
+                      <div id="approvalBeneficiaryBank" style="font-size: 13px; color: #374151;">—</div>
+                    </div>
+                    <div>
+                      <div style="font-size: 11px; color: #9ca3af;">Country</div>
+                      <div id="approvalBeneficiaryCountry" style="font-size: 13px; color: #374151;">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Right Column: Gating Conditions & Updates -->
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: #1d1d1f; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                <span>Gating Conditions <span style="font-weight: 400; color: #6b7280; font-size: 11px; margin-left: 4px;">(System-Generated)</span></span>
+                <span id="gatingOverallBadge" style="padding: 3px 10px; border-radius: 10px; font-size: 10px; font-weight: 700; background: #f3f4f6; color: #6b7280;">EVALUATING</span>
+              </div>
+
+              <div style="background: #f9fafb; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+
+                <!-- Gate 1: Supervisor Approval -->
+                <div id="gateRow_supervisor_approval" style="background: white; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; cursor: pointer;" onclick="toggleGateDetail('supervisor_approval')">
+                    <div style="display: flex; align-items: center; gap: 9px;">
+                      <span id="gateIcon_supervisor_approval" style="font-size: 15px;">⏳</span>
+                      <div>
+                        <div style="font-size: 12px; font-weight: 600; color: #374151;">1. Supervisor Approval</div>
+                        <div style="font-size: 10px; color: #9ca3af;">Status approved · 4-eyes · Audit trail</div>
+                      </div>
+                    </div>
+                    <span id="gateBadge_supervisor_approval" style="padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #f3f4f6; color: #6b7280;">Pending</span>
+                  </div>
+                  <div id="gateDetail_supervisor_approval" style="display: none; padding: 8px 12px 10px; border-top: 1px solid #f3f4f6; background: #fafafa;">
+                    <div id="gateDetailText_supervisor_approval" style="font-size: 11px; color: #6b7280; line-height: 1.6;"></div>
+                  </div>
+                </div>
+
+                <!-- Gate 2: Compliance -->
+                <div id="gateRow_compliance" style="background: white; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; cursor: pointer;" onclick="toggleGateDetail('compliance')">
+                    <div style="display: flex; align-items: center; gap: 9px;">
+                      <span id="gateIcon_compliance" style="font-size: 15px;">⏳</span>
+                      <div>
+                        <div style="font-size: 12px; font-weight: 600; color: #374151;">2. Compliance Passed</div>
+                        <div style="font-size: 10px; color: #9ca3af;">AML · Sanctions · Risk score · Docs</div>
+                      </div>
+                    </div>
+                    <span id="gateBadge_compliance" style="padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #f3f4f6; color: #6b7280;">Pending</span>
+                  </div>
+                  <div id="gateDetail_compliance" style="display: none; padding: 8px 12px 10px; border-top: 1px solid #f3f4f6; background: #fafafa;">
+                    <div id="gateDetailText_compliance" style="font-size: 11px; color: #6b7280; line-height: 1.6;"></div>
+                  </div>
+                </div>
+
+                <!-- Gate 3: Corridor Limits -->
+                <div id="gateRow_corridor_limits" style="background: white; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; cursor: pointer;" onclick="toggleGateDetail('corridor_limits')">
+                    <div style="display: flex; align-items: center; gap: 9px;">
+                      <span id="gateIcon_corridor_limits" style="font-size: 15px;">⏳</span>
+                      <div>
+                        <div style="font-size: 12px; font-weight: 600; color: #374151;">3. Corridor Limits Available</div>
+                        <div style="font-size: 10px; color: #9ca3af;">Daily limit · Not suspended · Velocity</div>
+                      </div>
+                    </div>
+                    <span id="gateBadge_corridor_limits" style="padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #f3f4f6; color: #6b7280;">Pending</span>
+                  </div>
+                  <div id="gateDetail_corridor_limits" style="display: none; padding: 8px 12px 10px; border-top: 1px solid #f3f4f6; background: #fafafa;">
+                    <div id="gateDetailText_corridor_limits" style="font-size: 11px; color: #6b7280; line-height: 1.6;"></div>
+                  </div>
+                </div>
+
+                <!-- Gate 4: Liquidity -->
+                <div id="gateRow_liquidity" style="background: white; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; cursor: pointer;" onclick="toggleGateDetail('liquidity')">
+                    <div style="display: flex; align-items: center; gap: 9px;">
+                      <span id="gateIcon_liquidity" style="font-size: 15px;">⏳</span>
+                      <div>
+                        <div style="font-size: 12px; font-weight: 600; color: #374151;">4. Liquidity Confirmed</div>
+                        <div style="font-size: 10px; color: #9ca3af;">Backing asset · Reserve pool · DLT lock</div>
+                      </div>
+                    </div>
+                    <span id="gateBadge_liquidity" style="padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #f3f4f6; color: #6b7280;">Pending</span>
+                  </div>
+                  <div id="gateDetail_liquidity" style="display: none; padding: 8px 12px 10px; border-top: 1px solid #f3f4f6; background: #fafafa;">
+                    <div id="gateDetailText_liquidity" style="font-size: 11px; color: #6b7280; line-height: 1.6;"></div>
+                  </div>
+                </div>
+
+                <!-- Gate 5: Governance -->
+                <div id="gateRow_governance" style="background: white; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; cursor: pointer;" onclick="toggleGateDetail('governance')">
+                    <div style="display: flex; align-items: center; gap: 9px;">
+                      <span id="gateIcon_governance" style="font-size: 15px;">⏳</span>
+                      <div>
+                        <div style="font-size: 12px; font-weight: 600; color: #374151;">5. Governance Rules Met</div>
+                        <div style="font-size: 10px; color: #9ca3af;">Dual approval · Supermajority · Sovereign</div>
+                      </div>
+                    </div>
+                    <span id="gateBadge_governance" style="padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #f3f4f6; color: #6b7280;">Pending</span>
+                  </div>
+                  <div id="gateDetail_governance" style="display: none; padding: 8px 12px 10px; border-top: 1px solid #f3f4f6; background: #fafafa;">
+                    <div id="gateDetailText_governance" style="font-size: 11px; color: #6b7280; line-height: 1.6;"></div>
+                  </div>
+                </div>
+
+              </div><!-- end gate rows -->
+
+              <!-- Updates Section -->
+              <div style="margin-top: 14px;">
+                <div style="font-size: 13px; font-weight: 600; color: #1d1d1f; margin-bottom: 10px;">
+                  Updates
+                  <span style="font-weight: 400; color: #6b7280; font-size: 11px; margin-left: 6px;">(On Approval)</span>
+                </div>
+                <div id="approvalUpdates" style="
+                  background: #f9fafb;
+                  border: 1px solid #e5e7eb;
+                  border-radius: 10px;
+                  padding: 12px 14px;
+                  font-size: 12px;
+                  color: #6b7280;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 6px;
+                ">
+                  <div>○ status → pending approval</div>
+                  <div>○ liquidity_lock not created</div>
+                  <div id="issuanceEligibleUpdate" style="display:none; margin-top:6px; padding-top:6px; border-top:1px solid #bbf7d0;">
+                    <span style="color: #059669; font-weight:600;">🏦 status → issuance_eligible</span>
+                    <div style="font-size:11px; color:#166534; margin-top:2px;">All 5 gating conditions satisfied. Ready for CVIB minting.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Lifecycle Tracking Table ─────────────────────────────────── -->
+          <div id="lifecycleTrackingSection" style="margin-top: 20px; padding-top: 18px; border-top: 1px solid #f3f4f6; display: none;">
+            <div style="font-size: 13px; font-weight: 600; color: #1d1d1f; margin-bottom: 12px;">
+              Claim Lifecycle Tracking
+              <span style="font-weight: 400; color: #6b7280; font-size: 11px; margin-left: 6px;">(follows claim until Issuance-Eligible)</span>
+            </div>
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <thead>
+                  <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                    <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Stage</th>
+                    <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
+                    <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Condition</th>
+                    <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Satisfied</th>
+                  </tr>
+                </thead>
+                <tbody id="lifecycleTableBody">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Decision Notes & Actions -->
+          <div style="
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+          ">
+            <div style="font-size: 13px; font-weight: 600; color: #1d1d1f; margin-bottom: 10px;">Decision Notes:</div>
+            <div style="display: flex; gap: 12px; align-items: stretch;">
+              <input id="supervisorDecisionNotes" 
+                     type="text" 
+                     placeholder="Decision Notes" 
+                     style="
+                       flex: 1;
+                       padding: 12px 16px;
+                       border: 1px solid #e5e7eb;
+                       border-radius: 10px;
+                       font-size: 14px;
+                       outline: none;
+                     ">
+              <button id="btnApprove" onclick="supervisorApproveClaim()" style="
+                background: #059669;
+                color: white;
+                border: none;
+                border-radius: 10px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              ">✓ Approve</button>
+              <button onclick="supervisorRequestClarification()" style="
+                background: white;
+                color: #374151;
+                border: 1px solid #d1d5db;
+                border-radius: 10px;
+                padding: 12px 20px;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+              ">💬 Request Clarification</button>
+              <button id="btnReject" onclick="supervisorRejectClaim()" title="Reject Claim" style="
+                background: #fee2e2;
+                color: #dc2626;
+                border: 1px solid #fecaca;
+                border-radius: 10px;
+                padding: 12px 16px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+              ">✕ Reject</button>
+              <button id="btnCancel" onclick="supervisorCancelClaim()" title="Cancel Claim" style="
+                background: #f3f4f6;
+                color: #6b7280;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                padding: 12px 16px;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+              ">🚫 Cancel</button>
+            </div>
+            
+            <div id="blockedClaimWarning" style="
+              display: none;
+              margin-top: 16px;
+              padding: 14px 16px;
+              background: #fef2f2;
+              border: 1px solid #fecaca;
+              border-radius: 10px;
+              color: #991b1b;
+              font-size: 13px;
+            ">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+                <div>
+                  <strong>⛔ This claim cannot be approved.</strong> One or more compliance checks have failed. 
+                  The supervisor cannot override system compliance decisions.
+                  <div style="margin-top: 6px; font-size: 12px; color: #b91c1c;">
+                    Once the underlying issue has been corrected by the compliance team, 
+                    click <strong>Re-Evaluate</strong> to re-run all gating conditions.
+                  </div>
+                </div>
+                <button id="btnReEvaluate" onclick="supervisorReEvaluateClaim()" style="
+                  flex-shrink: 0;
+                  background: #1a4d3e;
+                  color: white;
+                  border: none;
+                  border-radius: 8px;
+                  padding: 8px 16px;
+                  font-size: 12px;
+                  font-weight: 600;
+                  cursor: pointer;
+                  white-space: nowrap;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                ">⟳ Re-Evaluate</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Legend -->
+      <div style="
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        padding: 16px;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+      ">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 10px; height: 10px; background: #fef3c7; border: 2px solid #f59e0b; border-radius: 50%;"></span>
+          <span style="font-size: 12px; color: #6b7280;">Pending</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 10px; height: 10px; background: #d1fae5; border: 2px solid #10b981; border-radius: 50%;"></span>
+          <span style="font-size: 12px; color: #6b7280;">Pre-Cleared</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 10px; height: 10px; background: #fed7aa; border: 2px solid #f97316; border-radius: 50%;"></span>
+          <span style="font-size: 12px; color: #6b7280;">Manual Review</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 10px; height: 10px; background: #d1fae5; border: 2px solid #059669; border-radius: 50%;"></span>
+          <span style="font-size: 12px; color: #6b7280;">Approved</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="
+      padding: 16px 24px;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+    ">
+      <a href="#" style="color: #6b7280; text-decoration: none; font-size: 13px;">📖 Help & Docs</a>
+      <span style="color: #e5e7eb;">·</span>
+      <a href="#" style="color: #6b7280; text-decoration: none; font-size: 13px;">Contact Support</a>
+      <span style="color: #e5e7eb;">·</span>
+      <a href="#" onclick="hideSupervisorDeskModal(); return false;" style="color: #6b7280; text-decoration: none; font-size: 13px;">Dashboard</a>
+    </div>
+  </div>
+</div>
+
+<style>
+.supervisor-claim-row:hover { background: #f0fdf4 !important; }
+.supervisor-claim-row.selected { background: #d1fae5 !important; border-left: 3px solid #10b981; }
+
+/* ── Supervisor Desk Responsive ── */
+
+/* Tablet (≤ 860px): split panel stacks vertically */
+@media (max-width: 860px) {
+  #supervisorDeskModalOverlay {
+    padding: 12px !important;
+    align-items: flex-start !important;
+  }
+  #supervisorDeskModalOverlay > div {
+    max-width: 100% !important;
+    max-height: 94vh !important;
+    border-radius: 16px !important;
+  }
+  /* Main body 2-col layout → stack */
+  #supervisorDeskModalOverlay > div > div:last-child > div[style*="display: flex"][style*="overflow: hidden"] {
+    flex-direction: column !important;
+    overflow-y: auto !important;
+  }
+  /* Left claims list: full width, capped height */
+  #supervisorDeskModalOverlay > div > div:last-child > div > div:first-child {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-height: 320px !important;
+    border-right: none !important;
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+  /* Right detail panel: full width */
+  #supervisorDeskModalOverlay > div > div:last-child > div > div:last-child {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  /* 2-col detail grids → 1-col on tablet */
+  #supervisorDeskModalOverlay [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  /* Table header: smaller font */
+  #supervisorDeskModalOverlay [style*="grid-template-columns: 40px 180px"] {
+    grid-template-columns: 40px 1fr 100px 110px 80px 80px 70px !important;
+    font-size: 11px !important;
+  }
+}
+
+/* Mobile (≤ 520px): full bottom sheet */
+@media (max-width: 520px) {
+  #supervisorDeskModalOverlay {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+  #supervisorDeskModalOverlay > div {
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 96vh !important;
+    height: 96vh !important;
+  }
+  /* Compact header */
+  #supervisorDeskModalOverlay > div > div:first-child {
+    padding: 16px 18px !important;
+  }
+  #supervisorDeskModalOverlay > div > div:first-child h2 {
+    font-size: 18px !important;
+  }
+  /* Filter tabs: scroll horizontally */
+  #supervisorDeskModalOverlay .supervisor-filter-tabs,
+  #supervisorDeskModalOverlay [style*="gap: 8px"][style*="flex-wrap"] {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding-bottom: 4px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Approval action bar: stack */
+  #supervisorDeskModalOverlay [style*="justify-content: flex-end"][style*="gap: 12px"] {
+    flex-wrap: wrap !important;
+  }
+  #supervisorDeskModalOverlay [style*="justify-content: flex-end"][style*="gap: 12px"] button {
+    flex: 1 !important; min-width: 120px !important;
+  }
+}
+</style>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// SUPERVISOR APPROVAL DESK STATE & FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════════════
+
+let supervisorClaims = [];
+let filteredSupervisorClaims = [];
+let supervisorCurrentPage = 1;
+const supervisorPageSize = 5;
+let selectedSupervisorClaim = null;
+let selectedSupervisorClaimData = null;
+
+const complianceStatusConfig = {
+  'pending': { bg: '#fef3c7', color: '#d97706', border: '#f59e0b', icon: '⏳', label: 'Pending' },
+  'submitted': { bg: '#fef3c7', color: '#d97706', border: '#f59e0b', icon: '⏳', label: 'Pending' },
+  'pre_cleared': { bg: '#d1fae5', color: '#059669', border: '#10b981', icon: '✓', label: 'Pre-Cleared' },
+  'manual_review': { bg: '#fed7aa', color: '#c2410c', border: '#f97316', icon: '📋', label: 'Manual Review' },
+  'approved': { bg: '#d1fae5', color: '#059669', border: '#059669', icon: '✅', label: 'Approved' },
+  'cleared': { bg: '#d1fae5', color: '#059669', border: '#059669', icon: '✅', label: 'Cleared' },
+  'blocked': { bg: '#fee2e2', color: '#dc2626', border: '#ef4444', icon: '⛔', label: 'Blocked' },
+};
+
+// Derive the effective compliance status from the claim's lifecycle status.
+// Once a claim has been approved or progressed beyond review, compliance is cleared.
+const COMPLIANCE_CLEARED_STATUSES = new Set([
+  'approved', 'issuance_eligible', 'liquidity_reserved', 'batch_created',
+  'batch_packaged', 'minted', 'issued', 'completed'
+]);
+function resolveComplianceStatus(claim) {
+  const claimStatus     = (claim.status || '').toLowerCase();
+  const complianceField = (claim.compliance_status || 'pending').toLowerCase();
+  if (COMPLIANCE_CLEARED_STATUSES.has(claimStatus)) return 'cleared';
+  return complianceField;
+}
+
+const checkStatusConfig = {
+  'validated': { icon: '✅', badge: 'Validated', bg: '#d1fae5', color: '#059669' },
+  'clear': { icon: '✅', badge: 'Clear', bg: '#d1fae5', color: '#059669' },
+  'ok': { icon: '✅', badge: 'Within Limit', bg: '#d1fae5', color: '#059669' },
+  'verified': { icon: '✅', badge: 'Verified', bg: '#d1fae5', color: '#059669' },
+  'pending': { icon: '⏳', badge: 'Pending', bg: '#fef3c7', color: '#d97706' },
+  'flagged': { icon: '⚠️', badge: 'Flagged', bg: '#fed7aa', color: '#c2410c' },
+  'failed': { icon: '❌', badge: 'Failed', bg: '#fee2e2', color: '#dc2626' },
+  'exceeded': { icon: '❌', badge: 'Exceeded', bg: '#fee2e2', color: '#dc2626' },
+};
+
+// Keyed by ISO alpha-3, alpha-2, short aliases, and full country names
+const supervisorCountryFlags = {
+  // East Africa
+  'KE': '🇰🇪', 'KEN': '🇰🇪', 'Kenya': '🇰🇪',
+  'TZ': '🇹🇿', 'TZA': '🇹🇿', 'Tanzania': '🇹🇿',
+  'UG': '🇺🇬', 'UGA': '🇺🇬', 'Uganda': '🇺🇬',
+  'RW': '🇷🇼', 'RWA': '🇷🇼', 'Rwanda': '🇷🇼',
+  'BI': '🇧🇮', 'BDI': '🇧🇮', 'Burundi': '🇧🇮',
+  'ET': '🇪🇹', 'ETH': '🇪🇹', 'Ethiopia': '🇪🇹',
+  'SO': '🇸🇴', 'SOM': '🇸🇴', 'Somalia': '🇸🇴',
+  'DJ': '🇩🇯', 'DJI': '🇩🇯', 'Djibouti': '🇩🇯',
+  'ER': '🇪🇷', 'ERI': '🇪🇷', 'Eritrea': '🇪🇷',
+  'SS': '🇸🇸', 'SSD': '🇸🇸', 'South Sudan': '🇸🇸',
+  // West Africa
+  'NG': '🇳🇬', 'NGA': '🇳🇬', 'NIG': '🇳🇬', 'Nigeria': '🇳🇬',
+  'GH': '🇬🇭', 'GHA': '🇬🇭', 'Ghana': '🇬🇭',
+  'SN': '🇸🇳', 'SEN': '🇸🇳', 'Senegal': '🇸🇳',
+  'CI': '🇨🇮', 'CIV': '🇨🇮', 'Ivory Coast': '🇨🇮', "Côte d'Ivoire": '🇨🇮',
+  'ML': '🇲🇱', 'MLI': '🇲🇱', 'Mali': '🇲🇱',
+  'BF': '🇧🇫', 'BFA': '🇧🇫', 'BUR': '🇧🇫', 'Burkina Faso': '🇧🇫',
+  'NE': '🇳🇪', 'NER': '🇳🇪', 'Niger': '🇳🇪',
+  'GN': '🇬🇳', 'GIN': '🇬🇳', 'Guinea': '🇬🇳',
+  'BJ': '🇧🇯', 'BEN': '🇧🇯', 'Benin': '🇧🇯',
+  'TG': '🇹🇬', 'TGO': '🇹🇬', 'TOG': '🇹🇬', 'Togo': '🇹🇬',
+  'SL': '🇸🇱', 'SLE': '🇸🇱', 'Sierra Leone': '🇸🇱',
+  'LR': '🇱🇷', 'LBR': '🇱🇷', 'Liberia': '🇱🇷',
+  'GM': '🇬🇲', 'GMB': '🇬🇲', 'Gambia': '🇬🇲',
+  'GW': '🇬🇼', 'GNB': '🇬🇼', 'Guinea-Bissau': '🇬🇼',
+  'CV': '🇨🇻', 'CPV': '🇨🇻', 'Cape Verde': '🇨🇻',
+  'MR': '🇲🇷', 'MRT': '🇲🇷', 'Mauritania': '🇲🇷',
+  // Central Africa
+  'CM': '🇨🇲', 'CMR': '🇨🇲', 'Cameroon': '🇨🇲',
+  'CD': '🇨🇩', 'COD': '🇨🇩', 'DR Congo': '🇨🇩',
+  'CG': '🇨🇬', 'COG': '🇨🇬', 'Congo': '🇨🇬',
+  'GA': '🇬🇦', 'GAB': '🇬🇦', 'Gabon': '🇬🇦',
+  'GQ': '🇬🇶', 'GNQ': '🇬🇶', 'Equatorial Guinea': '🇬🇶',
+  'CF': '🇨🇫', 'CAF': '🇨🇫', 'Central African Republic': '🇨🇫',
+  'TD': '🇹🇩', 'TCD': '🇹🇩', 'Chad': '🇹🇩',
+  'ST': '🇸🇹', 'STP': '🇸🇹',
+  // Southern Africa
+  'ZA': '🇿🇦', 'ZAF': '🇿🇦', 'South Africa': '🇿🇦',
+  'ZW': '🇿🇼', 'ZWE': '🇿🇼', 'Zimbabwe': '🇿🇼',
+  'ZM': '🇿🇲', 'ZMB': '🇿🇲', 'Zambia': '🇿🇲',
+  'BW': '🇧🇼', 'BWA': '🇧🇼', 'Botswana': '🇧🇼',
+  'NA': '🇳🇦', 'NAM': '🇳🇦', 'Namibia': '🇳🇦',
+  'MZ': '🇲🇿', 'MOZ': '🇲🇿', 'Mozambique': '🇲🇿',
+  'MW': '🇲🇼', 'MWI': '🇲🇼', 'Malawi': '🇲🇼',
+  'LS': '🇱🇸', 'LSO': '🇱🇸', 'Lesotho': '🇱🇸',
+  'SZ': '🇸🇿', 'SWZ': '🇸🇿', 'Eswatini': '🇸🇿', 'Swaziland': '🇸🇿',
+  'AO': '🇦🇴', 'AGO': '🇦🇴', 'Angola': '🇦🇴',
+  // North Africa
+  'EG': '🇪🇬', 'EGY': '🇪🇬', 'Egypt': '🇪🇬',
+  'MA': '🇲🇦', 'MAR': '🇲🇦', 'Morocco': '🇲🇦',
+  'DZ': '🇩🇿', 'DZA': '🇩🇿', 'ALG': '🇩🇿', 'Algeria': '🇩🇿',
+  'TN': '🇹🇳', 'TUN': '🇹🇳', 'Tunisia': '🇹🇳',
+  'LY': '🇱🇾', 'LBY': '🇱🇾', 'Libya': '🇱🇾',
+  'SD': '🇸🇩', 'SDN': '🇸🇩', 'Sudan': '🇸🇩',
+  // Islands
+  'MU': '🇲🇺', 'MUS': '🇲🇺', 'Mauritius': '🇲🇺',
+  'MG': '🇲🇬', 'MDG': '🇲🇬', 'Madagascar': '🇲🇬',
+  'SC': '🇸🇨', 'SYC': '🇸🇨', 'Seychelles': '🇸🇨',
+  'KM': '🇰🇲', 'COM': '🇰🇲', 'Comoros': '🇰🇲',
+};
+
+// Full-name to flag — handles names parsed out of corridor.name strings
+const supervisorCorridorNameFlags = {
+  'ALGERIA': '🇩🇿', 'ANGOLA': '🇦🇴', 'BENIN': '🇧🇯', 'BOTSWANA': '🇧🇼',
+  'BURKINA FASO': '🇧🇫', 'BURUNDI': '🇧🇮', 'CAMEROON': '🇨🇲', 'CAPE VERDE': '🇨🇻',
+  'CENTRAL AFRICAN REPUBLIC': '🇨🇫', 'CHAD': '🇹🇩', 'COMOROS': '🇰🇲',
+  'CONGO': '🇨🇬', 'DR CONGO': '🇨🇩', 'DRC': '🇨🇩',
+  "COTE D'IVOIRE": '🇨🇮', "CÔTE D'IVOIRE": '🇨🇮', 'IVORY COAST': '🇨🇮',
+  'DJIBOUTI': '🇩🇯', 'EGYPT': '🇪🇬', 'EQUATORIAL GUINEA': '🇬🇶',
+  'ERITREA': '🇪🇷', 'ESWATINI': '🇸🇿', 'SWAZILAND': '🇸🇿',
+  'ETHIOPIA': '🇪🇹', 'GABON': '🇬🇦', 'GAMBIA': '🇬🇲', 'GHANA': '🇬🇭',
+  'GUINEA': '🇬🇳', 'GUINEA-BISSAU': '🇬🇼', 'KENYA': '🇰🇪', 'LESOTHO': '🇱🇸',
+  'LIBERIA': '🇱🇷', 'LIBYA': '🇱🇾', 'MADAGASCAR': '🇲🇬', 'MALAWI': '🇲🇼',
+  'MALI': '🇲🇱', 'MAURITANIA': '🇲🇷', 'MAURITIUS': '🇲🇺', 'MOROCCO': '🇲🇦',
+  'MOZAMBIQUE': '🇲🇿', 'NAMIBIA': '🇳🇦', 'NIGER': '🇳🇪', 'NIGERIA': '🇳🇬',
+  'RWANDA': '🇷🇼', 'SENEGAL': '🇸🇳', 'SEYCHELLES': '🇸🇨', 'SIERRA LEONE': '🇸🇱',
+  'SOMALIA': '🇸🇴', 'SOUTH AFRICA': '🇿🇦', 'SOUTH SUDAN': '🇸🇸', 'SUDAN': '🇸🇩',
+  'TANZANIA': '🇹🇿', 'TOGO': '🇹🇬', 'TUNISIA': '🇹🇳', 'UGANDA': '🇺🇬',
+  'ZAMBIA': '🇿🇲', 'ZIMBABWE': '🇿🇼',
+};
+
+// Resolve any code, alias, or country name to its flag emoji
+function resolveSupervisorFlag(raw) {
+  if (!raw) return '';
+  const v = raw.toString().trim();
+  return supervisorCountryFlags[v]
+    || supervisorCountryFlags[v.toUpperCase()]
+    || supervisorCorridorNameFlags[v.toUpperCase()]
+    || '🌍';
+}
+
+// Institution name to country code mapping
+const supervisorInstitutionToCountry = {
+  // Nigerian banks
+  'GUARANTY TRUST BANK': 'NGA', 'GTB': 'NGA', 'ACCESS BANK': 'NGA',
+  'ZENITH BANK': 'NGA', 'FIRST BANK': 'NGA', 'UBA': 'NGA',
+  'UNITED BANK FOR AFRICA': 'NGA', 'STANBIC IBTC': 'NGA',
+  'FIDELITY BANK': 'NGA', 'ECOBANK NIGERIA': 'NGA', 'FCMB': 'NGA',
+  'UNION BANK': 'NGA', 'WEMA BANK': 'NGA', 'STERLING BANK': 'NGA',
+  // Kenyan banks
+  'EQUITY BANK': 'KEN', 'KCB': 'KEN', 'KENYA COMMERCIAL BANK': 'KEN',
+  'CO-OPERATIVE BANK': 'KEN', 'ABSA KENYA': 'KEN', 'NCBA': 'KEN',
+  'STANDARD CHARTERED KENYA': 'KEN', 'DIAMOND TRUST BANK': 'KEN',
+  'I&M BANK': 'KEN', 'STANBIC KENYA': 'KEN',
+  // Ghanaian banks - MUST come before generic ABSA/STANBIC
+  'ABSA BANK OF GHANA': 'GHA', 'ABSA GHANA': 'GHA',
+  'GCB BANK': 'GHA', 'ECOBANK GHANA': 'GHA',
+  'STANBIC GHANA': 'GHA', 'STANDARD CHARTERED GHANA': 'GHA',
+  'FIDELITY BANK GHANA': 'GHA', 'CAL BANK': 'GHA', 'CONSOLIDATED BANK GHANA': 'GHA',
+  // South African banks - generic names last
+  'STANDARD BANK': 'ZAF', 'ABSA BANK': 'ZAF', 'NEDBANK': 'ZAF',
+  'FIRSTRAND': 'ZAF', 'FNB': 'ZAF', 'INVESTEC': 'ZAF', 'CAPITEC': 'ZAF',
+  // Regional/Other
+  'AFRICAN DEVELOPMENT BANK': 'CIV', 'AFDB': 'CIV',
+  'AFREXIMBANK': 'EGY', 'BCEAO': 'SEN', 'BEAC': 'CMR',
+  'CBZ BANK': 'ZWE', 'ECOBANK': 'TGO',
+};
+
+// Country name extraction from institution name
+const supervisorCountryNameToCode = {
+  'GAMBIA': 'GMB', 'GHANA': 'GHA', 'NIGERIA': 'NGA', 'KENYA': 'KEN',
+  'EGYPT': 'EGY', 'SOUTH AFRICA': 'ZAF', 'TANZANIA': 'TZA', 'UGANDA': 'UGA',
+  'RWANDA': 'RWA', 'ETHIOPIA': 'ETH', 'MOROCCO': 'MAR', 'SENEGAL': 'SEN',
+  'IVORY COAST': 'CIV', 'COTE D\'IVOIRE': 'CIV', 'GUINEA-BISSAU': 'GNB',
+  'ZIMBABWE': 'ZWE', 'BOTSWANA': 'BWA', 'NAMIBIA': 'NAM', 'ZAMBIA': 'ZMB',
+  'BURKINA FASO': 'BFA', 'MALI': 'MLI', 'NIGER': 'NER', 'TOGO': 'TGO',
+  'BENIN': 'BEN', 'CAMEROON': 'CMR', 'GABON': 'GAB',
+};
+
+// Country code to ISO 4217 currency code mapping
+const supervisorCountryToCurrency = {
+  // ISO-3 codes
+  'NGA': 'NGN', 'KEN': 'KES', 'GHA': 'GHS', 'ZAF': 'ZAR', 'TZA': 'TZS',
+  'UGA': 'UGX', 'RWA': 'RWF', 'ETH': 'ETB', 'EGY': 'EGP', 'MAR': 'MAD',
+  'GNB': 'XOF', 'SEN': 'XOF', 'CIV': 'XOF', 'MLI': 'XOF', 'BFA': 'XOF',
+  'NER': 'XOF', 'BEN': 'XOF', 'TGO': 'XOF', 'GMB': 'GMD', 'GIN': 'GNF',
+  'SLE': 'SLL', 'LBR': 'LRD', 'CPV': 'CVE', 'MRT': 'MRU', 'ZWE': 'ZWL',
+  'BWA': 'BWP', 'NAM': 'NAD', 'ZMB': 'ZMW', 'MWI': 'MWK', 'MOZ': 'MZN',
+  'AGO': 'AOA', 'COD': 'CDF', 'COG': 'XAF', 'CMR': 'XAF', 'GAB': 'XAF',
+  'TCD': 'XAF', 'CAF': 'XAF', 'GNQ': 'XAF', 'SDN': 'SDG', 'SSD': 'SSP',
+  'ERI': 'ERN', 'DJI': 'DJF', 'SOM': 'SOS', 'TUN': 'TND', 'DZA': 'DZD',
+  'LBY': 'LYD', 'MUS': 'MUR', 'MDG': 'MGA', 'SYC': 'SCR', 'COM': 'KMF',
+  'LSO': 'LSL', 'SWZ': 'SZL',
+  // ISO-2 aliases
+  'NG': 'NGN', 'KE': 'KES', 'GH': 'GHS', 'ZA': 'ZAR', 'TZ': 'TZS',
+  'UG': 'UGX', 'RW': 'RWF', 'ET': 'ETB', 'EG': 'EGP', 'MA': 'MAD',
+  'SN': 'XOF', 'CI': 'XOF', 'ML': 'XOF', 'BF': 'XOF', 'NE': 'XOF',
+  'BJ': 'XOF', 'TG': 'XOF', 'GM': 'GMD', 'GN': 'GNF', 'SL': 'SLL',
+  'LR': 'LRD', 'CV': 'CVE', 'MR': 'MRU', 'ZW': 'ZWL', 'BW': 'BWP',
+  'NA': 'NAD', 'ZM': 'ZMW', 'MW': 'MWK', 'MZ': 'MZN', 'AO': 'AOA',
+  'CD': 'CDF', 'CG': 'XAF', 'CM': 'XAF', 'GA': 'XAF', 'TD': 'XAF',
+  'CF': 'XAF', 'GQ': 'XAF', 'SD': 'SDG', 'SS': 'SSP', 'ER': 'ERN',
+  'DJ': 'DJF', 'SO': 'SOS', 'TN': 'TND', 'DZ': 'DZD', 'LY': 'LYD',
+  'MU': 'MUR', 'MG': 'MGA', 'SC': 'SCR', 'KM': 'KMF', 'LS': 'LSL', 'SZ': 'SZL',
+  // Short aliases used in corridor codes
+  'NIG': 'NGN', 'ALG': 'DZD', 'TOG': 'XOF', 'BUR': 'XOF',
+  // Full country names (parsed from corridor.name)
+  'NIGERIA': 'NGN', 'KENYA': 'KES', 'GHANA': 'GHS', 'SOUTH AFRICA': 'ZAR',
+  'TANZANIA': 'TZS', 'UGANDA': 'UGX', 'RWANDA': 'RWF', 'ETHIOPIA': 'ETB',
+  'EGYPT': 'EGP', 'MOROCCO': 'MAD', 'SENEGAL': 'XOF', 'IVORY COAST': 'XOF',
+  "COTE D'IVOIRE": 'XOF', "CÔTE D'IVOIRE": 'XOF', 'MALI': 'XOF',
+  'BURKINA FASO': 'XOF', 'NIGER': 'XOF', 'BENIN': 'XOF', 'TOGO': 'XOF',
+  'GUINEA-BISSAU': 'XOF', 'GUINEA BISSAU': 'XOF', 'GAMBIA': 'GMD',
+  'GUINEA': 'GNF', 'SIERRA LEONE': 'SLL', 'LIBERIA': 'LRD',
+  'CAPE VERDE': 'CVE', 'MAURITANIA': 'MRU', 'ZIMBABWE': 'ZWL',
+  'BOTSWANA': 'BWP', 'NAMIBIA': 'NAD', 'ZAMBIA': 'ZMW', 'MALAWI': 'MWK',
+  'MOZAMBIQUE': 'MZN', 'ANGOLA': 'AOA', 'DR CONGO': 'CDF', 'DRC': 'CDF',
+  'CONGO': 'XAF', 'CAMEROON': 'XAF', 'GABON': 'XAF', 'CHAD': 'XAF',
+  'CENTRAL AFRICAN REPUBLIC': 'XAF', 'EQUATORIAL GUINEA': 'XAF',
+  'SUDAN': 'SDG', 'SOUTH SUDAN': 'SSP', 'ERITREA': 'ERN',
+  'DJIBOUTI': 'DJF', 'SOMALIA': 'SOS', 'TUNISIA': 'TND', 'ALGERIA': 'DZD',
+  'LIBYA': 'LYD', 'MAURITIUS': 'MUR', 'MADAGASCAR': 'MGA',
+  'SEYCHELLES': 'SCR', 'COMOROS': 'KMF', 'LESOTHO': 'LSL',
+  'ESWATINI': 'SZL', 'SWAZILAND': 'SZL',
+};
+
+// Resolve corridor country value (ISO-2, ISO-3, alias, or full name) to its ISO 4217 currency code
+function resolveCorridorCurrency(countryRaw) {
+  if (!countryRaw) return null;
+  const v = countryRaw.toString().trim();
+  return supervisorCountryToCurrency[v]
+    || supervisorCountryToCurrency[v.toUpperCase()]
+    || null;
+}
+
+function showSupervisorDeskModal() {
+  document.getElementById('supervisorDeskModalOverlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  loadSupervisorClaims();
+}
+
+function hideSupervisorDeskModal() {
+  document.getElementById('supervisorDeskModalOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function toggleSupervisorSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  section.style.display = section.style.display === 'none' ? 'block' : 'none';
+}
+
+function getSupervisorToken() {
+  if (typeof getAccessToken === 'function') return getAccessToken();
+  const envToken = '<%= ENV["ADMIN_API_TOKEN"] || "" %>';
+  return envToken || localStorage.getItem('access_token') || localStorage.getItem('accessToken') || 'wOJLHO7nXlO7IOqUI8mX9nfYMQi_S8EmqKMwUOh-FO8';
+}
+
+function getSupervisorAuthHeaders() {
+  const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+  if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+  headers['Authorization'] = `Bearer ${getSupervisorToken()}`;
+  return headers;
+}
+
+async function loadSupervisorClaims() {
+  const loading = document.getElementById('supervisorClaimsLoading');
+  const rows = document.getElementById('supervisorClaimsRows');
+  loading.style.display = 'flex';
+  rows.innerHTML = '';
+  
+  try {
+    const response = await fetch('/api/v2/trade_claims', {
+      headers: {
+        'Authorization': `Bearer ${getSupervisorToken()}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) throw new Error(`Failed: ${response.status}`);
+    
+    const data = await response.json();
+    supervisorClaims = data.data || data || [];
+    
+    // ── Lifecycle filter: include ALL active claims through issuance_eligible ──
+    // Claims are only removed from this view once fully settled, rejected, or cancelled.
+    supervisorClaims = supervisorClaims.filter(claim => {
+      const status = claim.status || '';
+
+      // Always exclude terminal statuses
+      if (['rejected', 'cancelled', 'completed', 'settled'].includes(status)) return false;
+
+      // Keep every non-terminal status so the lifecycle tracking table stays visible
+      // This includes: submitted, under_review, pending, pre_cleared, manual_review,
+      //                approved, issuance_eligible, locked
+      return true;
+    });
+    
+    console.log('Supervisor claims loaded:', supervisorClaims.length, 'claims needing review');
+    
+    applySupervisorFilters();
+    document.getElementById('pendingQueueCount').textContent = filteredSupervisorClaims.length;
+  } catch (error) {
+    console.error('Error:', error);
+    loading.style.display = 'none';
+    rows.innerHTML = '<div style="padding: 40px; text-align: center; color: #ef4444;">Error loading claims</div>';
+  }
+}
+
+function applySupervisorFilters() {
+  const searchTerm = document.getElementById('supervisorSearchInput')?.value?.toLowerCase() || '';
+  filteredSupervisorClaims = supervisorClaims.filter(c => {
+    const ref = (c.reference || '').toLowerCase();
+    const inst = (c.institution?.name || '').toLowerCase();
+    return ref.includes(searchTerm) || inst.includes(searchTerm);
+  });
+  supervisorCurrentPage = 1;
+  renderSupervisorClaims();
+}
+
+function renderSupervisorClaims() {
+  const loading = document.getElementById('supervisorClaimsLoading');
+  const rows = document.getElementById('supervisorClaimsRows');
+  loading.style.display = 'none';
+  
+  if (filteredSupervisorClaims.length === 0) {
+    rows.innerHTML = '<div style="padding: 40px; text-align: center; color: #6b7280;">No claims pending review</div>';
+    return;
+  }
+  
+  const start = (supervisorCurrentPage - 1) * supervisorPageSize;
+  const pageClaims = filteredSupervisorClaims.slice(start, start + supervisorPageSize);
+  
+  rows.innerHTML = pageClaims.map((claim, i) => {
+    const rowNum = start + i + 1;
+    const ref = claim.reference || `TC-${(claim.id || '').toString().slice(0, 8)}`;
+    const inst = claim.institution?.name || 'Unknown';
+    const amt = claim.trade_details?.amount || claim.amount || 0;
+    
+    // Extract corridor info
+    let fromCountry = claim.corridor?.source_country || claim.corridor?.from_country || '';
+    let toCountry = claim.corridor?.target_country || claim.corridor?.to_country || '';
+
+    // Fall back to parsing corridor name string (e.g. "Morocco-Tanzania Corridor")
+    if ((!fromCountry || !toCountry) && claim.corridor?.name) {
+      const stripped = claim.corridor.name.replace(/\s*corridor\s*$/i, '').trim();
+      const parts = stripped.split(/\s*[→\-]\s*/);
+      if (parts.length >= 2) {
+        if (!fromCountry) fromCountry = parts[0].trim();
+        if (!toCountry)   toCountry   = parts[1].trim();
+      }
+    }
+
+    // Try beneficiary country for target
+    if (!toCountry) {
+      toCountry = claim.beneficiary_country || claim.beneficiary?.country || '';
+    }
+    
+    // Derive source from institution if not set - sort by length for accurate matching
+    if (!fromCountry && inst) {
+      const instUpper = inst.toUpperCase();
+      const sortedInstitutions = Object.entries(supervisorInstitutionToCountry)
+        .sort((a, b) => b[0].length - a[0].length);
+      
+      for (const [bankName, code] of sortedInstitutions) {
+        if (instUpper.includes(bankName)) {
+          fromCountry = code;
+          break;
+        }
+      }
+      if (!fromCountry) {
+        for (const [countryName, code] of Object.entries(supervisorCountryNameToCode)) {
+          if (instUpper.includes(countryName)) {
+            fromCountry = code;
+              break;
+          }
+        }
+      }
+    }
+
+    // Always derive currency from destination country — ignore API's currency_code which may be USD
+    const curr = resolveCorridorCurrency(toCountry) || resolveCorridorCurrency(fromCountry) || 'USD';
+
+    const fromFlag = resolveSupervisorFlag(fromCountry);
+    const toFlag   = resolveSupervisorFlag(toCountry);
+    
+    const compStatus = resolveComplianceStatus(claim);
+    const conf = complianceStatusConfig[compStatus] || complianceStatusConfig['pending'];
+    const isSelected = selectedSupervisorClaim === claim.id;
+    const timeAgo = claim.created_at ? getTimeAgo(new Date(claim.created_at)) : '—';
+    
+    return `
+      <div class="supervisor-claim-row ${isSelected ? 'selected' : ''}" 
+           onclick="selectSupervisorClaim('${claim.id}')"
+           style="
+             display: grid;
+             grid-template-columns: 40px 180px 140px 120px 140px 130px 90px;
+             gap: 8px;
+             padding: 14px 20px;
+             border-bottom: 1px solid #f3f4f6;
+             cursor: pointer;
+             background: ${isSelected ? '#d1fae5' : 'white'};
+           ">
+        <div style="font-size: 13px; color: #6b7280;">${fromFlag} ${rowNum}</div>
+        <div style="font-size: 12px; font-weight: 500; font-family: monospace;">${ref}</div>
+        <div style="font-size: 12px; color: #374151; overflow: hidden; text-overflow: ellipsis;">${inst.substring(0,18)}</div>
+        <div style="font-size: 13px; font-weight: 500;">${curr} ${parseFloat(amt).toLocaleString()}</div>
+        <div style="font-size: 12px;">${fromFlag} ${fromCountry || '—'} → ${toFlag} ${toCountry || '—'}</div>
+        <div>
+          <span style="
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            background: ${conf.bg};
+            color: ${conf.color};
+            border: 1px solid ${conf.border};
+          ">${conf.icon} ${conf.label}</span>
+        </div>
+        <div style="font-size: 11px; color: #9ca3af;">${timeAgo}</div>
+      </div>
+    `;
+  }).join('');
+  
+  updateSupervisorPagination();
+}
+
+function getTimeAgo(date) {
+  const diffMs = new Date() - date;
+  const mins = Math.floor(diffMs / 60000);
+  const hrs = Math.floor(diffMs / 3600000);
+  if (mins < 60) return `${mins}m ago`;
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(diffMs / 86400000)}d ago`;
+}
+
+function updateSupervisorPagination() {
+  const total = Math.ceil(filteredSupervisorClaims.length / supervisorPageSize);
+  let html = '';
+  for (let i = 1; i <= Math.min(total, 5); i++) {
+    html += `<button onclick="goToSupervisorPage(${i})" style="
+      padding: 6px 12px;
+      background: ${i === supervisorCurrentPage ? '#1a4d3e' : 'white'};
+      color: ${i === supervisorCurrentPage ? 'white' : '#374151'};
+      border: 1px solid ${i === supervisorCurrentPage ? '#1a4d3e' : '#e5e7eb'};
+      border-radius: 6px;
+      cursor: pointer;
+    ">${i}</button>`;
+  }
+  document.getElementById('supervisorPageNumbers').innerHTML = html;
+}
+
+function goToSupervisorPage(p) { supervisorCurrentPage = p; renderSupervisorClaims(); }
+function supervisorPrevPage() { if (supervisorCurrentPage > 1) { supervisorCurrentPage--; renderSupervisorClaims(); } }
+function supervisorNextPage() { 
+  if (supervisorCurrentPage < Math.ceil(filteredSupervisorClaims.length / supervisorPageSize)) { 
+    supervisorCurrentPage++; 
+    renderSupervisorClaims(); 
+  } 
+}
+
+function selectSupervisorClaim(claimId) {
+  selectedSupervisorClaim = claimId;
+  selectedSupervisorClaimData = supervisorClaims.find(c => c.id === claimId);
+  if (!selectedSupervisorClaimData) return;
+  
+  document.getElementById('approvalSection').style.display = 'block';
+  populateApprovalDetails(selectedSupervisorClaimData);
+  populateReviewChecks(selectedSupervisorClaimData);
+  renderSupervisorClaims();
+  document.getElementById('approvalSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function populateApprovalDetails(claim) {
+  const inst = claim.institution?.name || 'Unknown';
+  const dir = claim.trade_details?.direction || claim.trade_direction || 'import';
+  const amt = claim.trade_details?.amount || claim.amount || 0;
+  
+  // Extract corridor info - check multiple possible locations
+  let fromCountry = '';
+  let toCountry = '';
+  
+  // Try corridor object first
+  if (claim.corridor) {
+    fromCountry = claim.corridor.source_country || claim.corridor.from_country || '';
+    toCountry = claim.corridor.target_country || claim.corridor.to_country || '';
+  }
+
+  // Fall back to parsing corridor name string (e.g. "Morocco-Tanzania Corridor")
+  if ((!fromCountry || !toCountry) && claim.corridor?.name) {
+    const stripped = claim.corridor.name.replace(/\s*corridor\s*$/i, '').trim();
+    const parts = stripped.split(/\s*[→\-]\s*/);
+    if (parts.length >= 2) {
+      if (!fromCountry) fromCountry = parts[0].trim();
+      if (!toCountry)   toCountry   = parts[1].trim();
+    }
+  }
+  
+  // Try beneficiary country for target
+  if (!toCountry) {
+    toCountry = claim.beneficiary_country || claim.beneficiary?.country || '';
+  }
+  
+  // Try to derive source country from institution name
+  if (!fromCountry && inst) {
+    const instUpper = inst.toUpperCase();
+    
+    // Check institution mapping - sort by key length (longer matches first) to avoid partial matches
+    const sortedInstitutions = Object.entries(supervisorInstitutionToCountry)
+      .sort((a, b) => b[0].length - a[0].length);
+    
+    for (const [bankName, code] of sortedInstitutions) {
+      if (instUpper.includes(bankName)) {
+        fromCountry = code;
+        break;
+      }
+    }
+    
+    // Check for country name in institution name
+    if (!fromCountry) {
+      for (const [countryName, code] of Object.entries(supervisorCountryNameToCode)) {
+        if (instUpper.includes(countryName)) {
+          fromCountry = code;
+          break;
+        }
+      }
+    }
+  }
+  
+  // Currency: trust the claim's own currency_code first.
+  // Only use country-derived currency as fallback when currency_code is blank.
+  const rawCurr = claim.currency_code || claim.trade_details?.currency || '';
+  const curr = rawCurr || resolveCorridorCurrency(toCountry) || resolveCorridorCurrency(fromCountry) || 'USD';
+  
+  // Get flags
+  const fromFlag = resolveSupervisorFlag(fromCountry);
+  const toFlag   = resolveSupervisorFlag(toCountry);
+  
+  // Populate fields
+  document.getElementById('approvalInstitutionName').textContent = inst;
+  document.getElementById('approvalInstitutionFlag').textContent = fromFlag;
+  
+  // Trade direction with country name
+  const directionText = dir === 'import' 
+    ? `Import into ${fromCountry || 'Unknown'}`
+    : `Export from ${fromCountry || 'Unknown'}`;
+  document.getElementById('approvalDirection').textContent = directionText;
+  
+  // Corridor with flags and country codes
+  document.getElementById('approvalCorridor').innerHTML = `${fromFlag} ${fromCountry || '—'} → ${toFlag} ${toCountry || '—'}`;
+  
+  document.getElementById('approvalAmount').textContent = `${curr} ${parseFloat(amt).toLocaleString()}`;
+  document.getElementById('approvalInvoiceRef').textContent = claim.trade_details?.invoice_ref || claim.invoice_ref || '—';
+  document.getElementById('approvalBeneficiaryName').textContent = claim.beneficiary?.name || claim.beneficiary_name || '—';
+  document.getElementById('approvalBeneficiaryBank').textContent = claim.beneficiary?.bank || claim.beneficiary_bank_name || '—';
+  document.getElementById('approvalBeneficiaryCountry').textContent = claim.beneficiary?.country || claim.beneficiary_country || '—';
+  document.getElementById('supervisorDecisionNotes').value = '';
+}
+
+function toggleGateDetail(gateKey) {
+  const el = document.getElementById(`gateDetail_${gateKey}`);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── Gate configuration ──────────────────────────────────────────────────────
+const GATE_DEFINITIONS = [
+  {
+    key: 'supervisor_approval',
+    label: '1. Supervisor Approval',
+    subChecks: [
+      { field: 'status_ok',      label: 'Claim status = approved' },
+      { field: 'four_eyes_ok',   label: '4-eyes principle satisfied' },
+      { field: 'audit_trail_ok', label: 'Audit trail written' }
+    ]
+  },
+  {
+    key: 'compliance',
+    label: '2. Compliance Passed',
+    subChecks: [
+      { field: 'aml_status',        label: 'AML check cleared',                  valueMap: { clear:'✓', ok:'✓', passed:'✓' } },
+      { field: 'sanctions_ok',      label: 'Sanctions screening passed' },
+      { field: 'risk_score',        label: 'Risk scoring acceptable',             format: v => `Score: ${v} (< 50 required)` },
+      { field: 'documents_ok',      label: 'Required documentation verified' }
+    ]
+  },
+  {
+    key: 'corridor_limits',
+    label: '3. Corridor Limits Available',
+    subChecks: [
+      { field: 'limit_ok',          label: 'Daily limit remaining ≥ claim amount',
+        format: (v, d) => d ? `Remaining: ${(d.remaining_usd||0).toLocaleString()} USD · Claim: ${(d.claim_amount_usd||0).toLocaleString()} USD` : '' },
+      { field: 'suspended',         label: 'Corridor not suspended',              invert: true },
+      { field: 'velocity_ok',       label: 'Velocity limit not exceeded' }
+    ]
+  },
+  {
+    key: 'liquidity',
+    label: '4. Liquidity Confirmed',
+    subChecks: [
+      { field: 'backing_asset_exists',    label: 'Backing asset exists' },
+      { field: 'reserve_pool_sufficient', label: 'Reserve pool sufficient' },
+      { field: 'dlt_lock_confirmed',      label: 'DLT LockRecord confirmed (Phase 2)' }
+    ]
+  },
+  {
+    key: 'governance',
+    label: '5. Governance Rules Met',
+    subChecks: [
+      { field: 'required',              label: 'Large-value governance required',  infoOnly: true },
+      { field: 'dual_approval_ok',      label: 'Dual approval satisfied' },
+      { field: 'supermajority_ok',      label: 'Supermajority threshold met' },
+      { field: 'sovereign_override_ok', label: 'Sovereign override checks clear' }
+    ]
+  }
+];
+
+const GATE_STATUS_CONFIG = {
+  passed:  { icon: '✅', badge: 'Passed',       bg: '#d1fae5', color: '#065f46', border: '#a7f3d0' },
+  failed:  { icon: '❌', badge: 'Failed',        bg: '#fee2e2', color: '#991b1b', border: '#fca5a5' },
+  pending: { icon: '⏳', badge: 'Pending',       bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' },
+  skipped: { icon: '⊘',  badge: 'N/A',           bg: '#f3f4f6', color: '#9ca3af', border: '#e5e7eb' },
+  warning: { icon: '⚠️', badge: 'Review',        bg: '#fef3c7', color: '#92400e', border: '#fde68a' },
+};
+
+function populateReviewChecks(claim) {
+  const rawGates   = claim.gating_conditions || claim.eligibility?.gates || {};
+  const compStatus  = resolveComplianceStatus(claim);
+  const claimStatus = claim.status || 'pending';
+
+  // Gating conditions are only meaningful AFTER the supervisor has approved the claim.
+  // For pre-approval states (submitted, pre_cleared, under_review, manual_review, pending),
+  // the gates have never been evaluated — they are all PENDING, not failed.
+  const PRE_APPROVAL_STATUSES = ['submitted','under_review','pre_cleared','manual_review','pending','pending_clarification','draft'];
+  const isPreApproval = PRE_APPROVAL_STATUSES.includes(claimStatus);
+
+  // Real gate data: only trust gating_conditions that came from the backend service
+  // (non-empty object). If empty {}, gates have never been evaluated.
+  const hasRealGates = Object.keys(rawGates).length > 0;
+
+  // For pre-approval claims, synthesise compliance sub-check info for display
+  // but force all gate-level passed values to null (pending) so nothing shows as Failed.
+  const syntheticGates = synthesiseGates(claim, compStatus, claimStatus, isPreApproval);
+  const effectiveGates = hasRealGates ? rawGates : syntheticGates;
+
+  let allPassed  = true;
+  let anyFailed  = false;
+
+  // Only count real failures — i.e. from the backend service, not synthetic pre-approval state
+  const realFailures = hasRealGates && !isPreApproval;
+
+  GATE_DEFINITIONS.forEach(def => {
+    const gate = effectiveGates[def.key] || {};
+
+    // Determine display state:
+    // - Pre-approval + no real gates: always show as pending (never failed)
+    // - Post-approval with real gates: show actual pass/fail from service
+    let state;
+    if (!realFailures) {
+      // Pre-approval or no gate data: everything is pending
+      state = gate.passed === true ? 'passed' : 'pending';
+    } else {
+      state = gate.passed === true  ? 'passed'
+            : gate.passed === false ? 'failed'
+            : 'pending';
+    }
+
+    if (state !== 'passed') allPassed = false;
+    if (state === 'failed')  anyFailed = true;
+
+    const conf = GATE_STATUS_CONFIG[state];
+
+    // Update icon + badge
+    const iconEl  = document.getElementById(`gateIcon_${def.key}`);
+    const badgeEl = document.getElementById(`gateBadge_${def.key}`);
+    const rowEl   = document.getElementById(`gateRow_${def.key}`);
+    if (iconEl)  iconEl.textContent  = conf.icon;
+    if (badgeEl) {
+      badgeEl.textContent       = conf.badge;
+      badgeEl.style.background  = conf.bg;
+      badgeEl.style.color       = conf.color;
+    }
+    if (rowEl) rowEl.style.borderColor = conf.border;
+
+    // Populate sub-check detail text
+    const detailEl = document.getElementById(`gateDetailText_${def.key}`);
+    if (detailEl) {
+      const details = gate.details || {};
+
+      // Pre-approval: show informational note instead of pass/fail sub-checks
+      if (isPreApproval && !hasRealGates && def.key === 'supervisor_approval') {
+        detailEl.innerHTML = '<span style="color:#6b7280;">⏳ Awaiting supervisor approval — evaluation will begin after approval</span>';
+      } else if (isPreApproval && !hasRealGates) {
+        detailEl.innerHTML = '<span style="color:#9ca3af;">Will be evaluated automatically after supervisor approves</span>';
+      } else {
+        const lines = def.subChecks
+          .filter(sc => !sc.infoOnly || details[sc.field] !== undefined)
+          .map(sc => {
+            const raw = details[sc.field];
+            if (sc.infoOnly) {
+              return raw === false
+                ? `<span style="color:#9ca3af;">⊘ ${sc.label}: Not required</span>`
+                : `<span style="color:#059669;">● ${sc.label}</span>`;
+            }
+            const passed = sc.invert ? !raw : !!raw;
+            const tick   = passed ? '✓' : '✗';
+            const color  = passed ? '#059669' : '#dc2626';
+            const extra  = sc.format ? ` — ${sc.format(raw, details)}` : '';
+            return `<span style="color:${color};">${tick} ${sc.label}${extra}</span>`;
+          });
+        detailEl.innerHTML = lines.join('<br>') || '<span style="color:#9ca3af;">No detail available</span>';
+      }
+    }
+  });
+
+  // Overall badge
+  const overallBadge = document.getElementById('gatingOverallBadge');
+  if (overallBadge) {
+    if (claimStatus === 'issuance_eligible' || allPassed) {
+      overallBadge.textContent      = 'ALL PASSED';
+      overallBadge.style.background = '#d1fae5';
+      overallBadge.style.color      = '#065f46';
+    } else if (anyFailed) {
+      overallBadge.textContent      = 'GATES FAILED';
+      overallBadge.style.background = '#fee2e2';
+      overallBadge.style.color      = '#991b1b';
+    } else if (isPreApproval && !hasRealGates) {
+      overallBadge.textContent      = 'PENDING APPROVAL';
+      overallBadge.style.background = '#fef3c7';
+      overallBadge.style.color      = '#92400e';
+    } else {
+      overallBadge.textContent      = 'EVALUATING';
+      overallBadge.style.background = '#f3f4f6';
+      overallBadge.style.color      = '#6b7280';
+    }
+  }
+
+  // Block Approve button ONLY when there are real service-returned gate failures.
+  // Pre-approval pending state must NEVER block the Approve button.
+  const warning = document.getElementById('blockedClaimWarning');
+  const btn     = document.getElementById('btnApprove');
+  const shouldBlock = anyFailed && realFailures;
+  if (warning) warning.style.display = shouldBlock ? 'block' : 'none';
+  if (btn) {
+    btn.disabled      = shouldBlock;
+    btn.style.opacity = shouldBlock ? '0.5' : '1';
+  }
+
+  // Lifecycle tracking table
+  renderLifecycleTable(claim, effectiveGates);
+  updateApprovalUpdates(claim);
+}
+
+// Synthesise gate states from existing compliance fields (no gating_conditions yet)
+// isPreApproval: when true, gates that require approval are shown as null (pending), never false
+function synthesiseGates(claim, compStatus, claimStatus, isPreApproval) {
+  const checks    = claim.compliance_checks || {};
+  const docStatus = checks.document_status || (compStatus === 'pre_cleared' ? 'validated' : 'pending');
+  const amlStatus = checks.aml_status      || (compStatus === 'manual_review' ? 'flagged' : compStatus === 'pre_cleared' ? 'clear' : 'pending');
+  const limitOk   = checks.limit_status !== 'exceeded';
+  const benefOk   = checks.beneficiary_status === 'verified' || compStatus === 'pre_cleared';
+  const isApproved = ['approved','issuance_eligible'].includes(claimStatus);
+
+  // Gate 1: supervisor_approval
+  // Pre-approval → null (pending). Post-approval → true. Never false via synthesis.
+  const gate1Passed = isPreApproval ? null : (isApproved ? true : null);
+
+  // Gate 2: compliance
+  // Show real compliance info if we have it, but only mark failed if post-approval
+  const compPassed = compStatus === 'pre_cleared' && docStatus === 'validated' && amlStatus === 'clear';
+  const gate2Passed = isPreApproval
+    ? (compPassed ? true : null)   // pre-approval: show green if already pre-cleared, else pending
+    : compPassed;
+
+  // Gate 3: corridor limits — safe to show even pre-approval (no approval required to check)
+  const gate3Passed = limitOk ? true : (isPreApproval ? null : false);
+
+  // Gate 4: liquidity — only confirmed after LiquidityLockJob runs post-approval
+  // Pre-approval → always pending (null)
+  const gate4Passed = isPreApproval ? null : (isApproved || compStatus === 'pre_cleared' ? true : null);
+
+  // Gate 5: governance — auto-passes for standard claims regardless of approval state
+  const gate5Passed = true;
+
+  return {
+    supervisor_approval: {
+      passed:  gate1Passed,
+      details: { status_ok: isApproved, four_eyes_ok: isApproved, audit_trail_ok: isApproved }
+    },
+    compliance: {
+      passed:  gate2Passed,
+      details: {
+        compliance_status: compStatus,
+        aml_status:        amlStatus,
+        sanctions_ok:      amlStatus !== 'flagged',
+        risk_score:        claim.aml_risk_score || claim.risk_score || 0,
+        documents_ok:      ['validated','verified'].includes(docStatus)
+      }
+    },
+    corridor_limits: {
+      passed:  gate3Passed,
+      details: { limit_ok: limitOk, suspended: false, velocity_ok: true }
+    },
+    liquidity: {
+      passed:  gate4Passed,
+      details: {
+        backing_asset_exists:    isApproved,
+        reserve_pool_sufficient: isApproved,
+        dlt_lock_confirmed:      isApproved
+      }
+    },
+    governance: {
+      passed:  gate5Passed,
+      details: { required: false, reason: 'Below large-value threshold' }
+    }
+  };
+}
+
+// ── Lifecycle tracking table ────────────────────────────────────────────────
+const LIFECYCLE_STAGES = [
+  { key: 'submitted',         label: 'Submitted',                icon: '📤', gateKey: null },
+  { key: 'under_review',      label: 'Under Review',             icon: '🔍', gateKey: null },
+  { key: 'pre_cleared',       label: 'Compliance Pre-Cleared',   icon: '✅', gateKey: 'compliance' },
+  { key: 'approved',          label: 'Supervisor Approved',      icon: '🧑‍⚖️', gateKey: 'supervisor_approval' },
+  { key: 'issuance_eligible', label: 'Issuance-Eligible',        icon: '🏦', gateKey: null },
+  { key: 'locked',            label: 'Liquidity Locked',         icon: '🔒', gateKey: 'liquidity' },
+];
+
+const STATUS_ORDER = LIFECYCLE_STAGES.map(s => s.key);
+
+function claimStageIndex(status) {
+  return STATUS_ORDER.indexOf(status) ?? -1;
+}
+
+function renderLifecycleTable(claim, gates) {
+  const section  = document.getElementById('lifecycleTrackingSection');
+  const tbody    = document.getElementById('lifecycleTableBody');
+  if (!section || !tbody) return;
+
+  section.style.display = 'block';
+
+  const currentIdx = claimStageIndex(claim.status || '');
+
+  const rows = LIFECYCLE_STAGES.map((stage, idx) => {
+    const isReached  = idx <= currentIdx;
+    const isCurrent  = idx === currentIdx;
+    const gateResult = stage.gateKey ? (gates[stage.gateKey] || {}) : null;
+    const gatePassed = gateResult ? gateResult.passed : isReached;
+
+    // Status column
+    let statusHtml;
+    if (isCurrent) {
+      statusHtml = `<span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;">CURRENT</span>`;
+    } else if (claim.status === 'issuance_eligible' && stage.key === 'issuance_eligible') {
+      statusHtml = `<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;">✓ REACHED</span>`;
+    } else if (isReached) {
+      statusHtml = `<span style="background:#f0fdf4;color:#16a34a;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600;">✓ Done</span>`;
+    } else {
+      statusHtml = `<span style="color:#d1d5db;font-size:11px;">—</span>`;
+    }
+
+    // Gating condition column
+    let conditionHtml = '—';
+    if (stage.gateKey && gateResult && typeof gateResult.passed === 'boolean') {
+      conditionHtml = gateResult.passed
+        ? `<span style="color:#059669;font-size:11px;">✓ ${(gateResult.label || stage.gateKey)}</span>`
+        : `<span style="color:#dc2626;font-size:11px;">✗ ${(gateResult.label || stage.gateKey)}</span>`;
+    } else if (stage.gateKey && !isReached) {
+      conditionHtml = `<span style="color:#d1d5db;font-size:11px;">Not yet evaluated</span>`;
+    }
+
+    // Satisfied column
+    let satisfiedHtml;
+    if (!isReached && !isCurrent) {
+      satisfiedHtml = `<span style="color:#d1d5db;">—</span>`;
+    } else if (gatePassed === true || (isReached && !stage.gateKey)) {
+      satisfiedHtml = `<span style="color:#059669;font-weight:600;">✓ Yes</span>`;
+    } else if (gatePassed === false) {
+      satisfiedHtml = `<span style="color:#dc2626;font-weight:600;">✗ No</span>`;
+    } else {
+      satisfiedHtml = `<span style="color:#f59e0b;font-weight:600;">⟳ Pending</span>`;
+    }
+
+    const rowBg = isCurrent ? '#eff6ff' : (claim.status === 'issuance_eligible' && stage.key === 'issuance_eligible') ? '#f0fdf4' : '';
+
+    return `
+      <tr style="border-bottom: 1px solid #f3f4f6; ${rowBg ? `background:${rowBg};` : ''}">
+        <td style="padding: 9px 12px; font-size: 12px; font-weight: ${isCurrent ? '600' : '400'}; color: ${isReached ? '#374151' : '#9ca3af'};">
+          ${stage.icon} ${stage.label}
+        </td>
+        <td style="padding: 9px 12px;">${statusHtml}</td>
+        <td style="padding: 9px 12px;">${conditionHtml}</td>
+        <td style="padding: 9px 12px;">${satisfiedHtml}</td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = rows.join('');
+}
+
+function updateApprovalUpdates(claim) {
+  const el = document.getElementById('approvalUpdates');
+  const issuanceEl = document.getElementById('issuanceEligibleUpdate');
+  const cs = resolveComplianceStatus(claim);
+  const status = claim.status || '';
+
+  // Already issuance-eligible
+  if (status === 'issuance_eligible') {
+    el.innerHTML = '<div>✓ status → approved</div><div>✓ liquidity_lock created</div><div>✓ issuance_authorization created</div>';
+    el.style.background = '#f0fdf4'; el.style.color = '#166534'; el.style.borderColor = '#bbf7d0';
+    if (issuanceEl) issuanceEl.style.display = 'block';
+    return;
+  }
+
+  if (issuanceEl) issuanceEl.style.display = 'none';
+
+  if (cs === 'pre_cleared') {
+    el.innerHTML = `
+      <div>⟳ Awaiting supervisor approval</div>
+      <div style="font-size:11px;color:#6b7280;margin-top:4px;">On approval, the system will automatically evaluate all 5 gating conditions.</div>
+      <div style="font-size:11px;color:#059669;margin-top:4px;">✓ Compliance pre-cleared — ready for supervisor decision</div>
+    `;
+    el.style.background = '#f9fafb'; el.style.color = '#374151'; el.style.borderColor = '#e5e7eb';
+  } else if (cs === 'manual_review') {
+    el.innerHTML = '<div>⚠ Requires manual compliance review</div><div>○ liquidity_lock pending</div>';
+    el.style.background = '#fffbeb'; el.style.color = '#92400e'; el.style.borderColor = '#fde68a';
+  } else {
+    el.innerHTML = '<div>○ status → pending approval</div><div>○ liquidity_lock not created</div>';
+    el.style.background = '#f9fafb'; el.style.color = '#6b7280'; el.style.borderColor = '#e5e7eb';
+  }
+}
+
+// ── Post-approval result modal (replaces browser alert) ─────────────────────
+// Shows either an all-pass "Issuance-Eligible" celebration, a gates-failed
+// breakdown with the exact failure reason per gate, or an error state.
+function showApprovalResultModal({ issuanceEligible, reference, failedConditions = [], gates = {}, error = false, errorMessage = '' }) {
+  const existing = document.getElementById('approvalResultOverlay');
+  if (existing) existing.remove();
+
+  let headerBg, headerIcon, headerTitle, headerSub, bodyHtml, footerBtnLabel, footerBtnColor;
+
+  if (error) {
+    headerBg      = 'linear-gradient(135deg,#991b1b,#dc2626)';
+    headerIcon    = '⚠';
+    headerTitle   = 'Approval Failed';
+    headerSub     = 'An unexpected error occurred. The claim was not changed.';
+    bodyHtml      = `
+      <div style="padding:20px 24px;background:#fef2f2;border-bottom:1px solid #fecaca;">
+        <div style="font-size:13px;color:#991b1b;font-family:monospace;line-height:1.5;">${errorMessage}</div>
+      </div>`;
+    footerBtnLabel = 'Close';
+    footerBtnColor = '#dc2626';
+
+  } else if (issuanceEligible) {
+    headerBg      = 'linear-gradient(135deg,#065f46,#059669)';
+    headerIcon    = '🏦';
+    headerTitle   = 'Claim Approved & Issuance-Eligible';
+    headerSub     = `${reference} has passed all 5 gating conditions and is ready for CVIB minting.`;
+    const gateRows = ['supervisor_approval','compliance','corridor_limits','liquidity','governance']
+      .map(key => {
+        const g = gates[key] || {};
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0fdf4;">
+          <span style="font-size:13px;color:#1d1d1f;">${g.label || key}</span>
+          <span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">✓ Passed</span>
+        </div>`;
+      }).join('');
+    bodyHtml = `
+      <div style="padding:20px 24px 4px;">
+        <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Gate Results</div>
+        ${gateRows}
+        <div style="margin-top:16px;padding:12px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;font-size:12px;color:#166534;line-height:1.6;">
+          ✓ IssuanceAuthorization created<br>
+          ✓ Liquidity lock confirmed<br>
+          ✓ Ready for Qt6 CVIB minting
+        </div>
+      </div>`;
+    footerBtnLabel = 'Done';
+    footerBtnColor = '#059669';
+
+  } else {
+    // Approved but gates pending — show which ones failed and why
+    headerBg   = 'linear-gradient(135deg,#92400e,#d97706)';
+    headerIcon = '✅';
+    headerTitle = 'Claim Approved — Eligibility Pending';
+    headerSub   = `${reference} is approved. One or more issuance gates need resolution.`;
+
+    const GATE_ORDER = ['supervisor_approval','compliance','corridor_limits','liquidity','governance'];
+    const gateRows = GATE_ORDER.map(key => {
+      const g = gates[key];
+      if (!g) return '';
+      const passed   = g.passed === true;
+      const badgeBg  = passed ? '#d1fae5' : '#fee2e2';
+      const badgeCol = passed ? '#065f46' : '#991b1b';
+      const badgeTxt = passed ? '✓ Passed' : '✗ Failed';
+      const label    = g.label || key;
+
+      // Build human-readable failure reason from gate details
+      let reason = '';
+      if (!passed && g.details) {
+        const d = g.details;
+        if (key === 'compliance') {
+          const parts = [];
+          if (!['pre_cleared','comp_pre_cleared','cleared','comp_cleared','approved'].includes(d.compliance_status))
+            parts.push(`Status: ${d.compliance_status || 'not cleared'}`);
+          if (d.aml_status && !['clear','ok','passed'].includes(d.aml_status))
+            parts.push(`AML: ${d.aml_status}`);
+          if (d.risk_score >= 50)
+            parts.push(`Risk score: ${d.risk_score}`);
+          if (d.documents_ok === false)
+            parts.push('Documents not validated');
+          if (d.sanctions_ok === false)
+            parts.push('Sanctions flagged');
+          reason = parts.join(' · ') || 'AML check pending — run AML screening to clear';
+        } else if (key === 'corridor_limits') {
+          const parts = [];
+          if (d.suspended)    parts.push('Corridor suspended');
+          if (!d.limit_ok)    parts.push(`Daily limit exceeded`);
+          if (!d.per_tx_ok)   parts.push(`Per-transaction limit exceeded`);
+          if (!d.velocity_ok) parts.push('Velocity limit exceeded');
+          reason = parts.join(' · ');
+        } else if (key === 'liquidity') {
+          const parts = [];
+          if (!d.backing_asset_exists)    parts.push('No backing asset');
+          if (!d.reserve_pool_sufficient) parts.push('Reserve pool insufficient');
+          if (!d.dlt_lock_confirmed)      parts.push('DLT lock pending');
+          reason = parts.join(' · ');
+        } else if (key === 'supervisor_approval') {
+          const parts = [];
+          if (!d.status_ok)       parts.push(`Status: ${d.claim_status}`);
+          if (!d.four_eyes_ok)    parts.push('4-eyes not satisfied');
+          if (!d.audit_trail_ok)  parts.push('Audit trail missing');
+          reason = parts.join(' · ');
+        }
+      }
+
+      return `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #f3f4f6;">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#1d1d1f;">${label}</div>
+          ${!passed && reason ? `<div style="font-size:11px;color:#92400e;margin-top:2px;">${reason}</div>` : ''}
+        </div>
+        <span style="flex-shrink:0;background:${badgeBg};color:${badgeCol};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">${badgeTxt}</span>
+      </div>`;
+    }).join('');
+
+    bodyHtml = `
+      <div style="padding:20px 24px 4px;">
+        <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Gate Results</div>
+        ${gateRows}
+        <div style="margin-top:14px;padding:12px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;font-size:12px;color:#92400e;line-height:1.6;">
+          ⟳ The claim will transition to <strong>Issuance-Eligible</strong> automatically once all failed gates are resolved.<br>
+          Use the <strong>Re-Evaluate</strong> button after corrections are made.
+        </div>
+      </div>`;
+    footerBtnLabel = 'Got it';
+    footerBtnColor = '#d97706';
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'approvalResultOverlay';
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:999999;
+    background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  `;
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:20px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,0.3);animation:slideUpFade 0.18s ease;">
+      <div style="background:${headerBg};padding:22px 24px 18px;border-radius:20px 20px 0 0;position:sticky;top:0;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Supervisor Approval Desk</div>
+        <div style="font-size:18px;font-weight:700;color:#fff;">${headerIcon} ${headerTitle}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.75);margin-top:4px;line-height:1.4;">${headerSub}</div>
+      </div>
+      ${bodyHtml}
+      <div style="padding:16px 24px 22px;display:flex;justify-content:flex-end;">
+        <button id="approvalResultClose" style="
+          background:${footerBtnColor};color:#fff;border:none;border-radius:10px;
+          padding:12px 32px;font-size:14px;font-weight:700;cursor:pointer;
+        ">${footerBtnLabel}</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  document.getElementById('approvalResultClose').onclick = () => overlay.remove();
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', esc); }
+  });
+}
+
+// ── Styled approval confirmation modal ──────────────────────────────────────
+// Returns a Promise<boolean> — resolves true (confirm) or false (cancel).
+function showApprovalConfirmModal(claim, notes) {
+  return new Promise(resolve => {
+    const existing = document.getElementById('approvalConfirmOverlay');
+    if (existing) existing.remove();
+
+    const ref      = claim.reference || 'TC-' + (claim.id || '').toString().slice(0,8);
+    const inst     = claim.institution?.name || claim.originator_name || '—';
+
+    // Currency: always trust the claim's own currency_code first.
+    // Only fall back to country-derived currency when it's genuinely absent.
+    // (resolveCorridorCurrency can map Sudan → USD which would override EGP, XOF etc.)
+    const toCountry   = claim.corridor?.target_country || claim.corridor?.to_country
+                     || claim.beneficiary_country || claim.trade_details?.target_country || '';
+    const fromCountry = claim.corridor?.source_country || claim.corridor?.from_country
+                     || claim.trade_details?.source_country || '';
+    const rawCurrency = claim.currency_code || claim.trade_details?.currency || '';
+    const currency    = rawCurrency ||
+                        resolveCorridorCurrency(toCountry) ||
+                        resolveCorridorCurrency(fromCountry) ||
+                        'USD';
+
+    const rawAmt   = claim.trade_details?.amount || claim.amount || 0;
+    const amount   = parseFloat(rawAmt).toLocaleString();
+    const corridor = claim.corridor?.name ||
+                     (fromCountry && toCountry ? `${fromCountry} → ${toCountry}` : '—');
+    const notesDisplay = notes?.trim()
+      ? `<div style="margin-top:12px;padding:10px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:12px;color:#14532d;line-height:1.5;">
+           <span style="font-weight:600;display:block;margin-bottom:2px;">Decision Notes</span>${notes.trim()}
+         </div>`
+      : `<div style="margin-top:12px;padding:10px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:12px;color:#92400e;">
+           ⚠ No decision notes entered. Consider adding notes for the audit trail.
+         </div>`;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'approvalConfirmOverlay';
+    overlay.style.cssText = `
+      position: fixed; inset: 0; z-index: 999999;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    `;
+
+    overlay.innerHTML = `
+      <div style="
+        background: #fff; border-radius: 20px; width: 100%; max-width: 460px;
+        box-shadow: 0 32px 80px rgba(0,0,0,0.3); overflow: hidden;
+        animation: slideUpFade 0.18s ease;
+      ">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg,#1a4d3e,#2d6a4f); padding: 22px 24px 18px;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">
+            Supervisor Approval Desk
+          </div>
+          <div style="font-size:19px;font-weight:700;color:#fff;">Confirm Trade Claim Approval</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;">
+            This action is irreversible. Please review before confirming.
+          </div>
+        </div>
+
+        <!-- Claim summary -->
+        <div style="padding: 20px 24px 0;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;">
+            <div style="background:#f9fafb;border-radius:10px;padding:12px;">
+              <div style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Reference</div>
+              <div style="font-size:13px;font-weight:700;color:#1a4d3e;font-family:monospace;">${ref}</div>
+            </div>
+            <div style="background:#f9fafb;border-radius:10px;padding:12px;">
+              <div style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Amount</div>
+              <div style="font-size:13px;font-weight:700;color:#1d1d1f;">${currency} ${amount}</div>
+            </div>
+            <div style="background:#f9fafb;border-radius:10px;padding:12px;grid-column:span 2;">
+              <div style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Institution</div>
+              <div style="font-size:13px;font-weight:600;color:#1d1d1f;">${inst}</div>
+            </div>
+            <div style="background:#f9fafb;border-radius:10px;padding:12px;grid-column:span 2;">
+              <div style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Corridor</div>
+              <div style="font-size:13px;font-weight:600;color:#1d1d1f;">${corridor}</div>
+            </div>
+          </div>
+
+          ${notesDisplay}
+
+          <!-- What happens on approval -->
+          <div style="margin-top:12px;padding:10px 12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;font-size:11px;color:#0369a1;line-height:1.6;">
+            <span style="font-weight:700;display:block;margin-bottom:3px;">⚙ System actions on approval</span>
+            All 5 issuance eligibility gating conditions will be evaluated immediately.<br>
+            If all pass, the claim transitions to <strong>Issuance-Eligible</strong> automatically.
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="padding:20px 24px 24px;display:flex;gap:10px;">
+          <button id="approvalConfirmCancel" style="
+            flex:1;padding:13px;background:#f3f4f6;color:#374151;
+            border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;
+          ">Cancel</button>
+          <button id="approvalConfirmOK" style="
+            flex:2;padding:13px;
+            background:linear-gradient(135deg,#059669,#1a4d3e);
+            color:white;border:none;border-radius:10px;
+            font-size:14px;font-weight:700;cursor:pointer;
+            display:flex;align-items:center;justify-content:center;gap:8px;
+            box-shadow:0 4px 14px rgba(5,150,105,0.35);
+          ">✓ Approve Trade Claim</button>
+        </div>
+      </div>
+      <style>
+        @keyframes slideUpFade {
+          from { opacity:0; transform:translateY(16px) scale(0.97); }
+          to   { opacity:1; transform:translateY(0)    scale(1); }
+        }
+      </style>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const cleanup = (result) => {
+      overlay.remove();
+      resolve(result);
+    };
+
+    document.getElementById('approvalConfirmOK').onclick     = () => cleanup(true);
+    document.getElementById('approvalConfirmCancel').onclick = () => cleanup(false);
+    overlay.addEventListener('click', e => { if (e.target === overlay) cleanup(false); });
+
+    // Keyboard: Enter = confirm, Escape = cancel
+    const keyHandler = e => {
+      if (e.key === 'Enter')  { document.removeEventListener('keydown', keyHandler); cleanup(true); }
+      if (e.key === 'Escape') { document.removeEventListener('keydown', keyHandler); cleanup(false); }
+    };
+    document.addEventListener('keydown', keyHandler);
+  });
+}
+
+async function supervisorApproveClaim() {
+  if (!selectedSupervisorClaimData) { alert('Please select a claim first'); return; }
+  const notes = document.getElementById('supervisorDecisionNotes').value;
+
+  // ── Styled confirmation modal (replaces browser confirm()) ───────────────
+  const confirmed = await showApprovalConfirmModal(selectedSupervisorClaimData, notes);
+  if (!confirmed) return;
+
+  const btn = document.getElementById('btnApprove');
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Approving...';
+
+  try {
+    const res = await fetch(`/api/v2/trade_claims/${selectedSupervisorClaimData.id}/approve`, {
+      method: 'POST',
+      headers: getSupervisorAuthHeaders(),
+      body: JSON.stringify({ notes })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.error || `Failed: ${res.status}`);
+
+    const issuanceEligible = data.issuance_eligible === true;
+    const finalStatus      = data.status || 'approved';
+
+    // ── Merge gating results back into the claim object and re-render ──
+    selectedSupervisorClaimData = {
+      ...selectedSupervisorClaimData,
+      status:             finalStatus,
+      gating_conditions:  data.eligibility?.gates || {},
+      eligibility:        data.eligibility || {}
+    };
+
+    // Re-render gating conditions panel and lifecycle table with real results
+    populateReviewChecks(selectedSupervisorClaimData);
+
+    // ── Update the "Updates" panel ──
+    const updatesEl    = document.getElementById('approvalUpdates');
+    const issuanceEl   = document.getElementById('issuanceEligibleUpdate');
+
+    if (issuanceEligible) {
+      updatesEl.innerHTML = `
+        <div><span style="color:#22c55e;">✓</span> status → issuance_eligible</div>
+        <div><span style="color:#22c55e;">✓</span> liquidity_lock created</div>
+        <div><span style="color:#22c55e;">✓</span> issuance_authorization created</div>
+      `;
+      updatesEl.style.background   = '#f0fdf4';
+      updatesEl.style.color        = '#166534';
+      updatesEl.style.borderColor  = '#bbf7d0';
+      if (issuanceEl) issuanceEl.style.display = 'block';
+      btn.innerHTML = '🏦 Approved → Issuance-Eligible';
+    } else {
+      const failedConditions = data.eligibility?.failed_conditions || [];
+      updatesEl.innerHTML = `
+        <div><span style="color:#22c55e;">✓</span> status → approved</div>
+        <div><span style="color:#f59e0b;">⟳</span> Eligibility evaluation: ${failedConditions.length} gate(s) pending</div>
+        ${failedConditions.map(f => `<div style="font-size:11px;color:#92400e;padding-left:12px;">• ${f}</div>`).join('')}
+      `;
+      updatesEl.style.background   = '#fffbeb';
+      updatesEl.style.color        = '#92400e';
+      updatesEl.style.borderColor  = '#fde68a';
+      if (issuanceEl) issuanceEl.style.display = 'none';
+      btn.innerHTML = '✅ Approved (eligibility pending)';
+    }
+
+    // ── Reload queue but do NOT hide the panel — claim stays visible ──
+    // Update the in-memory claims list with the new status so the queue row
+    // reflects approved/issuance_eligible without disappearing.
+    const idx = supervisorClaims.findIndex(c => c.id === selectedSupervisorClaimData.id);
+    if (idx !== -1) supervisorClaims[idx] = { ...supervisorClaims[idx], status: finalStatus };
+    applySupervisorFilters();
+
+    // ── Styled result modal (replaces browser alert) ─────────────────────────
+    showApprovalResultModal({
+      issuanceEligible,
+      reference:        selectedSupervisorClaimData.reference || finalStatus,
+      failedConditions: data.eligibility?.failed_conditions || [],
+      gates:            data.eligibility?.gates || {}
+    });
+
+  } catch (e) {
+    showApprovalResultModal({ error: true, errorMessage: e.message });
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
+}
+
+// ── Re-Evaluate Eligibility ──────────────────────────────────────────────────
+// Called when the supervisor clicks "Re-Evaluate" after a gate was previously
+// failed and the underlying issue has since been corrected (e.g. compliance
+// team cleared an AML flag in the back-office system).
+//
+// Maps to: POST /api/v2/trade_claims/:id/re_evaluate
+// The backend runs Claims::IssuanceEligibilityService.re_evaluate(claim)
+// which re-runs all 5 gates and transitions to issuance_eligible if all pass.
+async function supervisorReEvaluateClaim() {
+  if (!selectedSupervisorClaimData) return;
+
+  const btn = document.getElementById('btnReEvaluate');
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Evaluating...'; }
+
+  try {
+    const res = await fetch(`/api/v2/trade_claims/${selectedSupervisorClaimData.id}/re_evaluate`, {
+      method:  'POST',
+      headers: getSupervisorAuthHeaders(),
+      body:    JSON.stringify({})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`);
+
+    const issuanceEligible = data.issuance_eligible === true;
+    const finalStatus      = data.status || selectedSupervisorClaimData.status;
+
+    // ── Merge new gate results back into claim object ──
+    selectedSupervisorClaimData = {
+      ...selectedSupervisorClaimData,
+      status:            finalStatus,
+      gating_conditions: data.eligibility?.gates || selectedSupervisorClaimData.gating_conditions || {},
+      eligibility:       data.eligibility || {}
+    };
+
+    // Re-render the gating panel + lifecycle table with fresh results
+    populateReviewChecks(selectedSupervisorClaimData);
+
+    // ── Update the "Updates" panel ──
+    const updatesEl = document.getElementById('approvalUpdates');
+    const issuanceEl = document.getElementById('issuanceEligibleUpdate');
+
+    if (issuanceEligible) {
+      // All gates now pass — claim has transitioned to issuance_eligible
+      updatesEl.innerHTML = `
+        <div><span style="color:#22c55e;">✓</span> Re-evaluation complete</div>
+        <div><span style="color:#22c55e;">✓</span> status → issuance_eligible</div>
+        <div><span style="color:#22c55e;">✓</span> All 5 gates passed</div>
+        <div><span style="color:#22c55e;">✓</span> issuance_authorization created</div>
+      `;
+      updatesEl.style.background  = '#f0fdf4';
+      updatesEl.style.color       = '#166534';
+      updatesEl.style.borderColor = '#bbf7d0';
+      if (issuanceEl) issuanceEl.style.display = 'block';
+
+      // Update queue row to reflect new status
+      const idx = supervisorClaims.findIndex(c => c.id === selectedSupervisorClaimData.id);
+      if (idx !== -1) supervisorClaims[idx] = { ...supervisorClaims[idx], status: finalStatus };
+      applySupervisorFilters();
+
+      // Swap button state — Approve is no longer needed
+      const approveBtn = document.getElementById('btnApprove');
+      if (approveBtn) { approveBtn.innerHTML = '🏦 Issuance-Eligible'; approveBtn.disabled = true; }
+      if (btn) { btn.style.display = 'none'; }
+
+    } else {
+      // Some gates still failing — show which ones remain blocked
+      const failedConditions = data.eligibility?.failed_conditions || [];
+      updatesEl.innerHTML = `
+        <div><span style="color:#f59e0b;">⟳</span> Re-evaluation complete — still blocked</div>
+        ${failedConditions.map(f =>
+          `<div style="font-size:11px;color:#92400e;padding-left:12px;">• ${f}</div>`
+        ).join('')}
+        <div style="font-size:11px;color:#6b7280;margin-top:6px;padding-left:12px;">
+          Re-evaluate again once those conditions are corrected.
+        </div>
+      `;
+      updatesEl.style.background  = '#fffbeb';
+      updatesEl.style.color       = '#92400e';
+      updatesEl.style.borderColor = '#fde68a';
+      if (issuanceEl) issuanceEl.style.display = 'none';
+      if (btn) { btn.disabled = false; btn.innerHTML = '⟳ Re-Evaluate'; }
+    }
+
+  } catch (e) {
+    const failMsg = `Re-evaluation failed: ${e.message}`;
+    const updatesEl = document.getElementById('approvalUpdates');
+    if (updatesEl) {
+      updatesEl.innerHTML = `<div style="color:#dc2626;">⚠ ${failMsg}</div>`;
+      updatesEl.style.background = '#fef2f2';
+    }
+    if (btn) { btn.disabled = false; btn.innerHTML = '⟳ Re-Evaluate'; }
+    console.error('[supervisorReEvaluateClaim]', e);
+  }
+}
+
+async function supervisorRejectClaim() {
+  if (!selectedSupervisorClaimData) { alert('Please select a claim first'); return; }
+  const notes = document.getElementById('supervisorDecisionNotes').value;
+  if (!notes.trim()) { alert('Please provide a reason in Decision Notes.'); return; }
+  if (!confirm('Reject this trade claim?')) return;
+  
+  try {
+    const res = await fetch(`/api/v2/trade_claims/${selectedSupervisorClaimData.id}/reject`, {
+      method: 'POST',
+      headers: getSupervisorAuthHeaders(),
+      body: JSON.stringify({ notes, reason: notes })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.error || `Failed: ${res.status}`);
+    alert('⛔ Claim rejected successfully.');
+    loadSupervisorClaims();
+    document.getElementById('approvalSection').style.display = 'none';
+    selectedSupervisorClaim = null;
+    selectedSupervisorClaimData = null;
+  } catch (e) { alert('Error rejecting claim: ' + e.message); }
+}
+
+async function supervisorRequestClarification() {
+  if (!selectedSupervisorClaimData) { alert('Please select a claim first'); return; }
+  const notes = document.getElementById('supervisorDecisionNotes').value;
+  if (!notes.trim()) { alert('Please describe what clarification is needed.'); return; }
+  if (!confirm('Request clarification for this claim?')) return;
+  
+  try {
+    const res = await fetch(`/api/v2/trade_claims/${selectedSupervisorClaimData.id}/request_clarification`, {
+      method: 'POST',
+      headers: getSupervisorAuthHeaders(),
+      body: JSON.stringify({ notes, reason: notes })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.error || `Failed: ${res.status}`);
+    alert('📋 Clarification requested successfully.');
+    loadSupervisorClaims();
+    document.getElementById('approvalSection').style.display = 'none';
+    selectedSupervisorClaim = null;
+    selectedSupervisorClaimData = null;
+  } catch (e) { alert('Error requesting clarification: ' + e.message); }
+}
+
+async function supervisorCancelClaim() {
+  if (!selectedSupervisorClaimData) { alert('Please select a claim first'); return; }
+  const notes = document.getElementById('supervisorDecisionNotes').value;
+  if (!confirm('Cancel this trade claim? This action cannot be undone.')) return;
+  
+  try {
+    const res = await fetch(`/api/v2/trade_claims/${selectedSupervisorClaimData.id}/cancel`, {
+      method: 'POST',
+      headers: getSupervisorAuthHeaders(),
+      body: JSON.stringify({ notes, reason: notes })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.error || `Failed: ${res.status}`);
+    alert('🚫 Claim cancelled successfully.');
+    loadSupervisorClaims();
+    document.getElementById('approvalSection').style.display = 'none';
+    selectedSupervisorClaim = null;
+    selectedSupervisorClaimData = null;
+  } catch (e) { alert('Error cancelling claim: ' + e.message); }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('supervisorDeskModalOverlay').style.display === 'flex') {
+    hideSupervisorDeskModal();
+  }
+});
+</script>
