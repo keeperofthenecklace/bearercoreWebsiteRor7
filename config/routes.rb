@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   root "pages#home"
+  get  "portal",             to: "pages#portal"
   get  "technical-overview", to: "pages#technical_overview"
   get  "sandbox",            to: "pages#sandbox"
   get  "litepaper",          to: "pages#litepaper"

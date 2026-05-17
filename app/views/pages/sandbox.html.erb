@@ -11,8 +11,8 @@
     </a>
 
     <div class="hidden md:flex items-center gap-8">
-      <a href="/technical-overview" class="text-sm font-medium transition-colors hover:opacity-70" style="color: #0C1B38;">Technical Overview</a>
       <a href="/sandbox" class="text-sm font-semibold transition-colors" style="color: #C9A84C;">Sandbox</a>
+      <a href="/technical-overview" class="text-sm font-medium transition-colors hover:opacity-70" style="color: #0C1B38;">Technical Review</a>
       <div class="flex items-center gap-2 pl-4 border-l border-gray-100">
         <span class="flex items-center gap-1.5 text-xs font-medium" style="color: #6B7280;">
           <span class="w-1.5 h-1.5 rounded-full" style="background: #16a34a;"></span>
@@ -33,6 +33,7 @@
 
   <div class="hidden" data-nav-target="menu">
     <div class="flex flex-col gap-4 px-6 pb-5 pt-2 border-t border-gray-100 bg-white">
+      <a href="/portal" class="text-sm font-medium" style="color: #6B7280;">&larr; Dashboard</a>
       <a href="/technical-overview" class="text-sm font-medium" style="color: #0C1B38;">Technical Overview</a>
       <a href="/sandbox" class="text-sm font-semibold" style="color: #C9A84C;">Sandbox</a>
       <%= button_to "End Secure Session", central_bank_logout_path, method: :delete,
@@ -42,9 +43,22 @@
   </div>
 </nav>
 
+<%# ─── SUB-NAV STRIP ─────────────────────────────────────────────────────── %>
+<div style="position: fixed; top: 65px; left: 0; right: 0; z-index: 40; background: #0C1B38; border-bottom: 1px solid rgba(255,255,255,0.08);">
+  <div class="max-w-7xl mx-auto px-6" style="display: flex; align-items: center; gap: 24px; height: 40px;">
+    <a href="/portal" style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.45); letter-spacing: 0.05em; text-decoration: none; display: flex; align-items: center; gap: 5px;" onmouseover="this.style.color='rgba(255,255,255,0.75)'" onmouseout="this.style.color='rgba(255,255,255,0.45)'">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      DASHBOARD
+    </a>
+    <span style="color: rgba(255,255,255,0.15); font-size: 11px;">/</span>
+    <a href="/sandbox" style="font-size: 11px; font-weight: 700; color: #C9A84C; letter-spacing: 0.05em; text-decoration: none;">SANDBOX VIEW</a>
+    <a href="/technical-overview" style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.45); letter-spacing: 0.05em; text-decoration: none;" onmouseover="this.style.color='rgba(255,255,255,0.75)'" onmouseout="this.style.color='rgba(255,255,255,0.45)'">TECHNICAL REVIEW</a>
+  </div>
+</div>
+
 
 <%# ─── PAGE HEADER ─────────────────────────────────────────────────────────── %>
-<section style="background: linear-gradient(135deg, #0C1B38 0%, #152545 100%); padding-top: 120px; padding-bottom: 64px;">
+<section style="background: linear-gradient(135deg, #0C1B38 0%, #152545 100%); padding-top: 160px; padding-bottom: 64px;">
   <div class="max-w-4xl mx-auto px-6 text-center">
     <div class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C9A84C;">Restricted — Central Bank Access Only</div>
     <h1 class="font-serif-display text-4xl md:text-5xl font-bold mb-5 text-white" style="letter-spacing: -0.02em;">

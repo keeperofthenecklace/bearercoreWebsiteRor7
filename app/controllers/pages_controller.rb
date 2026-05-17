@@ -1,7 +1,10 @@
 class PagesController < ApplicationController
-  before_action :require_central_bank_access, only: [:technical_overview, :sandbox]
+  before_action :require_central_bank_access, only: [:portal, :technical_overview, :sandbox]
 
   def home
+  end
+
+  def portal
   end
 
   def technical_overview
