@@ -39,13 +39,18 @@ class GmailSendService
 
   private
 
+  def encode_subject(text)
+    return text unless text.bytes.any? { |b| b > 127 }
+    "=?UTF-8?B?#{Base64.strict_encode64(text.encode('UTF-8'))}?="
+  end
+
   def send_email(to:, subject:, body:, content_type: "text/plain")
     token = get_access_token!
     raw   = [
       "MIME-Version: 1.0",
       "From: #{FROM_NAME} <#{FROM_EMAIL}>",
       "To: #{to}",
-      "Subject: #{subject}",
+      "Subject: #{encode_subject(subject)}",
       "Content-Type: #{content_type}; charset=UTF-8",
       "",
       body
