@@ -695,7 +695,29 @@
   </div>
 </div>
 
+<!-- ── Governor Custom Dialog (replaces browser alert/confirm/prompt) ───────── -->
+<div id="govDialogOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.72); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
+  <div style="background:#0f1e3a; border:1px solid rgba(201,168,76,0.22); border-radius:18px; max-width:460px; width:92%; box-shadow:0 32px 80px rgba(0,0,0,0.65); overflow:hidden; animation:govDialogIn 0.18s ease-out;">
+    <div id="govDialogHeader" style="background:linear-gradient(135deg, #1a3a5c 0%, #1e4d7b 100%); padding:22px 26px 18px; border-bottom:1px solid rgba(201,168,76,0.16); position:relative; overflow:hidden;">
+      <div style="position:absolute;inset:0;background-image:radial-gradient(circle at 2px 2px,rgba(255,255,255,0.06) 1px,transparent 0);background-size:20px 20px;pointer-events:none;"></div>
+      <div style="display:flex;align-items:center;gap:14px;position:relative;">
+        <div id="govDialogIconWrap" style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"></div>
+        <div>
+          <div id="govDialogTag" style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#C9A84C;margin-bottom:4px;"></div>
+          <div id="govDialogTitle" style="font-size:16px;font-weight:700;color:#ffffff;line-height:1.2;"></div>
+        </div>
+      </div>
+    </div>
+    <div id="govDialogBody" style="padding:22px 26px;"></div>
+    <div id="govDialogFooter" style="padding:14px 26px 22px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid rgba(255,255,255,0.05);"></div>
+  </div>
+</div>
+
 <style>
+@keyframes govDialogIn {
+  from { opacity:0; transform:scale(0.93) translateY(10px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
 .governor-auth-row:hover { background: #eff6ff !important; }
 .governor-auth-row.selected { background: #dbeafe !important; border-left: 3px solid #2563eb; }
 
@@ -712,6 +734,70 @@
 </style>
 
 <script>
+// ── Custom dialog system ──────────────────────────────────────────────────────
+function govDialog({ tag, title, icon, body, buttons, danger }) {
+  return new Promise(resolve => {
+    const overlay  = document.getElementById('govDialogOverlay');
+    const iconWrap = document.getElementById('govDialogIconWrap');
+    document.getElementById('govDialogTag').textContent   = tag   || '';
+    document.getElementById('govDialogTitle').textContent = title || '';
+    iconWrap.innerHTML   = icon || '';
+    iconWrap.style.cssText = danger
+      ? 'width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(220,38,38,0.2);border:1px solid rgba(220,38,38,0.4);'
+      : 'width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(201,168,76,0.18);border:1px solid rgba(201,168,76,0.35);';
+    document.getElementById('govDialogBody').innerHTML = body || '';
+    const footer = document.getElementById('govDialogFooter');
+    footer.innerHTML = '';
+    (buttons || [{ label:'OK', value:true, primary:true }]).forEach(btn => {
+      const el = document.createElement('button');
+      el.innerHTML = btn.label;
+      el.style.cssText = btn.primary
+        ? `padding:10px 22px;background:${danger ? 'linear-gradient(135deg,#dc2626,#b91c1c)' : 'linear-gradient(135deg,#C9A84C,#b8943f)'};color:${danger ? '#fff' : '#0C1B38'};border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.02em;transition:opacity 0.15s;`
+        : `padding:10px 22px;background:transparent;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.65);border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity 0.15s;`;
+      el.onmouseenter = () => el.style.opacity = '0.82';
+      el.onmouseleave = () => el.style.opacity = '1';
+      if (btn.id) { el.id = btn.id; el.disabled = true; el.style.opacity = '0.4'; }
+      el.onclick = () => { if (el.disabled) return; overlay.style.display = 'none'; resolve(btn.value); };
+      footer.appendChild(el);
+    });
+    overlay.style.display = 'flex';
+  });
+}
+
+function govAlert({ tag, title, message, danger }) {
+  const strokeColor = danger ? '#f87171' : '#6ee7b7';
+  const icon = danger
+    ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="${strokeColor}"/></svg>`
+    : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+  return govDialog({
+    tag, title, icon, danger,
+    body: `<p style="color:rgba(255,255,255,0.75);font-size:13px;line-height:1.65;margin:0;">${message}</p>`,
+    buttons: [{ label: 'OK', value: true, primary: true }],
+  });
+}
+
+async function govConfirmHalt(corridor) {
+  const inputId = 'govHaltInput_' + Date.now();
+  const confirmed = await govDialog({
+    tag:   'Corridor Action',
+    title: `Halt Corridor: ${corridor}`,
+    danger: true,
+    icon:  `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="#f87171"/></svg>`,
+    body:  `<div style="margin-bottom:16px;font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6;">This will <strong style="color:#f87171;">immediately suspend</strong> the <strong style="color:#fff;">${corridor}</strong> corridor. No further CVIB minting or settlement will be permitted until it is reinstated.</div>
+            <div style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.25);border-radius:10px;padding:14px;">
+              <div style="font-size:11px;font-weight:700;color:#f87171;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">Confirmation Required</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px;">Type <strong style="color:#f87171;font-family:monospace;">HALT</strong> to proceed. This action will be recorded in the audit log.</div>
+              <input id="${inputId}" type="text" placeholder="Type HALT" style="width:100%;padding:9px 12px;background:#0a1628;border:1px solid rgba(220,38,38,0.4);border-radius:7px;color:#fff;font-size:13px;font-family:monospace;letter-spacing:0.08em;outline:none;box-sizing:border-box;" oninput="document.getElementById('govHaltConfirmBtn').disabled=this.value.trim().toUpperCase()!=='HALT';document.getElementById('govHaltConfirmBtn').style.opacity=this.value.trim().toUpperCase()==='HALT'?'1':'0.4';">
+            </div>`,
+    buttons: [
+      { label: 'Cancel', value: false },
+      { label: '&#9889; Halt Corridor', value: true, primary: true, id: 'govHaltConfirmBtn' },
+    ],
+  });
+  if (!confirmed) return false;
+  const val = document.getElementById(inputId);
+  return val ? val.value.trim().toUpperCase() === 'HALT' : false;
+}
 // ═══════════════════════════════════════════════════════════════════════════
 // GOVERNOR APPROVAL DESK  —  STATE & FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1284,10 +1370,27 @@ async function governorSignAuthorization() {
 
 // ── Governor reject ─────────────────────────────────────────────────────────
 async function governorRejectAuthorization() {
-  if (!selectedGovernorAuthData) { alert('Please select an authorization first'); return; }
+  if (!selectedGovernorAuthData) { await govAlert({ tag:'Error', title:'No Authorization Selected', message:'Please select an authorization from the queue first.', danger:true }); return; }
   const notes = (document.getElementById('governorDecisionNotes')?.value || '').trim();
-  if (!notes) { alert('Please enter a rejection reason in the Decision Notes field.'); return; }
-  if (!confirm(`Reject authorization ${selectedGovernorAuthData.auth_code}? This will block CVIB minting.`)) return;
+  if (!notes) { await govAlert({ tag:'Error', title:'Reason Required', message:'Please enter a rejection reason in the Decision Notes field before rejecting.', danger:true }); return; }
+  const confirmed = await govDialog({
+    tag:   'Governor Action',
+    title: 'Reject Authorization',
+    danger: true,
+    icon:  `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+    body:  `<div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin-bottom:16px;font-size:13px;">
+              <span style="color:rgba(255,255,255,0.45);font-weight:600;">Auth ID</span>
+              <span style="color:#ffffff;font-family:monospace;font-size:12px;">${selectedGovernorAuthData.auth_code}</span>
+            </div>
+            <div style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.22);border-radius:10px;padding:12px 14px;">
+              <div style="font-size:12px;color:rgba(255,255,255,0.65);line-height:1.55;">This will <strong style="color:#f87171;">block CVIB minting</strong> for this authorization. The action is permanent and will be recorded in the governance audit log.</div>
+            </div>`,
+    buttons: [
+      { label: 'Cancel', value: false },
+      { label: 'Reject Authorization', value: true, primary: true },
+    ],
+  });
+  if (!confirmed) return;
 
   try {
     const res = await fetch(`/api/v2/issuance_authorizations/${selectedGovernorAuthData.auth_code}/governance_reject`, {
@@ -1724,45 +1827,63 @@ function renderGovRecentEvents(proposals) {
 }
 
 // ── Corridor Halt (context-aware to selected corridor) ───────────────────────
-function govHaltCorridor() {
+async function govHaltCorridor() {
   if (!govSelectedCorridorId) {
-    alert('Select a corridor above before halting.');
+    await govAlert({ tag:'Error', title:'No Corridor Selected', message:'Select a corridor from the list above before halting.', danger:true });
     return;
   }
-  const step1 = confirm(
-    `⚡ HALT CORRIDOR: ${govSelectedCorridorLabel}\n\n` +
-    'This will immediately suspend this corridor.\n' +
-    'No further CVIB minting or settlement will be permitted.\n\n' +
-    'Proceed?'
-  );
-  if (!step1) return;
-
-  const code = prompt('CONFIRMATION REQUIRED\n\nType HALT to confirm.\nThis action will be recorded in the audit log.');
-  if ((code || '').trim().toUpperCase() !== 'HALT') {
-    alert('Corridor halt cancelled — confirmation code did not match.');
+  const confirmed = await govConfirmHalt(govSelectedCorridorLabel);
+  if (!confirmed) {
+    await govAlert({ tag:'Cancelled', title:'Halt Cancelled', message:'Confirmation code did not match. No action was taken.' });
     return;
   }
-
-  alert(`⚡ Halt initiated for ${govSelectedCorridorLabel}.\n\nAudit log entry recorded.\n\n(In production: POST /api/v2/corridors/${govSelectedCorridorId}/halt)`);
+  await govAlert({
+    tag:     'Halt Initiated',
+    title:   'Corridor Suspended',
+    message: `<strong style="color:#fff;">${govSelectedCorridorLabel}</strong> has been suspended. Audit log entry recorded.<br><br><span style="font-size:11px;color:rgba(255,255,255,0.4);font-family:monospace;">POST /api/v2/corridors/${govSelectedCorridorId}/halt</span>`,
+    danger:  true,
+  });
 }
 
 // ── Adjust Daily Cap ─────────────────────────────────────────────────────────
-function govAdjustDailyCap() {
-  if (!govSelectedCorridorId) { alert('Select a corridor first.'); return; }
-
-  const newCap = prompt(
-    `Adjust Daily Cap — ${govSelectedCorridorLabel}\n\n` +
-    'Enter the new daily cap amount (e.g. 5000000):'
-  );
-  if (!newCap || isNaN(parseFloat(newCap))) { alert('Invalid amount.'); return; }
-
-  alert(`Daily Cap adjustment proposal queued:\n\nCorridor: ${govSelectedCorridorLabel}\nNew Cap: ${parseFloat(newCap).toLocaleString()}\n\n(Creates a corridor_cap_change governance proposal)`);
+async function govAdjustDailyCap() {
+  if (!govSelectedCorridorId) {
+    await govAlert({ tag:'Error', title:'No Corridor Selected', message:'Select a corridor from the list above first.', danger:true });
+    return;
+  }
+  const inputId = 'govCapInput_' + Date.now();
+  const confirmed = await govDialog({
+    tag:   'Corridor Management',
+    title: 'Adjust Daily Cap',
+    icon:  `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+    body:  `<div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:14px;">Set a new daily settlement cap for the <strong style="color:#fff;">${govSelectedCorridorLabel}</strong> corridor.</div>
+            <div>
+              <label style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.45);display:block;margin-bottom:6px;">New Daily Cap Amount</label>
+              <input id="${inputId}" type="number" placeholder="e.g. 5000000" style="width:100%;padding:10px 13px;background:#0a1628;border:1px solid rgba(201,168,76,0.3);border-radius:8px;color:#fff;font-size:14px;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#C9A84C'" onblur="this.style.borderColor='rgba(201,168,76,0.3)'">
+            </div>`,
+    buttons: [
+      { label: 'Cancel', value: false },
+      { label: 'Queue Proposal', value: true, primary: true },
+    ],
+  });
+  if (!confirmed) return;
+  const inputEl = document.getElementById(inputId);
+  const newCap  = inputEl ? inputEl.value : '';
+  if (!newCap || isNaN(parseFloat(newCap))) {
+    await govAlert({ tag:'Error', title:'Invalid Amount', message:'Please enter a valid numeric amount.', danger:true });
+    return;
+  }
+  await govAlert({
+    tag:     'Proposal Queued',
+    title:   'Daily Cap Adjustment',
+    message: `Corridor: <strong style="color:#fff;">${govSelectedCorridorLabel}</strong><br>New Cap: <strong style="color:#C9A84C;">${parseFloat(newCap).toLocaleString()}</strong><br><br>A <code style="font-size:11px;color:rgba(255,255,255,0.5);">corridor_cap_change</code> governance proposal has been queued for multi-sig approval.`,
+  });
 }
 
 // ── Quick Bulk Allotment ─────────────────────────────────────────────────────
 async function govCreateBulkAllotment(amount) {
   if (!govSelectedCorridorId) {
-    alert('Please select a corridor before creating a bulk allotment.');
+    await govAlert({ tag:'Error', title:'No Corridor Selected', message:'Please select a corridor before creating a bulk allotment.', danger:true });
     return;
   }
 
@@ -1771,13 +1892,27 @@ async function govCreateBulkAllotment(amount) {
   const proposalRef  = `ALOT-${year}-${corridorCode}-001`;
   const amtFormatted = amount.toLocaleString();
 
-  const confirmed = confirm(
-    `Sovereign Bulk Allotment\n\n` +
-    `Proposal: ${proposalRef}\n` +
-    `Corridor: ${govSelectedCorridorLabel}\n` +
-    `Amount:   ${amtFormatted}\n\n` +
-    `This will create a governance proposal requiring multi-sig approval.\nProceed?`
-  );
+  const confirmed = await govDialog({
+    tag:   'Governance Action',
+    title: 'Sovereign Bulk Allotment',
+    icon:  `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>`,
+    body:  `<div style="display:grid;grid-template-columns:auto 1fr;gap:9px 18px;margin-bottom:18px;font-size:13px;align-items:baseline;">
+              <span style="color:rgba(255,255,255,0.42);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Proposal</span>
+              <span style="color:#ffffff;font-family:monospace;font-size:12px;letter-spacing:0.04em;">${proposalRef}</span>
+              <span style="color:rgba(255,255,255,0.42);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Corridor</span>
+              <span style="color:#ffffff;font-weight:600;">${govSelectedCorridorLabel}</span>
+              <span style="color:rgba(255,255,255,0.42);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Amount</span>
+              <span style="color:#C9A84C;font-weight:700;font-size:18px;letter-spacing:-0.01em;">${amtFormatted}</span>
+            </div>
+            <div style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:13px 15px;">
+              <div style="font-size:10px;font-weight:700;color:#C9A84C;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">⚠ Multi-Sig Required</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;">This will create a governance proposal requiring multi-signature approval before funds are allocated to the corridor.</div>
+            </div>`,
+    buttons: [
+      { label: 'Cancel', value: false },
+      { label: 'Confirm Allotment', value: true, primary: true },
+    ],
+  });
   if (!confirmed) return;
 
   try {
@@ -1802,10 +1937,14 @@ async function govCreateBulkAllotment(amount) {
     if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`);
 
     const propId = data?.data?.proposal_id || data?.data?.id || proposalRef;
-    alert(`✓ Bulk Allotment proposal submitted.\nProposal ID: ${propId}\n\nPending multi-sig governance approval.`);
+    await govAlert({
+      tag:     'Proposal Submitted',
+      title:   'Allotment Queued',
+      message: `Bulk allotment proposal <strong style="color:#C9A84C;font-family:monospace;">${propId}</strong> has been submitted and is pending multi-sig governance approval.`,
+    });
     loadGovRecentEvents();
   } catch (err) {
-    alert(`Error creating bulk allotment: ${err.message}`);
+    await govAlert({ tag:'Error', title:'Submission Failed', message:err.message, danger:true });
   }
 }
 </script>
