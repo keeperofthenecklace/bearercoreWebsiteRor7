@@ -22,12 +22,18 @@ Rails.application.routes.draw do
         member do
           get  :liquidity_position
           post :halt
+          post :unhalt
+          post :clear_reconciliation
+        end
+        collection do
+          get :reconciliation
         end
       end
       namespace :governance do
         resources :proposals, only: [:index, :create] do
           member do
             post :vote
+            post :recall
           end
         end
       end

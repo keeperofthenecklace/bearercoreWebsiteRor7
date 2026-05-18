@@ -294,7 +294,7 @@
               ">Inject 100M</button>
             </div>
 
-            <button onclick="govHaltCorridor()" style="
+            <button id="govHaltResumeBtn" onclick="govHaltResumeAction()" style="
               width:100%; background:linear-gradient(135deg,#7f1d1d,#b91c1c);
               color:white; border:none; border-radius:8px;
               padding:11px 0; font-size:12px; font-weight:700; cursor:pointer;
@@ -493,6 +493,14 @@
 .gov-corridor-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-1px); transition: all 0.18s ease; }
 .gov-corridor-card { transition: all 0.18s ease; }
 
+@keyframes govAllocPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+  50%       { opacity: 0.8; box-shadow: 0 0 0 5px rgba(245,158,11,0); }
+}
+.gov-badge-allocating {
+  animation: govAllocPulse 1.4s ease-in-out infinite;
+}
+
 .gov-proposal-row:hover { background: #f8fafc !important; }
 
 @media (max-width: 900px) {
@@ -688,9 +696,19 @@ function updateInterventionPanel(corridors) {
           const cap = parseFloat(lp.domestic_available || lp.total_liquidity || 0);
           const drawn = parseFloat(lp.linked_outstanding || lp.linked || 0);
           const headroomPct = cap > 0 ? Math.round(((cap - drawn) / cap) * 100) : 0;
-          const reason = (status === 'halted' || status === 'suspended')
+          const isCorridorHalted = status === 'halted' || status === 'suspended';
+          const reason = isCorridorHalted
             ? `<span style="color:#fca5a5;font-weight:700;">HALTED</span>`
             : `<span style="color:#fbbf24;font-weight:700;">${headroomPct}% headroom — CRITICAL LOW</span>`;
+          const actionBtn = isCorridorHalted
+            ? `<button onclick="govResumeCorridorFlow('${c.id||c.code}','${name}')" style="
+                background:rgba(16,185,129,0.2);color:#34d399;border:1px solid rgba(16,185,129,0.3);
+                border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;
+               ">↩ Resume</button>`
+            : `<button onclick="govSelectedCorridorId='${c.id||c.code}';govSelectedCorridorLabel='${name}';govHaltCorridor()" style="
+                background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.3);
+                border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;
+               ">Halt</button>`;
           return `
             <div style="
               background:rgba(255,255,255,0.06);border:1px solid rgba(239,68,68,0.25);
@@ -704,10 +722,7 @@ function updateInterventionPanel(corridors) {
                   background:rgba(251,191,36,0.2);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);
                   border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;
                 ">Adjust Cap</button>
-                <button onclick="govSelectedCorridorId='${c.id||c.code}';govSelectedCorridorLabel='${name}';govHaltCorridor()" style="
-                  background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.3);
-                  border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;
-                ">Halt</button>
+                ${actionBtn}
               </div>
             </div>`;
         }).join('')}
@@ -776,7 +791,35 @@ function govSelectCorridor(id, label) {
   govSelectedCorridorLabel = (label || id).trim();
   const lbl = document.getElementById('govQuickActionsCorridorLabel');
   if (lbl) lbl.textContent = `Corridor: ${govSelectedCorridorLabel}`;
+
+  // Flip the Halt/Resume button based on the selected corridor's live status
+  const corridor = govCorridorLiquidityData.find(c => String(c.id || c.code) === String(id));
+  const isHalted = corridor && (corridor.status === 'halted' || corridor.status === 'suspended');
+  govUpdateHaltResumeBtn(isHalted);
+
   loadCorridorGauge(id);
+}
+
+function govUpdateHaltResumeBtn(isHalted) {
+  const btn = document.getElementById('govHaltResumeBtn');
+  if (!btn) return;
+  if (isHalted) {
+    btn.textContent = '↩ Resume Corridor';
+    btn.style.background = 'linear-gradient(135deg,#047857,#059669)';
+  } else {
+    btn.textContent = '⚡ Halt Corridor';
+    btn.style.background = 'linear-gradient(135deg,#7f1d1d,#b91c1c)';
+  }
+}
+
+function govHaltResumeAction() {
+  const corridor = govCorridorLiquidityData.find(c => String(c.id || c.code) === String(govSelectedCorridorId));
+  const isHalted = corridor && (corridor.status === 'halted' || corridor.status === 'suspended');
+  if (isHalted) {
+    govResumeCorridorFlow(govSelectedCorridorId, govSelectedCorridorLabel);
+  } else {
+    govHaltCorridor();
+  }
 }
 
 async function loadCorridorGauge(corridorId) {
@@ -922,18 +965,38 @@ function renderGovRecentEvents(proposals) {
     const ts       = p.created_at || p.submitted_at || '';
     const dateStr  = ts ? new Date(ts).toLocaleDateString() : '—';
     const amtStr   = amount ? amount.toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—';
-    const statusColor = status === 'approved' ? '#2dd4bf' : status === 'rejected' ? '#f87171' : '#fbbf24';
+    const isRecon  = p.proposal_type === 'halt_reconciliation';
+
+    let statusColor, borderStyle, bgStyle, extraRow = '';
+    if (isRecon) {
+      statusColor = '#f87171';
+      borderStyle = '1px solid rgba(239,68,68,0.3)';
+      bgStyle     = 'rgba(239,68,68,0.06)';
+      if (p.recalled_proposals && p.recalled_proposals.length > 0) {
+        const ids = p.recalled_proposals.map(r =>
+          `<span style="font-family:monospace;color:#fca5a5;">${r.proposal_id}</span>`
+        ).join(', ');
+        extraRow = `<div style="margin-top:4px;font-size:10px;color:#94a3b8;">Auto-recalled: ${ids}</div>`;
+      }
+    } else {
+      statusColor = status === 'approved' ? '#2dd4bf' : status === 'recalled' ? '#f87171' : '#fbbf24';
+      borderStyle = '1px solid rgba(255,255,255,0.07)';
+      bgStyle     = 'rgba(255,255,255,0.04)';
+    }
+
+    const label = isRecon ? '⚡ HALT RECON' : status.toUpperCase();
 
     return `
-      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:9px 12px;">
+      <div style="background:${bgStyle};border:${borderStyle};border-radius:8px;padding:9px 12px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;">
-          <span style="font-size:11px;font-weight:700;color:#e2e8f0;font-family:monospace;">${propId}</span>
-          <span style="font-size:10px;font-weight:700;color:${statusColor};">${status.toUpperCase()}</span>
+          <span style="font-size:11px;font-weight:700;color:#e2e8f0;font-family:monospace;">${isRecon ? p.event_id || propId : propId}</span>
+          <span style="font-size:10px;font-weight:700;color:${statusColor};">${label}</span>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;">
           <span>${corridor}</span>
           <span>${amtStr} · ${dateStr}</span>
         </div>
+        ${extraRow}
       </div>`;
   }).join('');
 }
@@ -987,8 +1050,9 @@ function renderCorridorReservoirGrid(corridors) {
     const cards = groups[bloc].map(c => {
       const id       = c.id || c.code;
       const display  = c.corridor_display || c.code || `${c.source_country} → ${c.target_country}`;
-      const status   = (c.status || 'active').toLowerCase();
-      const isHalted = status === 'halted' || status === 'suspended';
+      const status      = (c.status || 'active').toLowerCase();
+      const isHalted    = status === 'halted' || status === 'suspended';
+      const isAllocating = status === 'allocating';
 
       const lp      = c.liquidity_position || c.liquidity_snapshot || {};
       const cap     = parseFloat(lp.domestic_available || lp.total_liquidity || 0);
@@ -998,17 +1062,20 @@ function renderCorridorReservoirGrid(corridors) {
       const currency = lp.asset_code || lp.currency || c.asset_code || '';
       const fmtNum   = n => n ? n.toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—';
 
-      let barColor, statusLabel, badgeBg, badgeColor;
+      let barColor, statusLabel, badgeBg, badgeColor, badgeClass = '';
       if (isHalted) {
         barColor = '#6b7280'; statusLabel = 'HALTED'; badgeBg = '#fef2f2'; badgeColor = '#dc2626';
+      } else if (isAllocating) {
+        barColor = '#f59e0b'; statusLabel = '⏳ ALLOCATING'; badgeBg = '#fffbeb'; badgeColor = '#b45309';
+        badgeClass = 'gov-badge-allocating';
       } else if (hPct === null) {
         barColor = '#475569'; statusLabel = 'NO DATA'; badgeBg = '#f3f4f6'; badgeColor = '#9ca3af';
       } else if (hPct < 10) {
         barColor = '#dc2626'; statusLabel = 'CRITICAL'; badgeBg = '#fef2f2'; badgeColor = '#dc2626';
       } else if (hPct < 30) {
-        barColor = '#f59e0b'; statusLabel = 'LOW'; badgeBg = '#fffbeb'; badgeColor = '#d97706';
+        barColor = '#f59e0b'; statusLabel = 'LOW FLOW'; badgeBg = '#fffbeb'; badgeColor = '#d97706';
       } else {
-        barColor = '#059669'; statusLabel = 'HEALTHY'; badgeBg = '#f0fdf4'; badgeColor = '#059669';
+        barColor = '#059669'; statusLabel = '✅ CIRCULATING'; badgeBg = '#f0fdf4'; badgeColor = '#059669';
       }
 
       const drawdownPct = cap > 0 ? Math.min(100, Math.round((drawn / cap) * 100)) : 0;
@@ -1018,7 +1085,7 @@ function renderCorridorReservoirGrid(corridors) {
           background: white; border: 1px solid #e2e8f0;
           border-radius: 14px; padding: 16px;
           display: flex; flex-direction: column; gap: 12px;
-          ${isHalted ? 'opacity:0.75;border-color:#fecaca;' : ''}
+          ${isHalted ? 'opacity:0.75;border-color:#fecaca;' : isAllocating ? 'border-color:#fcd34d;background:#fffdf0;' : ''}
         ">
           <!-- Card Header -->
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -1028,7 +1095,7 @@ function renderCorridorReservoirGrid(corridors) {
               </div>
               <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">${bloc}</div>
             </div>
-            <span style="
+            <span class="${badgeClass}" style="
               padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
               background:${badgeBg};color:${badgeColor};
             ">${statusLabel}</span>
@@ -1068,14 +1135,19 @@ function renderCorridorReservoirGrid(corridors) {
             " onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
               📊 Adjust Cap
             </button>
+            ${isHalted ? `
+            <button onclick="govResumeCorridorFlow('${id}','${display.replace(/'/g,"\\'")}');" style="
+              flex:1;padding:8px 0;font-size:11px;font-weight:600;cursor:pointer;
+              background:#f0fdf4;color:#059669;border:1px solid #bbf7d0;border-radius:8px;
+            " onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
+              ↩ Resume
+            </button>` : `
             <button onclick="govSelectedCorridorId='${id}';govSelectedCorridorLabel='${display.replace(/'/g,"\\'")}';govHaltCorridor()" style="
               flex:1;padding:8px 0;font-size:11px;font-weight:600;cursor:pointer;
-              background:${isHalted ? '#fef2f2' : '#fff7f7'};
-              color:${isHalted ? '#dc2626' : '#ef4444'};
-              border:1px solid ${isHalted ? '#fecaca' : '#fee2e2'};border-radius:8px;
-            " onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='${isHalted ? '#fef2f2' : '#fff7f7'}'">
-              ⚡ ${isHalted ? 'Halted' : 'Halt'}
-            </button>
+              background:#fff7f7;color:#ef4444;border:1px solid #fee2e2;border-radius:8px;
+            " onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff7f7'">
+              ⚡ Halt
+            </button>`}
           </div>
         </div>`;
     }).join('');
@@ -1309,6 +1381,104 @@ function govShowToast(message, type = 'info') {
 }
 
 // ── Corridor Interventions ──────────────────────────────────────────────────
+
+// Step 1 of the unhalt dual-key flow: check whether the reconciliation log
+// for this corridor has been cleared. If open entries exist, force the
+// governor to acknowledge them before the challenge can proceed.
+async function govResumeCorridorFlow(corridorId, corridorLabel) {
+  try {
+    const res = await fetch('/api/v2/corridors/reconciliation', { headers: getGovernorAuthHeaders() });
+    const log = await res.json();
+    const openEntries = (Array.isArray(log) ? log : []).filter(
+      r => String(r.corridor_id) === String(corridorId) && r.status === 'pending_manual_clearance'
+    );
+
+    if (openEntries.length > 0) {
+      const r = openEntries[0];
+      const recalledLines = (r.recalled_proposals || []).map(p =>
+        `<div style="font-family:monospace;font-size:11px;color:#fca5a5;margin:2px 0;">
+          ${p.proposal_id} — ${(p.amount||0).toLocaleString(undefined,{maximumFractionDigits:0})} ${r.asset_code||''}
+        </div>`
+      ).join('');
+
+      govShowDialog({
+        icon: '📋', iconBg: 'rgba(239,68,68,0.15)', iconBorder: 'rgba(239,68,68,0.3)',
+        title: 'Clear Reconciliation Log First',
+        subtitle: corridorLabel,
+        body: `<div style="color:#94a3b8;line-height:1.6;">
+          This corridor has <strong style="color:#fca5a5;">open reconciliation entries</strong> from the emergency halt. The treasury team must acknowledge the aborted allocations before operations can resume.
+          <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px;margin-top:10px;">${recalledLines || '<span style="color:#64748b;">No recalled proposals on record.</span>'}</div>
+        </div>`,
+        hasInput: false,
+        confirmLabel: 'Acknowledge & Archive Log',
+        confirmBg: 'linear-gradient(135deg,#b45309,#92400e)',
+        onConfirm: async () => {
+          govHideDialog();
+          try {
+            const cr = await fetch(`/api/v2/corridors/${corridorId}/clear_reconciliation`, {
+              method: 'POST', headers: getGovernorAuthHeaders()
+            });
+            const cd = await cr.json();
+            if (!cr.ok) throw new Error(cd.error || `HTTP ${cr.status}`);
+            govShowToast(`✓ ${cd.events_archived} reconciliation event(s) archived. Proceeding to resume challenge.`, 'success');
+            setTimeout(() => govUnhaltChallenge(corridorId, corridorLabel), 600);
+          } catch (err) {
+            govShowToast(`Error: ${err.message}`, 'error');
+          }
+        }
+      });
+    } else {
+      govUnhaltChallenge(corridorId, corridorLabel);
+    }
+  } catch (err) {
+    govShowToast(`Could not check reconciliation log: ${err.message}`, 'error');
+  }
+}
+
+// Step 2 of the unhalt dual-key flow: high-friction typing challenge.
+// The governor must type RESUME exactly to unlock the action button.
+function govUnhaltChallenge(corridorId, corridorLabel) {
+  govShowDialog({
+    icon: '⚠️', iconBg: 'rgba(239,68,68,0.15)', iconBorder: 'rgba(239,68,68,0.3)',
+    title: 'Resume Corridor Operations',
+    subtitle: corridorLabel,
+    body: `<div style="color:#94a3b8;line-height:1.6;">
+      <strong style="color:#fca5a5;">WARNING:</strong> You are re-establishing the sovereign liquidity clearing channel for <strong style="color:#e2e8f0;">${corridorLabel}</strong>. This will resume real-time cross-border settlements and allow commercial banks to draw from the corridor reservoir.
+      <br><br>Confirm the underlying incident has been fully resolved before proceeding.
+    </div>`,
+    hasInput: true,
+    label: 'Type RESUME to confirm',
+    placeholder: 'RESUME',
+    confirmLabel: 'Resume Corridor',
+    confirmBg: 'linear-gradient(135deg,#059669,#047857)',
+    onConfirm: async (val) => {
+      if (val !== 'RESUME') {
+        govShowToast('Type RESUME exactly — case-sensitive.', 'warn');
+        return;
+      }
+      govHideDialog();
+      try {
+        const res = await fetch(`/api/v2/corridors/${corridorId}/unhalt`, {
+          method: 'POST',
+          headers: getGovernorAuthHeaders(),
+          body: JSON.stringify({ initiated_by: 'governor' })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        govShowToast(`✅ ${corridorLabel} resumed — sovereign clearing channel re-established.`, 'success');
+        await loadGovCorridorLiquidity();
+        loadCorridorReservoirGrid();
+        loadNetworkStatus();
+        loadGovRecentEvents();
+        // Re-sync Quick Actions button for the currently selected corridor
+        if (String(govSelectedCorridorId) === String(corridorId)) govUpdateHaltResumeBtn(false);
+      } catch (err) {
+        govShowToast(`Resume error: ${err.message}`, 'error');
+      }
+    }
+  });
+}
+
 function govHaltCorridor() {
   if (!govSelectedCorridorId) {
     govShowToast('Select a corridor before halting.', 'warn');
@@ -1339,9 +1509,27 @@ function govHaltCorridor() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`);
-        govShowToast(`⚡ ${govSelectedCorridorLabel} halted — settlement suspended. Audit log recorded.`, 'success');
+
+        const recon = data.reconciliation || {};
+        const recalledCount = recon.recalled_count || 0;
+        const total = recon.total_protected || 0;
+        const asset = recon.asset_code || '';
+
+        if (recalledCount > 0) {
+          const fmtTotal = total.toLocaleString(undefined, { maximumFractionDigits: 0 });
+          govShowToast(
+            `⚡ ${govSelectedCorridorLabel} HALTED — ${recalledCount} pending allocation${recalledCount > 1 ? 's' : ''} auto-recalled. ${asset} ${fmtTotal} protected.`,
+            'error'
+          );
+        } else {
+          govShowToast(`⚡ ${govSelectedCorridorLabel} HALTED — no allocations in flight. Audit log recorded.`, 'error');
+        }
+
+        await loadGovCorridorLiquidity();
         loadCorridorReservoirGrid();
         loadNetworkStatus();
+        loadGovRecentEvents();
+        govUpdateHaltResumeBtn(true);
       } catch (err) {
         govShowToast(`Halt error: ${err.message}`, 'error');
       }
@@ -1416,9 +1604,16 @@ async function govCreateBulkAllotment(amount) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`);
         const propId = data?.data?.proposal_id || data?.data?.id || proposalRef;
-        govShowToast(`✓ Proposal ${propId} submitted — pending multi-sig approval.`, 'success');
+        govShowToast(`✓ Proposal ${propId} submitted — bilateral handshake in progress.`, 'success');
         loadGovRecentEvents();
         loadGovernanceSignatures();
+        loadCorridorReservoirGrid();
+        // Poll until allocating → circulating transition completes (~7s handshake window)
+        let _pollN = 0;
+        const _poll = setInterval(() => {
+          loadCorridorReservoirGrid();
+          if (++_pollN >= 6) clearInterval(_poll);
+        }, 2000);
       } catch (err) {
         govShowToast(`Error: ${err.message}`, 'error');
       }

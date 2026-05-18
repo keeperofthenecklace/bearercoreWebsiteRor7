@@ -67,15 +67,45 @@ module Api
           },
         ].freeze
 
+        # In-process mutable proposal state — persists for the lifetime of the dev server process
+        @created_proposals = []
+        class << self
+          attr_accessor :created_proposals
+        end
+
         def index
+          created = self.class.created_proposals
           if params[:category] == "bulk_allotment"
             per_page = (params[:per_page] || 5).to_i
-            render json: STUB_ALLOTMENTS.first(per_page)
+            # Convert halt reconciliation events into proposal-shaped objects so
+            # they surface in the Recent Allotments panel as RECALLED rows
+            recon_proposals = Api::V2::CorridorsController.reconciliation_log.map do |r|
+              {
+                id:            r[:event_id],
+                proposal_id:   r[:event_id],
+                title:         "HALT RECONCILIATION — #{r[:corridor_display]}",
+                corridor:      r[:corridor_display],
+                corridor_id:   r[:corridor_id],
+                proposal_type: "halt_reconciliation",
+                amount:        r[:total_protected],
+                new_cap:       r[:total_protected],
+                status:        "recalled",
+                submitted_by:  r[:initiated_by],
+                created_at:    r[:halted_at],
+                recalled_proposals: r[:recalled_proposals],
+                asset_code:    r[:asset_code],
+              }
+            end
+            allotments = recon_proposals +
+                         created.select { |p| p[:proposal_type] == "bulk_allotment" } +
+                         STUB_ALLOTMENTS
+            render json: allotments.first(per_page)
           elsif params[:status] == "pending"
             per_page = (params[:per_page] || 20).to_i
-            render json: STUB_PENDING.first(per_page)
+            pending = created.select { |p| p[:status] == "pending" && p[:proposal_type] != "bulk_allotment" } + STUB_PENDING
+            render json: pending.first(per_page)
           else
-            render json: STUB_PENDING + STUB_ALLOTMENTS
+            render json: created + STUB_PENDING + STUB_ALLOTMENTS
           end
         end
 
@@ -83,17 +113,42 @@ module Api
           body = request.body.read
           data = JSON.parse(body) rescue {}
           prop = data["proposal"] || data
-          proposal_id = "#{(prop["type"] || "PROP").upcase}-#{Time.now.strftime('%Y%m%d%H%M%S')}"
+          next_id    = 1000 + self.class.created_proposals.length
+          proposal_id = prop["title"] || "#{(prop["type"] || "PROP").upcase}-#{Time.now.strftime('%Y%m%d%H%M%S')}"
+          amount = prop["new_cap"].to_i
+
+          record = {
+            id:                  next_id,
+            proposal_id:         proposal_id,
+            title:               prop["title"] || proposal_id,
+            corridor:            prop["corridor"],
+            corridor_id:         prop["corridor_id"],
+            proposal_type:       prop["type"] || prop["category"] || "proposal",
+            amount:              amount,
+            new_cap:             amount,
+            required_signatures: 3,
+            current_signatures:  0,
+            status:              "pending",
+            submitted_by:        "Governor",
+            created_at:          Time.now.iso8601,
+          }
+          self.class.created_proposals.unshift(record)
+
+          # Register an isolated ledger entry so this allotment can be recalled
+          # independently of any concurrent injections on the same corridor
+          if record[:proposal_type] == "bulk_allotment" && record[:corridor_id].present?
+            Api::V2::CorridorsController.allocation_ledger << {
+              proposal_id:  proposal_id,
+              corridor_id:  record[:corridor_id].to_i,
+              amount:       amount,
+              allocated_at: Time.now,
+              status:       :pending,
+            }
+          end
+
           render json: {
-            status: "submitted",
-            data: {
-              proposal_id: proposal_id,
-              type:        prop["type"] || "proposal",
-              corridor:    prop["corridor"],
-              amount:      prop["new_cap"],
-              status:      "pending",
-              created_at:  Time.now.iso8601,
-            },
+            status:  "submitted",
+            data:    record,
             message: "Proposal #{proposal_id} submitted — awaiting multi-sig approval."
           }
         end
@@ -105,6 +160,30 @@ module Api
             vote:        params[:vote] || "approve",
             message:     "Signature recorded. (Demo — no state persisted.)"
           }
+        end
+
+        def recall
+          # Surgically mark exactly this allocation as recalled.
+          # Any other pending or confirmed allocations on the same corridor are untouched.
+          entry = Api::V2::CorridorsController.allocation_ledger
+                    .find { |a| a[:proposal_id] == params[:id] }
+
+          if entry
+            if entry[:status] == :confirmed
+              render json: { error: "Cannot recall a confirmed allocation — funds already circulating." }, status: :unprocessable_entity
+            else
+              entry[:status] = :recalled
+              render json: {
+                status:      "recalled",
+                proposal_id: params[:id],
+                corridor_id: entry[:corridor_id],
+                amount:      entry[:amount],
+                message:     "Allocation recalled. Locked amount returned to source node. Concurrent allocations unaffected."
+              }
+            end
+          else
+            render json: { error: "Allocation not found" }, status: :not_found
+          end
         end
       end
     end
