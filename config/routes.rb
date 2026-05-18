@@ -16,6 +16,24 @@ Rails.application.routes.draw do
 
   resources :briefing_requests, only: [:create]
 
+  namespace :api do
+    namespace :v2 do
+      resources :corridors, only: [:index, :show] do
+        member do
+          get  :liquidity_position
+          post :halt
+        end
+      end
+      namespace :governance do
+        resources :proposals, only: [:index, :create] do
+          member do
+            post :vote
+          end
+        end
+      end
+    end
+  end
+
   get "docs",                       to: "docs#index"
   get "docs/corridor-ops",          to: "docs#corridor_ops"
   get "docs/issuance",              to: "docs#issuance"

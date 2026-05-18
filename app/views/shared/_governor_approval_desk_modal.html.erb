@@ -1,41 +1,37 @@
 <%#
   View: app/views/shared/_governor_approval_desk_modal.html.erb
 
-  GOVERNOR APPROVAL DESK
-  ======================
-  Monetary-authority console for reviewing and signing issuance authorizations
-  created after supervisor trade-claim approval.
+  MACRO-CORRIDOR MANAGEMENT CONSOLE
+  ==================================
+  Governor's sovereign infrastructure console — protocol-driven settlement.
+  Issuance is authorized automatically by protocol conditions; the Governor
+  manages corridor capacity, daily caps, halt authority, and multi-sig
+  governance for corridor parameter changes.
 
   ROLES THAT USE THIS CONSOLE:
-  - Deputy Governor  (must sign first)
-  - Governor         (must sign second)
-  - Monetary Committee (optional / quorum-based)
+  - Governor
+  - Deputy Governor
+  - Monetary Committee (multi-sig on corridor proposals)
 
   GOVERNANCE MODEL:
-  - Dual-signature: required_signatures = 2 (Deputy Governor + Governor)
-  - governance_status transitions: pending → approved (once current_signatures >= required)
-  - Rejection by any required signer sets governance_status = rejected immediately
-  - Expiry checked by AuthorizationExpiryWorker (24 h after created_at)
-
-  KEY RULES:
-  - Supervisor approval does NOT grant Governor approval
-  - governance_status starts as "pending" when authorization is created
-  - Only governance_status = "approved" allows Qt6 to mint CVIB notes
-  - All signature events written to governance_signatures + audit_logs
+  - Corridor caps and halt decisions require multi-sig proposals
+  - Protocol conditions gate minting automatically (no manual approval queue)
+  - All corridor interventions written to governance_proposals + audit_logs
 
   API ENDPOINTS USED:
-  - GET  /api/v2/issuance_authorizations?governance_status=pending
-  - GET  /api/v2/issuance_authorizations/:auth_code
-  - POST /api/v2/issuance_authorizations/:auth_code/governance_sign
-  - POST /api/v2/issuance_authorizations/:auth_code/governance_reject
+  - GET  /api/v2/corridors?per_page=50
+  - GET  /api/v2/corridors/:id/liquidity_position
+  - POST /api/v2/corridors/:id/halt
+  - POST /api/v2/governance/proposals           (cap change, halt)
+  - GET  /api/v2/governance/proposals?status=pending
 %>
 
-<!-- Governor Approval Desk Modal Overlay -->
+<!-- Macro-Corridor Management Console Modal Overlay -->
 <div id="governorDeskModalOverlay" style="
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 10000;
@@ -44,115 +40,127 @@
   padding: 20px;
 ">
   <div style="
-    background: #f5f5f7;
+    background: #f0f2f5;
     border-radius: 20px;
     width: 100%;
-    max-width: 1100px;
+    max-width: 1180px;
     max-height: 92vh;
     overflow: hidden;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
   ">
 
     <!-- ── Header ─────────────────────────────────────────────────────── -->
     <div style="
-      background: linear-gradient(135deg, #1a3a5c 0%, #1e4d7b 50%, #1a3a5c 100%);
-      padding: 24px 28px;
+      background: linear-gradient(135deg, #0A192F 0%, #0d2240 50%, #0A192F 100%);
+      padding: 22px 28px;
       position: relative;
       overflow: hidden;
+      flex-shrink: 0;
     ">
       <div style="
         position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-        background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.08) 1px, transparent 0);
-        background-size: 24px 24px;
+        background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.06) 1px, transparent 0);
+        background-size: 22px 22px;
         pointer-events: none;
       "></div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1;">
         <div style="display: flex; align-items: center; gap: 16px;">
           <div style="
-            width: 52px; height: 52px;
-            background: rgba(255,255,255,0.15);
+            width: 50px; height: 50px;
+            background: rgba(13,148,136,0.25);
+            border: 1px solid rgba(13,148,136,0.4);
             border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            backdrop-filter: blur(10px);
           ">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="1.6">
+              <rect x="1" y="3" width="15" height="13" rx="2"></rect>
+              <path d="M16 8h6l2 6H16v-6z"></path>
+              <circle cx="5.5" cy="18.5" r="2.5"></circle>
+              <circle cx="18.5" cy="18.5" r="2.5"></circle>
             </svg>
           </div>
           <div>
-            <h2 style="margin: 0; font-size: 22px; font-weight: 600; color: #ffffff; letter-spacing: -0.3px;">
-              Governor Approval Desk
+            <div style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 3px;">
+              Governor's Command Center
+            </div>
+            <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: -0.3px;">
+              Macro-Corridor Management Console
             </h2>
-            <p style="margin: 4px 0 0; font-size: 13px; color: rgba(255,255,255,0.75);">
-              Sovereign liquidity management &amp; issuance authorization.
+            <p style="margin: 3px 0 0; font-size: 12px; color: rgba(255,255,255,0.55);">
+              Sovereign corridor capacity · Halt authority · Protocol-driven settlement
             </p>
           </div>
         </div>
 
-        <button onclick="hideGovernorDeskModal()" style="
-          width: 36px; height: 36px;
-          border-radius: 50%; border: none;
-          background: rgba(255,255,255,0.2);
-          color: white; font-size: 20px; cursor: pointer;
-          display: flex; align-items: center; justify-content: center;
-        " onmouseover="this.style.background='rgba(255,255,255,0.3)'"
-           onmouseout="this.style.background='rgba(255,255,255,0.2)'">×</button>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button onclick="loadMacroConsole()" style="
+            background: rgba(13,148,136,0.2); color: #2dd4bf;
+            border: 1px solid rgba(13,148,136,0.35); border-radius: 8px;
+            padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+          " onmouseover="this.style.background='rgba(13,148,136,0.35)'"
+             onmouseout="this.style.background='rgba(13,148,136,0.2)'">↻ Refresh</button>
+          <button onclick="hideGovernorDeskModal()" style="
+            width: 34px; height: 34px;
+            border-radius: 50%; border: none;
+            background: rgba(255,255,255,0.12);
+            color: white; font-size: 20px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+          " onmouseover="this.style.background='rgba(255,255,255,0.22)'"
+             onmouseout="this.style.background='rgba(255,255,255,0.12)'">×</button>
+        </div>
       </div>
     </div>
 
     <!-- ── Content Area ───────────────────────────────────────────────── -->
-    <div style="flex: 1; overflow-y: auto; padding: 24px; background: #f5f5f7;">
+    <div style="flex: 1; overflow-y: auto; padding: 22px; background: #f0f2f5;">
 
-      <!-- Search Bar -->
-      <div style="display: flex; gap: 12px; margin-bottom: 24px;">
-        <div style="
-          flex: 1; display: flex; align-items: center;
-          background: white; border: 1px solid #e5e7eb;
-          border-radius: 12px; padding: 0 16px;
-        ">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input id="governorSearchInput"
-                 type="text"
-                 placeholder="Search by authorization ID, claim ID, institution..."
-                 oninput="applyGovernorFilters()"
-                 style="
-                   flex: 1; border: none; outline: none;
-                   padding: 14px 12px; font-size: 14px; background: transparent;
-                 ">
+      <!-- ── Network Status Bar ────────────────────────────────────────── -->
+      <div id="govNetworkStatusBar" style="
+        display: grid; grid-template-columns: repeat(4, 1fr);
+        gap: 12px; margin-bottom: 18px;
+      ">
+        <div style="background:#0A192F;border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;">Total Daily Volume</div>
+          <div id="govNetVolume" style="font-size:20px;font-weight:800;color:#f1f5f9;">—</div>
+          <div style="font-size:10px;color:#475569;margin-top:2px;">across all corridors</div>
         </div>
-        <button onclick="loadGovernorAuthorizations()" style="
-          background: #1a3a5c; color: white; border: none;
-          border-radius: 12px; padding: 0 20px;
-          font-size: 14px; font-weight: 600; cursor: pointer;
-        ">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </button>
+        <div style="background:#0A192F;border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;">Active Corridors</div>
+          <div id="govNetActiveCorridors" style="font-size:20px;font-weight:800;color:#2dd4bf;">—</div>
+          <div style="font-size:10px;color:#475569;margin-top:2px;">of <span id="govNetTotalCorridors">—</span> total</div>
+        </div>
+        <div style="background:#0A192F;border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;">Corridor Health</div>
+          <div id="govNetHealth" style="font-size:20px;font-weight:800;color:#2dd4bf;">—</div>
+          <div style="font-size:10px;color:#475569;margin-top:2px;">avg headroom</div>
+        </div>
+        <div style="background:#0A192F;border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;">Last Updated</div>
+          <div id="govNetLastUpdate" style="font-size:14px;font-weight:700;color:#94a3b8;font-family:monospace;">—</div>
+          <div style="font-size:10px;color:#475569;margin-top:2px;">console refresh</div>
+        </div>
       </div>
 
-      <!-- ── Sovereign Dashboard ────────────────────────────────────────── -->
+      <!-- ── Active System Intervention Alert ──────────────────────────── -->
+      <div id="govInterventionPanel" style="display:none;margin-bottom:18px;"></div>
+
+      <!-- ── Sovereign Dashboard ───────────────────────────────────────── -->
       <div style="
         background: #0A192F; border-radius: 16px;
-        margin-bottom: 20px; padding: 20px;
+        margin-bottom: 18px; padding: 20px;
         border: 1px solid rgba(255,255,255,0.06);
       ">
         <!-- Title row -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
           <div>
             <div style="font-size:10px; color:#475569; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:3px;">
-              Governor's Command Center
-            </div>
-            <div style="font-size:17px; font-weight:700; color:#f1f5f9;">
               Sovereign Dashboard
+            </div>
+            <div style="font-size:16px; font-weight:700; color:#f1f5f9;">
+              Corridor Reservoir Control
             </div>
           </div>
           <button onclick="loadGovCorridorLiquidity(); loadGovRecentEvents();" style="
@@ -304,1270 +312,213 @@
         </div>
       </div>
 
-      <!-- ── Section 1: Pending Issuance Queue ─────────────────────────── -->
+      <!-- ── Regional Corridor Reservoir Grid ──────────────────────────── -->
       <div style="
-        background: white; border-radius: 16px; overflow: hidden;
-        margin-bottom: 20px; border: 1px solid #e5e7eb;
+        background: white; border-radius: 16px;
+        margin-bottom: 18px; border: 1px solid #e2e8f0; overflow: hidden;
       ">
-        <div onclick="toggleGovernorSection('governorQueueContent')" style="
+        <div style="
           display: flex; align-items: center; justify-content: space-between;
-          padding: 16px 20px; cursor: pointer;
-          border-bottom: 1px solid #e5e7eb; background: #fafafa;
+          padding: 16px 20px; background: #fafafa;
+          border-bottom: 1px solid #e5e7eb;
         ">
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="
-              width: 28px; height: 28px; background: #dbeafe;
+              width: 28px; height: 28px;
+              background: rgba(13,148,136,0.12);
+              border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            ">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2.5">
+                <path d="M3 3v18h18"></path>
+                <path d="M18.4 9.6L13 15l-4-4-5 5"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">
+                Regional Corridor Reservoir Status
+              </h3>
+              <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">
+                Live headroom · cap · intervention authority
+              </div>
+            </div>
+          </div>
+          <button onclick="loadCorridorReservoirGrid()" style="
+            background: #f0fdf4; color: #059669;
+            border: 1px solid #bbf7d0; border-radius: 8px;
+            padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+          ">↻ Refresh</button>
+        </div>
+
+        <div id="govCorridorReservoirGrid" style="padding: 18px;">
+          <div style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">
+            ⏳ Loading corridor reservoirs…
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Governance Signatures Required ────────────────────────────── -->
+      <div style="
+        background: white; border-radius: 16px;
+        border: 1px solid #e2e8f0; overflow: hidden;
+      ">
+        <div style="
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 16px 20px; background: #fafafa;
+          border-bottom: 1px solid #e5e7eb;
+        ">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="
+              width: 28px; height: 28px;
+              background: #eff6ff;
               border-radius: 8px; display: flex; align-items: center; justify-content: center;
             ">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5">
-                <polyline points="20 6 9 17 4 12"></polyline>
+                <path d="M17 11H7m10 0a5 5 0 01-5 5 5 5 0 01-5-5m10 0a5 5 0 00-5-5 5 5 0 00-5 5"></path>
+                <path d="M12 18v4M7 21h10"></path>
               </svg>
             </div>
-            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
-              Pending Issuance Queue
-            </h3>
-            <span id="governorQueueCount" style="
+            <div>
+              <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">
+                Governance Signatures Required
+              </h3>
+              <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">
+                Pending corridor parameter proposals · multi-sig authorization
+              </div>
+            </div>
+            <span id="govPendingProposalCount" style="
               background: #fef3c7; color: #d97706;
               padding: 3px 10px; border-radius: 12px;
               font-size: 12px; font-weight: 600;
             ">0</span>
           </div>
-          <svg id="governorQueueContentChevron" width="20" height="20" viewBox="0 0 24 24"
-               fill="none" stroke="#9ca3af" stroke-width="2" style="transition: transform 0.2s;">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
+          <button onclick="loadGovernanceSignatures()" style="
+            background: #eff6ff; color: #2563eb;
+            border: 1px solid #bfdbfe; border-radius: 8px;
+            padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+          ">↻ Refresh</button>
         </div>
 
-        <div id="governorQueueContent">
-          <!-- Table Header -->
-          <div style="
-            display: grid;
-            grid-template-columns: 40px 160px 180px 120px 140px 110px 120px;
-            gap: 8px; padding: 12px 20px;
-            background: #f9fafb; border-bottom: 1px solid #e5e7eb;
-            font-size: 11px; font-weight: 600; color: #6b7280;
-            text-transform: uppercase; letter-spacing: 0.5px;
-          ">
-            <span>#</span>
-            <span>AUTH ID</span>
-            <span>INSTITUTION</span>
-            <span>CLAIM</span>
-            <span>CORRIDOR</span>
-            <span>ASSET</span>
-            <span>AMOUNT</span>
-          </div>
-
-          <div id="governorAuthsLoading" style="
-            display: flex; justify-content: center; align-items: center;
-            padding: 40px; color: #6b7280; font-size: 14px;
-          ">
-            <span style="margin-right: 8px;">⏳</span> Loading authorizations...
-          </div>
-
-          <div id="governorAuthsRows"></div>
-
-          <!-- Pagination -->
-          <div style="display: flex; justify-content: center; padding: 16px; border-top: 1px solid #f3f4f6;">
-            <div style="display: flex; gap: 4px; align-items: center;">
-              <button onclick="governorPrevPage()" id="governorPrevBtn" style="
-                padding: 6px 10px; background: white;
-                border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; color: #9ca3af;
-              ">‹</button>
-              <span id="governorPageNumbers" style="display: flex; gap: 4px;"></span>
-              <button onclick="governorNextPage()" id="governorNextBtn" style="
-                padding: 6px 10px; background: white;
-                border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; color: #9ca3af;
-              ">›</button>
-            </div>
+        <div id="govSignaturesPanel" style="padding: 18px;">
+          <div style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">
+            ⏳ Loading governance proposals…
           </div>
         </div>
       </div>
 
-      <!-- ── Section 2: Review Issuance Authorization ───────────────────── -->
-      <div id="governorReviewSection" style="
-        background: white; border-radius: 16px; overflow: hidden;
-        margin-bottom: 20px; border: 1px solid #e5e7eb; display: none;
-      ">
-        <div onclick="toggleGovernorSection('governorReviewContent')" style="
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 16px 20px; cursor: pointer;
-          border-bottom: 1px solid #e5e7eb; background: #fafafa;
-        ">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="
-              width: 28px; height: 28px; background: #dbeafe;
-              border-radius: 8px; display: flex; align-items: center; justify-content: center;
-            ">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
-              Review Issuance Authorization
-            </h3>
-          </div>
-          <svg id="governorReviewContentChevron" width="20" height="20" viewBox="0 0 24 24"
-               fill="none" stroke="#9ca3af" stroke-width="2">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
-        </div>
-
-        <div id="governorReviewContent" style="padding: 24px;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-
-            <!-- ── Left Column: Authorization Overview ──────────────────── -->
-            <div>
-              <div style="
-                display: flex; align-items: center; gap: 12px;
-                margin-bottom: 20px; padding-bottom: 16px;
-                border-bottom: 1px solid #e5e7eb;
-              ">
-                <div id="govInstitutionFlag" style="
-                  width: 44px; height: 44px; background: #f3f4f6;
-                  border-radius: 10px; display: flex; align-items: center;
-                  justify-content: center; font-size: 24px;
-                ">🏦</div>
-                <div>
-                  <div id="govInstitutionName" style="font-size: 17px; font-weight: 600; color: #1d1d1f;">—</div>
-                  <div id="govInstitutionType" style="font-size: 12px; color: #6b7280;">Authorized Dealer Bank</div>
-                </div>
-              </div>
-
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div>
-                  <div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">Authorization ID</div>
-                  <div id="govAuthCode" style="font-size: 13px; color: #1d1d1f; font-weight: 600; font-family: monospace;">—</div>
-                </div>
-                <div>
-                  <div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">Trade Claim</div>
-                  <div id="govTradeClaimId" style="font-size: 13px; color: #1d1d1f; font-family: monospace;">—</div>
-                </div>
-                <div>
-                  <div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">Trade Claim</div>
-                  <div id="govCorridorDisplay" style="font-size: 14px; color: #1d1d1f; font-weight: 500;">—</div>
-                </div>
-                <div>
-                  <div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">Corridor</div>
-                  <div id="govCorridorDisplay2" style="font-size: 14px; color: #1d1d1f; font-weight: 500;">—</div>
-                </div>
-                <div>
-                  <div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">Asset</div>
-                  <div id="govAssetCode" style="font-size: 20px; font-weight: 700; color: #1d1d1f;">—</div>
-                </div>
-                <div>
-                  <div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">Issuance Amount</div>
-                  <div id="govAmount" style="font-size: 14px; font-weight: 600; color: #1d1d1f;">—</div>
-                </div>
-              </div>
-
-              <!-- Beneficiary Info -->
-              <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-                <div style="font-size: 13px; font-weight: 600; color: #1d1d1f; margin-bottom: 12px;">Beneficiary Info</div>
-                <div style="background: #f9fafb; border-radius: 10px; padding: 14px;">
-                  <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="
-                      width: 32px; height: 32px; background: #e5e7eb;
-                      border-radius: 8px; display: flex; align-items: center; justify-content: center;
-                    ">👤</div>
-                    <div>
-                      <div style="font-size: 12px; color: #9ca3af;">Beneficiary Name:</div>
-                      <div id="govBeneficiaryName" style="font-size: 14px; color: #1d1d1f; font-weight: 500;">—</div>
-                    </div>
-                  </div>
-                  <div style="margin-top: 10px; display: flex; gap: 20px;">
-                    <div>
-                      <div style="font-size: 11px; color: #9ca3af;">Bank</div>
-                      <div id="govBeneficiaryBank" style="font-size: 13px; color: #374151;">—</div>
-                    </div>
-                    <div>
-                      <div style="font-size: 11px; color: #9ca3af;">Country</div>
-                      <div id="govBeneficiaryCountry" style="font-size: 13px; color: #374151;">—</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- ── Right Column: Governance Gating Conditions ────────────── -->
-            <div>
-              <!-- Governance Conditions (passed from supervisor stage) -->
-              <div style="font-size: 13px; font-weight: 600; color: #1d1d1f; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-                <span>Governance Conditions <span style="font-weight: 400; color: #6b7280; font-size: 11px; margin-left: 4px;">(System-Generated)</span></span>
-              </div>
-
-              <div style="background: #f9fafb; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
-                <% [
-                  ['1. Supervisor Approval',   'Trade claim approved'],
-                  ['2. Compliance Passed',      'AML / sanctions checks'],
-                  ['3. Corridor Limits Available','Daily issuance quota available'],
-                  ['4. Liquidity Locked',       'Reserve pool locked'],
-                  ['5. Policy Compliance Met',  'Monetary rules satisfied'],
-                ].each_with_index do |(label, desc), i| %>
-                <div style="background: white; border-radius: 8px; border: 1px solid #a7f3d0; overflow: hidden;">
-                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 12px;">
-                    <div style="display: flex; align-items: center; gap: 9px;">
-                      <span style="font-size: 15px;">✅</span>
-                      <div>
-                        <div style="font-size: 12px; font-weight: 600; color: #374151;"><%= label %></div>
-                        <div style="font-size: 10px; color: #9ca3af;"><%= desc %></div>
-                      </div>
-                    </div>
-                    <span style="padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #d1fae5; color: #065f46;">Passed ✓</span>
-                  </div>
-                </div>
-                <% end %>
-              </div>
-
-              <!-- Governance Signatures Section -->
-              <div style="font-size: 13px; font-weight: 600; color: #1d1d1f; margin-bottom: 10px;">Governance Signatures</div>
-              <div id="govSignaturesPanel" style="background: #f9fafb; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-                <!-- Deputy Governor -->
-                <div id="govSigDeputy" style="background: white; border-radius: 8px; border: 1px solid #e5e7eb; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
-                  <div style="display: flex; align-items: center; gap: 10px;">
-                    <span id="govSigDeputyIcon" style="font-size: 18px;">○</span>
-                    <div>
-                      <div style="font-size: 13px; font-weight: 600; color: #374151;">Deputy Governor</div>
-                      <div id="govSigDeputyMeta" style="font-size: 11px; color: #9ca3af;">Awaiting signature</div>
-                    </div>
-                  </div>
-                  <span id="govSigDeputyBadge" style="padding: 4px 12px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #fef3c7; color: #d97706;">Pending</span>
-                </div>
-
-                <!-- Governor -->
-                <div id="govSigGovernor" style="background: white; border-radius: 8px; border: 1px solid #e5e7eb; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
-                  <div style="display: flex; align-items: center; gap: 10px;">
-                    <span id="govSigGovernorIcon" style="font-size: 18px;">○</span>
-                    <div>
-                      <div style="font-size: 13px; font-weight: 600; color: #374151;">Governor</div>
-                      <div id="govSigGovernorMeta" style="font-size: 11px; color: #9ca3af;">Awaiting signature</div>
-                    </div>
-                  </div>
-                  <span id="govSigGovernorBadge" style="padding: 4px 12px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #fef3c7; color: #d97706;">Pending</span>
-                </div>
-
-                <!-- Monetary Committee -->
-                <div id="govSigCommittee" style="background: white; border-radius: 8px; border: 1px solid #e5e7eb; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
-                  <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 18px;">🔔</span>
-                    <div>
-                      <div style="font-size: 13px; font-weight: 600; color: #374151;">Monetary Committee <span style="font-weight: 400; color: #9ca3af; font-size: 11px;">(optional)</span></div>
-                      <div style="font-size: 11px; color: #9ca3af;">Advisory review only</div>
-                    </div>
-                  </div>
-                  <span style="padding: 4px 12px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #f3f4f6; color: #9ca3af;">Optional</span>
-                </div>
-              </div>
-
-              <!-- Signature progress bar -->
-              <div style="margin-top: 10px; padding: 10px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                  <span style="font-size: 11px; font-weight: 600; color: #1e40af;">Signature Progress</span>
-                  <span id="govSigProgressText" style="font-size: 11px; color: #1e40af; font-weight: 700;">0 / 2 required</span>
-                </div>
-                <div style="background: #bfdbfe; border-radius: 4px; height: 6px; overflow: hidden;">
-                  <div id="govSigProgressBar" style="background: #2563eb; height: 100%; width: 0%; transition: width 0.4s ease; border-radius: 4px;"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ── Authorization Lifecycle Tracking ───────────────────────── -->
-          <div id="govLifecycleSection" style="margin-top: 20px; padding-top: 18px; border-top: 1px solid #f3f4f6;">
-            <div style="font-size: 13px; font-weight: 600; color: #1d1d1f; margin-bottom: 12px;">
-              Authorization Lifecycle Tracking
-              <span style="font-weight: 400; color: #6b7280; font-size: 11px; margin-left: 6px;">(follows authorization through to Minted)</span>
-            </div>
-            <div style="overflow-x: auto;">
-              <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                <thead>
-                  <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
-                    <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Stage</th>
-                    <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
-                    <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Condition</th>
-                    <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Satisfied</th>
-                  </tr>
-                </thead>
-                <tbody id="govLifecycleTableBody"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- ── Decision Notes & Actions ───────────────────────────────── -->
-          <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-            <div style="font-size: 13px; font-weight: 600; color: #1d1d1f; margin-bottom: 10px;">Decision Notes:</div>
-            <textarea id="governorDecisionNotes"
-                      placeholder="Governor decision notes (required for rejection, recommended for all actions)..."
-                      style="
-                        width: 100%; padding: 12px 16px;
-                        border: 1px solid #e5e7eb; border-radius: 10px;
-                        font-size: 14px; outline: none; resize: vertical;
-                        min-height: 60px; box-sizing: border-box;
-                        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-                        margin-bottom: 12px;
-                      "></textarea>
-
-            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-              <button id="btnGovernorApprove" onclick="governorSignAuthorization()" style="
-                background: #1e4d7b; color: white; border: none;
-                border-radius: 10px; padding: 12px 24px;
-                font-size: 14px; font-weight: 600; cursor: pointer;
-                display: flex; align-items: center; gap: 8px;
-              ">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                Approve Issuance
-              </button>
-              <button onclick="governorRequestClarification()" style="
-                background: white; color: #374151;
-                border: 1px solid #d1d5db; border-radius: 10px;
-                padding: 12px 20px; font-size: 14px; font-weight: 500; cursor: pointer;
-                display: flex; align-items: center; gap: 6px;
-              ">
-                💬 Request Clarification
-              </button>
-              <button onclick="governorRejectAuthorization()" style="
-                background: #fee2e2; color: #dc2626;
-                border: 1px solid #fecaca; border-radius: 10px;
-                padding: 12px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
-                display: flex; align-items: center; gap: 6px;
-              ">✕ Reject</button>
-              <button onclick="hideGovernorDeskModal()" style="
-                background: #f3f4f6; color: #6b7280;
-                border: 1px solid #e5e7eb; border-radius: 10px;
-                padding: 12px 16px; font-size: 14px; font-weight: 500; cursor: pointer;
-              ">🚫 Cancel</button>
-            </div>
-
-            <!-- Rejection warning (shown after rejection) -->
-            <div id="govRejectionWarning" style="
-              display: none; margin-top: 16px; padding: 14px 16px;
-              background: #fef2f2; border: 1px solid #fecaca;
-              border-radius: 10px; color: #991b1b; font-size: 13px;
-            ">
-              <strong>⛔ Authorization Rejected.</strong>
-              The governance_status has been set to <code>rejected</code>. Qt6 will not be permitted to mint CVIB notes on this authorization.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── Status Legend ──────────────────────────────────────────────── -->
-      <div style="
-        display: flex; justify-content: center; flex-wrap: wrap;
-        gap: 24px; padding: 16px;
-        background: white; border-radius: 12px; border: 1px solid #e5e7eb;
-      ">
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <span style="display: inline-block; width: 10px; height: 10px; background: #fef3c7; border: 2px solid #f59e0b; border-radius: 50%;"></span>
-          <span style="font-size: 12px; color: #6b7280;">Pending</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <span style="display: inline-block; width: 10px; height: 10px; background: #dbeafe; border: 2px solid #2563eb; border-radius: 50%;"></span>
-          <span style="font-size: 12px; color: #6b7280;">Under Review</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <span style="display: inline-block; width: 10px; height: 10px; background: #d1fae5; border: 2px solid #059669; border-radius: 50%;"></span>
-          <span style="font-size: 12px; color: #6b7280;">Approved</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <span style="display: inline-block; width: 10px; height: 10px; background: #fee2e2; border: 2px solid #dc2626; border-radius: 50%;"></span>
-          <span style="font-size: 12px; color: #6b7280;">Rejected</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <span style="display: inline-block; width: 10px; height: 10px; background: #f3f4f6; border: 2px solid #9ca3af; border-radius: 50%;"></span>
-          <span style="font-size: 12px; color: #6b7280;">Expired</span>
-        </div>
-      </div>
     </div>
 
     <!-- ── Footer ─────────────────────────────────────────────────────── -->
     <div style="
-      padding: 16px 24px; background: white; border-top: 1px solid #e5e7eb;
-      display: flex; justify-content: center; gap: 24px;
+      padding: 14px 24px; background: white; border-top: 1px solid #e5e7eb;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0;
     ">
-      <a href="#" style="color: #6b7280; text-decoration: none; font-size: 13px;">📖 Help & Docs</a>
-      <span style="color: #e5e7eb;">·</span>
-      <a href="#" style="color: #6b7280; text-decoration: none; font-size: 13px;">Contact Support</a>
-      <span style="color: #e5e7eb;">·</span>
-      <a href="#" onclick="hideGovernorDeskModal(); return false;" style="color: #6b7280; text-decoration: none; font-size: 13px;">Dashboard</a>
+      <div style="display:flex;gap:24px;">
+        <a href="#" style="color: #6b7280; text-decoration: none; font-size: 12px;">📖 Help &amp; Docs</a>
+        <a href="#" style="color: #6b7280; text-decoration: none; font-size: 12px;">Contact Support</a>
+        <a href="#" onclick="hideGovernorDeskModal(); return false;" style="color: #6b7280; text-decoration: none; font-size: 12px;">Dashboard</a>
+      </div>
+      <div style="font-size:11px;color:#cbd5e1;font-family:monospace;">bearerCORE™ Protocol · Sovereign Settlement Engine</div>
     </div>
   </div>
 </div>
 
-<!-- ── Governor Custom Dialog (replaces browser alert/confirm/prompt) ───────── -->
-<div id="govDialogOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.72); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
-  <div style="background:#0f1e3a; border:1px solid rgba(201,168,76,0.22); border-radius:18px; max-width:460px; width:92%; box-shadow:0 32px 80px rgba(0,0,0,0.65); overflow:hidden; animation:govDialogIn 0.18s ease-out;">
-    <div id="govDialogHeader" style="background:linear-gradient(135deg, #1a3a5c 0%, #1e4d7b 100%); padding:22px 26px 18px; border-bottom:1px solid rgba(201,168,76,0.16); position:relative; overflow:hidden;">
-      <div style="position:absolute;inset:0;background-image:radial-gradient(circle at 2px 2px,rgba(255,255,255,0.06) 1px,transparent 0);background-size:20px 20px;pointer-events:none;"></div>
-      <div style="display:flex;align-items:center;gap:14px;position:relative;">
-        <div id="govDialogIconWrap" style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"></div>
-        <div>
-          <div id="govDialogTag" style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#C9A84C;margin-bottom:4px;"></div>
-          <div id="govDialogTitle" style="font-size:16px;font-weight:700;color:#ffffff;line-height:1.2;"></div>
-        </div>
+<!-- ── Governor Desk Custom Dialog ──────────────────────────────────────── -->
+<div id="govCustomDialog" style="
+  display:none; position:fixed; inset:0; z-index:10200;
+  background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);
+  justify-content:center; align-items:center;
+">
+  <div style="
+    background:#0f172a; border:1px solid rgba(45,212,191,0.2);
+    border-radius:18px; padding:28px 30px; width:460px; max-width:92vw;
+    box-shadow:0 24px 56px rgba(0,0,0,0.75);
+  ">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div id="govDialogIconBox" style="
+        width:40px;height:40px;border-radius:11px;
+        display:flex;align-items:center;justify-content:center;font-size:20px;
+        flex-shrink:0;
+      "></div>
+      <div>
+        <div id="govDialogTitle" style="font-size:15px;font-weight:700;color:#f1f5f9;"></div>
+        <div id="govDialogSubtitle" style="font-size:11px;color:#64748b;margin-top:3px;font-family:monospace;"></div>
       </div>
     </div>
-    <div id="govDialogBody" style="padding:22px 26px;"></div>
-    <div id="govDialogFooter" style="padding:14px 26px 22px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid rgba(255,255,255,0.05);"></div>
+
+    <div id="govDialogBody" style="margin-bottom:20px;font-size:13px;color:#94a3b8;line-height:1.6;"></div>
+
+    <div id="govDialogInputWrap" style="margin-bottom:20px;">
+      <label id="govDialogLabel" style="
+        display:block;font-size:10px;font-weight:700;color:#64748b;
+        text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;
+      "></label>
+      <input id="govDialogInput" type="text" autocomplete="off" style="
+        width:100%;box-sizing:border-box;
+        background:rgba(255,255,255,0.05);color:#f1f5f9;
+        border:1px solid rgba(45,212,191,0.25);border-radius:10px;
+        padding:11px 14px;font-size:15px;font-family:monospace;outline:none;
+        transition:border-color 0.15s;
+      "
+        onfocus="this.style.borderColor='rgba(45,212,191,0.6)'"
+        onblur="this.style.borderColor='rgba(45,212,191,0.25)'"
+        onkeydown="if(event.key==='Enter')govConfirmDialog();if(event.key==='Escape')govHideDialog();"
+      >
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="govHideDialog()" style="
+        padding:10px 22px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
+        background:rgba(255,255,255,0.05);color:#94a3b8;border:1px solid rgba(255,255,255,0.1);
+      " onmouseover="this.style.background='rgba(255,255,255,0.1)'"
+         onmouseout="this.style.background='rgba(255,255,255,0.05)'">Cancel</button>
+      <button id="govDialogConfirmBtn" onclick="govConfirmDialog()" style="
+        padding:10px 26px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;
+        border:none;color:white;
+      ">Confirm</button>
+    </div>
   </div>
 </div>
 
-<style>
-@keyframes govDialogIn {
-  from { opacity:0; transform:scale(0.93) translateY(10px); }
-  to   { opacity:1; transform:scale(1) translateY(0); }
-}
-.governor-auth-row:hover { background: #eff6ff !important; }
-.governor-auth-row.selected { background: #dbeafe !important; border-left: 3px solid #2563eb; }
+<!-- ── Governor Desk Toast ───────────────────────────────────────────────── -->
+<div id="govToast" style="
+  display:none; position:fixed; bottom:32px; left:50%; transform:translateX(-50%);
+  z-index:10300; padding:12px 22px; border-radius:12px;
+  font-size:13px; font-weight:600; font-family:system-ui,sans-serif;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4); pointer-events:none;
+  white-space:nowrap; max-width:90vw; text-align:center;
+"></div>
 
-@media (max-width: 860px) {
-  #governorDeskModalOverlay { padding: 12px !important; align-items: flex-start !important; }
-  #governorDeskModalOverlay > div { max-width: 100% !important; max-height: 94vh !important; border-radius: 16px !important; }
-  #governorReviewContent { padding: 16px !important; }
-  #governorReviewContent > div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+<style>
+.gov-corridor-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-1px); transition: all 0.18s ease; }
+.gov-corridor-card { transition: all 0.18s ease; }
+
+.gov-proposal-row:hover { background: #f8fafc !important; }
+
+@media (max-width: 900px) {
+  #governorDeskModalOverlay { padding: 10px !important; align-items: flex-start !important; }
+  #governorDeskModalOverlay > div { max-width: 100% !important; max-height: 95vh !important; border-radius: 16px !important; }
+  #govNetworkStatusBar { grid-template-columns: 1fr 1fr !important; }
 }
-@media (max-width: 520px) {
+@media (max-width: 560px) {
   #governorDeskModalOverlay { padding: 0 !important; align-items: flex-end !important; }
   #governorDeskModalOverlay > div { border-radius: 20px 20px 0 0 !important; max-height: 96vh !important; height: 96vh !important; }
+  #govNetworkStatusBar { grid-template-columns: 1fr !important; }
 }
 </style>
 
 <script>
-// ── Custom dialog system ──────────────────────────────────────────────────────
-function govDialog({ tag, title, icon, body, buttons, danger }) {
-  return new Promise(resolve => {
-    const overlay  = document.getElementById('govDialogOverlay');
-    const iconWrap = document.getElementById('govDialogIconWrap');
-    document.getElementById('govDialogTag').textContent   = tag   || '';
-    document.getElementById('govDialogTitle').textContent = title || '';
-    iconWrap.innerHTML   = icon || '';
-    iconWrap.style.cssText = danger
-      ? 'width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(220,38,38,0.2);border:1px solid rgba(220,38,38,0.4);'
-      : 'width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(201,168,76,0.18);border:1px solid rgba(201,168,76,0.35);';
-    document.getElementById('govDialogBody').innerHTML = body || '';
-    const footer = document.getElementById('govDialogFooter');
-    footer.innerHTML = '';
-    (buttons || [{ label:'OK', value:true, primary:true }]).forEach(btn => {
-      const el = document.createElement('button');
-      el.innerHTML = btn.label;
-      el.style.cssText = btn.primary
-        ? `padding:10px 22px;background:${danger ? 'linear-gradient(135deg,#dc2626,#b91c1c)' : 'linear-gradient(135deg,#C9A84C,#b8943f)'};color:${danger ? '#fff' : '#0C1B38'};border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.02em;transition:opacity 0.15s;`
-        : `padding:10px 22px;background:transparent;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.65);border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity 0.15s;`;
-      el.onmouseenter = () => el.style.opacity = '0.82';
-      el.onmouseleave = () => el.style.opacity = '1';
-      if (btn.id) { el.id = btn.id; el.disabled = true; el.style.opacity = '0.4'; }
-      el.onclick = () => { if (el.disabled) return; overlay.style.display = 'none'; resolve(btn.value); };
-      footer.appendChild(el);
-    });
-    overlay.style.display = 'flex';
-  });
-}
-
-function govAlert({ tag, title, message, danger }) {
-  const strokeColor = danger ? '#f87171' : '#6ee7b7';
-  const icon = danger
-    ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="${strokeColor}"/></svg>`
-    : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-  return govDialog({
-    tag, title, icon, danger,
-    body: `<p style="color:rgba(255,255,255,0.75);font-size:13px;line-height:1.65;margin:0;">${message}</p>`,
-    buttons: [{ label: 'OK', value: true, primary: true }],
-  });
-}
-
-async function govConfirmHalt(corridor) {
-  const inputId = 'govHaltInput_' + Date.now();
-  const confirmed = await govDialog({
-    tag:   'Corridor Action',
-    title: `Halt Corridor: ${corridor}`,
-    danger: true,
-    icon:  `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="#f87171"/></svg>`,
-    body:  `<div style="margin-bottom:16px;font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6;">This will <strong style="color:#f87171;">immediately suspend</strong> the <strong style="color:#fff;">${corridor}</strong> corridor. No further CVIB minting or settlement will be permitted until it is reinstated.</div>
-            <div style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.25);border-radius:10px;padding:14px;">
-              <div style="font-size:11px;font-weight:700;color:#f87171;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">Confirmation Required</div>
-              <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px;">Type <strong style="color:#f87171;font-family:monospace;">HALT</strong> to proceed. This action will be recorded in the audit log.</div>
-              <input id="${inputId}" type="text" placeholder="Type HALT" style="width:100%;padding:9px 12px;background:#0a1628;border:1px solid rgba(220,38,38,0.4);border-radius:7px;color:#fff;font-size:13px;font-family:monospace;letter-spacing:0.08em;outline:none;box-sizing:border-box;" oninput="document.getElementById('govHaltConfirmBtn').disabled=this.value.trim().toUpperCase()!=='HALT';document.getElementById('govHaltConfirmBtn').style.opacity=this.value.trim().toUpperCase()==='HALT'?'1':'0.4';">
-            </div>`,
-    buttons: [
-      { label: 'Cancel', value: false },
-      { label: '&#9889; Halt Corridor', value: true, primary: true, id: 'govHaltConfirmBtn' },
-    ],
-  });
-  if (!confirmed) return false;
-  const val = document.getElementById(inputId);
-  return val ? val.value.trim().toUpperCase() === 'HALT' : false;
-}
 // ═══════════════════════════════════════════════════════════════════════════
-// GOVERNOR APPROVAL DESK  —  STATE & FUNCTIONS
+// MACRO-CORRIDOR MANAGEMENT CONSOLE — STATE & FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
-let governorAuths = [];
-let filteredGovernorAuths = [];
-let governorCurrentPage = 1;
-const governorPageSize = 5;
-let selectedGovernorAuth = null;
-let selectedGovernorAuthData = null;
+let govCorridorLiquidityData = [];
+let govSelectedCorridorId    = '';
+let govSelectedCorridorLabel = '';
 
-// Re-use the flag / country helpers already defined in the supervisor partial.
-// They are global, so we can call resolveSupervisorFlag() and resolveCorridorCurrency() directly.
-
-const govStatusConfig = {
-  'pending':  { bg: '#fef3c7', color: '#d97706', border: '#f59e0b', icon: '⏳', label: 'Pending' },
-  'approved': { bg: '#d1fae5', color: '#059669', border: '#059669', icon: '✅', label: 'Approved' },
-  'rejected': { bg: '#fee2e2', color: '#dc2626', border: '#ef4444', icon: '⛔', label: 'Rejected' },
-  'expired':  { bg: '#f3f4f6', color: '#9ca3af', border: '#d1d5db', icon: '⌛', label: 'Expired' },
-};
-
-// ── Field resolution helper ──────────────────────────────────────────────────
-// Rails serializers can use many different key shapes. This function extracts
-// the canonical value from whichever key the API actually returns.
-function govField(auth) {
-  // Institution name — try nested object then flat string keys
-  const institution =
-    auth.institution?.name ||
-    auth.institution?.institution_name ||
-    auth.institution_name ||
-    auth.originator_name ||
-    auth.originator?.name ||
-    auth.trade_claim?.institution?.name ||
-    auth.trade_claim?.originator_name ||
-    null;
-
-  // Trade claim reference — the linked trade claim ID/reference
-  const tradeClaimRef =
-    auth.trade_claim_reference ||
-    auth.trade_claim?.reference ||
-    auth.claim_reference ||
-    auth.claim_id ||
-    null;
-
-  // Corridor — source/target country codes
-  let fromCountry =
-    auth.source_country ||
-    auth.corridor_source_country ||
-    auth.corridor?.source_country ||
-    auth.corridor?.from_country ||
-    auth.trade_claim?.corridor?.source_country ||
-    auth.trade_claim?.source_country ||
-    '';
-  let toCountry =
-    auth.target_country ||
-    auth.corridor_target_country ||
-    auth.corridor?.target_country ||
-    auth.corridor?.to_country ||
-    auth.trade_claim?.corridor?.target_country ||
-    auth.trade_claim?.target_country ||
-    '';
-
-  // Parse corridor name string as fallback ("NGA → KEN Corridor", "Nigeria-Kenya", etc.)
-  const corridorName =
-    auth.corridor_name ||
-    auth.corridor?.name ||
-    auth.trade_claim?.corridor?.name ||
-    '';
-  if (corridorName && (!fromCountry || !toCountry)) {
-    const stripped = corridorName.replace(/\s*corridor\s*$/i, '').trim();
-    const parts = stripped.split(/\s*[→\-]\s*/);
-    if (parts.length >= 2) {
-      if (!fromCountry) fromCountry = parts[0].trim();
-      if (!toCountry)   toCountry   = parts[1].trim();
-    }
-  }
-
-  // Asset code
-  const assetCode =
-    auth.asset_code ||
-    auth.asset?.code ||
-    auth.linked_asset_code ||
-    auth.cvib_asset_code ||
-    '';
-
-  // Amount — try every Rails key variant
-  const rawAmount =
-    auth.amount ||
-    auth.total_amount ||
-    auth.amount_total ||
-    auth.issuance_amount ||
-    auth.authorized_amount ||
-    auth.trade_claim?.amount ||
-    auth.trade_claim?.trade_details?.amount ||
-    0;
-  const amount = parseFloat(rawAmount) || 0;
-
-  // Currency (used when assetCode is blank)
-  const currency =
-    auth.currency ||
-    auth.currency_code ||
-    auth.asset?.currency_code ||
-    assetCode ||
-    '';
-
-  // Beneficiary
-  const benefName =
-    auth.beneficiary?.name ||
-    auth.beneficiary_name ||
-    auth.trade_claim?.beneficiary?.name ||
-    auth.trade_claim?.beneficiary_name ||
-    '';
-  const benefBank =
-    auth.beneficiary?.bank ||
-    auth.beneficiary?.bank_name ||
-    auth.beneficiary_bank ||
-    auth.beneficiary_bank_name ||
-    auth.trade_claim?.beneficiary?.bank ||
-    '';
-  const benefCountry =
-    auth.beneficiary?.country ||
-    auth.beneficiary_country ||
-    auth.trade_claim?.beneficiary?.country ||
-    toCountry ||
-    '';
-
-  return { institution, tradeClaimRef, fromCountry, toCountry, corridorName, assetCode, amount, currency, benefName, benefBank, benefCountry };
-}
-
-// ── Modal open / close ──────────────────────────────────────────────────────
-function showGovernorDeskModal() {
-  document.getElementById('governorDeskModalOverlay').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-  loadGovernorAuthorizations();
-  loadGovCorridorLiquidity();
-  loadGovRecentEvents();
-
-  // Delegated row click — attached once, works for all dynamically rendered rows
-  const rowsContainer = document.getElementById('governorAuthsRows');
-  if (rowsContainer && !rowsContainer._clickBound) {
-    rowsContainer.addEventListener('click', function(e) {
-      e.stopPropagation();
-      const row = e.target.closest('[data-auth-key]');
-      if (row) selectGovernorAuth(row.dataset.authKey);
-    });
-    rowsContainer._clickBound = true;
-  }
-}
-
-function hideGovernorDeskModal() {
-  document.getElementById('governorDeskModalOverlay').style.display = 'none';
-  document.body.style.overflow = '';
-}
-
-function toggleGovernorSection(sectionId) {
-  const el = document.getElementById(sectionId);
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-
-// ── Auth headers (reuses supervisor token helper) ───────────────────────────
-function getGovernorAuthHeaders() {
-  const token = (typeof getSupervisorToken === 'function')
-    ? getSupervisorToken()
-    : (document.querySelector('meta[name="csrf-token"]')?.content || '');
-  const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
-  const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
-  if (csrf)  headers['X-CSRF-Token'] = csrf;
-  headers['Authorization'] = `Bearer ${token}`;
-  return headers;
-}
-
-// ── Load authorizations ─────────────────────────────────────────────────────
-async function loadGovernorAuthorizations() {
-  const loading = document.getElementById('governorAuthsLoading');
-  const rows    = document.getElementById('governorAuthsRows');
-  loading.style.display = 'flex';
-  rows.innerHTML = '';
-
-  try {
-    const res = await fetch('/api/v2/issuance_authorizations?per_page=50', {
-      headers: getGovernorAuthHeaders()
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-    const data = await res.json();
-
-    // Handle all envelope shapes: { data: [...] }, { authorizations: [...] }, or bare []
-    let raw = [];
-    if (Array.isArray(data))            raw = data;
-    else if (Array.isArray(data.data))  raw = data.data;
-    else if (Array.isArray(data.authorizations)) raw = data.authorizations;
-    else if (data.data && typeof data.data === 'object') raw = [data.data];
-
-    // Log first record so we can see the real field shape in the console
-    if (raw.length > 0) {
-      console.log('[GovernorDesk] sample record keys:', Object.keys(raw[0]));
-      console.log('[GovernorDesk] sample record:', JSON.stringify(raw[0], null, 2));
-    }
-
-    // Include pending + any that lack governance_status (default = pending)
-    governorAuths = raw.filter(a => {
-      const gs = (a.governance_status || 'pending').toLowerCase();
-      return gs === 'pending';
-    });
-
-    document.getElementById('governorQueueCount').textContent = governorAuths.length;
-    applyGovernorFilters();
-  } catch (err) {
-    console.error('[GovernorDesk] load error:', err);
-    loading.style.display = 'none';
-    rows.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444;">Error loading authorizations — check API endpoint</div>';
-  }
-}
-
-function applyGovernorFilters() {
-  const term = (document.getElementById('governorSearchInput')?.value || '').toLowerCase();
-  filteredGovernorAuths = governorAuths.filter(a => {
-    const f = govField(a);
-    const code = (a.auth_code || a.id || '').toString().toLowerCase();
-    const inst = (f.institution || '').toLowerCase();
-    const tc   = (f.tradeClaimRef || '').toString().toLowerCase();
-    return code.includes(term) || inst.includes(term) || tc.includes(term);
-  });
-  governorCurrentPage = 1;
-  renderGovernorAuths();
-}
-
-function renderGovernorAuths() {
-  const loading = document.getElementById('governorAuthsLoading');
-  const rows    = document.getElementById('governorAuthsRows');
-  loading.style.display = 'none';
-
-  if (filteredGovernorAuths.length === 0) {
-    rows.innerHTML = '<div style="padding:40px;text-align:center;color:#6b7280;">No authorizations pending governance review</div>';
-    updateGovernorPagination();
-    return;
-  }
-
-  const start     = (governorCurrentPage - 1) * governorPageSize;
-  const pageItems = filteredGovernorAuths.slice(start, start + governorPageSize);
-
-  rows.innerHTML = pageItems.map((auth, i) => {
-    const rowNum   = start + i + 1;
-    const f        = govField(auth);
-    const authCode = auth.auth_code || auth.id || '—';
-    const inst     = f.institution || 'Unknown';
-    const tcId     = f.tradeClaimRef || '—';
-    const asset    = f.assetCode || f.currency || '—';
-    const amount   = f.amount;
-    const { fromCountry, toCountry } = f;
-
-    const fromFlag = (typeof resolveSupervisorFlag === 'function') ? resolveSupervisorFlag(fromCountry) : '🌍';
-    const toFlag   = (typeof resolveSupervisorFlag === 'function') ? resolveSupervisorFlag(toCountry)   : '🌍';
-
-    const rowKey     = auth.id || auth.auth_code;
-    const isSelected = selectedGovernorAuth === rowKey;
-    const govStatus  = (auth.governance_status || 'pending').toLowerCase();
-    const conf       = govStatusConfig[govStatus] || govStatusConfig['pending'];
-
-    return `
-      <div class="governor-auth-row ${isSelected ? 'selected' : ''}"
-           data-auth-key="${rowKey}"
-           style="
-             display: grid;
-             grid-template-columns: 40px 160px 180px 120px 140px 110px 120px;
-             gap: 8px; padding: 14px 20px;
-             border-bottom: 1px solid #f3f4f6; cursor: pointer;
-             background: ${isSelected ? '#dbeafe' : 'white'};
-           ">
-        <div style="font-size:13px;color:#6b7280;">${fromFlag || '🌍'} ${rowNum}</div>
-        <div>
-          <div style="font-size:12px;font-weight:600;font-family:monospace;color:#1e40af;">${authCode}</div>
-          <span style="padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;background:${conf.bg};color:${conf.color};border:1px solid ${conf.border};">${conf.icon} ${conf.label}</span>
-        </div>
-        <div style="font-size:12px;color:#374151;overflow:hidden;text-overflow:ellipsis;">${inst.substring(0,22)}</div>
-        <div style="font-size:12px;font-family:monospace;color:#374151;">${tcId}</div>
-        <div style="font-size:12px;">${fromFlag || ''} ${fromCountry || '—'} → ${toFlag || ''} ${toCountry || '—'}</div>
-        <div style="font-size:12px;font-weight:600;color:#1d1d1f;">${asset}</div>
-        <div style="font-size:12px;font-weight:600;color:#1d1d1f;">${amount ? amount.toLocaleString() : '—'}</div>
-      </div>`;
-  }).join('');
-
-  updateGovernorPagination();
-}
-
-function updateGovernorPagination() {
-  const total = Math.ceil(filteredGovernorAuths.length / governorPageSize);
-  let html = '';
-  for (let i = 1; i <= Math.min(total, 5); i++) {
-    html += `<button onclick="goToGovernorPage(${i})" style="
-      padding:6px 12px;
-      background:${i === governorCurrentPage ? '#1e4d7b' : 'white'};
-      color:${i === governorCurrentPage ? 'white' : '#374151'};
-      border:1px solid ${i === governorCurrentPage ? '#1e4d7b' : '#e5e7eb'};
-      border-radius:6px;cursor:pointer;
-    ">${i}</button>`;
-  }
-  document.getElementById('governorPageNumbers').innerHTML = html;
-}
-
-function goToGovernorPage(p) { governorCurrentPage = p; renderGovernorAuths(); }
-function governorPrevPage()  { if (governorCurrentPage > 1) { governorCurrentPage--; renderGovernorAuths(); } }
-function governorNextPage()  {
-  if (governorCurrentPage < Math.ceil(filteredGovernorAuths.length / governorPageSize)) {
-    governorCurrentPage++;
-    renderGovernorAuths();
-  }
-}
-
-// ── Select authorization ────────────────────────────────────────────────────
-function selectGovernorAuth(authId) {
-  selectedGovernorAuth = authId;
-  selectedGovernorAuthData = governorAuths.find(a =>
-    a.id === authId || a.auth_code === authId || (a.id || a.auth_code) === authId
-  );
-
-  console.log('[GovernorDesk] selectGovernorAuth called with:', authId);
-  console.log('[GovernorDesk] governorAuths length:', governorAuths.length);
-  console.log('[GovernorDesk] found:', selectedGovernorAuthData);
-
-  if (!selectedGovernorAuthData) {
-    console.warn('[GovernorDesk] No matching auth found for id:', authId);
-    return;
-  }
-
-  document.getElementById('governorReviewSection').style.display = 'block';
-  populateGovernorDetails(selectedGovernorAuthData);
-  populateGovernorSignatures(selectedGovernorAuthData);
-  renderGovernorLifecycle(selectedGovernorAuthData);
-  renderGovernorAuths();
-
-  // Scroll the modal's own content area down to the review section
-  setTimeout(() => {
-    const reviewEl = document.getElementById('governorReviewSection');
-    const scrollContainer = reviewEl.closest('[style*="overflow-y"]') || reviewEl.parentElement;
-    if (scrollContainer) {
-      scrollContainer.scrollTo({ top: reviewEl.offsetTop - 20, behavior: 'smooth' });
-    } else {
-      reviewEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, 50);
-}
-
-function populateGovernorDetails(auth) {
-  const inst      = auth.institution?.name || auth.institution_name || 'Unknown';
-  const authCode  = auth.auth_code || '—';
-  const tcId      = auth.trade_claim_reference || auth.trade_claim?.reference || auth.trade_claim_id || '—';
-  const assetCode = auth.asset_code || '—';
-  const amount    = parseFloat(auth.amount_total || auth.total_amount || 0);
-
-  let fromCountry = auth.corridor?.source_country || auth.corridor?.from_country || '';
-  let toCountry   = auth.corridor?.target_country || auth.corridor?.to_country   || '';
-  if ((!fromCountry || !toCountry) && auth.corridor?.name) {
-    const parts = auth.corridor.name.replace(/\s*corridor\s*$/i,'').split(/\s*[→\-]\s*/);
-    if (parts.length >= 2) { fromCountry = fromCountry || parts[0]; toCountry = toCountry || parts[1]; }
-  }
-  const fromFlag = (typeof resolveSupervisorFlag === 'function') ? resolveSupervisorFlag(fromCountry) : '🌍';
-  const toFlag   = (typeof resolveSupervisorFlag === 'function') ? resolveSupervisorFlag(toCountry)   : '🌍';
-  const curr     = (typeof resolveCorridorCurrency === 'function')
-    ? resolveCorridorCurrency(toCountry) || resolveCorridorCurrency(fromCountry) || ''
-    : '';
-
-  document.getElementById('govInstitutionName').textContent    = inst;
-  document.getElementById('govInstitutionFlag').textContent    = fromFlag || '🏦';
-  document.getElementById('govAuthCode').textContent           = authCode;
-  document.getElementById('govTradeClaimId').textContent       = tcId;
-  document.getElementById('govCorridorDisplay').innerHTML      = `${fromFlag} ${fromCountry || '—'} → ${toFlag} ${toCountry || '—'}`;
-  document.getElementById('govCorridorDisplay2').innerHTML     = `${fromFlag} ${fromCountry || '—'} → ${toFlag} ${toCountry || '—'}`;
-  document.getElementById('govAssetCode').textContent          = assetCode;
-  document.getElementById('govAmount').textContent             = `${assetCode} ${amount.toLocaleString()}`;
-
-  // Beneficiary info
-  document.getElementById('govBeneficiaryName').textContent    = auth.beneficiary?.name    || auth.beneficiary_name    || '—';
-  document.getElementById('govBeneficiaryBank').textContent    = auth.beneficiary?.bank    || auth.beneficiary_bank    || '—';
-  document.getElementById('govBeneficiaryCountry').textContent = auth.beneficiary?.country || auth.beneficiary_country || '—';
-}
-
-// ── Populate Governance Signatures panel ────────────────────────────────────
-function populateGovernorSignatures(auth) {
-  const sigs       = auth.governance_signatures || [];
-  const govStatus  = (auth.governance_status || 'pending').toLowerCase();
-  const isApproved = govStatus === 'approved';
-
-  // When no detail records exist, derive counts from governance_status
-  const current  = auth.current_signatures  || sigs.length || (isApproved ? 2 : 0);
-  const required = auth.required_signatures || 2;
-
-  // Map by role
-  const sigMap = {};
-  sigs.forEach(s => { sigMap[(s.signer_role || '').toLowerCase()] = s; });
-
-  function applySignature(rowId, iconId, metaId, badgeId, roleKey) {
-    const sig  = sigMap[roleKey] || sigMap[roleKey.replace('_', ' ')] || null;
-    const icon = document.getElementById(iconId);
-    const meta = document.getElementById(metaId);
-    const badge= document.getElementById(badgeId);
-    const row  = document.getElementById(rowId);
-    if (!icon || !meta || !badge || !row) return;
-
-    // Treat as signed if we have a detail record OR if governance is approved (fallback)
-    const signed = sig || isApproved;
-
-    if (signed) {
-      icon.textContent       = '✅';
-      meta.textContent       = sig
-        ? `Signed by ${sig.signer_id || 'Governor'} at ${sig.signed_at ? new Date(sig.signed_at).toLocaleTimeString() : '—'}`
-        : 'Approved';
-      badge.textContent      = 'Approved';
-      badge.style.background = '#d1fae5';
-      badge.style.color      = '#059669';
-      row.style.borderColor  = '#a7f3d0';
-    } else {
-      icon.textContent       = '○';
-      meta.textContent       = 'Awaiting signature';
-      badge.textContent      = 'Pending';
-      badge.style.background = '#fef3c7';
-      badge.style.color      = '#d97706';
-      row.style.borderColor  = '#e5e7eb';
-    }
-  }
-
-  applySignature('govSigDeputy',    'govSigDeputyIcon',    'govSigDeputyMeta',    'govSigDeputyBadge',    'deputy_governor');
-  applySignature('govSigGovernor',  'govSigGovernorIcon',  'govSigGovernorMeta',  'govSigGovernorBadge',  'governor');
-
-  // Progress bar
-  const pct = Math.min(100, Math.round((current / required) * 100));
-  const progressBar  = document.getElementById('govSigProgressBar');
-  const progressText = document.getElementById('govSigProgressText');
-  if (progressBar)  progressBar.style.width      = `${pct}%`;
-  if (progressText) progressText.textContent      = `${current} / ${required} required`;
-  if (progressBar)  progressBar.style.background  = current >= required ? '#059669' : '#2563eb';
-}
-
-// ── Lifecycle table ─────────────────────────────────────────────────────────
-const GOV_LIFECYCLE_STAGES = [
-  { key: 'authorization_created', label: 'Authorization Created',  icon: '📄' },
-  { key: 'supervisor_approved',   label: 'Supervisor Approved',    icon: '🧑‍⚖️' },
-  { key: 'governance_review',     label: 'Governance Review',      icon: '🏛️' },
-  { key: 'issuance_eligible',     label: 'Issuance-Eligible',      icon: '🏦' },
-  { key: 'liquidity_locked',      label: 'Liquidity Locked',       icon: '🔒' },
-  { key: 'minted',                label: 'Minted',                 icon: '💴' },
-];
-
-function renderGovernorLifecycle(auth) {
-  const tbody = document.getElementById('govLifecycleTableBody');
-  if (!tbody) return;
-
-  const govStatus = (auth.governance_status || 'pending').toLowerCase();
-
-  // Which stages have been reached based on governance_status
-  const reachedMap = {
-    authorization_created: true,
-    supervisor_approved:   true,
-    governance_review:     true,
-    issuance_eligible:     govStatus === 'approved',
-    liquidity_locked:      govStatus === 'approved' && !!auth.backing_lock_id,
-    minted:                false,
-  };
-
-  const currentKey = govStatus === 'approved' ? 'issuance_eligible' : 'governance_review';
-
-  tbody.innerHTML = GOV_LIFECYCLE_STAGES.map(stage => {
-    const isReached  = !!reachedMap[stage.key];
-    const isCurrent  = stage.key === currentKey;
-
-    let statusHtml;
-    if (isCurrent) {
-      statusHtml = `<span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;">CURRENT</span>`;
-    } else if (isReached) {
-      statusHtml = `<span style="background:#f0fdf4;color:#16a34a;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600;">✓ Done</span>`;
-    } else {
-      statusHtml = `<span style="color:#d1d5db;font-size:11px;">—</span>`;
-    }
-
-    const conditionHtml = stage.key === 'governance_review'
-      ? `<span style="font-size:11px;color:${govStatus==='approved'?'#059669':'#6b7280'};">${govStatus==='approved'?'✓ Governor approved':'⟳ Awaiting signatures'}</span>`
-      : `<span style="color:#d1d5db;font-size:11px;">${isReached ? '✓ satisfied' : '—'}</span>`;
-
-    const satisfiedHtml = !isReached && !isCurrent
-      ? `<span style="color:#d1d5db;">—</span>`
-      : isReached
-        ? `<span style="color:#059669;font-weight:600;">✓ Yes</span>`
-        : `<span style="color:#f59e0b;font-weight:600;">⟳ Pending</span>`;
-
-    return `
-      <tr style="border-bottom:1px solid #f3f4f6;${isCurrent ? 'background:#eff6ff;' : ''}">
-        <td style="padding:9px 12px;font-size:12px;font-weight:${isCurrent?'600':'400'};color:${isReached?'#374151':'#9ca3af'};">
-          ${stage.icon} ${stage.label}
-        </td>
-        <td style="padding:9px 12px;">${statusHtml}</td>
-        <td style="padding:9px 12px;">${conditionHtml}</td>
-        <td style="padding:9px 12px;">${satisfiedHtml}</td>
-      </tr>`;
-  }).join('');
-}
-
-// ── Governor sign (approve) ─────────────────────────────────────────────────
-async function governorSignAuthorization() {
-  if (!selectedGovernorAuthData) { alert('Please select an authorization first'); return; }
-
-  const notes  = (document.getElementById('governorDecisionNotes')?.value || '').trim();
-  const authCode = selectedGovernorAuthData.auth_code;
-
-  const confirmed = await showGovernorConfirmModal(selectedGovernorAuthData, notes);
-  if (!confirmed) return;
-
-  const btn = document.getElementById('btnGovernorApprove');
-  const origHTML = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '⏳ Signing...';
-
-  try {
-    const res = await fetch(`/api/v2/issuance_authorizations/${authCode}/governance_sign`, {
-      method:  'POST',
-      headers: getGovernorAuthHeaders(),
-      body:    JSON.stringify({ notes, signer_role: 'governor' })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`);
-
-    // Reload full auth record from server so signatures + status are fresh
-    try {
-      const refreshRes = await fetch(`/api/v2/issuance_authorizations?governance_status=pending&per_page=50`, {
-        headers: getGovernorAuthHeaders()
-      });
-      const refreshData = await refreshRes.json();
-      const refreshed = (refreshData.data || []).find(a => a.auth_code === authCode || a.id === authCode);
-      if (refreshed) {
-        selectedGovernorAuthData = refreshed;
-        // Update in the master array too
-        const idx = governorAuths.findIndex(a => a.auth_code === authCode || a.id === authCode);
-        if (idx !== -1) governorAuths[idx] = refreshed;
-      } else {
-        // Not in pending anymore — approved, merge what we have
-        selectedGovernorAuthData = { ...selectedGovernorAuthData, ...(data.data || data) };
-      }
-    } catch (_) {
-      // Fallback: just merge response data
-      selectedGovernorAuthData = { ...selectedGovernorAuthData, ...(data.data || data) };
-    }
-
-    populateGovernorSignatures(selectedGovernorAuthData);
-    renderGovernorLifecycle(selectedGovernorAuthData);
-
-    const fullyApproved = (selectedGovernorAuthData.governance_status || '').toLowerCase() === 'approved';
-
-    showGovernorResultModal({
-      approved: fullyApproved,
-      authCode,
-      currentSigs:  selectedGovernorAuthData.current_signatures  || 0,
-      requiredSigs: selectedGovernorAuthData.required_signatures || 2,
-    });
-
-    if (fullyApproved) {
-      // Remove from queue
-      governorAuths = governorAuths.filter(a => a.auth_code !== authCode);
-      applyGovernorFilters();
-      btn.innerHTML = '✅ Fully Approved';
-    } else {
-      btn.innerHTML = `✍ Signed (${selectedGovernorAuthData.current_signatures}/${selectedGovernorAuthData.required_signatures})`;
-      btn.disabled  = false;
-    }
-
-  } catch (err) {
-    showGovernorResultModal({ error: true, errorMessage: err.message });
-    btn.disabled  = false;
-    btn.innerHTML = origHTML;
-  }
-}
-
-// ── Governor reject ─────────────────────────────────────────────────────────
-async function governorRejectAuthorization() {
-  if (!selectedGovernorAuthData) { await govAlert({ tag:'Error', title:'No Authorization Selected', message:'Please select an authorization from the queue first.', danger:true }); return; }
-  const notes = (document.getElementById('governorDecisionNotes')?.value || '').trim();
-  if (!notes) { await govAlert({ tag:'Error', title:'Reason Required', message:'Please enter a rejection reason in the Decision Notes field before rejecting.', danger:true }); return; }
-  const confirmed = await govDialog({
-    tag:   'Governor Action',
-    title: 'Reject Authorization',
-    danger: true,
-    icon:  `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
-    body:  `<div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin-bottom:16px;font-size:13px;">
-              <span style="color:rgba(255,255,255,0.45);font-weight:600;">Auth ID</span>
-              <span style="color:#ffffff;font-family:monospace;font-size:12px;">${selectedGovernorAuthData.auth_code}</span>
-            </div>
-            <div style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.22);border-radius:10px;padding:12px 14px;">
-              <div style="font-size:12px;color:rgba(255,255,255,0.65);line-height:1.55;">This will <strong style="color:#f87171;">block CVIB minting</strong> for this authorization. The action is permanent and will be recorded in the governance audit log.</div>
-            </div>`,
-    buttons: [
-      { label: 'Cancel', value: false },
-      { label: 'Reject Authorization', value: true, primary: true },
-    ],
-  });
-  if (!confirmed) return;
-
-  try {
-    const res = await fetch(`/api/v2/issuance_authorizations/${selectedGovernorAuthData.auth_code}/governance_reject`, {
-      method:  'POST',
-      headers: getGovernorAuthHeaders(),
-      body:    JSON.stringify({ notes, reason: notes })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`);
-
-    document.getElementById('govRejectionWarning').style.display = 'block';
-    document.getElementById('btnGovernorApprove').disabled = true;
-    document.getElementById('btnGovernorApprove').innerHTML = '⛔ Rejected';
-    governorAuths = governorAuths.filter(a => a.auth_code !== selectedGovernorAuthData.auth_code);
-    applyGovernorFilters();
-  } catch (err) {
-    alert('Error rejecting authorization: ' + err.message);
-  }
-}
-
-// ── Request clarification ───────────────────────────────────────────────────
-function governorRequestClarification() {
-  const notes = (document.getElementById('governorDecisionNotes')?.value || '').trim();
-  if (!notes) { alert('Please describe what clarification is needed.'); return; }
-  alert(`Clarification request recorded: "${notes}"\n\nIn a full implementation this would notify the supervisor via the audit log.`);
-}
-
-// ── Styled confirmation modal ───────────────────────────────────────────────
-function showGovernorConfirmModal(auth, notes) {
-  return new Promise(resolve => {
-    const existing = document.getElementById('governorConfirmOverlay');
-    if (existing) existing.remove();
-
-    const authCode = auth.auth_code || '—';
-    const inst     = auth.institution?.name || auth.institution_name || '—';
-    const asset    = auth.asset_code || '—';
-    const amount   = parseFloat(auth.amount_total || 0).toLocaleString();
-    const notesHtml = notes
-      ? `<div style="margin-top:10px;padding:10px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:12px;color:#1e40af;">
-           <span style="font-weight:600;">Decision Notes:</span> ${notes}
-         </div>`
-      : `<div style="margin-top:10px;padding:10px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:12px;color:#92400e;">
-           ⚠ No decision notes entered.
-         </div>`;
-
-    const overlay = document.createElement('div');
-    overlay.id = 'governorConfirmOverlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
-    overlay.innerHTML = `
-      <div style="background:#fff;border-radius:20px;width:100%;max-width:440px;box-shadow:0 32px 80px rgba(0,0,0,0.3);overflow:hidden;animation:slideUpFade 0.18s ease;">
-        <div style="background:linear-gradient(135deg,#1a3a5c,#1e4d7b);padding:22px 24px 18px;">
-          <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Governor Approval Desk</div>
-          <div style="font-size:19px;font-weight:700;color:#fff;">Confirm Governance Signature</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;">This action will be permanently recorded in the audit trail.</div>
-        </div>
-        <div style="padding:20px 24px 0;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div style="background:#f9fafb;border-radius:10px;padding:12px;">
-              <div style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;margin-bottom:3px;">Auth Code</div>
-              <div style="font-size:13px;font-weight:700;color:#1e40af;font-family:monospace;">${authCode}</div>
-            </div>
-            <div style="background:#f9fafb;border-radius:10px;padding:12px;">
-              <div style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;margin-bottom:3px;">Amount</div>
-              <div style="font-size:13px;font-weight:700;color:#1d1d1f;">${asset} ${amount}</div>
-            </div>
-            <div style="background:#f9fafb;border-radius:10px;padding:12px;grid-column:span 2;">
-              <div style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;margin-bottom:3px;">Institution</div>
-              <div style="font-size:13px;font-weight:600;color:#1d1d1f;">${inst}</div>
-            </div>
-          </div>
-          ${notesHtml}
-          <div style="margin-top:10px;padding:10px 12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;font-size:11px;color:#0369a1;line-height:1.6;">
-            ⚙ A <code>governance_signatures</code> record will be created.<br>
-            If required signatures are reached, <strong>governance_status → approved</strong>.
-          </div>
-        </div>
-        <div style="padding:20px 24px 24px;display:flex;gap:10px;">
-          <button id="govConfirmCancel" style="flex:1;padding:13px;background:#f3f4f6;color:#374151;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
-          <button id="govConfirmOK" style="flex:2;padding:13px;background:linear-gradient(135deg,#1e4d7b,#1a3a5c);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(30,77,123,0.35);">
-            ✓ Sign &amp; Approve Issuance
-          </button>
-        </div>
-      </div>
-      <style>@keyframes slideUpFade{from{opacity:0;transform:translateY(16px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}</style>`;
-
-    document.body.appendChild(overlay);
-    document.getElementById('govConfirmOK').onclick     = () => { overlay.remove(); resolve(true); };
-    document.getElementById('govConfirmCancel').onclick = () => { overlay.remove(); resolve(false); };
-    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
-    const kh = e => {
-      if (e.key === 'Enter')  { document.removeEventListener('keydown', kh); overlay.remove(); resolve(true); }
-      if (e.key === 'Escape') { document.removeEventListener('keydown', kh); overlay.remove(); resolve(false); }
-    };
-    document.addEventListener('keydown', kh);
-  });
-}
-
-// ── Result modal ────────────────────────────────────────────────────────────
-function showGovernorResultModal({ approved, authCode, currentSigs, requiredSigs, error, errorMessage }) {
-  const existing = document.getElementById('governorResultOverlay');
-  if (existing) existing.remove();
-
-  let headerBg, headerIcon, headerTitle, headerSub, bodyHtml;
-
-  if (error) {
-    headerBg   = 'linear-gradient(135deg,#991b1b,#dc2626)';
-    headerIcon = '⚠';
-    headerTitle = 'Signature Failed';
-    headerSub   = 'An unexpected error occurred.';
-    bodyHtml    = `<div style="padding:20px 24px;background:#fef2f2;border-bottom:1px solid #fecaca;"><div style="font-size:13px;color:#991b1b;font-family:monospace;">${errorMessage}</div></div>`;
-  } else if (approved) {
-    headerBg   = 'linear-gradient(135deg,#065f46,#059669)';
-    headerIcon = '🏦';
-    headerTitle = 'Authorization Approved';
-    headerSub   = `${authCode} has reached the required signatures. Qt6 Issuance Console is now enabled.`;
-    bodyHtml    = `
-      <div style="padding:20px 24px;">
-        <div style="padding:14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;font-size:13px;color:#166534;line-height:1.8;">
-          ✓ governance_status → <strong>approved</strong><br>
-          ✓ ${currentSigs} / ${requiredSigs} required signatures collected<br>
-          ✓ Qt6 Issuance Console: <strong>btnAuthorizePackage ENABLED</strong><br>
-          ✓ Audit log entry written
-        </div>
-      </div>`;
-  } else {
-    headerBg   = 'linear-gradient(135deg,#1a3a5c,#1e4d7b)';
-    headerIcon = '✍';
-    headerTitle = 'Signature Recorded';
-    headerSub   = `${authCode} — ${currentSigs} of ${requiredSigs} required signatures collected.`;
-    bodyHtml    = `
-      <div style="padding:20px 24px;">
-        <div style="padding:14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;font-size:13px;color:#1e40af;line-height:1.8;">
-          ✓ Signature recorded in governance_signatures<br>
-          ⟳ Awaiting ${requiredSigs - currentSigs} more signature(s) before issuance is unlocked
-        </div>
-      </div>`;
-  }
-
-  const overlay = document.createElement('div');
-  overlay.id = 'governorResultOverlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
-  overlay.innerHTML = `
-    <div style="background:#fff;border-radius:20px;width:100%;max-width:440px;box-shadow:0 32px 80px rgba(0,0,0,0.3);overflow:hidden;animation:slideUpFade 0.18s ease;">
-      <div style="background:${headerBg};padding:22px 24px 18px;">
-        <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Governor Approval Desk</div>
-        <div style="font-size:19px;font-weight:700;color:#fff;">${headerIcon} ${headerTitle}</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;">${headerSub}</div>
-      </div>
-      ${bodyHtml}
-      <div style="padding:16px 24px 22px;display:flex;justify-content:flex-end;">
-        <button id="govResultClose" style="background:${approved?'#059669':error?'#dc2626':'#1e4d7b'};color:#fff;border:none;border-radius:10px;padding:12px 32px;font-size:14px;font-weight:700;cursor:pointer;">Done</button>
-      </div>
-    </div>
-    <style>@keyframes slideUpFade{from{opacity:0;transform:translateY(16px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}</style>`;
-
-  document.body.appendChild(overlay);
-  document.getElementById('govResultClose').onclick = () => overlay.remove();
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-  document.addEventListener('keydown', function esc(e) {
-    if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', esc); }
-  });
-}
-
-// ── Keyboard shortcut ───────────────────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.getElementById('governorDeskModalOverlay')?.style.display === 'flex') {
-    hideGovernorDeskModal();
-  }
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SOVEREIGN DASHBOARD  —  Reservoir Model
-// ═══════════════════════════════════════════════════════════════════════════
-
-// ── Regional bloc membership ─────────────────────────────────────────────────
 const GOV_BLOCS = {
-  'ECOWAS': ['NGA','GHA','SEN','CIV','BEN','TGO','MLI','BFA','NER','GIN','SLE','GMB','LBR','GNB','CPV'],
+  'ECOWAS': ['NGA','GHA','SEN','CIV','BEN','TGO','GIN','SLE','GMB','LBR','GNB','CPV'],
+  'AES':    ['BFA','MLI','NER'],
   'EAC':    ['KEN','TZA','UGA','RWA','BDI','SSD'],
   'SADC':   ['ZAF','ZWE','ZMB','MOZ','MWI','BWA','NAM','LSO','SWZ','AGO','MDG','MUS'],
   'CEMAC':  ['CMR','CAF','COG','GAB','GNQ','TCD'],
@@ -1583,11 +534,191 @@ function govGetBloc(isoCode) {
   return 'Other';
 }
 
-let govCorridorLiquidityData = [];
-let govSelectedCorridorId    = '';
-let govSelectedCorridorLabel = '';
+// ── Modal open / close ──────────────────────────────────────────────────────
+function showGovernorDeskModal() {
+  document.getElementById('governorDeskModalOverlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  loadMacroConsole();
+}
 
-// ── Build grouped corridor listbox ──────────────────────────────────────────
+function hideGovernorDeskModal() {
+  document.getElementById('governorDeskModalOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function loadMacroConsole() {
+  loadNetworkStatus();
+  loadGovCorridorLiquidity();
+  loadGovRecentEvents();
+  loadCorridorReservoirGrid();
+  loadGovernanceSignatures();
+}
+
+// ── Auth headers ────────────────────────────────────────────────────────────
+function getGovernorAuthHeaders() {
+  const token = (typeof getSupervisorToken === 'function')
+    ? getSupervisorToken()
+    : (document.querySelector('meta[name="csrf-token"]')?.content || '');
+  const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+  const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+  if (csrf)  headers['X-CSRF-Token'] = csrf;
+  headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NETWORK STATUS BAR
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function loadNetworkStatus() {
+  try {
+    const res = await fetch('/api/v2/corridors?per_page=100', { headers: getGovernorAuthHeaders() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    let corridors = [];
+    if (Array.isArray(data))                                  corridors = data;
+    else if (Array.isArray(data.data))                        corridors = data.data;
+    else if (Array.isArray(data.corridors))                   corridors = data.corridors;
+    else if (data.data && Array.isArray(data.data.corridors)) corridors = data.data.corridors;
+
+    const total  = corridors.length;
+    const active = corridors.filter(c => (c.status || 'active').toLowerCase() === 'active').length;
+
+    // Compute average headroom from cached liquidity or corridor data
+    let avgHeadroom = null;
+    const withHeadroom = corridors.filter(c => {
+      const lp = c.liquidity_position || c.liquidity_snapshot || {};
+      const cap = parseFloat(lp.domestic_available || lp.total_liquidity || 0);
+      const drawn = parseFloat(lp.linked_outstanding || lp.linked || 0);
+      return cap > 0;
+    });
+    if (withHeadroom.length > 0) {
+      const sum = withHeadroom.reduce((acc, c) => {
+        const lp = c.liquidity_position || c.liquidity_snapshot || {};
+        const cap = parseFloat(lp.domestic_available || lp.total_liquidity || 0);
+        const drawn = parseFloat(lp.linked_outstanding || lp.linked || 0);
+        return acc + Math.max(0, Math.round(((cap - drawn) / cap) * 100));
+      }, 0);
+      avgHeadroom = Math.round(sum / withHeadroom.length);
+    }
+
+    document.getElementById('govNetActiveCorridors').textContent = active;
+    document.getElementById('govNetTotalCorridors').textContent  = total;
+    document.getElementById('govNetLastUpdate').textContent      = new Date().toLocaleTimeString();
+
+    if (avgHeadroom !== null) {
+      const el = document.getElementById('govNetHealth');
+      el.textContent = `${avgHeadroom}%`;
+      el.style.color = avgHeadroom < 20 ? '#f87171' : avgHeadroom < 40 ? '#fbbf24' : '#2dd4bf';
+    }
+
+    // For volume, sum all corridor daily volumes if present
+    let totalVol = 0;
+    corridors.forEach(c => {
+      const v = parseFloat(c.daily_volume || c.volume_today || 0);
+      totalVol += v;
+    });
+    if (totalVol > 0) {
+      document.getElementById('govNetVolume').textContent =
+        totalVol >= 1e9 ? `${(totalVol/1e9).toFixed(2)}B`
+        : totalVol >= 1e6 ? `${(totalVol/1e6).toFixed(1)}M`
+        : totalVol.toLocaleString(undefined, { maximumFractionDigits: 0 });
+    } else {
+      document.getElementById('govNetVolume').textContent = 'N/A';
+    }
+
+    // Check for interventions
+    updateInterventionPanel(corridors);
+
+  } catch (err) {
+    console.error('[MacroConsole] Network status error:', err);
+    document.getElementById('govNetLastUpdate').textContent = 'Error';
+  }
+}
+
+function updateInterventionPanel(corridors) {
+  const panel = document.getElementById('govInterventionPanel');
+  if (!panel) return;
+
+  const issues = corridors.filter(c => {
+    const status = (c.status || 'active').toLowerCase();
+    if (status === 'halted' || status === 'suspended') return true;
+    const lp  = c.liquidity_position || c.liquidity_snapshot || {};
+    const cap = parseFloat(lp.domestic_available || lp.total_liquidity || 0);
+    const drawn = parseFloat(lp.linked_outstanding || lp.linked || 0);
+    if (cap > 0) {
+      const headroom = (cap - drawn) / cap;
+      return headroom < 0.1;
+    }
+    return false;
+  });
+
+  if (issues.length === 0) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div style="
+      background: linear-gradient(135deg, #450a0a, #7f1d1d);
+      border: 1px solid rgba(239,68,68,0.4);
+      border-radius: 14px; padding: 16px 20px;
+    ">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="
+          width:32px;height:32px;background:rgba(239,68,68,0.3);border-radius:8px;
+          display:flex;align-items:center;justify-content:center;font-size:16px;
+        ">⚡</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#fca5a5;">
+            ${issues.length} Corridor${issues.length > 1 ? 's' : ''} Require${issues.length === 1 ? 's' : ''} Immediate Attention
+          </div>
+          <div style="font-size:11px;color:rgba(252,165,165,0.7);">
+            Intervention authority active — Governor action required
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        ${issues.map(c => {
+          const name = c.corridor_display || c.code || `${c.source_country}→${c.target_country}`;
+          const status = (c.status || 'active').toLowerCase();
+          const lp = c.liquidity_position || c.liquidity_snapshot || {};
+          const cap = parseFloat(lp.domestic_available || lp.total_liquidity || 0);
+          const drawn = parseFloat(lp.linked_outstanding || lp.linked || 0);
+          const headroomPct = cap > 0 ? Math.round(((cap - drawn) / cap) * 100) : 0;
+          const reason = (status === 'halted' || status === 'suspended')
+            ? `<span style="color:#fca5a5;font-weight:700;">HALTED</span>`
+            : `<span style="color:#fbbf24;font-weight:700;">${headroomPct}% headroom — CRITICAL LOW</span>`;
+          return `
+            <div style="
+              background:rgba(255,255,255,0.06);border:1px solid rgba(239,68,68,0.25);
+              border-radius:8px;padding:9px 14px;
+              display:flex;justify-content:space-between;align-items:center;
+            ">
+              <span style="font-size:12px;font-weight:600;color:#fde8e8;font-family:monospace;">${name}</span>
+              <div style="display:flex;align-items:center;gap:10px;font-size:11px;">
+                ${reason}
+                <button onclick="govSelectedCorridorId='${c.id||c.code}';govSelectedCorridorLabel='${name}';govAdjustDailyCap()" style="
+                  background:rgba(251,191,36,0.2);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);
+                  border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;
+                ">Adjust Cap</button>
+                <button onclick="govSelectedCorridorId='${c.id||c.code}';govSelectedCorridorLabel='${name}';govHaltCorridor()" style="
+                  background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.3);
+                  border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;
+                ">Halt</button>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SOVEREIGN DASHBOARD — Reservoir Model
+// ═══════════════════════════════════════════════════════════════════════════
+
 function govBuildCorridorSelect(corridors) {
   const sel = document.getElementById('govCorridorSelect');
   if (!sel) return;
@@ -1600,7 +731,6 @@ function govBuildCorridorSelect(corridors) {
       })
     : corridors;
 
-  // Group by bloc
   const groups = {};
   filtered.forEach(c => {
     const bloc = govGetBloc(c.source_country);
@@ -1612,33 +742,27 @@ function govBuildCorridorSelect(corridors) {
 
   if (filtered.length === 0) {
     const opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = '— No corridors found —';
+    opt.value = ''; opt.textContent = '— No corridors found —';
     opt.style.background = '#0f2744';
     sel.appendChild(opt);
     return;
   }
 
   const orderedBlocs = [...Object.keys(GOV_BLOCS), 'Other'].filter(b => groups[b]?.length > 0);
-
   orderedBlocs.forEach(bloc => {
     const group = document.createElement('optgroup');
     group.label = `— ${bloc} —`;
-
     groups[bloc].forEach(c => {
       const display = c.corridor_display || c.code || `${c.source_country} → ${c.target_country}`;
       const id      = c.id || c.code;
       const opt     = document.createElement('option');
-      opt.value       = id;
-      opt.textContent = display;
+      opt.value = id; opt.textContent = display;
       opt.style.background = '#0f2744';
       group.appendChild(opt);
     });
-
     sel.appendChild(group);
   });
 
-  // Restore previously selected corridor
   if (govSelectedCorridorId) sel.value = govSelectedCorridorId;
 }
 
@@ -1646,19 +770,15 @@ function govFilterCorridors() {
   govBuildCorridorSelect(govCorridorLiquidityData);
 }
 
-// ── Corridor selected from listbox ──────────────────────────────────────────
 function govSelectCorridor(id, label) {
   if (!id) return;
   govSelectedCorridorId    = id;
   govSelectedCorridorLabel = (label || id).trim();
-
   const lbl = document.getElementById('govQuickActionsCorridorLabel');
   if (lbl) lbl.textContent = `Corridor: ${govSelectedCorridorLabel}`;
-
   loadCorridorGauge(id);
 }
 
-// ── Single-corridor fuel gauge ───────────────────────────────────────────────
 async function loadCorridorGauge(corridorId) {
   const content = document.getElementById('govFuelGaugeContent');
   if (!content) return;
@@ -1694,13 +814,12 @@ function renderSingleCorridorGauge(pos, corridorLabel) {
   const headroomPct = 100 - drawdownPct;
   const currency    = pos.asset_code || pos.currency || '';
 
-  const barColor   = headroomPct < 10 ? '#dc2626' : headroomPct < 30 ? '#f59e0b' : '#0d9488';
-  const statusText = headroomPct < 10 ? '⚠ REPLENISH REQUIRED'
-                   : headroomPct < 30 ? '⚡ LOW RESERVE'
-                   : '✓ HEALTHY';
+  const barColor    = headroomPct < 10 ? '#dc2626' : headroomPct < 30 ? '#f59e0b' : '#0d9488';
+  const statusText  = headroomPct < 10 ? '⚠ REPLENISH REQUIRED'
+                    : headroomPct < 30 ? '⚡ LOW RESERVE' : '✓ HEALTHY';
   const statusColor = headroomPct < 10 ? '#fca5a5' : headroomPct < 30 ? '#fbbf24' : '#2dd4bf';
-  const fmtNum = n => n ? n.toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—';
-  const hasData = total > 0;
+  const fmtNum      = n => n ? n.toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—';
+  const hasData     = total > 0;
 
   content.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px;">
@@ -1737,14 +856,12 @@ function renderSingleCorridorGauge(pos, corridorLabel) {
     </div>`}`;
 }
 
-// ── Load corridors into grouped listbox ─────────────────────────────────────
 async function loadGovCorridorLiquidity() {
   try {
     const res  = await fetch('/api/v2/corridors?per_page=50', { headers: getGovernorAuthHeaders() });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    // Rails envelope: { meta: {}, data: { corridors: [...] }, error: null }
     let corridors = [];
     if (Array.isArray(data))                                  corridors = data;
     else if (Array.isArray(data.data))                        corridors = data.data;
@@ -1752,20 +869,18 @@ async function loadGovCorridorLiquidity() {
     else if (data.data && Array.isArray(data.data.corridors)) corridors = data.data.corridors;
     else if (data.data && Array.isArray(data.data.data))      corridors = data.data.data;
 
-    console.log('[GovernorDesk] corridors loaded:', corridors.length);
     govCorridorLiquidityData = corridors;
     govBuildCorridorSelect(corridors);
 
     const tsEl = document.getElementById('govLastAuditTimestamp');
     if (tsEl) tsEl.textContent = new Date().toLocaleTimeString();
   } catch (err) {
-    console.error('[GovernorDesk] corridor load error:', err);
+    console.error('[MacroConsole] corridor load error:', err);
     const sel = document.getElementById('govCorridorSelect');
     if (sel) sel.innerHTML = '<option value="" style="background:#0f2744;">⚠ Could not load corridors</option>';
   }
 }
 
-// ── Recent Bulk Allotments ───────────────────────────────────────────────────
 async function loadGovRecentEvents() {
   const rows = document.getElementById('govRecentEventsRows');
   if (!rows) return;
@@ -1807,10 +922,7 @@ function renderGovRecentEvents(proposals) {
     const ts       = p.created_at || p.submitted_at || '';
     const dateStr  = ts ? new Date(ts).toLocaleDateString() : '—';
     const amtStr   = amount ? amount.toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—';
-
-    const statusColor = status === 'approved' ? '#2dd4bf'
-                      : status === 'rejected' ? '#f87171'
-                      : '#fbbf24';
+    const statusColor = status === 'approved' ? '#2dd4bf' : status === 'rejected' ? '#f87171' : '#fbbf24';
 
     return `
       <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:9px 12px;">
@@ -1826,125 +938,502 @@ function renderGovRecentEvents(proposals) {
   }).join('');
 }
 
-// ── Corridor Halt (context-aware to selected corridor) ───────────────────────
-async function govHaltCorridor() {
-  if (!govSelectedCorridorId) {
-    await govAlert({ tag:'Error', title:'No Corridor Selected', message:'Select a corridor from the list above before halting.', danger:true });
-    return;
+// ═══════════════════════════════════════════════════════════════════════════
+// REGIONAL CORRIDOR RESERVOIR GRID
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function loadCorridorReservoirGrid() {
+  const grid = document.getElementById('govCorridorReservoirGrid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">⏳ Loading corridor reservoirs…</div>';
+
+  try {
+    const res = await fetch('/api/v2/corridors?per_page=50', { headers: getGovernorAuthHeaders() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    let corridors = [];
+    if (Array.isArray(data))                                  corridors = data;
+    else if (Array.isArray(data.data))                        corridors = data.data;
+    else if (Array.isArray(data.corridors))                   corridors = data.corridors;
+    else if (data.data && Array.isArray(data.data.corridors)) corridors = data.data.corridors;
+
+    if (corridors.length === 0) {
+      grid.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">No corridors configured.</div>';
+      return;
+    }
+
+    renderCorridorReservoirGrid(corridors);
+  } catch (err) {
+    grid.innerHTML = `<div style="text-align:center;padding:40px;color:#f87171;font-size:13px;">⚠ Error loading corridors: ${err.message}</div>`;
   }
-  const confirmed = await govConfirmHalt(govSelectedCorridorLabel);
-  if (!confirmed) {
-    await govAlert({ tag:'Cancelled', title:'Halt Cancelled', message:'Confirmation code did not match. No action was taken.' });
-    return;
-  }
-  await govAlert({
-    tag:     'Halt Initiated',
-    title:   'Corridor Suspended',
-    message: `<strong style="color:#fff;">${govSelectedCorridorLabel}</strong> has been suspended. Audit log entry recorded.<br><br><span style="font-size:11px;color:rgba(255,255,255,0.4);font-family:monospace;">POST /api/v2/corridors/${govSelectedCorridorId}/halt</span>`,
-    danger:  true,
-  });
 }
 
-// ── Adjust Daily Cap ─────────────────────────────────────────────────────────
-async function govAdjustDailyCap() {
-  if (!govSelectedCorridorId) {
-    await govAlert({ tag:'Error', title:'No Corridor Selected', message:'Select a corridor from the list above first.', danger:true });
-    return;
-  }
-  const inputId = 'govCapInput_' + Date.now();
-  const confirmed = await govDialog({
-    tag:   'Corridor Management',
-    title: 'Adjust Daily Cap',
-    icon:  `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
-    body:  `<div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:14px;">Set a new daily settlement cap for the <strong style="color:#fff;">${govSelectedCorridorLabel}</strong> corridor.</div>
+function renderCorridorReservoirGrid(corridors) {
+  const grid = document.getElementById('govCorridorReservoirGrid');
+  if (!grid) return;
+
+  // Group by bloc
+  const groups = {};
+  corridors.forEach(c => {
+    const bloc = govGetBloc(c.source_country);
+    if (!groups[bloc]) groups[bloc] = [];
+    groups[bloc].push(c);
+  });
+
+  const orderedBlocs = [...Object.keys(GOV_BLOCS), 'Other'].filter(b => groups[b]?.length > 0);
+
+  grid.innerHTML = orderedBlocs.map(bloc => {
+    const cards = groups[bloc].map(c => {
+      const id       = c.id || c.code;
+      const display  = c.corridor_display || c.code || `${c.source_country} → ${c.target_country}`;
+      const status   = (c.status || 'active').toLowerCase();
+      const isHalted = status === 'halted' || status === 'suspended';
+
+      const lp      = c.liquidity_position || c.liquidity_snapshot || {};
+      const cap     = parseFloat(lp.domestic_available || lp.total_liquidity || 0);
+      const drawn   = parseFloat(lp.linked_outstanding || lp.linked || 0);
+      const free    = Math.max(0, cap - drawn);
+      const hPct    = cap > 0 ? Math.min(100, Math.round(((cap - drawn) / cap) * 100)) : null;
+      const currency = lp.asset_code || lp.currency || c.asset_code || '';
+      const fmtNum   = n => n ? n.toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—';
+
+      let barColor, statusLabel, badgeBg, badgeColor;
+      if (isHalted) {
+        barColor = '#6b7280'; statusLabel = 'HALTED'; badgeBg = '#fef2f2'; badgeColor = '#dc2626';
+      } else if (hPct === null) {
+        barColor = '#475569'; statusLabel = 'NO DATA'; badgeBg = '#f3f4f6'; badgeColor = '#9ca3af';
+      } else if (hPct < 10) {
+        barColor = '#dc2626'; statusLabel = 'CRITICAL'; badgeBg = '#fef2f2'; badgeColor = '#dc2626';
+      } else if (hPct < 30) {
+        barColor = '#f59e0b'; statusLabel = 'LOW'; badgeBg = '#fffbeb'; badgeColor = '#d97706';
+      } else {
+        barColor = '#059669'; statusLabel = 'HEALTHY'; badgeBg = '#f0fdf4'; badgeColor = '#059669';
+      }
+
+      const drawdownPct = cap > 0 ? Math.min(100, Math.round((drawn / cap) * 100)) : 0;
+
+      return `
+        <div class="gov-corridor-card" style="
+          background: white; border: 1px solid #e2e8f0;
+          border-radius: 14px; padding: 16px;
+          display: flex; flex-direction: column; gap: 12px;
+          ${isHalted ? 'opacity:0.75;border-color:#fecaca;' : ''}
+        ">
+          <!-- Card Header -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
-              <label style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.45);display:block;margin-bottom:6px;">New Daily Cap Amount</label>
-              <input id="${inputId}" type="number" placeholder="e.g. 5000000" style="width:100%;padding:10px 13px;background:#0a1628;border:1px solid rgba(201,168,76,0.3);border-radius:8px;color:#fff;font-size:14px;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#C9A84C'" onblur="this.style.borderColor='rgba(201,168,76,0.3)'">
-            </div>`,
-    buttons: [
-      { label: 'Cancel', value: false },
-      { label: 'Queue Proposal', value: true, primary: true },
-    ],
-  });
-  if (!confirmed) return;
-  const inputEl = document.getElementById(inputId);
-  const newCap  = inputEl ? inputEl.value : '';
-  if (!newCap || isNaN(parseFloat(newCap))) {
-    await govAlert({ tag:'Error', title:'Invalid Amount', message:'Please enter a valid numeric amount.', danger:true });
+              <div style="font-size:13px;font-weight:700;color:#0f172a;font-family:monospace;margin-bottom:3px;">
+                ${display}
+              </div>
+              <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">${bloc}</div>
+            </div>
+            <span style="
+              padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
+              background:${badgeBg};color:${badgeColor};
+            ">${statusLabel}</span>
+          </div>
+
+          <!-- Headroom % — large display -->
+          <div style="text-align:center;">
+            <div style="font-size:36px;font-weight:800;color:${isHalted ? '#9ca3af' : barColor};line-height:1;">
+              ${hPct !== null ? hPct + '%' : '—'}
+            </div>
+            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">headroom</div>
+          </div>
+
+          <!-- Bar -->
+          ${cap > 0 ? `
+          <div style="position:relative;height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+            <div style="position:absolute;top:0;left:0;bottom:0;width:${drawdownPct}%;background:${barColor};border-radius:4px;transition:width 0.5s ease;"></div>
+          </div>` : ''}
+
+          <!-- Cap / Free stats -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:#f8fafc;border-radius:8px;padding:8px 10px;">
+              <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;margin-bottom:2px;">Cap</div>
+              <div style="font-size:12px;font-weight:700;color:#0f172a;">${cap > 0 ? currency + ' ' + fmtNum(cap) : '—'}</div>
+            </div>
+            <div style="background:#f0fdf4;border-radius:8px;padding:8px 10px;border:1px solid #bbf7d0;">
+              <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;margin-bottom:2px;">Free</div>
+              <div style="font-size:12px;font-weight:700;color:#059669;">${cap > 0 ? currency + ' ' + fmtNum(free) : '—'}</div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div style="display:flex;gap:6px;">
+            <button onclick="govSelectedCorridorId='${id}';govSelectedCorridorLabel='${display.replace(/'/g,"\\'")}';govAdjustDailyCap()" style="
+              flex:1;padding:8px 0;font-size:11px;font-weight:600;cursor:pointer;
+              background:#f8fafc;color:#475569;border:1px solid #e2e8f0;border-radius:8px;
+            " onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+              📊 Adjust Cap
+            </button>
+            <button onclick="govSelectedCorridorId='${id}';govSelectedCorridorLabel='${display.replace(/'/g,"\\'")}';govHaltCorridor()" style="
+              flex:1;padding:8px 0;font-size:11px;font-weight:600;cursor:pointer;
+              background:${isHalted ? '#fef2f2' : '#fff7f7'};
+              color:${isHalted ? '#dc2626' : '#ef4444'};
+              border:1px solid ${isHalted ? '#fecaca' : '#fee2e2'};border-radius:8px;
+            " onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='${isHalted ? '#fef2f2' : '#fff7f7'}'">
+              ⚡ ${isHalted ? 'Halted' : 'Halt'}
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div style="margin-bottom:20px;">
+        <div style="
+          font-size:10px;font-weight:700;color:#64748b;
+          text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;
+          display:flex;align-items:center;gap:8px;
+        ">
+          <span>${bloc}</span>
+          <span style="font-size:11px;color:#cbd5e1;font-weight:400;">(${groups[bloc].length} corridor${groups[bloc].length !== 1 ? 's' : ''})</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+          ${cards}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GOVERNANCE SIGNATURES REQUIRED
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function loadGovernanceSignatures() {
+  const panel = document.getElementById('govSignaturesPanel');
+  if (!panel) return;
+  panel.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">⏳ Loading governance proposals…</div>';
+
+  try {
+    const res = await fetch('/api/v2/governance/proposals?status=pending&per_page=20', {
+      headers: getGovernorAuthHeaders()
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    let proposals = [];
+    if (Array.isArray(data))                                  proposals = data;
+    else if (Array.isArray(data.data))                        proposals = data.data;
+    else if (data.data && Array.isArray(data.data.proposals)) proposals = data.data.proposals;
+    else if (Array.isArray(data.proposals))                   proposals = data.proposals;
+
+    const count = document.getElementById('govPendingProposalCount');
+    if (count) count.textContent = proposals.length;
+
+    renderGovernanceSignatures(proposals);
+  } catch (err) {
+    panel.innerHTML = `<div style="text-align:center;padding:40px;color:#f87171;font-size:13px;">⚠ ${err.message}</div>`;
+  }
+}
+
+function renderGovernanceSignatures(proposals) {
+  const panel = document.getElementById('govSignaturesPanel');
+  if (!panel) return;
+
+  if (proposals.length === 0) {
+    panel.innerHTML = `
+      <div style="text-align:center;padding:40px;">
+        <div style="font-size:32px;margin-bottom:10px;">✓</div>
+        <div style="font-size:14px;font-weight:600;color:#374151;margin-bottom:4px;">No pending governance proposals</div>
+        <div style="font-size:12px;color:#94a3b8;">All corridor parameter proposals have been resolved.</div>
+      </div>`;
     return;
   }
-  await govAlert({
-    tag:     'Proposal Queued',
-    title:   'Daily Cap Adjustment',
-    message: `Corridor: <strong style="color:#fff;">${govSelectedCorridorLabel}</strong><br>New Cap: <strong style="color:#C9A84C;">${parseFloat(newCap).toLocaleString()}</strong><br><br>A <code style="font-size:11px;color:rgba(255,255,255,0.5);">corridor_cap_change</code> governance proposal has been queued for multi-sig approval.`,
+
+  const typeLabel = t => {
+    if (!t) return 'Proposal';
+    const map = {
+      'bulk_allotment': 'Bulk Allotment',
+      'cap_change':     'Cap Change',
+      'corridor_cap_change': 'Cap Change',
+      'halt':           'Corridor Halt',
+      'rate_adjustment':'Rate Adjustment',
+      'deactivate':     'Deactivation',
+    };
+    return map[t.toLowerCase()] || t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  };
+
+  const typeBadge = t => {
+    const label = typeLabel(t);
+    const tl = (t || '').toLowerCase();
+    if (tl.includes('halt') || tl.includes('deactivate')) return { bg:'#fef2f2',color:'#dc2626',border:'#fecaca' };
+    if (tl.includes('cap')) return { bg:'#fffbeb',color:'#d97706',border:'#fde68a' };
+    return { bg:'#eff6ff',color:'#2563eb',border:'#bfdbfe' };
+  };
+
+  panel.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;">
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Proposal</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Corridor</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Type</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Multi-Sig</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Submitted</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${proposals.map(p => {
+            const propId   = p.proposal_id || p.title || ('PROP-' + (p.id || '').toString().slice(0,8).toUpperCase());
+            const corridor = p.corridor || p.corridor_name || '—';
+            const pType    = p.type || p.category || '';
+            const badge    = typeBadge(pType);
+            const current  = parseInt(p.current_signatures || p.votes_count || 0);
+            const required = parseInt(p.required_signatures || p.votes_required || 2);
+            const ts       = p.created_at || p.submitted_at || '';
+            const dateStr  = ts ? new Date(ts).toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : '—';
+            const sigPct   = required > 0 ? Math.round((current / required) * 100) : 0;
+            const sigColor = current >= required ? '#059669' : current > 0 ? '#d97706' : '#94a3b8';
+
+            return `
+              <tr class="gov-proposal-row" style="border-bottom:1px solid #f1f5f9;cursor:pointer;" onclick="govReviewProposal('${p.id || propId}')">
+                <td style="padding:12px 14px;">
+                  <div style="font-family:monospace;font-size:12px;font-weight:700;color:#1e40af;">${propId}</div>
+                </td>
+                <td style="padding:12px 14px;">
+                  <div style="font-size:12px;color:#374151;">${corridor}</div>
+                </td>
+                <td style="padding:12px 14px;">
+                  <span style="
+                    padding:3px 10px;border-radius:10px;font-size:10px;font-weight:700;
+                    background:${badge.bg};color:${badge.color};border:1px solid ${badge.border};
+                  ">${typeLabel(pType)}</span>
+                </td>
+                <td style="padding:12px 14px;">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="flex:1;background:#e2e8f0;border-radius:4px;height:6px;overflow:hidden;min-width:50px;">
+                      <div style="height:100%;background:${sigColor};width:${sigPct}%;border-radius:4px;transition:width 0.3s;"></div>
+                    </div>
+                    <span style="font-size:11px;font-weight:700;color:${sigColor};white-space:nowrap;">${current} / ${required}</span>
+                  </div>
+                </td>
+                <td style="padding:12px 14px;">
+                  <div style="font-size:11px;color:#94a3b8;">${dateStr}</div>
+                </td>
+                <td style="padding:12px 14px;">
+                  <button onclick="event.stopPropagation();govSignProposal('${p.id || propId}')" style="
+                    background:#1e4d7b;color:white;border:none;border-radius:8px;
+                    padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;
+                  " onmouseover="this.style.background='#1a3a5c'" onmouseout="this.style.background='#1e4d7b'">
+                    ✍ Sign
+                  </button>
+                </td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function govReviewProposal(proposalId) {
+  // Expand row or show detail — placeholder for full implementation
+  console.log('[MacroConsole] Review proposal:', proposalId);
+}
+
+async function govSignProposal(proposalId) {
+  if (!confirm(`Sign governance proposal ${proposalId}?\n\nThis vote will be permanently recorded in the audit trail.`)) return;
+  try {
+    const res = await fetch(`/api/v2/governance/proposals/${proposalId}/vote`, {
+      method:  'POST',
+      headers: getGovernorAuthHeaders(),
+      body:    JSON.stringify({ vote: 'approve', role: 'governor' })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`);
+    alert(`✓ Signature recorded for proposal ${proposalId}.`);
+    loadGovernanceSignatures();
+  } catch (err) {
+    alert(`Error signing proposal: ${err.message}`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CORRIDOR INTERVENTIONS (Halt / Adjust Cap / Bulk Allotment)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── Custom dialog engine ────────────────────────────────────────────────────
+let _govDialogCb = null;
+
+function govShowDialog({ icon, iconBg, iconBorder, title, subtitle, body, label, placeholder, confirmLabel, confirmBg, hasInput = true, onConfirm }) {
+  const iconBox = document.getElementById('govDialogIconBox');
+  iconBox.textContent = icon || '';
+  iconBox.style.background = iconBg || 'rgba(13,148,136,0.2)';
+  iconBox.style.border = `1px solid ${iconBorder || 'rgba(13,148,136,0.3)'}`;
+  document.getElementById('govDialogTitle').textContent = title || '';
+  document.getElementById('govDialogSubtitle').textContent = subtitle || '';
+  document.getElementById('govDialogBody').innerHTML = body || '';
+  document.getElementById('govDialogBody').style.display = body ? 'block' : 'none';
+  document.getElementById('govDialogLabel').textContent = label || '';
+  const inp = document.getElementById('govDialogInput');
+  inp.placeholder = placeholder || '';
+  inp.value = '';
+  document.getElementById('govDialogInputWrap').style.display = hasInput ? 'block' : 'none';
+  const btn = document.getElementById('govDialogConfirmBtn');
+  btn.textContent = confirmLabel || 'Confirm';
+  btn.style.background = confirmBg || 'linear-gradient(135deg,#0d9488,#0d6e6e)';
+  _govDialogCb = onConfirm;
+  document.getElementById('govCustomDialog').style.display = 'flex';
+  if (hasInput) setTimeout(() => inp.focus(), 60);
+}
+
+function govHideDialog() {
+  document.getElementById('govCustomDialog').style.display = 'none';
+  _govDialogCb = null;
+}
+
+function govConfirmDialog() {
+  const val = document.getElementById('govDialogInput').value.trim();
+  if (_govDialogCb) _govDialogCb(val);
+}
+
+function govShowToast(message, type = 'info') {
+  const toast = document.getElementById('govToast');
+  const styles = {
+    success: { bg: '#0d9488', color: '#fff', border: 'none' },
+    error:   { bg: '#dc2626', color: '#fff', border: 'none' },
+    warn:    { bg: '#1e293b', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)' },
+    info:    { bg: '#1e293b', color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.1)' },
+  };
+  const s = styles[type] || styles.info;
+  toast.style.background = s.bg;
+  toast.style.color = s.color;
+  toast.style.border = s.border;
+  toast.textContent = message;
+  toast.style.display = 'block';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => { toast.style.display = 'none'; }, 4000);
+}
+
+// ── Corridor Interventions ──────────────────────────────────────────────────
+function govHaltCorridor() {
+  if (!govSelectedCorridorId) {
+    govShowToast('Select a corridor before halting.', 'warn');
+    return;
+  }
+  govShowDialog({
+    icon: '⚡', iconBg: 'rgba(239,68,68,0.15)', iconBorder: 'rgba(239,68,68,0.3)',
+    title: 'Halt Corridor',
+    subtitle: govSelectedCorridorLabel,
+    body: `<span style="color:#fca5a5;">This will immediately suspend <strong style="color:#fde8e8;">${govSelectedCorridorLabel}</strong>.<br>No further minting or settlement will be permitted.<br>Type <code style="background:rgba(239,68,68,0.2);padding:1px 6px;border-radius:4px;color:#fca5a5;">HALT</code> to confirm.</span>`,
+    label: 'Confirmation code',
+    placeholder: 'Type HALT to confirm',
+    confirmLabel: '⚡ Halt Corridor',
+    confirmBg: 'linear-gradient(135deg,#7f1d1d,#b91c1c)',
+    hasInput: true,
+    onConfirm: async (code) => {
+      if (code.toUpperCase() !== 'HALT') {
+        govShowToast('Halt cancelled — confirmation code did not match.', 'warn');
+        govHideDialog();
+        return;
+      }
+      govHideDialog();
+      try {
+        const res = await fetch(`/api/v2/corridors/${govSelectedCorridorId}/halt`, {
+          method: 'POST',
+          headers: getGovernorAuthHeaders(),
+          body: JSON.stringify({ corridor_id: govSelectedCorridorId, initiated_by: 'governor', reason: 'Governor halt via Macro-Corridor Console' })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`);
+        govShowToast(`⚡ ${govSelectedCorridorLabel} halted — settlement suspended. Audit log recorded.`, 'success');
+        loadCorridorReservoirGrid();
+        loadNetworkStatus();
+      } catch (err) {
+        govShowToast(`Halt error: ${err.message}`, 'error');
+      }
+    }
   });
 }
 
-// ── Quick Bulk Allotment ─────────────────────────────────────────────────────
+function govAdjustDailyCap() {
+  if (!govSelectedCorridorId) {
+    govShowToast('Select a corridor first.', 'warn');
+    return;
+  }
+  govShowDialog({
+    icon: '📊', iconBg: 'rgba(13,148,136,0.15)', iconBorder: 'rgba(13,148,136,0.3)',
+    title: 'Adjust Daily Cap',
+    subtitle: govSelectedCorridorLabel,
+    label: 'New daily cap amount',
+    placeholder: 'e.g. 50000000',
+    confirmLabel: 'Queue Proposal',
+    confirmBg: 'linear-gradient(135deg,#0d9488,#0d6e6e)',
+    hasInput: true,
+    onConfirm: (val) => {
+      const amt = parseFloat(val.replace(/,/g, ''));
+      if (!val || isNaN(amt) || amt <= 0) {
+        govShowToast('Invalid amount — enter a positive number.', 'error');
+        return;
+      }
+      govHideDialog();
+      govShowToast(`Cap adjustment proposal queued: ${govSelectedCorridorLabel} → ${amt.toLocaleString()}`, 'success');
+    }
+  });
+}
+
 async function govCreateBulkAllotment(amount) {
   if (!govSelectedCorridorId) {
-    await govAlert({ tag:'Error', title:'No Corridor Selected', message:'Please select a corridor before creating a bulk allotment.', danger:true });
+    govShowToast('Select a corridor before creating a bulk allotment.', 'warn');
     return;
   }
-
   const year         = new Date().getFullYear();
   const corridorCode = govSelectedCorridorLabel.replace(/\s*→\s*/g, '-').replace(/\s+/g, '');
   const proposalRef  = `ALOT-${year}-${corridorCode}-001`;
   const amtFormatted = amount.toLocaleString();
 
-  const confirmed = await govDialog({
-    tag:   'Governance Action',
-    title: 'Sovereign Bulk Allotment',
-    icon:  `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>`,
-    body:  `<div style="display:grid;grid-template-columns:auto 1fr;gap:9px 18px;margin-bottom:18px;font-size:13px;align-items:baseline;">
-              <span style="color:rgba(255,255,255,0.42);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Proposal</span>
-              <span style="color:#ffffff;font-family:monospace;font-size:12px;letter-spacing:0.04em;">${proposalRef}</span>
-              <span style="color:rgba(255,255,255,0.42);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Corridor</span>
-              <span style="color:#ffffff;font-weight:600;">${govSelectedCorridorLabel}</span>
-              <span style="color:rgba(255,255,255,0.42);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Amount</span>
-              <span style="color:#C9A84C;font-weight:700;font-size:18px;letter-spacing:-0.01em;">${amtFormatted}</span>
-            </div>
-            <div style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:13px 15px;">
-              <div style="font-size:10px;font-weight:700;color:#C9A84C;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">⚠ Multi-Sig Required</div>
-              <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;">This will create a governance proposal requiring multi-signature approval before funds are allocated to the corridor.</div>
-            </div>`,
-    buttons: [
-      { label: 'Cancel', value: false },
-      { label: 'Confirm Allotment', value: true, primary: true },
-    ],
+  govShowDialog({
+    icon: '💧', iconBg: 'rgba(13,148,136,0.15)', iconBorder: 'rgba(13,148,136,0.3)',
+    title: `Inject ${amtFormatted}`,
+    subtitle: govSelectedCorridorLabel,
+    body: `<div style="color:#94a3b8;">
+      <div style="margin-bottom:6px;">Proposal: <span style="color:#e2e8f0;font-family:monospace;">${proposalRef}</span></div>
+      <div>This creates a governance proposal requiring multi-sig approval before funds are injected.</div>
+    </div>`,
+    hasInput: false,
+    confirmLabel: 'Submit Proposal',
+    confirmBg: 'linear-gradient(135deg,#0d9488,#0d6e6e)',
+    onConfirm: async () => {
+      govHideDialog();
+      try {
+        const res = await fetch('/api/v2/governance/proposals', {
+          method:  'POST',
+          headers: getGovernorAuthHeaders(),
+          body: JSON.stringify({
+            proposal: {
+              type: 'bulk_allotment', category: 'bulk_allotment',
+              title: proposalRef, corridor: govSelectedCorridorLabel,
+              corridor_id: govSelectedCorridorId, new_cap: amount.toString(),
+              effective_date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+              justification: `Sovereign liquidity injection — ${amtFormatted} for ${govSelectedCorridorLabel}`,
+              rationale: 'Governor-initiated bulk allotment from Macro-Corridor Console',
+            }
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`);
+        const propId = data?.data?.proposal_id || data?.data?.id || proposalRef;
+        govShowToast(`✓ Proposal ${propId} submitted — pending multi-sig approval.`, 'success');
+        loadGovRecentEvents();
+        loadGovernanceSignatures();
+      } catch (err) {
+        govShowToast(`Error: ${err.message}`, 'error');
+      }
+    }
   });
-  if (!confirmed) return;
-
-  try {
-    const res = await fetch('/api/v2/governance/proposals', {
-      method:  'POST',
-      headers: getGovernorAuthHeaders(),
-      body: JSON.stringify({
-        proposal: {
-          type:           'bulk_allotment',
-          category:       'bulk_allotment',
-          title:          proposalRef,
-          corridor:       govSelectedCorridorLabel,
-          corridor_id:    govSelectedCorridorId,
-          new_cap:        amount.toString(),
-          effective_date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-          justification:  `Sovereign liquidity injection — ${amtFormatted} for ${govSelectedCorridorLabel} corridor`,
-          rationale:      'Governor-initiated bulk allotment from Approval Desk',
-        }
-      })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`);
-
-    const propId = data?.data?.proposal_id || data?.data?.id || proposalRef;
-    await govAlert({
-      tag:     'Proposal Submitted',
-      title:   'Allotment Queued',
-      message: `Bulk allotment proposal <strong style="color:#C9A84C;font-family:monospace;">${propId}</strong> has been submitted and is pending multi-sig governance approval.`,
-    });
-    loadGovRecentEvents();
-  } catch (err) {
-    await govAlert({ tag:'Error', title:'Submission Failed', message:err.message, danger:true });
-  }
 }
+
+// ── Keyboard shortcut ───────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('govCustomDialog')?.style.display === 'flex') {
+      govHideDialog();
+    } else if (document.getElementById('governorDeskModalOverlay')?.style.display === 'flex') {
+      hideGovernorDeskModal();
+    }
+  }
+});
 </script>

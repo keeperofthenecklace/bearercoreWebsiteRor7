@@ -220,7 +220,7 @@
 <%# ─── FETCH INTERCEPTOR — redirect /api/* → SmartCHEQ ────────────────────── %>
 <script>
 (function() {
-  window.SC_API_BASE = 'https://smartcheq.com';
+  window.SC_API_BASE = '';
 
   var _origFetch = window.fetch;
   window.fetch = function(url, opts) {
@@ -257,7 +257,7 @@
     if (modal) {
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
-      if (typeof loadGovernorAuthorizations === 'function') loadGovernorAuthorizations();
+      if (typeof loadMacroConsole === 'function') loadMacroConsole();
     }
   };
   window.hideGovernorDeskModal = function() {
