@@ -66,4 +66,15 @@ Rails.application.routes.draw do
   get "docs/audit-report",          to: "docs#audit_report"
   get "docs/system-events",         to: "docs#system_events"
   get "docs/interface-standards",   to: "docs#interface_standards"
+
+  # /documents mirrors /docs — same controller, same auth, canonical URL for bearerCORE
+  get "documents",                      to: "docs#index",               as: :documents
+  get "documents/corridor-ops",         to: "docs#corridor_ops",        as: :documents_corridor_ops
+  get "documents/issuance",             to: "docs#issuance",            as: :documents_issuance
+  get "documents/validation-desk",      to: "docs#validation_desk",     as: :documents_validation_desk
+  get "documents/deposit-burn",         to: "docs#deposit_burn",        as: :documents_deposit_burn
+  get "documents/governance",           to: "docs#governance",          as: :documents_governance
+  get "documents/audit-report",         to: "docs#audit_report",        as: :documents_audit_report
+  get "documents/system-events",        to: "docs#system_events",       as: :documents_system_events
+  get "documents/interface-standards",  to: "docs#interface_standards", as: :documents_interface_standards
 end
