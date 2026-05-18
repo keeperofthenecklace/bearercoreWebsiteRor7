@@ -29,6 +29,23 @@ Rails.application.routes.draw do
           get :reconciliation
         end
       end
+
+      resources :countries, only: [:index] do
+        collection do
+          get :by_iso3166
+        end
+      end
+
+      resources :commercial_banks, only: [:index]
+      resources :holder_keys,      only: [:index]
+      resources :documents,        only: [:index, :create]
+
+      resources :trade_claims, only: [:index, :create] do
+        collection do
+          post :draft
+        end
+      end
+
       namespace :governance do
         resources :proposals, only: [:index, :create] do
           member do
