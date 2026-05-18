@@ -194,7 +194,7 @@
                     onchange="govSelectCorridor(this.value, this.options[this.selectedIndex]?.text)"
                     style="
                       width:100%;
-                      background:rgba(255,255,255,0.06); color:#e2e8f0;
+                      background:#0f2744; color:#e2e8f0;
                       border:1px solid rgba(255,255,255,0.12); border-radius:8px;
                       padding:5px 8px; font-size:12px; cursor:pointer; outline:none;
                     ">
@@ -767,12 +767,15 @@ function govBuildCorridorSelect(corridors) {
   orderedBlocs.forEach(bloc => {
     const group = document.createElement('optgroup');
     group.label = `— ${bloc} —`;
+    group.style.cssText = 'background:#0a1628; color:#64748b;';
     groups[bloc].forEach(c => {
       const display = c.corridor_display || c.code || `${c.source_country} → ${c.target_country}`;
       const id      = c.id || c.code;
+      const status  = (c.status || '').toLowerCase();
       const opt     = document.createElement('option');
-      opt.value = id; opt.textContent = display;
-      opt.style.background = '#0f2744';
+      opt.value = id;
+      opt.textContent = status === 'halted' ? `⚡ ${display}` : display;
+      opt.style.cssText = `background:#0f2744; color:${status === 'halted' ? '#fca5a5' : '#e2e8f0'};`;
       group.appendChild(opt);
     });
     sel.appendChild(group);

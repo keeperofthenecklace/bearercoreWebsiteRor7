@@ -228,7 +228,8 @@ module Api
       end
 
       def liquidity_position
-        corridor = STUB_CORRIDORS.find { |c| c[:id].to_s == params[:corridor_id].to_s || c[:code] == params[:corridor_id] }
+        cid = params[:corridor_id] || params[:id]
+        corridor = STUB_CORRIDORS.find { |c| c[:id].to_s == cid.to_s || c[:code] == cid }
         if corridor
           render json: { data: apply_corridor_state(corridor)[:liquidity_position] }
         else
