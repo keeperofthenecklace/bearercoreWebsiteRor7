@@ -1871,6 +1871,39 @@ let commercialBanksData = [];
 let corridorsData = [];
 let selectedCountry = null;
 let selectedInstitution = null;
+
+const TC_BLOCS = {
+  'WAMZ':   ['NGA','GHA','SLE','GIN','LBR','GMB'],
+  'ECOWAS': ['NGA','GHA','SEN','CIV','BEN','TGO','GIN','SLE','GMB','LBR','GNB','CPV'],
+  'AES':    ['BFA','MLI','NER'],
+  'EAC':    ['KEN','TZA','UGA','RWA','BDI','SSD'],
+  'SADC':   ['ZAF','ZWE','ZMB','MOZ','MWI','BWA','NAM','LSO','SWZ','AGO','MDG','MUS'],
+  'CEMAC':  ['CMR','CAF','COG','GAB','GNQ','TCD'],
+  'AfCFTA': [],
+  'AMU':    ['MAR','DZA','TUN','LBY','MRT'],
+  'IGAD':   ['ETH','SOM','DJI','ERI','SDN'],
+};
+
+const TC_BLOC_META = {
+  'WAMZ':   'West African Monetary Zone',
+  'ECOWAS': 'Eco Community of West African States',
+  'AES':    'Alliance of Sahel States',
+  'EAC':    'East African Community',
+  'SADC':   'Southern African Development Community',
+  'CEMAC':  'Central African Economic Community',
+  'AfCFTA': 'Inter-Bloc / AfCFTA Corridors',
+  'AMU':    'Arab Maghreb Union',
+  'IGAD':   'Intergovernmental Authority on Development',
+};
+
+function getTcBloc(entry) {
+  if (entry.bloc) return entry.bloc;
+  const code = (entry.targetCode || '').toUpperCase().slice(0, 3);
+  for (const [bloc, members] of Object.entries(TC_BLOCS)) {
+    if (members.includes(code)) return bloc;
+  }
+  return 'Other';
+}
 let isCountryDropdownOpen = false;
 let isInstitutionDropdownOpen = false;
 
@@ -3018,7 +3051,7 @@ function filterCorridorsForCountry(country) {
     domesticEntries.push({
       id: '__domestic__',
       displayLabel: srcFlag + ' ' + sourceCode + ' → ' + srcFlag + ' ' + sourceCode + ' (Domestic CBDC)',
-      sortKey: ''
+      sortKey: '', bloc: 'Domestic', targetCode: sourceCode
     });
   }
 
@@ -3036,13 +3069,13 @@ function filterCorridorsForCountry(country) {
       domesticEntries.push({
         id: corridor.id,
         displayLabel: fromFlag + ' ' + from + ' → ' + fromFlag + ' ' + from + ' (Domestic CBDC)',
-        sortKey: ''
+        sortKey: '', bloc: 'Domestic', targetCode: from
       });
     } else {
       crossBorderEntries.push({
         id: corridor.id,
         displayLabel: fromFlag + ' ' + from + ' → ' + toFlag + ' ' + to,
-        sortKey: to
+        sortKey: to, bloc: corridor.bloc || null, targetCode: to
       });
     }
   });
@@ -3077,7 +3110,7 @@ function filterCorridorsForCountry(country) {
         id: '__virtual__' + srcAlpha3 + '__' + destCode,
         displayLabel: getCorridorFlag(srcAlpha3) + ' ' + srcAlpha3 + ' → ' +
                       getCorridorFlag(destCode) + ' ' + destCode,
-        sortKey: destCode
+        sortKey: destCode, targetCode: destCode
       });
     });
 
@@ -3085,9 +3118,25 @@ function filterCorridorsForCountry(country) {
 
   const allEntries = domesticEntries.concat(crossBorderEntries);
 
+  // Group entries by regional bloc
+  const blocGroups = {};
+  allEntries.forEach(function(e) {
+    const bloc = getTcBloc(e);
+    if (!blocGroups[bloc]) blocGroups[bloc] = [];
+    blocGroups[bloc].push(e);
+  });
+
+  const blocOrder = ['Domestic', ...Object.keys(TC_BLOCS), 'Other'];
+  const presentBlocs = blocOrder.filter(function(b) { return blocGroups[b] && blocGroups[b].length > 0; });
+
   select.innerHTML = '<option value="">Select Trade Corridor...</option>' +
-    allEntries.map(function(e) {
-      return '<option value="' + e.id + '">' + e.displayLabel + '</option>';
+    presentBlocs.map(function(bloc) {
+      const fullName = bloc === 'Domestic' ? 'Domestic CBDC' : (TC_BLOC_META[bloc] || bloc);
+      const groupLabel = '— ' + bloc + ': ' + fullName + ' —';
+      const opts = blocGroups[bloc].map(function(e) {
+        return '<option value="' + e.id + '" style="background:#fff;color:#111827;">' + e.displayLabel + '</option>';
+      }).join('');
+      return '<optgroup label="' + groupLabel + '" style="background:#f3f4f6;color:#6b7280;font-weight:600;">' + opts + '</optgroup>';
     }).join('');
 
   // Enable dropdown
