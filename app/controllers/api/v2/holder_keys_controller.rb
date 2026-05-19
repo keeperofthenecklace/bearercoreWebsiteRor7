@@ -177,9 +177,11 @@ module Api
 
       def index
         swift_code = params[:swift_code]&.upcase&.strip
-        keys = swift_code.present?
-          ? STUB_HOLDER_KEYS.select { |k| k[:swift_code] == swift_code }
-          : STUB_HOLDER_KEYS
+        keys = if swift_code.present?
+          STUB_HOLDER_KEYS.select { |k| k[:swift_code] == swift_code }
+        else
+          STUB_HOLDER_KEYS
+        end
         render json: keys
       end
     end
