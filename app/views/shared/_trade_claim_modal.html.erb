@@ -2281,25 +2281,37 @@ async function loadInstitutionsForCountry(countryId, bankId) {
 
 function renderInstitutionOptions(banks) {
   const container = document.getElementById('institutionOptions');
-  
+
   if (banks.length === 0) {
     container.innerHTML = '<div class="dropdown-option" style="color: #6b7280;">No institutions found</div>';
     return;
   }
-  
-  container.innerHTML = banks.map(bank => {
-    const name = bank.name || `Bank ${bank.id}`;
-    const isSelected = selectedInstitution && selectedInstitution.id === bank.id;
-    
-    return `
-      <div class="dropdown-option ${isSelected ? 'selected' : ''}" 
-           onclick="selectInstitution(${JSON.stringify(bank).replace(/"/g, '&quot;')})">
-        <span>🏦</span>
-        <span>${name}</span>
-        ${bank.swift_code ? `<span style="color: #6b7280; font-size: 12px; margin-left: auto;">${bank.swift_code}</span>` : ''}
-      </div>
-    `;
+
+  // Group by country_code
+  const grouped = {};
+  banks.forEach(bank => {
+    const cc = bank.country_code || 'OTHER';
+    if (!grouped[cc]) grouped[cc] = [];
+    grouped[cc].push(bank);
+  });
+
+  const html = Object.entries(grouped).map(([cc, groupBanks]) => {
+    const header = `<div style="padding:6px 14px 4px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.8px;background:#f9fafb;border-bottom:1px solid #f3f4f6;">${cc}</div>`;
+    const rows = groupBanks.map(bank => {
+      const name = bank.name || `Bank ${bank.id}`;
+      const isSelected = selectedInstitution && selectedInstitution.id === bank.id;
+      return `
+        <div class="dropdown-option ${isSelected ? 'selected' : ''}"
+             onclick="selectInstitution(${JSON.stringify(bank).replace(/"/g, '&quot;')})">
+          <span>🏦</span>
+          <span>${name}</span>
+          ${bank.swift_code ? `<span style="color:#6b7280;font-size:12px;margin-left:auto;">${bank.swift_code}</span>` : ''}
+        </div>`;
+    }).join('');
+    return header + rows;
   }).join('');
+
+  container.innerHTML = html;
 }
 
 function selectInstitution(bank) {
@@ -2786,13 +2798,8 @@ async function loadInstitutionsForDestination(destCountryId, destIso3) {
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
   selected.style.cursor = 'wait';
 
-  // Build URL — prefer numeric country_id if available, fall back to ISO3 country_code
-  const url = destCountryId
-    ? `/api/v2/commercial_banks?country_id=${destCountryId}`
-    : `/api/v2/commercial_banks?country_code=${destIso3}`;
-
   try {
-    const res = await fetch(url, {
+    const res = await fetch('/api/v2/commercial_banks', {
       headers: {
         'Authorization': `Bearer ${getAccessToken()}`,
         'Accept': 'application/json'
@@ -2809,15 +2816,9 @@ async function loadInstitutionsForDestination(destCountryId, destIso3) {
     selected.style.background = 'white';
     selected.style.cursor = 'pointer';
 
-    if (commercialBanksData.length === 0) {
-      selected.innerHTML = `<span id="institutionSelectedText">No institutions found for ${destIso3}</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
-      hint.textContent = `No commercial banks available for ${destIso3}.`;
-    } else {
-      selected.innerHTML = `<span id="institutionSelectedText">Select Institution (${destIso3})...</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
-      hint.textContent = `${commercialBanksData.length} institution(s) in ${destIso3}.`;
-    }
+    selected.innerHTML = `<span id="institutionSelectedText">Select Institution...</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+    hint.textContent = `${commercialBanksData.length} institutions available across all corridors.`;
   } catch (err) {
     console.error('[loadInstitutionsForDestination] error:', err);
     selected.innerHTML = `<span id="institutionSelectedText" style="color:#dc2626;">Error loading institutions</span>
