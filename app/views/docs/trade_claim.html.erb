@@ -1,0 +1,461 @@
+<%# app/views/docs/trade_claim.html.erb — Trade Claim Module Specification %>
+
+<%= render 'docs/doc_styles' %>
+
+<div class="dp-wrap">
+
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">Trade Claim</span>
+    <span class="dp-topbar-tag">In Progress</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:700px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · Module Specification</div>
+      <h1>Trade Claim System</h1>
+      <p class="dp-cover-desc">
+        Institutional origination layer for cross-border liquidity claims. Covers corridor selection,
+        commercial bank registration, beneficiary routing, compliance declaration, and sovereign
+        settlement request orchestration across 54 AU member corridors.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>1.0</b></div>
+        <div>Scope <b>Cross-Border Liquidity Origination</b></div>
+        <div>Updated <b>May 2026</b></div>
+        <div>Status <b>In Progress</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-secnav">
+    <a href="#overview">Overview</a>
+    <a href="#workflow">Workflow States</a>
+    <a href="#data-model">Data Model</a>
+    <a href="#form">Form Specification</a>
+    <a href="#validation">Validation</a>
+    <a href="#api">API</a>
+    <a href="#buttons">Actions</a>
+    <a href="#events">Events</a>
+    <a href="#flow">End-to-End Flow</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <!-- §1 Overview -->
+    <div class="dp-section" id="overview">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§1</div>
+        <h2>System Overview</h2>
+      </div>
+      <p>
+        The Trade Claim module is the entry point for institutional cross-border liquidity requests.
+        A commercial bank operator originates a claim against an active FX corridor, names the
+        beneficiary institution in the destination country, specifies the liquidity amount, and submits
+        the claim into a multi-tier supervisory review queue. Every field transition, submission, and
+        status change is captured in an immutable audit chain.
+      </p>
+
+      <div class="dp-pane-grid">
+        <div class="dp-pane dp-pane-left">
+          <h3>Left Pane — Claiming Institution</h3>
+          <ul>
+            <li>Country selector (54 AU members)</li>
+            <li>Central Bank SWIFT code (auto-populated)</li>
+            <li>Central Bank name (read-only)</li>
+            <li>Central Bank Holder ID (hidden field)</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-middle">
+          <h3>Middle Pane — Trade Details</h3>
+          <ul>
+            <li>Trade Corridor (scrollable list)</li>
+            <li>Destination institution (corridor-filtered)</li>
+            <li>SWIFT code &amp; role (auto-populated)</li>
+            <li>Commercial Bank Holder ID (DB-resolved)</li>
+            <li>Trade direction, amount, currency</li>
+            <li>Beneficiary name &amp; country</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-right">
+          <h3>Right Pane — Claim Metadata</h3>
+          <ul>
+            <li>Invoice reference</li>
+            <li>Trade description</li>
+            <li>Submitted-by operator identity</li>
+            <li>Submit / Save Draft actions</li>
+            <li>Compliance declaration</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Operational Context</h3>
+      <p>
+        Trade claims are not free-form requests. Every claim must reference an active, unfrozen FX
+        corridor and a registered commercial bank in the destination country. The system resolves the
+        Commercial Bank Holder ID from the <code>commercial_bank_holder_keys</code> table using the
+        institution's SWIFT code before submission is permitted. Claims that cannot resolve a holder ID
+        require manual operator intervention at the Qt6 desktop client.
+      </p>
+      <div class="dp-callout dp-info">
+        <span class="dp-ci">ℹ</span>
+        <div>
+          <strong>Sovereign settlement scope:</strong> Trade claims feed directly into the corridor
+          liquidity reserve system. An approved claim authorises the drawdown of corridor reserve
+          funds and triggers the issuance eligibility gates at the Supervisor Desk. No CBDC is issued
+          until all five gates pass.
+        </div>
+      </div>
+    </div>
+
+    <!-- §2 Workflow States -->
+    <div class="dp-section" id="workflow">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§2</div>
+        <h2>Workflow State Machine</h2>
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>State</th><th>Display Label</th><th>Entry Condition</th><th>Allowed Transitions</th><th>Actor</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="s-pending">draft</span></td>
+            <td>Draft</td>
+            <td>Operator saves without submitting</td>
+            <td>→ pending_review, → cancelled</td>
+            <td>Originating operator</td>
+          </tr>
+          <tr>
+            <td><span class="s-pending">pending_review</span></td>
+            <td>Pending Review</td>
+            <td>Operator submits completed form</td>
+            <td>→ approved, → rejected, → clarification_requested, → cancelled</td>
+            <td>Supervisor</td>
+          </tr>
+          <tr>
+            <td><span class="s-active">approved</span></td>
+            <td>Approved</td>
+            <td>Supervisor approves; all five gates pass</td>
+            <td>Terminal (settlement proceeds)</td>
+            <td>Supervisor</td>
+          </tr>
+          <tr>
+            <td><span class="s-expired">rejected</span></td>
+            <td>Rejected</td>
+            <td>Supervisor rejects with mandatory notes</td>
+            <td>Terminal</td>
+            <td>Supervisor</td>
+          </tr>
+          <tr>
+            <td><span class="s-pending">clarification_requested</span></td>
+            <td>Clarification Requested</td>
+            <td>Supervisor flags missing or inconsistent data</td>
+            <td>→ pending_review (on resubmission)</td>
+            <td>Supervisor → Originating operator</td>
+          </tr>
+          <tr>
+            <td><span class="s-expired">cancelled</span></td>
+            <td>Cancelled</td>
+            <td>Operator or supervisor cancels before approval</td>
+            <td>Terminal</td>
+            <td>Originating operator or Supervisor</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <h3>State Transition Diagram</h3>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Draft (optional)</h4><p>Operator saves incomplete claim. <code>POST /api/v2/trade_claims/draft</code>. Returns DRAFT-{timestamp} reference. Not visible in supervisor queue.</p></div>
+        <div class="dp-step"><h4>Submit → pending_review</h4><p>Operator submits complete claim. <code>POST /api/v2/trade_claims</code>. Status set to <code>pending_review</code>. Claim enters supervisor queue immediately.</p></div>
+        <div class="dp-step"><h4>Supervisor review</h4><p>Supervisor opens claim in Supervisor Desk. Five-gate eligibility evaluation runs. Supervisor selects Approve, Reject, Request Clarification, or Cancel.</p></div>
+        <div class="dp-step"><h4>Approved</h4><p><code>POST /api/v2/trade_claims/:id/approve</code>. Status → <code>approved</code>. <code>eligibility.issuance_eligible = true</code>. All five gates return <code>passed: true</code>.</p></div>
+        <div class="dp-step"><h4>Governor review (high-value)</h4><p>Claims above corridor daily cap threshold are escalated to Governor Desk before final settlement. Governor review is separate from supervisor approval.</p></div>
+        <div class="dp-step"><h4>Settlement</h4><p>Approved claims trigger corridor liquidity drawdown. CBDC issuance authorisation created against corridor reserve pool.</p></div>
+      </div>
+
+      <h3>Timeout &amp; Retry Behaviour</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Scenario</th><th>Behaviour</th><th>Recovery</th></tr></thead>
+        <tbody>
+          <tr><td>Submission network failure</td><td>Client shows inline error. No state change on server.</td><td>Operator retries. Idempotency: duplicate reference within 60s returns the existing record.</td></tr>
+          <tr><td>Draft auto-expiry</td><td>Draft claims not submitted within 72h are auto-archived.</td><td>Operator must create new claim.</td></tr>
+          <tr><td>Clarification timeout</td><td>Claims in <code>clarification_requested</code> for &gt;7 days trigger supervisor alert.</td><td>Supervisor may cancel or re-route.</td></tr>
+          <tr><td>Supervisor inactivity</td><td>Claims in <code>pending_review</code> for &gt;24h escalate to supervisor manager queue.</td><td>Escalation notification dispatched.</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §3 Data Model -->
+    <div class="dp-section" id="data-model">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§3</div>
+        <h2>Data Model</h2>
+      </div>
+
+      <h3>TradeClaim</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Req</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">integer</td><td class="r">✓</td><td>Sequential primary key (in-process; DB-backed in production)</td></tr>
+          <tr><td class="f">reference</td><td class="t">string</td><td class="r">✓</td><td>Human reference: <code>TC-{YYYYMMDDHHmmSS}</code> or operator-supplied invoice ref</td></tr>
+          <tr><td class="f">corridor</td><td class="t">object</td><td class="r">✓</td><td>Resolved corridor snapshot: id, name, code, source_country, target_country, bloc, asset_code</td></tr>
+          <tr><td class="f">institution</td><td class="t">object</td><td class="r">✓</td><td>Resolved institution snapshot: id, name, swift_code, country_code</td></tr>
+          <tr><td class="f">amount</td><td class="t">decimal</td><td class="r">✓</td><td>Liquidity amount in corridor asset currency</td></tr>
+          <tr><td class="f">currency_code</td><td class="t">string</td><td class="r">✓</td><td>ISO 4217 currency code (e.g. <code>GHS</code>, <code>NGN</code>)</td></tr>
+          <tr><td class="f">trade_direction</td><td class="t">enum</td><td class="r">✓</td><td><code>import</code> | <code>export</code> | <code>remittance</code> | <code>interbank</code></td></tr>
+          <tr><td class="f">beneficiary_name</td><td class="t">string</td><td class="r">✓</td><td>Full legal name of beneficiary entity</td></tr>
+          <tr><td class="f">beneficiary_country</td><td class="t">iso3</td><td class="r">✓</td><td>ISO 3166-1 alpha-3 of beneficiary jurisdiction</td></tr>
+          <tr><td class="f">description</td><td class="t">text</td><td></td><td>Free-text trade description for compliance review</td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td class="r">✓</td><td><code>pending_review</code> | <code>approved</code> | <code>rejected</code> | <code>clarification_requested</code> | <code>cancelled</code></td></tr>
+          <tr><td class="f">submitted_by</td><td class="t">string</td><td class="r">✓</td><td>Operator identity — institution name or explicit operator field</td></tr>
+          <tr><td class="f">decision_notes</td><td class="t">text</td><td></td><td>Supervisor notes written on approve / reject / clarification</td></tr>
+          <tr><td class="f">approved_at</td><td class="t">timestamp</td><td></td><td>ISO 8601 UTC timestamp of supervisor approval</td></tr>
+          <tr><td class="f">rejected_at</td><td class="t">timestamp</td><td></td><td>ISO 8601 UTC timestamp of rejection</td></tr>
+          <tr><td class="f">cancelled_at</td><td class="t">timestamp</td><td></td><td>ISO 8601 UTC timestamp of cancellation</td></tr>
+          <tr><td class="f">created_at</td><td class="t">timestamp</td><td class="r">✓</td><td>ISO 8601 UTC submission timestamp</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Corridor Snapshot (embedded in TradeClaim)</h3>
+      <div class="dp-callout dp-info">
+        <span class="dp-ci">ℹ</span>
+        <div>
+          Corridor data is snapshotted at claim creation time and stored directly on the claim record.
+          This ensures the supervisor reviews the corridor state at origination, not a potentially
+          updated live value. The snapshot includes: <code>id</code>, <code>name</code>,
+          <code>code</code>, <code>source_country</code>, <code>target_country</code>,
+          <code>bloc</code>, <code>asset_code</code>.
+        </div>
+      </div>
+
+      <h3>Five-Gate Issuance Eligibility</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Gate</th><th>Description</th><th>Pass Condition</th></tr></thead>
+        <tbody>
+          <tr><td><strong>supervisor_approval</strong></td><td>Supervisor has explicitly approved the claim</td><td>Status == <code>approved</code></td></tr>
+          <tr><td><strong>compliance</strong></td><td>AML, document validation, beneficiary verification</td><td>No compliance flags blocking issuance</td></tr>
+          <tr><td><strong>corridor_limits</strong></td><td>Amount within daily cap, per-tx cap, velocity limit</td><td>All three limits headroom ≥ amount</td></tr>
+          <tr><td><strong>liquidity</strong></td><td>Corridor reserve pool has sufficient available balance</td><td>Net position ≥ claimed amount</td></tr>
+          <tr><td><strong>governance</strong></td><td>No open governance proposals blocking the corridor</td><td>No pending halt or freeze proposals</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §4 Form Specification -->
+    <div class="dp-section" id="form">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4</div>
+        <h2>Form Field Specification</h2>
+      </div>
+
+      <h3>Section 1 — Claiming Institution</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>ID</th><th>Type</th><th>Req</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Country</strong></td><td class="f">tc_country_id</td><td class="t">custom dropdown</td><td class="r">✓</td><td>Custom searchable dropdown. Populated from <code>GET /api/v2/countries</code>. Selecting a country fires <code>onCountryChange()</code> which loads the central bank SWIFT options and resets downstream fields.</td></tr>
+          <tr><td><strong>CB SWIFT Code</strong></td><td class="f">tc_central_bank_swift</td><td class="t">select</td><td class="r">✓</td><td>Populated from country selection. On change: auto-fills Central Bank Name and resolves <code>tc_central_bank_holder_id</code> via <code>GET /api/v2/holder_keys?swift_code=</code>.</td></tr>
+          <tr><td><strong>Central Bank Name</strong></td><td class="f">tc_central_bank_name</td><td class="t">text (read-only)</td><td></td><td>Auto-populated from SWIFT selection. Not submittable as part of form payload.</td></tr>
+          <tr><td><strong>Central Bank Holder ID</strong></td><td class="f">tc_central_bank_holder_id</td><td class="t">hidden</td><td></td><td>Resolved silently from <code>GET /api/v2/holder_keys?swift_code=</code>. Submitted in JSON payload for downstream routing.</td></tr>
+          <tr><td><strong>Commercial Bank Holder ID</strong></td><td class="f">tc_commercial_bank_holder_id</td><td class="t">hidden</td><td></td><td>Resolved from institution SWIFT via <code>GET /api/v2/holder_keys?swift_code=</code> against the <code>commercial_bank_holder_keys</code> DB table. Display field shows resolved value or fallback message.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Section 2 — Trade Details</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>ID</th><th>Type</th><th>Req</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Trade Corridor</strong></td><td class="f">tc_corridor_id</td><td class="t">select (size=8)</td><td class="r">✓</td><td>Scrollable list box. Populated from <code>GET /api/v2/corridors</code>. Format: <code>{flag} {SRC} → {flag} {DST} — {CURRENCY}</code>. On change: fires <code>onCorridorChange()</code> which loads destination-country commercial banks into institution dropdown.</td></tr>
+          <tr><td><strong>Institution Name</strong></td><td class="f">tc_institution_id</td><td class="t">custom dropdown</td><td class="r">✓</td><td>Disabled until corridor selected. Populated from <code>GET /api/v2/commercial_banks</code> filtered to destination country of selected corridor. On select: auto-fills SWIFT code and resolves holder ID.</td></tr>
+          <tr><td><strong>Institution Role</strong></td><td class="f">tc_institution_role</td><td class="t">text (read-only)</td><td></td><td>Fixed value: <code>Commercial Bank</code>.</td></tr>
+          <tr><td><strong>SWIFT Code</strong></td><td class="f">tc_swift_code</td><td class="t">text (read-only)</td><td></td><td>Auto-populated when institution is selected.</td></tr>
+          <tr><td><strong>Trade Direction</strong></td><td class="f">tc_trade_direction</td><td class="t">select</td><td class="r">✓</td><td>Options: Import, Export, Remittance, Interbank Transfer. Affects compliance categorisation at supervisor desk.</td></tr>
+          <tr><td><strong>Amount</strong></td><td class="f">tc_amount</td><td class="t">number</td><td class="r">✓</td><td>Positive decimal. Client-side guard: must be &gt; 0 and ≤ corridor per-transaction cap if resolvable. Server-side re-validates against live corridor limits.</td></tr>
+          <tr><td><strong>Currency</strong></td><td class="f">tc_currency_code</td><td class="t">text (read-only)</td><td class="r">✓</td><td>Auto-populated from selected corridor asset code.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Section 3 — Beneficiary &amp; Claim Metadata</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>ID</th><th>Type</th><th>Req</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Beneficiary Name</strong></td><td class="f">tc_beneficiary_name</td><td class="t">text</td><td class="r">✓</td><td>Full legal name of ultimate beneficiary. Min 2 chars. Stored verbatim in claim record for compliance review.</td></tr>
+          <tr><td><strong>Beneficiary Country</strong></td><td class="f">tc_beneficiary_country</td><td class="t">select</td><td class="r">✓</td><td>ISO 3166-1 alpha-3. Must be a recognised AU member country. Used for AML jurisdiction screening.</td></tr>
+          <tr><td><strong>Invoice Reference</strong></td><td class="f">tc_reference</td><td class="t">text</td><td></td><td>Optional operator-supplied reference. Overrides auto-generated <code>TC-{timestamp}</code> reference if provided.</td></tr>
+          <tr><td><strong>Description</strong></td><td class="f">tc_description</td><td class="t">textarea</td><td></td><td>Trade description for compliance review. Supervisor sees this verbatim in the review workspace.</td></tr>
+          <tr><td><strong>Submitted By</strong></td><td class="f">tc_submitted_by</td><td class="t">text</td><td></td><td>Operator identity. Falls back to institution name from selected institution if blank.</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §5 Validation -->
+    <div class="dp-section" id="validation">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§5</div>
+        <h2>Validation Rules</h2>
+      </div>
+
+      <h3>Client-Side (pre-submit)</h3>
+      <div class="dp-rule">Country must be selected before SWIFT options are available</div>
+      <div class="dp-rule">Corridor must be selected before institution dropdown enables</div>
+      <div class="dp-rule">Institution must be selected before submit button enables</div>
+      <div class="dp-rule">amount &gt; 0</div>
+      <div class="dp-rule">beneficiary_name.length ≥ 2</div>
+      <div class="dp-rule">trade_direction must be one of: import | export | remittance | interbank</div>
+      <div class="dp-rule">All required fields (*) must be non-empty</div>
+
+      <h3>Server-Side (on POST /api/v2/trade_claims)</h3>
+      <div class="dp-rule">corridor_id must resolve to an existing, non-frozen corridor in STUB_CORRIDORS</div>
+      <div class="dp-rule">institution_id must resolve to a registered commercial bank in STUB_BANKS</div>
+      <div class="dp-rule">amount must be a positive numeric value</div>
+      <div class="dp-rule">currency_code derived from corridor; submitted value validated against corridor asset_code</div>
+      <div class="dp-rule">Reference uniqueness checked within session scope (duplicate within 60s returns existing record)</div>
+
+      <h3>Compliance Pre-Screening (automated at supervisor desk)</h3>
+      <div class="dp-rule">DocumentValidationService → document_status: checks invoice reference format</div>
+      <div class="dp-rule">AMLCheckService → aml_status: jurisdiction screening on beneficiary_country</div>
+      <div class="dp-rule">LimitCheckService → limit_status: amount vs. corridor daily cap + velocity limit</div>
+      <div class="dp-rule">BeneficiaryVerificationService → beneficiary_status: name + country cross-check</div>
+      <div class="dp-rule">ComplianceStatusAggregator → pre_cleared | manual_review | blocked</div>
+
+      <div class="dp-callout dp-warn">
+        <span class="dp-ci">⚠</span>
+        <div>A <code>blocked</code> compliance status prevents supervisor approval. The supervisor cannot override a blocked status — the originating operator must correct the claim data and resubmit.</div>
+      </div>
+    </div>
+
+    <!-- §6 API Reference -->
+    <div class="dp-section" id="api">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6</div>
+        <h2>API Reference</h2>
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th><th>Auth</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td class="f">/api/v2/trade_claims</td><td>List all submitted claims (supervisor queue)</td><td>Session token</td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/trade_claims</td><td>Submit new trade claim</td><td>Session token</td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/trade_claims/draft</td><td>Save draft (not queued for review)</td><td>Session token</td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/trade_claims/:id/approve</td><td>Supervisor approves claim; returns eligibility gates</td><td>Supervisor role</td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/trade_claims/:id/reject</td><td>Supervisor rejects with mandatory notes</td><td>Supervisor role</td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/trade_claims/:id/re_evaluate</td><td>Re-run five-gate eligibility check</td><td>Supervisor role</td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/trade_claims/:id/request_clarification</td><td>Return to originator with notes</td><td>Supervisor role</td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/trade_claims/:id/cancel</td><td>Cancel claim (any pre-approved state)</td><td>Operator or Supervisor</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Submit Payload</h3>
+      <div class="dp-rule">POST /api/v2/trade_claims</div>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="f">corridor_id</td><td>tc_corridor_id</td><td>Resolved to corridor snapshot server-side</td></tr>
+          <tr><td class="f">institution_id</td><td>tc_institution_id</td><td>Resolved to institution snapshot server-side</td></tr>
+          <tr><td class="f">amount</td><td>tc_amount</td><td>Numeric string</td></tr>
+          <tr><td class="f">currency_code</td><td>tc_currency_code (hidden)</td><td>Derived from corridor</td></tr>
+          <tr><td class="f">trade_direction</td><td>tc_trade_direction</td><td>import | export | remittance | interbank</td></tr>
+          <tr><td class="f">beneficiary_name</td><td>tc_beneficiary_name</td><td></td></tr>
+          <tr><td class="f">beneficiary_country</td><td>tc_beneficiary_country</td><td>ISO 3166-1 alpha-3</td></tr>
+          <tr><td class="f">reference</td><td>tc_reference (optional)</td><td>Falls back to TC-{timestamp}</td></tr>
+          <tr><td class="f">description</td><td>tc_description</td><td></td></tr>
+          <tr><td class="f">submitted_by</td><td>tc_submitted_by</td><td>Falls back to institution name</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Success Response (HTTP 201)</h3>
+      <div class="dp-rule">{"status":"submitted","data":{...claim record...},"message":"Trade claim TC-... submitted — entering supervisory review queue."}</div>
+    </div>
+
+    <!-- §7 Actions -->
+    <div class="dp-section" id="buttons">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§7</div>
+        <h2>Action Button Specification</h2>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Submit Trade Claim</span><span class="dp-btn-pane r">Primary Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Enabled</div><div>All required fields valid; institution resolved; amount &gt; 0</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Disabled</div><div>Any required field empty or validation error present</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Confirmation</div><div>No dialog — submit is final. Button shows spinner during request.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/trade_claims — JSON body from form serialisation</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>Modal closes. Success toast: "Trade claim [ref] submitted — entering supervisory review queue."</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Failure</div><div>Inline error message below form. Button re-enables. No state change on server.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Audit</div><div>TradeClaimCreated event written with full claim snapshot and submitting operator identity.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Save Draft</span><span class="dp-btn-pane r">Secondary Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Enabled</div><div>At least corridor selected and amount entered</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/trade_claims/draft</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>Returns DRAFT-{timestamp}. Modal remains open. Draft ref shown in header.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Limitation</div><div>Demo mode: drafts are not persisted across server restarts. Production implementation requires persistent draft storage.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Cancel Claim</span><span class="dp-btn-pane r">Destructive</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Visible</div><div>Only on claims in pending_review or clarification_requested state</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/trade_claims/:id/cancel</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Effect</div><div>Status → cancelled. cancelled_at timestamp set. Claim removed from supervisor queue.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Audit</div><div>TradeClaim cancelled event written. Cannot be undone.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- §8 Events -->
+    <div class="dp-section" id="events">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§8</div>
+        <h2>System Events</h2>
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Event</th><th>Trigger</th><th>Payload</th><th>Consumers</th></tr></thead>
+        <tbody>
+          <tr><td><strong>TradeClaimCreated</strong></td><td>POST /trade_claims succeeds</td><td>Full claim record + operator identity</td><td>Supervisor queue, Audit log, Notification service</td></tr>
+          <tr><td><strong>TradeClaimDraftSaved</strong></td><td>POST /trade_claims/draft</td><td>draft_id, corridor, amount, created_at</td><td>Originating operator session</td></tr>
+          <tr><td><strong>SupervisorReviewStarted</strong></td><td>Supervisor opens claim in desk</td><td>claim_id, supervisor_id, opened_at</td><td>Audit log, concurrency lock</td></tr>
+          <tr><td><strong>TradeClaimApproved</strong></td><td>POST /trade_claims/:id/approve</td><td>claim record, eligibility gates, decision_notes, approved_at</td><td>Settlement service, Audit log, Originator notification</td></tr>
+          <tr><td><strong>TradeClaimRejected</strong></td><td>POST /trade_claims/:id/reject</td><td>claim record, decision_notes, rejected_at</td><td>Audit log, Originator notification</td></tr>
+          <tr><td><strong>ClarificationRequested</strong></td><td>POST /trade_claims/:id/request_clarification</td><td>claim record, notes</td><td>Originator notification, Audit log</td></tr>
+          <tr><td><strong>TradeClaimCancelled</strong></td><td>POST /trade_claims/:id/cancel</td><td>claim record, cancelled_at</td><td>Supervisor queue refresh, Audit log</td></tr>
+          <tr><td><strong>ComplianceFlagTriggered</strong></td><td>Compliance pre-screen returns blocked</td><td>claim_id, flag_type, blocking_service</td><td>Supervisor desk, Audit log, Compliance team alert</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §9 End-to-End Flow -->
+    <div class="dp-section" id="flow">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§9</div>
+        <h2>End-to-End Workflow</h2>
+      </div>
+      <p>Complete walkthrough: NGA → GHA corridor, Access Bank Ghana, import liquidity claim.</p>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Open Trade Claim modal</h4><p>Operator clicks "New Trade Claim" on sandbox dashboard. Modal opens. Corridors load from <code>GET /api/v2/corridors</code>. Countries load from <code>GET /api/v2/countries</code>.</p></div>
+        <div class="dp-step"><h4>Select Claiming Institution country</h4><p>Operator selects Ghana (GHA) from country dropdown. Central Bank SWIFT options load (BGHGGHAC). CB name auto-fills: "Bank of Ghana". CB holder ID resolves silently.</p></div>
+        <div class="dp-step"><h4>Select Trade Corridor</h4><p>Operator selects "🇳🇬 NGA → 🇬🇭 GHA — GHS" from corridor list. <code>onCorridorChange()</code> fires. Commercial banks from Ghana load into institution dropdown.</p></div>
+        <div class="dp-step"><h4>Select Institution</h4><p>Operator selects "Access Bank Ghana" from institution dropdown. SWIFT code auto-fills (ABGHGHAC). <code>resolveCommercialBankHolderId()</code> calls <code>GET /api/v2/holder_keys?swift_code=ABGHGHAC</code>. Holder ID resolved from <code>commercial_bank_holder_keys</code> DB table.</p></div>
+        <div class="dp-step"><h4>Complete Trade Details</h4><p>Trade Direction: Import. Amount: 500,000. Currency auto-shows: GHS. Beneficiary Name: "Accra Trading Co. Ltd". Beneficiary Country: GHA. Description: "Q2 goods import settlement".</p></div>
+        <div class="dp-step"><h4>Submit</h4><p>Operator clicks Submit. <code>POST /api/v2/trade_claims</code> fires. Server resolves corridor and institution snapshots. Status set to <code>pending_review</code>. Reference <code>TC-20260519142233</code> assigned. HTTP 201 returned.</p></div>
+        <div class="dp-step"><h4>Supervisor queue</h4><p>Claim appears in Supervisor Desk pending queue. Compliance pre-screening runs automatically: AML clear, limits within bounds, beneficiary verified → <code>pre_cleared</code>.</p></div>
+        <div class="dp-step"><h4>Supervisor approval</h4><p>Supervisor opens claim, reviews five gates, adds notes, clicks Approve. <code>POST /api/v2/trade_claims/1/approve</code>. All gates return <code>passed: true</code>. Status → <code>approved</code>.</p></div>
+        <div class="dp-step"><h4>Settlement</h4><p>Approved claim triggers corridor liquidity drawdown. CBDC issuance authorisation created. Audit record finalised with full chain-of-custody.</p></div>
+      </div>
+      <div class="dp-callout dp-ok">
+        <span class="dp-ci">✓</span>
+        <div>End state: Claim TC-20260519142233 approved. Corridor NGA→GHA liquidity drawn for 500,000 GHS. Access Bank Ghana Commercial Bank Holder ID linked. Full audit trail immutably recorded from origination through approval.</div>
+      </div>
+    </div>
+
+  </div><!-- /dp-main -->
+
+  <div class="dp-footer">
+    bearerCORE™ · Trade Claim Specification · TowerPoint Group · May 2026
+  </div>
+</div>

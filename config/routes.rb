@@ -73,6 +73,9 @@ Rails.application.routes.draw do
   get "docs/audit-report",          to: "docs#audit_report"
   get "docs/system-events",         to: "docs#system_events"
   get "docs/interface-standards",   to: "docs#interface_standards"
+  get "docs/trade-claim",           to: "docs#trade_claim"
+  get "docs/supervisor-desk",       to: "docs#supervisor_desk"
+  get "docs/governor-desk",         to: "docs#governor_desk"
 
   # /documents mirrors /docs — same controller, same auth, canonical URL for bearerCORE
   get "documents",                      to: "docs#index",               as: :documents

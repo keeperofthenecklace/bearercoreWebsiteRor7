@@ -28,4 +28,13 @@ class DocsController < ApplicationController
 
   def interface_standards
   end
+
+  def trade_claim
+  end
+
+  def supervisor_desk
+  end
+
+  def governor_desk
+  end
 end

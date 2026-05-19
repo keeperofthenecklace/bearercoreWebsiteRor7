@@ -1,0 +1,466 @@
+<%# app/views/docs/supervisor_desk.html.erb — Supervisor Approval Desk Specification %>
+
+<%= render 'docs/doc_styles' %>
+
+<div class="dp-wrap">
+
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">Supervisor Approval Desk</span>
+    <span class="dp-topbar-tag">In Progress</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:700px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · Module Specification</div>
+      <h1>Supervisor Approval Desk</h1>
+      <p class="dp-cover-desc">
+        Operational governance layer for trade claim review. Multi-tier compliance verification,
+        FX exposure assessment, five-gate issuance eligibility evaluation, risk scoring, and
+        workflow routing with full immutable audit chain visibility.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>1.0</b></div>
+        <div>Scope <b>Trade Claim Review &amp; Authorization</b></div>
+        <div>Updated <b>May 2026</b></div>
+        <div>Status <b>In Progress</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-secnav">
+    <a href="#overview">Overview</a>
+    <a href="#principles">Design Principles</a>
+    <a href="#panes">Pane Specification</a>
+    <a href="#compliance">Compliance Pipeline</a>
+    <a href="#gates">Five Gates</a>
+    <a href="#buttons">Actions</a>
+    <a href="#concurrency">Concurrency</a>
+    <a href="#events">Events</a>
+    <a href="#flow">End-to-End Flow</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <!-- §1 Overview -->
+    <div class="dp-section" id="overview">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§1</div>
+        <h2>System Overview</h2>
+      </div>
+      <p>
+        The Supervisor Approval Desk is the second tier of the trade claim workflow. A supervisor
+        receives queued claims originating from commercial bank operators, reviews automated
+        compliance outputs, evaluates the five-gate issuance eligibility matrix, and issues a
+        binding decision: approve, reject, return for clarification, or escalate.
+      </p>
+      <p>
+        The desk does not perform manual compliance judgment — it presents the results of automated
+        compliance pipeline services and requires the supervisor to acknowledge and act on those
+        results. The supervisor cannot override a <code>blocked</code> compliance status; they can
+        only pass back to the originator for correction.
+      </p>
+
+      <div class="dp-pane-grid">
+        <div class="dp-pane dp-pane-left">
+          <h3>Left Pane — Queue</h3>
+          <ul>
+            <li>Pending items queue</li>
+            <li>Search by ID, institution, invoice ref</li>
+            <li>Status badge per claim</li>
+            <li>Compliance status indicator</li>
+            <li>Submitted timestamp</li>
+            <li>Expandable accordion rows</li>
+            <li>Refresh button</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-middle">
+          <h3>Middle Pane — Review Workspace</h3>
+          <ul>
+            <li>Selected claim detail panel</li>
+            <li>Corridor &amp; institution summary</li>
+            <li>Amount &amp; currency display</li>
+            <li>Beneficiary information</li>
+            <li>Trade direction &amp; description</li>
+            <li>Five-gate eligibility matrix</li>
+            <li>Compliance status summary</li>
+            <li>Supervisor decision notes</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-right">
+          <h3>Right Pane — Decision Actions</h3>
+          <ul>
+            <li>Approve</li>
+            <li>Reject</li>
+            <li>Request Clarification</li>
+            <li>Cancel</li>
+            <li>Re-Evaluate gates</li>
+            <li>Escalate to Governor</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="dp-callout dp-info">
+        <span class="dp-ci">ℹ</span>
+        <div>
+          <strong>Governance model:</strong> The supervisor operates within a fixed authority envelope.
+          High-value claims exceeding the corridor daily cap threshold bypass supervisor-only approval
+          and require additional Governor-level authorisation before settlement proceeds.
+        </div>
+      </div>
+    </div>
+
+    <!-- §2 Design Principles -->
+    <div class="dp-section" id="principles">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§2</div>
+        <h2>Operational Design Principles</h2>
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Principle</th><th>Application</th></tr></thead>
+        <tbody>
+          <tr><td><strong>System-driven, not judgment-driven</strong></td><td>Compliance checks are automated. Supervisor reviews outputs; does not perform manual AML or limit calculations.</td></tr>
+          <tr><td><strong>Audit-first</strong></td><td>Every supervisor action — including opening a claim — generates an immutable audit record with actor identity and timestamp.</td></tr>
+          <tr><td><strong>No self-service override</strong></td><td>Supervisor cannot approve a claim they originated. No single operator can complete both origination and approval steps.</td></tr>
+          <tr><td><strong>Notes mandatory on rejection</strong></td><td>Reject and Request Clarification actions require non-empty <code>decision_notes</code>. The system rejects the action without notes.</td></tr>
+          <tr><td><strong>Claim locking</strong></td><td>Opening a claim in review mode soft-locks it against concurrent supervisor edits. Stale-lock detection releases after 10 minutes of inactivity.</td></tr>
+          <tr><td><strong>Deterministic gate evaluation</strong></td><td>The five-gate eligibility result is computed server-side. The UI displays the result; it cannot alter it.</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §3 Pane Specification -->
+    <div class="dp-section" id="panes">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§3</div>
+        <h2>Pane-Level Specification</h2>
+      </div>
+
+      <h3>Left Pane — Pending Items Queue</h3>
+      <p>
+        Loaded on modal open by <code>loadSupervisorClaims()</code> which calls
+        <code>GET /api/v2/trade_claims</code>. Claims are displayed in reverse-creation order
+        (most recent first). The queue auto-refreshes on every supervisor action.
+      </p>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Column</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><strong>#</strong></td><td>row index</td><td>1-based display ordinal</td></tr>
+          <tr><td><strong>Claim ID</strong></td><td>claim.reference</td><td>TC-{timestamp} or operator-supplied invoice ref</td></tr>
+          <tr><td><strong>Institution</strong></td><td>claim.institution.name</td><td>Resolved commercial bank name</td></tr>
+          <tr><td><strong>Amount</strong></td><td>claim.amount + claim.currency_code</td><td>Formatted decimal with ISO 4217 suffix</td></tr>
+          <tr><td><strong>Corridor</strong></td><td>claim.corridor.code</td><td>e.g. NGA-GHA</td></tr>
+          <tr><td><strong>Compliance Status</strong></td><td>derived from automated checks</td><td>pre_cleared (green) | manual_review (amber) | blocked (red)</td></tr>
+          <tr><td><strong>Submitted</strong></td><td>claim.created_at</td><td>Relative time (e.g. "3m ago")</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Queue Filtering</h4>
+      <p>
+        <code>applySupervisorFilters()</code> runs on every keystroke in the search input. Filters
+        by claim reference, institution name, and invoice reference. Case-insensitive substring match.
+        No server round-trip — filters the in-memory <code>supervisorClaims</code> array.
+      </p>
+
+      <h4>Claim Selection</h4>
+      <p>
+        Clicking a claim row calls <code>selectSupervisorClaim(claimId)</code>.
+        ID coerced: <code>String(c.id) === String(claimId)</code> to prevent integer/string
+        type mismatch. Selected claim data populates the detail panel. Row highlights with
+        left-border indicator.
+      </p>
+
+      <h3>Middle Pane — Claim Detail Panel</h3>
+      <p>Visible only when a claim is selected. Populated from the in-memory claim object resolved via <code>supervisorClaims.find()</code>.</p>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Section</th><th>Fields Displayed</th><th>Editability</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Claim Identity</strong></td><td>Reference, Status badge, Created at, Submitted by</td><td>Read-only</td></tr>
+          <tr><td><strong>Corridor</strong></td><td>Source country → Target country, Corridor code, Asset code, Bloc</td><td>Read-only (snapshot at origination)</td></tr>
+          <tr><td><strong>Institution</strong></td><td>Institution name, SWIFT code, Country code</td><td>Read-only</td></tr>
+          <tr><td><strong>Trade Details</strong></td><td>Amount, Currency, Trade direction, Beneficiary name, Beneficiary country</td><td>Read-only</td></tr>
+          <tr><td><strong>Description</strong></td><td>Free-text trade description from originator</td><td>Read-only</td></tr>
+          <tr><td><strong>Five-Gate Matrix</strong></td><td>Supervisor Approval, Compliance, Corridor Limits, Liquidity, Governance — each with passed/pending indicator</td><td>System-computed; read-only</td></tr>
+          <tr><td><strong>Decision Notes</strong></td><td>Text area for supervisor to record reasoning</td><td>Editable — required for Reject and Request Clarification</td></tr>
+          <tr><td><strong>Prior Decisions</strong></td><td>Approved/rejected/clarification history with timestamps if previously actioned</td><td>Read-only</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Right Pane — Action Panel</h3>
+      <p>Action buttons visible only when a claim is selected. Button availability governed by current claim status.</p>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Action</th><th>Enabled When</th><th>Disabled When</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Approve</strong></td><td>status == pending_review AND no blocking compliance flags</td><td>status != pending_review OR compliance == blocked</td></tr>
+          <tr><td><strong>Reject</strong></td><td>status == pending_review</td><td>status != pending_review</td></tr>
+          <tr><td><strong>Request Clarification</strong></td><td>status == pending_review</td><td>status != pending_review</td></tr>
+          <tr><td><strong>Cancel</strong></td><td>status in [pending_review, clarification_requested]</td><td>status in [approved, rejected, cancelled]</td></tr>
+          <tr><td><strong>Re-Evaluate</strong></td><td>Any non-terminal status</td><td>status in [approved, rejected, cancelled]</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §4 Compliance Pipeline -->
+    <div class="dp-section" id="compliance">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4</div>
+        <h2>Automated Compliance Pipeline</h2>
+      </div>
+      <p>
+        When a claim enters <code>pending_review</code>, the compliance pipeline runs automatically.
+        The supervisor desk displays the pipeline result; the supervisor does not trigger or
+        re-run individual checks.
+      </p>
+
+      <div class="dp-flow">
+        <div class="dp-step"><h4>DocumentValidationService → document_status</h4><p>Validates invoice reference format and completeness. Checks for required trade documentation fields. Returns: valid | incomplete | missing.</p></div>
+        <div class="dp-step"><h4>AMLCheckService → aml_status</h4><p>Screens beneficiary name and country against AU-maintained watchlists. Jurisdiction risk scoring for destination country. Returns: clear | flagged | blocked.</p></div>
+        <div class="dp-step"><h4>LimitCheckService → limit_status</h4><p>Validates amount against active corridor limits: per-transaction cap, daily cap utilisation, velocity (rolling 1-hour) window. Returns: within_limits | approaching_limit | exceeded.</p></div>
+        <div class="dp-step"><h4>BeneficiaryVerificationService → beneficiary_status</h4><p>Cross-references beneficiary name against registered beneficiary registry. Country consistency check. Returns: verified | unverified | mismatch.</p></div>
+        <div class="dp-step"><h4>ComplianceStatusAggregator → compliance_status</h4><p>Aggregates all four service results. Returns: pre_cleared | manual_review | blocked. A single blocked sub-result produces a blocked aggregate.</p></div>
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Aggregate Status</th><th>Meaning</th><th>Supervisor Can Approve</th></tr></thead>
+        <tbody>
+          <tr><td><span class="s-active">pre_cleared</span></td><td>All sub-checks passed. No flags.</td><td>Yes</td></tr>
+          <tr><td><span class="s-pending">manual_review</span></td><td>One or more sub-checks flagged. No block.</td><td>Yes — supervisor assumes responsibility</td></tr>
+          <tr><td><span class="s-expired">blocked</span></td><td>At least one sub-check returned blocked.</td><td>No — must return to originator</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §5 Five Gates -->
+    <div class="dp-section" id="gates">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§5</div>
+        <h2>Five-Gate Issuance Eligibility</h2>
+      </div>
+      <p>
+        Approval triggers a server-side five-gate evaluation. The result is returned in the
+        <code>approve</code> response body under the <code>eligibility</code> key. All five gates
+        must return <code>passed: true</code> for <code>issuance_eligible</code> to be true.
+      </p>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Gate</th><th>Evaluated By</th><th>Pass Condition</th><th>Fail Consequence</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>supervisor_approval</strong></td>
+            <td>Supervisor Desk action</td>
+            <td>Supervisor has called <code>/approve</code></td>
+            <td>Issuance blocked until supervisor acts</td>
+          </tr>
+          <tr>
+            <td><strong>compliance</strong></td>
+            <td>ComplianceStatusAggregator</td>
+            <td>Aggregate status is pre_cleared or manual_review</td>
+            <td>Issuance blocked; claim returned to originator</td>
+          </tr>
+          <tr>
+            <td><strong>corridor_limits</strong></td>
+            <td>LimitCheckService</td>
+            <td>Amount ≤ per_tx cap AND daily utilisation + amount ≤ daily cap AND hourly volume + amount ≤ velocity limit</td>
+            <td>Issuance blocked; originator must reduce amount or wait for limit reset</td>
+          </tr>
+          <tr>
+            <td><strong>liquidity</strong></td>
+            <td>Corridor reserve pool</td>
+            <td>Net position (domestic_available − linked_outstanding) ≥ claim amount</td>
+            <td>Issuance blocked; corridor ops must add liquidity</td>
+          </tr>
+          <tr>
+            <td><strong>governance</strong></td>
+            <td>Governance proposal registry</td>
+            <td>No open halt proposals or freeze orders on the corridor</td>
+            <td>Issuance blocked until governance action resolved</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <h3>Re-Evaluate Action</h3>
+      <p>
+        Calling <code>POST /api/v2/trade_claims/:id/re_evaluate</code> re-runs the gate evaluation
+        against the current system state (live corridor position, current compliance flags).
+        This is useful when a claim is in <code>pending_review</code> and corridor state has changed
+        since origination. Re-evaluate does not change claim status.
+      </p>
+
+      <div class="dp-callout dp-warn">
+        <span class="dp-ci">⚠</span>
+        <div>
+          A claim approved at time T may have different gate results at time T+N if corridor liquidity
+          has been depleted by other approved claims. Supervisors should re-evaluate before approving
+          claims that have been in queue for extended periods.
+        </div>
+      </div>
+    </div>
+
+    <!-- §6 Action Buttons -->
+    <div class="dp-section" id="buttons">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6</div>
+        <h2>Action Button Specification</h2>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Approve</span><span class="dp-btn-pane r">Decision Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Enabled</div><div>status == pending_review AND compliance_status != blocked</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Notes</div><div>Optional — supervisor may add approval notes</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/trade_claims/:id/approve {notes: "..."}</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Response</div><div>status: approved, eligibility: {issuance_eligible: true, gates: {all passed: true}}</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">UI Update</div><div>Status badge updates to Approved. Action buttons disable. Queue refreshes. Success banner: "Trade claim [ref] approved."</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Audit</div><div>TradeClaimApproved event written with supervisor identity, approved_at, decision_notes, full gate snapshot.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Downstream</div><div>Settlement service notified. CBDC issuance authorisation created against corridor reserve.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Reject</span><span class="dp-btn-pane r">Decision Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Notes</div><div>Mandatory — submit blocked until notes field is non-empty</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/trade_claims/:id/reject {notes: "..."}</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Response</div><div>status: rejected, data: claim record with rejected_at and decision_notes</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Effect</div><div>Claim removed from active queue. Terminal state — cannot be reversed.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Notification</div><div>Originating operator notified of rejection with supervisor notes.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Audit</div><div>TradeClaimRejected event written. Notes stored immutably on claim record.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Request Clarification</span><span class="dp-btn-pane r">Routing Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Notes</div><div>Mandatory — supervisor must specify what clarification is needed</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/trade_claims/:id/request_clarification {notes: "..."}</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Effect</div><div>Status → clarification_requested. Claim moves to originator's pending action queue.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Recovery</div><div>Originator corrects and resubmits → status reverts to pending_review.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Timeout</div><div>Claims in clarification_requested for &gt;7 days trigger supervisor manager alert.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Re-Evaluate Gates</span><span class="dp-btn-pane m">Analysis Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/trade_claims/:id/re_evaluate</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Effect</div><div>No status change. Returns current eligibility gate snapshot against live system state.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">UI Update</div><div>Five-gate panel refreshes with latest results. Changed gates highlighted.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Use case</div><div>Claims queued for extended periods; corridor state may have changed.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Cancel Claim</span><span class="dp-btn-pane r">Destructive Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Confirmation</div><div>Confirmation prompt shown before proceeding</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/trade_claims/:id/cancel</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Effect</div><div>Status → cancelled. Claim removed from queue. cancelled_at timestamp written.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Reversibility</div><div>Terminal — cannot be undone. Originator must create a new claim.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- §7 Concurrency -->
+    <div class="dp-section" id="concurrency">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§7</div>
+        <h2>Concurrency &amp; Multi-User Handling</h2>
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Scenario</th><th>Mechanism</th><th>Resolution</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Two supervisors open same claim</strong></td>
+            <td>Soft lock written on first open. Second supervisor sees "Under Review by [operator]" indicator.</td>
+            <td>Second supervisor can view but action buttons are disabled. Lock releases after 10 minutes of first supervisor inactivity.</td>
+          </tr>
+          <tr>
+            <td><strong>Originator cancels while supervisor reviews</strong></td>
+            <td>Cancel writes terminal status immediately. Supervisor action on a cancelled claim returns HTTP 404 (not found).</td>
+            <td>Supervisor desk shows "Claim not found — it may have been cancelled." Queue refreshes.</td>
+          </tr>
+          <tr>
+            <td><strong>Stale queue data</strong></td>
+            <td>Queue loaded at modal open. New claims submitted after load are not visible until refresh.</td>
+            <td>Manual refresh button re-calls <code>GET /api/v2/trade_claims</code>. Auto-refresh every 30s in production implementation.</td>
+          </tr>
+          <tr>
+            <td><strong>Double-click approve</strong></td>
+            <td>Button disabled immediately on first click while request is in flight.</td>
+            <td>Server also validates that claim is in pending_review state — a second approve call on an already-approved claim returns the existing record.</td>
+          </tr>
+          <tr>
+            <td><strong>Network failure mid-action</strong></td>
+            <td>Client catches fetch error and displays inline error. No state change on server.</td>
+            <td>Supervisor retries. Server idempotency: approve on an already-approved claim is a no-op returning the current state.</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-danger">
+        <span class="dp-ci">⛔</span>
+        <div>
+          <strong>No self-approval:</strong> The system must enforce that the operator who submitted a
+          trade claim cannot be the supervisor who approves it. In the current implementation this is
+          an operational control enforced by RBAC role assignment — the submitting operator does not
+          have Supervisor role access to the desk. Production implementations should add explicit
+          server-side originator ≠ approver validation.
+        </div>
+      </div>
+    </div>
+
+    <!-- §8 Events -->
+    <div class="dp-section" id="events">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§8</div>
+        <h2>System Events</h2>
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Event</th><th>Trigger</th><th>Key Payload Fields</th><th>Consumers</th></tr></thead>
+        <tbody>
+          <tr><td><strong>SupervisorReviewStarted</strong></td><td>Supervisor selects claim in desk</td><td>claim_id, supervisor_id, opened_at</td><td>Audit log, soft lock service</td></tr>
+          <tr><td><strong>SupervisorApproved</strong></td><td>POST /approve succeeds</td><td>claim_id, supervisor_id, decision_notes, approved_at, eligibility gates snapshot</td><td>Settlement service, audit log, originator notification</td></tr>
+          <tr><td><strong>SupervisorRejected</strong></td><td>POST /reject succeeds</td><td>claim_id, supervisor_id, decision_notes, rejected_at</td><td>Audit log, originator notification</td></tr>
+          <tr><td><strong>ClarificationRequested</strong></td><td>POST /request_clarification</td><td>claim_id, supervisor_id, notes</td><td>Originator notification, audit log</td></tr>
+          <tr><td><strong>EligibilityReevaluated</strong></td><td>POST /re_evaluate</td><td>claim_id, gate_snapshot, evaluated_at</td><td>Audit log, supervisor desk UI</td></tr>
+          <tr><td><strong>ComplianceFlagEscalated</strong></td><td>manual_review aggregate on high-value claim</td><td>claim_id, flag_type, supervisor_id</td><td>Compliance team alert, audit log</td></tr>
+          <tr><td><strong>SupervisorLockExpired</strong></td><td>10 minute inactivity on locked claim</td><td>claim_id, original_supervisor_id, expired_at</td><td>Lock service, supervisor desk queue</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §9 End-to-End Flow -->
+    <div class="dp-section" id="flow">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§9</div>
+        <h2>End-to-End Workflow</h2>
+      </div>
+      <p>Complete walkthrough: supervisor reviews and approves the NGA→GHA claim from the Trade Claim flow example.</p>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Open Supervisor Desk</h4><p>Supervisor navigates to sandbox dashboard. Clicks "Supervisor Approval Desk". Modal opens with backdrop blur. <code>loadSupervisorClaims()</code> fires → <code>GET /api/v2/trade_claims</code>. Pending queue populates with 1 claim: TC-20260519142233.</p></div>
+        <div class="dp-step"><h4>Review claim in queue</h4><p>Queue row shows: Claim ID: TC-20260519142233, Institution: Access Bank Ghana, Amount: 500,000 GHS, Corridor: NGA-GHA, Compliance: pre_cleared (green), Submitted: 2m ago.</p></div>
+        <div class="dp-step"><h4>Select claim</h4><p>Supervisor clicks the row. <code>selectSupervisorClaim("1")</code> fires. <code>String(c.id) === String(claimId)</code> resolves correctly. Detail panel populates with full claim data. Five-gate matrix shows all gates pending (approval gate not yet passed).</p></div>
+        <div class="dp-step"><h4>Review five gates</h4><p>Supervisor reviews: compliance pre_cleared ✓, corridor limits within bounds ✓, liquidity position adequate ✓, no governance blocks ✓. Only supervisor_approval gate pending (requires this action).</p></div>
+        <div class="dp-step"><h4>Add decision notes (optional)</h4><p>Supervisor types: "Standard import claim. Corridor NGA-GHA in good standing. Pre-cleared compliance." in decision notes.</p></div>
+        <div class="dp-step"><h4>Approve</h4><p>Supervisor clicks Approve. Button disables. <code>POST /api/v2/trade_claims/1/approve {notes: "..."}.</code> Server updates status → approved, writes approved_at, evaluates all five gates. Returns issuance_eligible: true.</p></div>
+        <div class="dp-step"><h4>UI update</h4><p>Success banner: "Trade claim TC-20260519142233 approved." Status badge updates to Approved (green). Action buttons all disable. Queue refreshes — claim removed from pending view.</p></div>
+        <div class="dp-step"><h4>Settlement trigger</h4><p>Approved claim triggers corridor liquidity drawdown. Settlement service notified via TradeClaimApproved event. CBDC issuance auth created. Full audit record finalised.</p></div>
+      </div>
+      <div class="dp-callout dp-ok">
+        <span class="dp-ci">✓</span>
+        <div>End state: Claim TC-20260519142233 in status approved. All five gates passed. Supervisor identity, decision notes, and gate snapshot immutably recorded. Settlement service notified. Corridor NGA-GHA liquidity position updated.</div>
+      </div>
+    </div>
+
+  </div><!-- /dp-main -->
+
+  <div class="dp-footer">
+    bearerCORE™ · Supervisor Approval Desk Specification · TowerPoint Group · May 2026
+  </div>
+</div>

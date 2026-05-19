@@ -1,0 +1,485 @@
+<%# app/views/docs/governor_desk.html.erb — Governor's Desk Specification %>
+
+<%= render 'docs/doc_styles' %>
+
+<div class="dp-wrap">
+
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">Governor's Desk</span>
+    <span class="dp-topbar-tag">In Progress</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:700px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · Module Specification</div>
+      <h1>Governor's Desk</h1>
+      <p class="dp-cover-desc">
+        Sovereign executive authorization layer. Macro-corridor management, sovereign capacity
+        controls, halt authority, circuit breaker orchestration, and multi-signature governance
+        for corridor parameter changes. Protocol-driven settlement with executive oversight.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>1.0</b></div>
+        <div>Scope <b>Sovereign Corridor Governance</b></div>
+        <div>Updated <b>May 2026</b></div>
+        <div>Status <b>In Progress</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-secnav">
+    <a href="#overview">Overview</a>
+    <a href="#governance">Governance Model</a>
+    <a href="#panes">Console Specification</a>
+    <a href="#network">Network Status</a>
+    <a href="#corridors">Corridor Management</a>
+    <a href="#proposals">Governance Proposals</a>
+    <a href="#buttons">Actions</a>
+    <a href="#security">Security</a>
+    <a href="#flow">End-to-End Flow</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <!-- §1 Overview -->
+    <div class="dp-section" id="overview">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§1</div>
+        <h2>System Overview</h2>
+      </div>
+      <p>
+        The Governor's Desk is the sovereign executive tier of the bearerCORE™ platform. It provides
+        the Governor, Deputy Governor, and Monetary Committee with macro-level visibility over all
+        active corridors, aggregate daily volumes, halt authority, and the governance proposal queue
+        for corridor parameter changes.
+      </p>
+      <p>
+        Unlike the Supervisor Desk — which operates on individual trade claims — the Governor's Desk
+        operates at the corridor infrastructure level. Issuance is authorised automatically by protocol
+        conditions; the Governor manages corridor capacity, daily caps, halt decisions, and multi-sig
+        governance proposals that affect the operating envelope of the entire network.
+      </p>
+
+      <div class="dp-pane-grid">
+        <div class="dp-pane dp-pane-left">
+          <h3>Left Pane — Network Status</h3>
+          <ul>
+            <li>Total daily volume (all corridors)</li>
+            <li>Active corridors count</li>
+            <li>Aggregate corridor health</li>
+            <li>Last console refresh timestamp</li>
+            <li>Active intervention alerts</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-middle">
+          <h3>Middle Pane — Corridor Grid</h3>
+          <ul>
+            <li>Sovereign Dashboard: all corridors</li>
+            <li>Per-corridor capacity bar</li>
+            <li>Liquidity position per corridor</li>
+            <li>Halt/Active status indicator</li>
+            <li>Pending governance proposals</li>
+            <li>Corridor action controls</li>
+          </ul>
+        </div>
+        <div class="dp-pane dp-pane-right">
+          <h3>Right Pane — Governance Queue</h3>
+          <ul>
+            <li>Open governance proposals</li>
+            <li>Cap change proposals (multi-sig)</li>
+            <li>Halt proposals</li>
+            <li>Vote / approve / reject proposals</li>
+            <li>Governance proposal history</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Role Hierarchy</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Role</th><th>Access Level</th><th>Authorities</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Governor</strong></td>
+            <td>Full sovereign access</td>
+            <td>Corridor halt/unhalt, governance proposal creation, cap change proposals, all corridor intervention types</td>
+          </tr>
+          <tr>
+            <td><strong>Deputy Governor</strong></td>
+            <td>Delegated executive access</td>
+            <td>Corridor halt/unhalt (below threshold), governance proposal voting, corridor monitoring</td>
+          </tr>
+          <tr>
+            <td><strong>Monetary Committee</strong></td>
+            <td>Multi-sig participants</td>
+            <td>Vote on governance proposals. Cannot initiate halts unilaterally.</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-info">
+        <span class="dp-ci">ℹ</span>
+        <div>
+          <strong>Protocol-driven vs. approval-driven:</strong> CBDC issuance at the individual note level
+          is protocol-driven — it proceeds automatically when all five issuance eligibility gates pass.
+          The Governor does not approve individual trade claims. The Governor sets the operating envelope
+          (corridor caps, halt state) within which the protocol automatically authorises or blocks
+          issuance.
+        </div>
+      </div>
+    </div>
+
+    <!-- §2 Governance Model -->
+    <div class="dp-section" id="governance">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§2</div>
+        <h2>Governance Model</h2>
+      </div>
+
+      <h3>Multi-Signature Requirement</h3>
+      <p>
+        Corridor parameter changes — daily cap adjustments, velocity limit changes, per-transaction
+        cap modifications — require multi-signature governance proposals. A single Governor action
+        creates a <em>proposal</em>; a second authorised actor (Deputy Governor or Monetary Committee
+        member) must vote to approve before the change takes effect.
+      </p>
+      <p>
+        Emergency halt operations are exempt from the multi-sig requirement: a Governor or Deputy
+        Governor may halt a corridor immediately with a single action, followed by a mandatory
+        post-hoc audit justification entry.
+      </p>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Action Type</th><th>Multi-Sig Required</th><th>Initiator</th><th>Second Signer</th></tr></thead>
+        <tbody>
+          <tr><td>Daily cap increase</td><td>Yes</td><td>Governor / Deputy Gov</td><td>Monetary Committee</td></tr>
+          <tr><td>Daily cap decrease</td><td>Yes</td><td>Governor / Deputy Gov</td><td>Monetary Committee</td></tr>
+          <tr><td>Velocity limit change</td><td>Yes</td><td>Governor / Deputy Gov</td><td>Monetary Committee</td></tr>
+          <tr><td>Per-transaction cap change</td><td>Yes</td><td>Governor / Deputy Gov</td><td>Monetary Committee</td></tr>
+          <tr><td>Emergency corridor halt</td><td>No — post-hoc audit required</td><td>Governor / Deputy Gov</td><td>N/A</td></tr>
+          <tr><td>Corridor unhalt</td><td>No — audit entry required</td><td>Governor / Deputy Gov</td><td>N/A</td></tr>
+          <tr><td>FX rate proposal</td><td>Yes</td><td>Central Bank operator</td><td>Governor / Deputy Gov</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Four-Eyes Enforcement</h3>
+      <div class="dp-callout dp-danger">
+        <span class="dp-ci">⛔</span>
+        <div>
+          <strong>Proposer cannot self-approve.</strong> The operator who creates a governance proposal
+          cannot cast the approving vote. This is enforced server-side on <code>POST /api/v2/governance/proposals/:id/vote</code>.
+          Any attempt to self-approve returns HTTP 403 with error code <code>self_approval_forbidden</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- §3 Console Specification -->
+    <div class="dp-section" id="panes">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§3</div>
+        <h2>Console Pane Specification</h2>
+      </div>
+
+      <h3>Console Loading Sequence</h3>
+      <p>
+        On modal open, <code>loadMacroConsole()</code> fires and executes the following API calls
+        in parallel:
+      </p>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Load corridors</h4><p><code>GET /api/v2/corridors?per_page=50</code>. Returns all registered corridors with status, mode, bloc, and asset code.</p></div>
+        <div class="dp-step"><h4>Load liquidity positions</h4><p><code>GET /api/v2/corridors/:id/liquidity_position</code> for each active corridor. Populates per-corridor capacity bars.</p></div>
+        <div class="dp-step"><h4>Load governance proposals</h4><p><code>GET /api/v2/governance/proposals?status=pending</code>. Populates governance proposal queue panel.</p></div>
+        <div class="dp-step"><h4>Compute network aggregates</h4><p>Network Status Bar calculates: total daily volume (sum of corridor positions), active corridor count, aggregate health (avg headroom %). Sets govNetLastUpdate timestamp.</p></div>
+      </div>
+
+      <h3>Network Status Bar (4 KPI tiles)</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>KPI</th><th>Element ID</th><th>Calculation</th><th>Visual</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Total Daily Volume</strong></td><td class="f">govNetVolume</td><td>Sum of domestic_available across all active corridors</td><td>Dark navy tile, large bold number</td></tr>
+          <tr><td><strong>Active Corridors</strong></td><td class="f">govNetActiveCorridors</td><td>Count of corridors with status == active</td><td>Dark navy tile, teal number / total count</td></tr>
+          <tr><td><strong>Corridor Health</strong></td><td class="f">govNetHealth</td><td>Average headroom % across all active corridors (net_position / daily_cap)</td><td>Dark navy tile, teal % value</td></tr>
+          <tr><td><strong>Last Updated</strong></td><td class="f">govNetLastUpdate</td><td>Timestamp of most recent console refresh</td><td>Dark navy tile, monospace timestamp</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Active System Intervention Panel</h3>
+      <p>
+        <code>id="govInterventionPanel"</code> — shown only when one or more corridors are in a
+        non-normal state (halted, frozen, under intervention). Displays a banner per affected corridor
+        with status, intervention type, initiating actor, and elapsed time since intervention. Hidden
+        when all corridors are in normal operation.
+      </p>
+
+      <h3>Sovereign Dashboard — Corridor Grid</h3>
+      <p>
+        Populated from <code>GET /api/v2/corridors</code> response. Each corridor renders as a
+        card with:
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Element</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Corridor code</td><td>corridor.code</td><td>e.g. NGA-GHA</td></tr>
+          <tr><td>Source → Target flags</td><td>corridor.source_country, corridor.target_country</td><td>ISO 3166-1 alpha-3 mapped to emoji flags</td></tr>
+          <tr><td>Asset code</td><td>corridor.asset_code</td><td>ISO 4217</td></tr>
+          <tr><td>Bloc tag</td><td>corridor.bloc</td><td>ECOWAS | EAC | SADC | CEMAC | AMU</td></tr>
+          <tr><td>Status badge</td><td>corridor.status</td><td>ACTIVE (green) | HALTED (red) | PAUSED (amber) | FROZEN (red-dark)</td></tr>
+          <tr><td>Capacity bar</td><td>liquidity_position.net_position / daily_cap</td><td>Visual progress bar, colour-coded by utilisation %</td></tr>
+          <tr><td>Domestic Available</td><td>liquidity_position.domestic_available</td><td>Active lock total for corridor</td></tr>
+          <tr><td>Halt / Unhalt button</td><td>corridor.status</td><td>Red Halt shown when active; Teal Unhalt shown when halted</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §4 Network Status -->
+    <div class="dp-section" id="network">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4</div>
+        <h2>Network Health Monitoring</h2>
+      </div>
+
+      <h3>Corridor Health Thresholds</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Headroom %</th><th>Health Status</th><th>Visual</th><th>Governor Action</th></tr></thead>
+        <tbody>
+          <tr><td>&gt; 60%</td><td>Healthy</td><td>Teal / green capacity bar</td><td>Monitor only</td></tr>
+          <tr><td>30% – 60%</td><td>Adequate</td><td>Amber capacity bar</td><td>Optional rebalancing</td></tr>
+          <tr><td>10% – 30%</td><td>Low</td><td>Orange capacity bar</td><td>Recommend liquidity injection</td></tr>
+          <tr><td>&lt; 10%</td><td>At Risk</td><td>Red capacity bar, intervention alert</td><td>Required action: rebalance or halt</td></tr>
+          <tr><td>0% (negative)</td><td>Deficit</td><td>Dark red, govInterventionPanel shown</td><td>Mandatory halt or emergency governance proposal</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Corridor Status Capability Matrix</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Status</th><th>New Locks</th><th>Release Locks</th><th>Issuance</th><th>Claims</th><th>Governance</th></tr></thead>
+        <tbody>
+          <tr><td><span class="s-active">ACTIVE</span></td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>Via proposal</td></tr>
+          <tr><td><span class="s-pending">PAUSED</span></td><td>✗</td><td>✓</td><td>✗</td><td>New claims blocked</td><td>Via proposal</td></tr>
+          <tr><td><span class="s-expired">HALTED</span></td><td>✗</td><td>Emergency only</td><td>✗</td><td>All blocked</td><td>Via Governor</td></tr>
+          <tr><td><span class="s-expired">FROZEN</span></td><td>✗</td><td>✗</td><td>✗</td><td>All blocked</td><td>Via governance only</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §5 Corridor Management -->
+    <div class="dp-section" id="corridors">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§5</div>
+        <h2>Corridor Management Actions</h2>
+      </div>
+
+      <h3>Halt Corridor</h3>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Governor clicks Halt on corridor card</h4><p>Confirmation dialog: "Halt corridor NGA-GHA? This will block all new locks, claims, and issuance." Mandatory halt reason required (dropdown: 6 options).</p></div>
+        <div class="dp-step"><h4>API call</h4><p><code>POST /api/v2/corridors/:id/halt {reason: "..."}</code>. Server sets corridor.status = "paused" (or "frozen" for full freeze). Returns updated corridor record.</p></div>
+        <div class="dp-step"><h4>Network update</h4><p>Active Corridors KPI decrements. Corridor card updates to HALTED badge. govInterventionPanel shows intervention alert. All pending issuance operations for this corridor blocked at five-gate governance check.</p></div>
+        <div class="dp-step"><h4>Audit</h4><p>CorridorHalted event written: corridor_id, governor_id, reason, halted_at. Immutable. Post-hoc justification mandatory within 4 hours.</p></div>
+      </div>
+
+      <h3>Unhalt Corridor</h3>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Governor clicks Unhalt</h4><p>Confirmation: "Resume corridor NGA-GHA?" Requires reason entry.</p></div>
+        <div class="dp-step"><h4>API call</h4><p><code>POST /api/v2/corridors/:id/unhalt {reason: "..."}</code>. Server sets corridor.status = "active". Returns updated corridor record.</p></div>
+        <div class="dp-step"><h4>Network update</h4><p>Active Corridors KPI increments. Corridor card updates to ACTIVE badge. Intervention alert cleared. Issuance eligibility governance gate automatically passes again.</p></div>
+        <div class="dp-step"><h4>Audit</h4><p>CorridorUnhalted event written: corridor_id, governor_id, reason, unhalted_at.</p></div>
+      </div>
+
+      <div class="dp-callout dp-warn">
+        <span class="dp-ci">⚠</span>
+        <div>
+          Halting a corridor does not cancel in-flight trade claims. Claims in <code>approved</code>
+          state that have not yet settled will have their issuance eligibility governance gate set to
+          <code>passed: false</code> on re-evaluation. Settlement proceeds only after corridor is
+          restored to active.
+        </div>
+      </div>
+    </div>
+
+    <!-- §6 Governance Proposals -->
+    <div class="dp-section" id="proposals">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6</div>
+        <h2>Governance Proposals</h2>
+      </div>
+
+      <p>
+        Corridor parameter changes follow a formal proposal lifecycle. Proposals are created via
+        <code>POST /api/v2/governance/proposals</code>, visible to all Monetary Committee members,
+        and require a second-signer vote before taking effect.
+      </p>
+
+      <h3>Proposal Data Model</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">uuid</td><td>Proposal primary key</td></tr>
+          <tr><td class="f">corridor_id</td><td class="t">uuid FK</td><td>Target corridor</td></tr>
+          <tr><td class="f">proposal_type</td><td class="t">enum</td><td>cap_change | velocity_change | per_tx_cap_change | fx_rate | halt | freeze</td></tr>
+          <tr><td class="f">proposed_by</td><td class="t">string</td><td>Initiating operator identity</td></tr>
+          <tr><td class="f">proposed_value</td><td class="t">decimal / string</td><td>New value being proposed</td></tr>
+          <tr><td class="f">current_value</td><td class="t">decimal / string</td><td>Value at time of proposal (snapshot)</td></tr>
+          <tr><td class="f">justification</td><td class="t">text</td><td>Mandatory rationale from proposer</td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td>pending | approved | rejected | recalled</td></tr>
+          <tr><td class="f">votes</td><td class="t">array</td><td>List of {voter, decision, voted_at} records</td></tr>
+          <tr><td class="f">effective_at</td><td class="t">timestamp</td><td>When approved change takes effect (immediate or scheduled)</td></tr>
+          <tr><td class="f">created_at</td><td class="t">timestamp</td><td>Proposal creation time (UTC)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Proposal Lifecycle</h3>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Create proposal</h4><p><code>POST /api/v2/governance/proposals {corridor_id, proposal_type, proposed_value, justification}</code>. Status → pending. ProposalCreated event written.</p></div>
+        <div class="dp-step"><h4>Notification</h4><p>All Monetary Committee members notified of new pending proposal. Proposal appears in governance queue on Governor's Desk for all eligible voters.</p></div>
+        <div class="dp-step"><h4>Vote</h4><p><code>POST /api/v2/governance/proposals/:id/vote {decision: "approve" | "reject"}</code>. Four-Eyes: proposer cannot vote. Required voter count: 1 additional approver for standard changes; 2 for freeze proposals.</p></div>
+        <div class="dp-step"><h4>Approval threshold reached</h4><p>Server detects sufficient approvals. Status → approved. Corridor parameter updated immediately (or at effective_at for scheduled changes). ProposalApproved event written.</p></div>
+        <div class="dp-step"><h4>Recall option</h4><p>Proposer may recall a pending proposal before vote threshold is reached via <code>POST /api/v2/governance/proposals/:id/recall</code>. Cannot recall once approved.</p></div>
+      </div>
+
+      <h3>Proposal Status States</h3>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <span class="s-pending">PENDING</span>
+        <span class="s-active">APPROVED</span>
+        <span class="s-expired">REJECTED</span>
+        <span class="s-released">RECALLED</span>
+      </div>
+    </div>
+
+    <!-- §7 Action Buttons -->
+    <div class="dp-section" id="buttons">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§7</div>
+        <h2>Action Button Specification</h2>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Refresh Console</span><span class="dp-btn-pane m">Header Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Label</div><div>↻ Refresh</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Action</div><div><code>loadMacroConsole()</code> — re-fetches corridors, positions, and proposals</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Cooldown</div><div>Button disables for 3s after click to prevent rapid-fire API calls</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Visual</div><div>Teal outline button in console header. Spinner shown during load.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Halt Corridor</span><span class="dp-btn-pane r">Emergency Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Visible</div><div>On each active corridor card, shown only when corridor.status == active</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Confirmation</div><div>Two-step confirmation dialog. Mandatory halt reason (dropdown). Cannot proceed without reason.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/corridors/:id/halt {reason}</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Effect</div><div>corridor.status → paused. All new locks and issuance blocked. Governance gate fails for all pending claims.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Audit</div><div>CorridorHalted event written. Post-hoc justification required within 4h.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Auth</div><div>Governor or Deputy Governor role required. Standard supervisor role cannot halt corridors.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Unhalt Corridor</span><span class="dp-btn-pane r">Recovery Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Visible</div><div>On each halted corridor card, when corridor.status == paused</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/corridors/:id/unhalt {reason}</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Effect</div><div>corridor.status → active. Issuance eligibility governance gate restored. Pending claims re-eligible.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Audit</div><div>CorridorUnhalted event written with restoration reason.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Create Governance Proposal</span><span class="dp-btn-pane m">Governance Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Inputs</div><div>Corridor, proposal_type, proposed_value, justification (mandatory)</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/governance/proposals</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Effect</div><div>Proposal created in pending state. Monetary Committee notified. Proposer cannot self-vote.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>Proposal appears in governance queue panel. ProposalCreated event written.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Vote on Proposal</span><span class="dp-btn-pane r">Governance Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Options</div><div>Approve | Reject</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/governance/proposals/:id/vote {decision}</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Four-Eyes</div><div>Server rejects self-vote with HTTP 403 self_approval_forbidden</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Effect</div><div>Vote recorded. If approval threshold reached: parameter updated, corridor notified, ProposalApproved event written.</div></div>
+        </div>
+      </div>
+
+      <div class="dp-btn">
+        <div class="dp-btn-head"><span class="dp-btn-name">Recall Proposal</span><span class="dp-btn-pane m">Governance Action</span></div>
+        <div class="dp-btn-body">
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Available</div><div>Only for proposer, only when status == pending</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/governance/proposals/:id/recall</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Effect</div><div>Status → recalled. Parameter unchanged. ProposalRecalled event written.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- §8 Security -->
+    <div class="dp-section" id="security">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§8</div>
+        <h2>Security &amp; Access Controls</h2>
+      </div>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Control</th><th>Implementation</th><th>Enforcement Point</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Role-Based Access</strong></td><td>Governor Desk accessible only to Governor, Deputy Governor, Monetary Committee roles</td><td>Session authentication + RBAC middleware</td></tr>
+          <tr><td><strong>Four-Eyes Enforcement</strong></td><td>Proposer ≠ approver on all governance proposals</td><td>Server-side in governance proposals controller</td></tr>
+          <tr><td><strong>Halt Authority</strong></td><td>Corridor halt/unhalt restricted to Governor and Deputy Governor roles</td><td>Role check in corridor controller before action</td></tr>
+          <tr><td><strong>Audit Immutability</strong></td><td>All governance actions write append-only audit records with actor identity, action, timestamp</td><td>After_action audit writer service</td></tr>
+          <tr><td><strong>Session Continuity</strong></td><td>Central bank session required (require_central_bank_access filter on DocsController and all API routes)</td><td>before_action filter on all protected controllers</td></tr>
+          <tr><td><strong>Post-Hoc Justification</strong></td><td>Emergency halt requires audit justification entry within 4 hours</td><td>Governance compliance monitoring service</td></tr>
+          <tr><td><strong>No Governor Self-Halt</strong></td><td>A Governor who created a corridor cannot be the sole authority to permanently freeze it — requires Monetary Committee vote</td><td>Governance proposal controller</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-danger">
+        <span class="dp-ci">⛔</span>
+        <div>
+          <strong>Sovereign deployment segmentation:</strong> The Governor's Desk is deployed on the
+          central bank's internal network segment. It is not accessible from the commercial bank
+          operator network or public internet. All access is routed through the central bank's zero-trust
+          gateway with mandatory MFA.
+        </div>
+      </div>
+    </div>
+
+    <!-- §9 End-to-End Flow -->
+    <div class="dp-section" id="flow">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§9</div>
+        <h2>End-to-End Governance Workflow</h2>
+      </div>
+      <p>Complete walkthrough: Governor responds to low-liquidity alert on NGA→GHA corridor and proposes a daily cap increase.</p>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Open Governor's Desk</h4><p>Governor navigates to sandbox dashboard. Clicks "Governor's Desk". Modal opens. <code>loadMacroConsole()</code> fires. 4 KPI tiles populate. Sovereign Dashboard grid shows all corridors.</p></div>
+        <div class="dp-step"><h4>Identify low-liquidity corridor</h4><p>Network Status Bar shows Corridor Health at 18% (red). Sovereign Dashboard: NGA-GHA capacity bar at 8% — At Risk. govInterventionPanel shows "NGA-GHA: Liquidity At Risk — 8% headroom remaining".</p></div>
+        <div class="dp-step"><h4>Create cap change proposal</h4><p>Governor clicks "Propose Cap Change" on NGA-GHA card. Dialog: Type=cap_change, Proposed Value: 5,000,000 GHS (current: 2,500,000 GHS), Justification: "Q2 seasonal trade volume increase. 90-day review cycle." <code>POST /api/v2/governance/proposals</code>.</p></div>
+        <div class="dp-step"><h4>Proposal enters queue</h4><p>Status → pending. GOV-2026051903 created. Monetary Committee members notified. Proposal appears in governance queue panel. Governor cannot vote on own proposal.</p></div>
+        <div class="dp-step"><h4>Deputy Governor votes</h4><p>Deputy Governor opens Governor's Desk. Reviews proposal: current 2.5M → proposed 5M GHS, justification noted. Clicks Approve. <code>POST /api/v2/governance/proposals/GOV-2026051903/vote {decision: "approve"}</code>.</p></div>
+        <div class="dp-step"><h4>Proposal approved</h4><p>Approval threshold reached (1 additional approver sufficient for cap changes). corridor.daily_cap updated to 5,000,000 GHS. ProposalApproved event written. Governance queue panel refreshes — proposal shows APPROVED.</p></div>
+        <div class="dp-step"><h4>Network updates</h4><p>Console refreshes. NGA-GHA capacity bar recalculates against new daily_cap. Headroom increases from 8% to 54%. Intervention alert cleared. Active claims in pending_review queue may now pass corridor_limits gate.</p></div>
+        <div class="dp-step"><h4>Audit finalised</h4><p>Full governance chain immutably recorded: proposal creation (Governor identity, timestamp), vote (Deputy Governor identity, timestamp), parameter update (effective_at, old value, new value). Regulatory audit trail complete.</p></div>
+      </div>
+      <div class="dp-callout dp-ok">
+        <span class="dp-ci">✓</span>
+        <div>End state: NGA-GHA daily cap raised to 5,000,000 GHS via Four-Eyes governance. Full audit chain recorded: proposer, voter, timestamps, old/new values. Corridor health restored. Pending claims unblocked at corridor_limits gate.</div>
+      </div>
+
+      <h3>Emergency Halt Flow</h3>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Governor detects anomaly</h4><p>Rapid velocity spike on KES-GHS corridor. Potential settlement integrity risk. Governor initiates halt immediately.</p></div>
+        <div class="dp-step"><h4>Halt action</h4><p>Two-step dialog. Reason: "Velocity anomaly — investigating potential settlement integrity breach." <code>POST /api/v2/corridors/:id/halt</code>. No multi-sig required for emergency halt.</p></div>
+        <div class="dp-step"><h4>Immediate effect</h4><p>corridor.status → paused. All new locks, claims, and issuance blocked immediately. Governance gate fails for all pending claims. govInterventionPanel shows active intervention alert.</p></div>
+        <div class="dp-step"><h4>Investigation &amp; audit</h4><p>Governor investigates via Corridor Ops desk. Within 4 hours: audit justification entry completed. Compliance team notified.</p></div>
+        <div class="dp-step"><h4>Corridor restored or frozen</h4><p>If investigation clears: <code>POST /corridors/:id/unhalt</code>. If breach confirmed: governance proposal to freeze corridor pending Monetary Committee vote.</p></div>
+      </div>
+    </div>
+
+  </div><!-- /dp-main -->
+
+  <div class="dp-footer">
+    bearerCORE™ · Governor's Desk Specification · TowerPoint Group · May 2026
+  </div>
+</div>
