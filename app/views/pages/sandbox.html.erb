@@ -192,11 +192,11 @@
          onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">
         <span style="font-size: 14px; font-weight: 600; color: #0C1B38;">Governor Desk</span>
         <span style="font-size: 13px; font-weight: 500; color: #2563eb;">Governance Workflow</span>
-        <span style="font-size: 13px; color: #424242; line-height: 1.55;"><strong style="color: #0C1B38;">Monetary Authority Sign-Off:</strong> Deputy Governor and Governor provide dual signatures on issuance authorizations. Enforces separation of duties — no CBDC notes can be minted until <code>governance_status = approved</code>.</span>
+        <span style="font-size: 13px; color: #424242; line-height: 1.55;"><strong style="color: #0C1B38;">Monetary Authority Overrides:</strong> Deputy Governor and Governor manage systemic parameters. Enforces multi-sig validation for corridor halts, emergency resumptions, or liquidity reservoir injections that unblock automated claims.</span>
       </a>
 
     </div>
-    <p style="text-align: center; font-size: 12px; color: #9e9e9e; margin: 14px 0 0; font-style: italic;">Operations run against the SmartCHEQ sandbox environment — no real funds are affected</p>
+    <p style="text-align: center; font-size: 12px; color: #9e9e9e; margin: 14px 0 0; font-style: italic;">Operations run against the bearerCORE&#8482; sandbox environment — no real funds are affected</p>
   </div>
 </section>
 
@@ -223,8 +223,11 @@
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
           </div>
           <div>
-            <div style="font-size:13px;font-weight:700;color:#0C1B38;">Trade Claim</div>
-            <div style="font-size:11px;color:#9CA3AF;">Submission &amp; state lifecycle</div>
+            <div style="display:flex;align-items:center;gap:7px;">
+              <span style="font-size:13px;font-weight:700;color:#0C1B38;">Trade Claim</span>
+              <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:#f3f4f6;color:#6B7280;letter-spacing:0.04em;">POST</span>
+            </div>
+            <div style="font-size:11px;color:#9CA3AF;margin-top:2px;">Submission &amp; state lifecycle</div>
           </div>
           <svg style="margin-left:auto;flex-shrink:0;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
@@ -238,12 +241,15 @@
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
           </div>
           <div>
-            <div style="font-size:13px;font-weight:700;color:#0C1B38;">Supervisor Desk</div>
-            <div style="font-size:11px;color:#9CA3AF;">Protocol-enforced approval pipeline</div>
+            <div style="display:flex;align-items:center;gap:7px;">
+              <span style="font-size:13px;font-weight:700;color:#0C1B38;">Supervisor Desk</span>
+              <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706;letter-spacing:0.04em;">POST</span>
+            </div>
+            <div style="font-size:11px;color:#9CA3AF;margin-top:2px;">Protocol-enforced approval pipeline</div>
           </div>
           <svg style="margin-left:auto;flex-shrink:0;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
-        <p style="font-size:12.5px;color:#6B7280;margin:0;line-height:1.55;">Two-step state machine: compliance_cleared → ready_to_mint / insufficient_corridor_liquidity.</p>
+        <p style="font-size:12.5px;color:#6B7280;margin:0;line-height:1.55;">Supervisor action triggers automated state machine validation: compliance_cleared → auto-checks corridor balance → emits ready_to_mint or flags insufficient_corridor_liquidity.</p>
       </a>
 
       <!-- Governor Desk -->
@@ -253,12 +259,15 @@
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </div>
           <div>
-            <div style="font-size:13px;font-weight:700;color:#0C1B38;">Governor Desk</div>
-            <div style="font-size:11px;color:#9CA3AF;">Governance &amp; liquidity injection</div>
+            <div style="display:flex;align-items:center;gap:7px;">
+              <span style="font-size:13px;font-weight:700;color:#0C1B38;">Governor Desk</span>
+              <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706;letter-spacing:0.04em;">POST</span>
+            </div>
+            <div style="font-size:11px;color:#9CA3AF;margin-top:2px;">Macro policy execution</div>
           </div>
           <svg style="margin-left:auto;flex-shrink:0;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
-        <p style="font-size:12.5px;color:#6B7280;margin:0;line-height:1.55;">Multi-sig governance, corridor halt/resume, liquidity injection that unblocks insufficient_corridor_liquidity claims.</p>
+        <p style="font-size:12.5px;color:#6B7280;margin:0;line-height:1.55;">Macro policy execution: Multi-sig controls for gateway freezes, corridor capacity adjustments, and bulk reservoir expansions.</p>
       </a>
 
       <!-- Full Docs Index -->
@@ -326,10 +335,23 @@
     },
     approve: {
       label: 'POST /api/v2/trade_claims/:id/approve',
-      meta: 'Step 1 → compliance_cleared  ·  Step 2 (auto) → ready_to_mint or insufficient_corridor_liquidity',
-      body: JSON.stringify({
-        notes: "Standard import claim. Corridor NGA-GHA in good standing. Pre-cleared compliance."
-      }, null, 2)
+      meta: 'Request body → notes (optional)  ·  Response immediately reflects automated corridor verification result',
+      body: '// Request body\n' +
+            JSON.stringify({ notes: "Standard import claim. Corridor NGA-GHA in good standing. Pre-cleared compliance." }, null, 2) +
+            '\n\n// Response — protocol-enforced state machine result\n' +
+            JSON.stringify({
+              trade_claim_id: "TC-20260519142233",
+              status: "ready_to_mint",
+              supervisor_id: 4,
+              compliance_cleared_at: "2026-05-19T16:27:00Z",
+              protocol_routing: {
+                corridor: "NGA-GHA",
+                allocated_reservoir_headroom_before: 12500000,
+                allocated_reservoir_headroom_after: 12000000,
+                rule_validation: "passed"
+              },
+              issuance_eligible: true
+            }, null, 2)
     },
     reevaluate: {
       label: 'POST /api/v2/trade_claims/:id/re_evaluate',
