@@ -85,6 +85,92 @@ module Api
           message: "Draft saved. (Demo — not persisted across server restarts.)"
         }
       end
+
+      def approve
+        claim = find_claim or return
+        body  = JSON.parse(request.body.read) rescue {}
+        notes = body["notes"] || body["decision_notes"] || ""
+
+        claim[:status]          = "approved"
+        claim[:approved_at]     = Time.now.iso8601
+        claim[:decision_notes]  = notes
+
+        render json: {
+          status:  "approved",
+          data:    claim,
+          eligibility: {
+            issuance_eligible: true,
+            gates: {
+              supervisor_approval: { passed: true },
+              compliance:          { passed: true },
+              corridor_limits:     { passed: true },
+              liquidity:           { passed: true },
+              governance:          { passed: true },
+            }
+          },
+          message: "Trade claim #{claim[:reference]} approved."
+        }
+      end
+
+      def reject
+        claim = find_claim or return
+        body  = JSON.parse(request.body.read) rescue {}
+        notes = body["notes"] || body["decision_notes"] || ""
+
+        claim[:status]         = "rejected"
+        claim[:rejected_at]    = Time.now.iso8601
+        claim[:decision_notes] = notes
+
+        render json: { status: "rejected", data: claim, message: "Trade claim #{claim[:reference]} rejected." }
+      end
+
+      def re_evaluate
+        claim = find_claim or return
+
+        render json: {
+          status: claim[:status],
+          data:   claim,
+          eligibility: {
+            issuance_eligible: claim[:status] == "approved",
+            gates: {
+              supervisor_approval: { passed: claim[:status] == "approved" },
+              compliance:          { passed: true },
+              corridor_limits:     { passed: true },
+              liquidity:           { passed: true },
+              governance:          { passed: true },
+            }
+          },
+          message: "Re-evaluation complete."
+        }
+      end
+
+      def request_clarification
+        claim = find_claim or return
+        body  = JSON.parse(request.body.read) rescue {}
+        notes = body["notes"] || ""
+
+        claim[:status]         = "clarification_requested"
+        claim[:decision_notes] = notes
+
+        render json: { status: "clarification_requested", data: claim, message: "Clarification requested on #{claim[:reference]}." }
+      end
+
+      def cancel
+        claim = find_claim or return
+
+        claim[:status]      = "cancelled"
+        claim[:cancelled_at] = Time.now.iso8601
+
+        render json: { status: "cancelled", data: claim, message: "Trade claim #{claim[:reference]} cancelled." }
+      end
+
+      private
+
+      def find_claim
+        claim = self.class.submitted_claims.find { |c| c[:id].to_s == params[:id].to_s }
+        render json: { error: "Trade claim not found" }, status: :not_found unless claim
+        claim
+      end
     end
   end
 end

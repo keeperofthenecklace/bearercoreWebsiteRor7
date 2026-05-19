@@ -41,6 +41,13 @@ Rails.application.routes.draw do
       resources :documents,        only: [:index, :create]
 
       resources :trade_claims, only: [:index, :create] do
+        member do
+          post :approve
+          post :reject
+          post :re_evaluate
+          post :request_clarification
+          post :cancel
+        end
         collection do
           post :draft
         end
