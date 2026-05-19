@@ -2440,25 +2440,35 @@ async function findHolderKey(nameHint, swiftHint) {
 
   if (!nameUpper) return null;
 
-  // Priority 1: exact name match (case-insensitive)
-  let match = keys.find(k => (k.name || '').toUpperCase().trim() === nameUpper);
+  // Normalise: holder_keys stub uses `institution_name`; future DB records use `name`
+  const kName = k => (k.institution_name || k.name || '');
+
+  // Priority 1: SWIFT code exact match (most reliable)
+  if (swiftHint) {
+    const swiftUpper = swiftHint.toUpperCase().trim();
+    const swiftMatch = keys.find(k => (k.swift_code || '').toUpperCase().trim() === swiftUpper);
+    if (swiftMatch) return swiftMatch;
+  }
+
+  // Priority 2: exact name match (case-insensitive)
+  let match = keys.find(k => kName(k).toUpperCase().trim() === nameUpper);
   if (match) return match;
 
-  // Priority 2: normalized name exact match (strips PLC/LTD/etc.)
-  match = keys.find(k => normalizeBankName(k.name) === nameNorm && nameNorm.length > 3);
+  // Priority 3: normalized name exact match (strips PLC/LTD/etc.)
+  match = keys.find(k => normalizeBankName(kName(k)) === nameNorm && nameNorm.length > 3);
   if (match) return match;
 
-  // Priority 3: one name contains the other
+  // Priority 4: one name contains the other
   match = keys.find(k => {
-    const kUpper = (k.name || '').toUpperCase().trim();
+    const kUpper = kName(k).toUpperCase().trim();
     return (kUpper.includes(nameUpper) || nameUpper.includes(kUpper)) && kUpper.length > 5;
   });
   if (match) return match;
 
-  // Priority 4: normalized token overlap (≥ 2 significant words in common)
+  // Priority 5: normalized token overlap (≥ 2 significant words in common)
   const nameTokens = nameNorm.split(' ').filter(t => t.length > 2);
   match = keys.find(k => {
-    const kTokens = normalizeBankName(k.name).split(' ').filter(t => t.length > 2);
+    const kTokens = normalizeBankName(kName(k)).split(' ').filter(t => t.length > 2);
     const common  = nameTokens.filter(t => kTokens.includes(t));
     return common.length >= 2;
   });
