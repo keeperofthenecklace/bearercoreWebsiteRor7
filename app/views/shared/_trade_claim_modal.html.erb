@@ -257,18 +257,17 @@
             <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
               Trade Corridor <span style="color: #ef4444;">*</span>
             </label>
-            <select id="tc_corridor_id" name="corridor_id" required style="
+            <select id="tc_corridor_id" name="corridor_id" required size="8" style="
               width: 100%;
-              padding: 12px 16px;
+              padding: 8px 12px;
               border: 1px solid #d1d5db;
               border-radius: 8px;
               font-size: 14px;
               background: white;
               cursor: pointer;
-              appearance: none;
-              background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%236b7280\" stroke-width=\"2\"><polyline points=\"6 9 12 15 18 9\"/></svg>');
-              background-repeat: no-repeat;
-              background-position: right 12px center;
+              appearance: auto;
+              max-height: 220px;
+              overflow-y: auto;
             " onchange="onCorridorChange(this.value)">
               <option value="">Select Corridor...</option>
             </select>
