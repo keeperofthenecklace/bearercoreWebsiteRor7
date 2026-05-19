@@ -1173,7 +1173,7 @@ function renderSupervisorClaims() {
     
     const compStatus = resolveComplianceStatus(claim);
     const conf = complianceStatusConfig[compStatus] || complianceStatusConfig['pending'];
-    const isSelected = selectedSupervisorClaim === claim.id;
+    const isSelected = String(selectedSupervisorClaim) === String(claim.id);
     const timeAgo = claim.created_at ? getTimeAgo(new Date(claim.created_at)) : '—';
     
     return `
@@ -1248,7 +1248,7 @@ function supervisorNextPage() {
 
 function selectSupervisorClaim(claimId) {
   selectedSupervisorClaim = claimId;
-  selectedSupervisorClaimData = supervisorClaims.find(c => c.id === claimId);
+  selectedSupervisorClaimData = supervisorClaims.find(c => String(c.id) === String(claimId));
   if (!selectedSupervisorClaimData) return;
   
   document.getElementById('approvalSection').style.display = 'block';
