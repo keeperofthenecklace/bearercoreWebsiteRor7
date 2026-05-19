@@ -201,6 +201,189 @@
 </section>
 
 
+<%# ─── API & INTEGRATION DOCS ──────────────────────────────────────────────── %>
+<section style="padding:56px 24px;background:#fff;border-top:1px solid #f0f0f0;">
+  <div style="max-width:960px;margin:0 auto;">
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+      <div style="width:28px;height:28px;background:#d1fae5;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      </div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#059669;">Authenticated — Fully Unlocked</div>
+    </div>
+    <h2 style="font-size:22px;font-weight:700;color:#0C1B38;margin:0 0 6px;letter-spacing:-0.3px;">API &amp; Integration Docs</h2>
+    <p style="font-size:14px;color:#6B7280;margin:0 0 32px;max-width:540px;line-height:1.6;">Compliance &amp; integration reference for the bearerCORE state machine. Copy sample payloads directly into your integration environment.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px;">
+
+      <!-- Trade Claim -->
+      <a href="/docs/trade-claim" style="display:block;border:1.5px solid #e5e7eb;border-radius:14px;padding:20px;text-decoration:none;transition:border-color 0.15s,box-shadow 0.15s;" onmouseover="this.style.borderColor='#0C1B38';this.style.boxShadow='0 4px 16px rgba(12,27,56,0.08)'" onmouseout="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:36px;height:36px;background:#ecfdf5;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#0C1B38;">Trade Claim</div>
+            <div style="font-size:11px;color:#9CA3AF;">Submission &amp; state lifecycle</div>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        <p style="font-size:12.5px;color:#6B7280;margin:0;line-height:1.55;">Five-gate eligibility, data model, API reference, form field spec, and validation rules.</p>
+      </a>
+
+      <!-- Supervisor Desk -->
+      <a href="/docs/supervisor-desk" style="display:block;border:1.5px solid #e5e7eb;border-radius:14px;padding:20px;text-decoration:none;transition:border-color 0.15s,box-shadow 0.15s;" onmouseover="this.style.borderColor='#0C1B38';this.style.boxShadow='0 4px 16px rgba(12,27,56,0.08)'" onmouseout="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:36px;height:36px;background:#fffbeb;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#0C1B38;">Supervisor Desk</div>
+            <div style="font-size:11px;color:#9CA3AF;">Protocol-enforced approval pipeline</div>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        <p style="font-size:12.5px;color:#6B7280;margin:0;line-height:1.55;">Two-step state machine: compliance_cleared → ready_to_mint / insufficient_corridor_liquidity.</p>
+      </a>
+
+      <!-- Governor Desk -->
+      <a href="/docs/governor-desk" style="display:block;border:1.5px solid #e5e7eb;border-radius:14px;padding:20px;text-decoration:none;transition:border-color 0.15s,box-shadow 0.15s;" onmouseover="this.style.borderColor='#0C1B38';this.style.boxShadow='0 4px 16px rgba(12,27,56,0.08)'" onmouseout="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:36px;height:36px;background:#eff6ff;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#0C1B38;">Governor Desk</div>
+            <div style="font-size:11px;color:#9CA3AF;">Governance &amp; liquidity injection</div>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        <p style="font-size:12.5px;color:#6B7280;margin:0;line-height:1.55;">Multi-sig governance, corridor halt/resume, liquidity injection that unblocks insufficient_corridor_liquidity claims.</p>
+      </a>
+
+      <!-- Full Docs Index -->
+      <a href="/docs" style="display:block;border:1.5px dashed #e5e7eb;border-radius:14px;padding:20px;text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#9CA3AF'" onmouseout="this.style.borderColor='#e5e7eb'">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:36px;height:36px;background:#f5f5f7;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#0C1B38;">All Documentation</div>
+            <div style="font-size:11px;color:#9CA3AF;">Corridor Ops, Validation Desk, Governance…</div>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        <p style="font-size:12.5px;color:#6B7280;margin:0;line-height:1.55;">Full bearerCORE module specification index — all platform documentation in one place.</p>
+      </a>
+
+    </div>
+
+    <!-- JSON Payload Reference -->
+    <div style="background:#0C1B38;border-radius:16px;overflow:hidden;">
+      <div style="padding:18px 22px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(201,168,76,0.8);margin-bottom:4px;">Sample JSON Payloads</div>
+          <div style="font-size:13px;font-weight:600;color:#fff;">Trade Claim State Machine — API Reference</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="switchPayload('submit')" id="btnSubmit" style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(201,168,76,0.2);color:#C9A84C;cursor:pointer;">Submit</button>
+          <button onclick="switchPayload('approve')" id="btnApprove" style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:rgba(255,255,255,0.45);cursor:pointer;">Approve</button>
+          <button onclick="switchPayload('reevaluate')" id="btnReevaluate" style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:rgba(255,255,255,0.45);cursor:pointer;">Re-Evaluate</button>
+          <button onclick="switchPayload('reject')" id="btnReject" style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:rgba(255,255,255,0.45);cursor:pointer;">Reject</button>
+        </div>
+      </div>
+
+      <div style="position:relative;">
+        <button id="copyPayloadBtn" onclick="copyPayload()" style="position:absolute;top:14px;right:16px;z-index:2;font-size:11px;font-weight:600;padding:5px 11px;border-radius:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.14)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">Copy</button>
+        <pre id="payloadDisplay" style="margin:0;padding:20px 22px;font-size:12.5px;line-height:1.7;color:#e2e8f0;font-family:'SF Mono',monospace;overflow-x:auto;white-space:pre;"></pre>
+      </div>
+
+      <div id="payloadMeta" style="padding:12px 22px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;color:rgba(255,255,255,0.35);"></div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+(function() {
+  var PAYLOADS = {
+    submit: {
+      label: 'POST /api/v2/trade_claims',
+      meta: 'Submit a new trade claim → status: pending_review',
+      body: JSON.stringify({
+        trade_claim: {
+          corridor_id: 1,
+          institution_id: 3,
+          amount: 500000,
+          currency_code: "GHS",
+          trade_direction: "import",
+          beneficiary_name: "Meridian Trade Ltd",
+          beneficiary_country: "Ghana",
+          description: "Q2 cocoa import — invoice ref INV-20260519-441",
+          submitted_by: "ops@accessbank.com.gh"
+        }
+      }, null, 2)
+    },
+    approve: {
+      label: 'POST /api/v2/trade_claims/:id/approve',
+      meta: 'Step 1 → compliance_cleared  ·  Step 2 (auto) → ready_to_mint or insufficient_corridor_liquidity',
+      body: JSON.stringify({
+        notes: "Standard import claim. Corridor NGA-GHA in good standing. Pre-cleared compliance."
+      }, null, 2)
+    },
+    reevaluate: {
+      label: 'POST /api/v2/trade_claims/:id/re_evaluate',
+      meta: 'Governor escape hatch — re-runs CorridorVerificationService after liquidity injection. No body required.',
+      body: '{}'
+    },
+    reject: {
+      label: 'POST /api/v2/trade_claims/:id/reject',
+      meta: 'Terminal state — releases earmark if claim was ready_to_mint. Notes are mandatory.',
+      body: JSON.stringify({
+        notes: "AML flag on beneficiary country. Returning to originator for amended documentation."
+      }, null, 2)
+    }
+  };
+
+  var current = 'submit';
+
+  function renderPayload(key) {
+    var p = PAYLOADS[key];
+    document.getElementById('payloadDisplay').textContent = p.label + '\n\n' + p.body;
+    document.getElementById('payloadMeta').textContent = p.meta;
+    ['submit','approve','reevaluate','reject'].forEach(function(k) {
+      var btn = document.getElementById('btn' + k.charAt(0).toUpperCase() + k.slice(1));
+      if (!btn) return;
+      if (k === key) {
+        btn.style.background = 'rgba(201,168,76,0.2)';
+        btn.style.borderColor = 'rgba(255,255,255,0.15)';
+        btn.style.color = '#C9A84C';
+      } else {
+        btn.style.background = 'transparent';
+        btn.style.borderColor = 'rgba(255,255,255,0.08)';
+        btn.style.color = 'rgba(255,255,255,0.45)';
+      }
+    });
+    current = key;
+  }
+
+  window.switchPayload = function(key) { renderPayload(key); };
+
+  window.copyPayload = function() {
+    var p = PAYLOADS[current];
+    var text = p.label + '\n\n' + p.body;
+    navigator.clipboard.writeText(text).then(function() {
+      var btn = document.getElementById('copyPayloadBtn');
+      btn.textContent = 'Copied!';
+      btn.style.color = '#6ee7b7';
+      setTimeout(function(){ btn.textContent = 'Copy'; btn.style.color = 'rgba(255,255,255,0.6)'; }, 1800);
+    });
+  };
+
+  renderPayload('submit');
+})();
+</script>
+
 <%# ─── FOOTER ─────────────────────────────────────────────────────────────── %>
 <footer class="border-t border-gray-100 bg-white py-10 px-6">
   <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
