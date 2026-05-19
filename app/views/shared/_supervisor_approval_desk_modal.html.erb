@@ -804,6 +804,9 @@ const complianceStatusConfig = {
   'pre_cleared': { bg: '#d1fae5', color: '#059669', border: '#10b981', icon: '✓', label: 'Pre-Cleared' },
   'manual_review': { bg: '#fed7aa', color: '#c2410c', border: '#f97316', icon: '📋', label: 'Manual Review' },
   'approved': { bg: '#d1fae5', color: '#059669', border: '#059669', icon: '✅', label: 'Approved' },
+  'compliance_cleared': { bg: '#dbeafe', color: '#1d4ed8', border: '#3b82f6', icon: '⚙', label: 'Compliance Cleared' },
+  'ready_to_mint': { bg: '#d1fae5', color: '#065f46', border: '#10b981', icon: '🏦', label: 'Ready to Mint' },
+  'insufficient_corridor_liquidity': { bg: '#fef3c7', color: '#92400e', border: '#f59e0b', icon: '⚠', label: 'Liquidity Insufficient' },
   'cleared': { bg: '#d1fae5', color: '#059669', border: '#059669', icon: '✅', label: 'Cleared' },
   'blocked': { bg: '#fee2e2', color: '#dc2626', border: '#ef4444', icon: '⛔', label: 'Blocked' },
 };
@@ -811,7 +814,8 @@ const complianceStatusConfig = {
 // Derive the effective compliance status from the claim's lifecycle status.
 // Once a claim has been approved or progressed beyond review, compliance is cleared.
 const COMPLIANCE_CLEARED_STATUSES = new Set([
-  'approved', 'issuance_eligible', 'liquidity_reserved', 'batch_created',
+  'approved', 'compliance_cleared', 'ready_to_mint', 'insufficient_corridor_liquidity',
+  'issuance_eligible', 'liquidity_reserved', 'batch_created',
   'batch_packaged', 'minted', 'issued', 'completed'
 ]);
 function resolveComplianceStatus(claim) {
@@ -1604,12 +1608,15 @@ function synthesiseGates(claim, compStatus, claimStatus, isPreApproval) {
 
 // ── Lifecycle tracking table ────────────────────────────────────────────────
 const LIFECYCLE_STAGES = [
-  { key: 'submitted',         label: 'Submitted',                icon: '📤', gateKey: null },
-  { key: 'under_review',      label: 'Under Review',             icon: '🔍', gateKey: null },
-  { key: 'pre_cleared',       label: 'Compliance Pre-Cleared',   icon: '✅', gateKey: 'compliance' },
-  { key: 'approved',          label: 'Supervisor Approved',      icon: '🧑‍⚖️', gateKey: 'supervisor_approval' },
-  { key: 'issuance_eligible', label: 'Issuance-Eligible',        icon: '🏦', gateKey: null },
-  { key: 'locked',            label: 'Liquidity Locked',         icon: '🔒', gateKey: 'liquidity' },
+  { key: 'submitted',                        label: 'Submitted',                      icon: '📤', gateKey: null },
+  { key: 'under_review',                     label: 'Under Review',                   icon: '🔍', gateKey: null },
+  { key: 'pre_cleared',                      label: 'Compliance Pre-Cleared',         icon: '✅', gateKey: 'compliance' },
+  { key: 'pending_review',                   label: 'Supervisor Queue',               icon: '🧑‍⚖️', gateKey: null },
+  { key: 'compliance_cleared',               label: 'Supervisor Approved',            icon: '🧑‍⚖️', gateKey: 'supervisor_approval' },
+  { key: 'ready_to_mint',                    label: 'Ready to Mint',                  icon: '🏦', gateKey: 'liquidity' },
+  { key: 'insufficient_corridor_liquidity',  label: 'Liquidity Insufficient',         icon: '⚠', gateKey: 'liquidity' },
+  { key: 'issuance_eligible',                label: 'Issuance-Eligible (legacy)',     icon: '🏦', gateKey: null },
+  { key: 'locked',                           label: 'Liquidity Locked',               icon: '🔒', gateKey: 'liquidity' },
 ];
 
 const STATUS_ORDER = LIFECYCLE_STAGES.map(s => s.key);
@@ -1716,10 +1723,12 @@ function updateApprovalUpdates(claim) {
   }
 }
 
-// ── Post-approval result modal (replaces browser alert) ─────────────────────
-// Shows either an all-pass "Issuance-Eligible" celebration, a gates-failed
-// breakdown with the exact failure reason per gate, or an error state.
-function showApprovalResultModal({ issuanceEligible, reference, failedConditions = [], gates = {}, error = false, errorMessage = '' }) {
+// ── Post-approval result modal — Protocol-Enforced State Machine ─────────────
+// Three outcome branches:
+//   1. ready_to_mint       — compliance cleared + corridor headroom confirmed
+//   2. insufficient_corridor_liquidity — compliance cleared, corridor depleted
+//   3. error               — unexpected server/network failure
+function showApprovalResultModal({ mintingReady = false, liqInsufficient = false, reference, gates = {}, verifyNote = '', message = '', error = false, errorMessage = '' }) {
   const existing = document.getElementById('approvalResultOverlay');
   if (existing) existing.remove();
 
@@ -1737,17 +1746,52 @@ function showApprovalResultModal({ issuanceEligible, reference, failedConditions
     footerBtnLabel = 'Close';
     footerBtnColor = '#dc2626';
 
-  } else if (issuanceEligible) {
+  } else if (liqInsufficient) {
+    headerBg      = 'linear-gradient(135deg,#92400e,#d97706)';
+    headerIcon    = '⚠';
+    headerTitle   = 'Compliance Cleared — Liquidity Insufficient';
+    headerSub     = `${reference}: Supervisor approval recorded. Protocol check blocked on corridor headroom.`;
+    bodyHtml = `
+      <div style="padding:20px 24px;">
+        <div style="padding:14px 16px;background:#fef3c7;border:1px solid #fde68a;border-radius:10px;font-size:13px;color:#92400e;line-height:1.7;margin-bottom:16px;">
+          <strong>Protocol verification result:</strong><br>${verifyNote || 'Corridor headroom insufficient for this claim amount.'}
+        </div>
+        <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Gate Results</div>
+        ${['supervisor_approval','compliance','corridor_limits','liquidity','governance'].map(key => {
+          const g = gates[key] || {};
+          const passed = g.passed === true;
+          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f3f4f6;">
+            <div>
+              <span style="font-size:13px;color:#1d1d1f;">${key.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</span>
+              ${!passed && g.note ? `<div style="font-size:11px;color:#92400e;margin-top:2px;">${g.note}</div>` : ''}
+            </div>
+            <span style="flex-shrink:0;background:${passed?'#d1fae5':'#fee2e2'};color:${passed?'#065f46':'#991b1b'};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">${passed?'✓ Passed':'✗ Failed'}</span>
+          </div>`;
+        }).join('')}
+        <div style="margin-top:14px;padding:12px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;font-size:12px;color:#0c4a6e;line-height:1.6;">
+          <strong>Next action:</strong> Governor must inject liquidity into the corridor reserve pool.<br>
+          After injection, use <strong>Re-Evaluate</strong> on this claim to re-run the protocol check.<br>
+          If headroom is confirmed, the claim will advance to <strong>Ready to Mint</strong>.
+        </div>
+      </div>`;
+    footerBtnLabel = 'Understood';
+    footerBtnColor = '#d97706';
+
+  } else if (mintingReady) {
     headerBg      = 'linear-gradient(135deg,#065f46,#059669)';
     headerIcon    = '🏦';
-    headerTitle   = 'Claim Approved & Issuance-Eligible';
-    headerSub     = `${reference} has passed all 5 gating conditions and is ready for CVIB minting.`;
+    headerTitle   = 'Ready to Mint';
+    headerSub     = `${reference} — compliance cleared, corridor headroom confirmed and earmarked.`;
     const gateRows = ['supervisor_approval','compliance','corridor_limits','liquidity','governance']
       .map(key => {
         const g = gates[key] || {};
-        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0fdf4;">
-          <span style="font-size:13px;color:#1d1d1f;">${g.label || key}</span>
-          <span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">✓ Passed</span>
+        const passed = g.passed !== false;
+        return `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #f0fdf4;">
+          <div>
+            <div style="font-size:13px;color:#1d1d1f;">${key.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</div>
+            ${g.note ? `<div style="font-size:11px;color:#166534;margin-top:2px;">${g.note}</div>` : ''}
+          </div>
+          <span style="flex-shrink:0;background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">✓ Passed</span>
         </div>`;
       }).join('');
     bodyHtml = `
@@ -1755,90 +1799,25 @@ function showApprovalResultModal({ issuanceEligible, reference, failedConditions
         <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Gate Results</div>
         ${gateRows}
         <div style="margin-top:16px;padding:12px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;font-size:12px;color:#166534;line-height:1.6;">
-          ✓ IssuanceAuthorization created<br>
-          ✓ Liquidity lock confirmed<br>
-          ✓ Ready for Qt6 CVIB minting
+          ✓ Supervisor approval — compliance cleared<br>
+          ✓ Corridor protocol check passed<br>
+          ✓ Headroom earmarked against corridor reserve<br>
+          ✓ status: <strong>ready_to_mint</strong> — Qt6 issuance authorised
         </div>
       </div>`;
     footerBtnLabel = 'Done';
     footerBtnColor = '#059669';
 
   } else {
-    // Approved but gates pending — show which ones failed and why
-    headerBg   = 'linear-gradient(135deg,#92400e,#d97706)';
-    headerIcon = '✅';
-    headerTitle = 'Claim Approved — Eligibility Pending';
-    headerSub   = `${reference} is approved. One or more issuance gates need resolution.`;
+    // Fallback — unexpected intermediate state
+    headerBg   = 'linear-gradient(135deg,#374151,#6b7280)';
+    headerIcon = '⚙';
+    headerTitle = 'Processing';
+    headerSub   = `${reference} — claim is processing through the approval pipeline.`;
 
-    const GATE_ORDER = ['supervisor_approval','compliance','corridor_limits','liquidity','governance'];
-    const gateRows = GATE_ORDER.map(key => {
-      const g = gates[key];
-      if (!g) return '';
-      const passed   = g.passed === true;
-      const badgeBg  = passed ? '#d1fae5' : '#fee2e2';
-      const badgeCol = passed ? '#065f46' : '#991b1b';
-      const badgeTxt = passed ? '✓ Passed' : '✗ Failed';
-      const label    = g.label || key;
-
-      // Build human-readable failure reason from gate details
-      let reason = '';
-      if (!passed && g.details) {
-        const d = g.details;
-        if (key === 'compliance') {
-          const parts = [];
-          if (!['pre_cleared','comp_pre_cleared','cleared','comp_cleared','approved'].includes(d.compliance_status))
-            parts.push(`Status: ${d.compliance_status || 'not cleared'}`);
-          if (d.aml_status && !['clear','ok','passed'].includes(d.aml_status))
-            parts.push(`AML: ${d.aml_status}`);
-          if (d.risk_score >= 50)
-            parts.push(`Risk score: ${d.risk_score}`);
-          if (d.documents_ok === false)
-            parts.push('Documents not validated');
-          if (d.sanctions_ok === false)
-            parts.push('Sanctions flagged');
-          reason = parts.join(' · ') || 'AML check pending — run AML screening to clear';
-        } else if (key === 'corridor_limits') {
-          const parts = [];
-          if (d.suspended)    parts.push('Corridor suspended');
-          if (!d.limit_ok)    parts.push(`Daily limit exceeded`);
-          if (!d.per_tx_ok)   parts.push(`Per-transaction limit exceeded`);
-          if (!d.velocity_ok) parts.push('Velocity limit exceeded');
-          reason = parts.join(' · ');
-        } else if (key === 'liquidity') {
-          const parts = [];
-          if (!d.backing_asset_exists)    parts.push('No backing asset');
-          if (!d.reserve_pool_sufficient) parts.push('Reserve pool insufficient');
-          if (!d.dlt_lock_confirmed)      parts.push('DLT lock pending');
-          reason = parts.join(' · ');
-        } else if (key === 'supervisor_approval') {
-          const parts = [];
-          if (!d.status_ok)       parts.push(`Status: ${d.claim_status}`);
-          if (!d.four_eyes_ok)    parts.push('4-eyes not satisfied');
-          if (!d.audit_trail_ok)  parts.push('Audit trail missing');
-          reason = parts.join(' · ');
-        }
-      }
-
-      return `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #f3f4f6;">
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#1d1d1f;">${label}</div>
-          ${!passed && reason ? `<div style="font-size:11px;color:#92400e;margin-top:2px;">${reason}</div>` : ''}
-        </div>
-        <span style="flex-shrink:0;background:${badgeBg};color:${badgeCol};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">${badgeTxt}</span>
-      </div>`;
-    }).join('');
-
-    bodyHtml = `
-      <div style="padding:20px 24px 4px;">
-        <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Gate Results</div>
-        ${gateRows}
-        <div style="margin-top:14px;padding:12px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;font-size:12px;color:#92400e;line-height:1.6;">
-          ⟳ The claim will transition to <strong>Issuance-Eligible</strong> automatically once all failed gates are resolved.<br>
-          Use the <strong>Re-Evaluate</strong> button after corrections are made.
-        </div>
-      </div>`;
-    footerBtnLabel = 'Got it';
-    footerBtnColor = '#d97706';
+    bodyHtml      = `<div style="padding:20px 24px;font-size:13px;color:#374151;">${message || 'Claim is being processed. Use Re-Evaluate to check current status.'}</div>`;
+    footerBtnLabel = 'Close';
+    footerBtnColor = '#6b7280';
   }
 
   const overlay = document.createElement('div');
@@ -2031,62 +2010,73 @@ async function supervisorApproveClaim() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || data.error || `Failed: ${res.status}`);
 
-    const issuanceEligible = data.issuance_eligible === true;
-    const finalStatus      = data.status || 'approved';
+    const finalStatus    = data.status || 'compliance_cleared';
+    const mintingReady   = finalStatus === 'ready_to_mint';
+    const liqInsufficient = finalStatus === 'insufficient_corridor_liquidity';
 
-    // ── Merge gating results back into the claim object and re-render ──
+    // ── Merge updated claim data and re-render checks panel ──
     selectedSupervisorClaimData = {
       ...selectedSupervisorClaimData,
-      status:             finalStatus,
-      gating_conditions:  data.eligibility?.gates || {},
-      eligibility:        data.eligibility || {}
+      ...data.data,
+      status:            finalStatus,
+      gating_conditions: data.eligibility?.gates || {},
+      eligibility:       data.eligibility || {}
     };
-
-    // Re-render gating conditions panel and lifecycle table with real results
     populateReviewChecks(selectedSupervisorClaimData);
 
     // ── Update the "Updates" panel ──
-    const updatesEl    = document.getElementById('approvalUpdates');
-    const issuanceEl   = document.getElementById('issuanceEligibleUpdate');
+    const updatesEl  = document.getElementById('approvalUpdates');
+    const issuanceEl = document.getElementById('issuanceEligibleUpdate');
 
-    if (issuanceEligible) {
+    if (mintingReady) {
       updatesEl.innerHTML = `
-        <div><span style="color:#22c55e;">✓</span> status → issuance_eligible</div>
-        <div><span style="color:#22c55e;">✓</span> liquidity_lock created</div>
-        <div><span style="color:#22c55e;">✓</span> issuance_authorization created</div>
+        <div><span style="color:#22c55e;">✓</span> Supervisor approval — compliance cleared</div>
+        <div><span style="color:#22c55e;">✓</span> Corridor protocol check passed</div>
+        <div><span style="color:#22c55e;">✓</span> Corridor headroom earmarked</div>
+        <div><span style="color:#22c55e;">✓</span> status → <strong>ready_to_mint</strong></div>
       `;
-      updatesEl.style.background   = '#f0fdf4';
-      updatesEl.style.color        = '#166534';
-      updatesEl.style.borderColor  = '#bbf7d0';
+      updatesEl.style.background  = '#f0fdf4';
+      updatesEl.style.color       = '#166534';
+      updatesEl.style.borderColor = '#bbf7d0';
       if (issuanceEl) issuanceEl.style.display = 'block';
-      btn.innerHTML = '🏦 Approved → Issuance-Eligible';
-    } else {
-      const failedConditions = data.eligibility?.failed_conditions || [];
+      btn.innerHTML = '🏦 Approved → Ready to Mint';
+
+    } else if (liqInsufficient) {
+      const note = data.data?.verification_note || 'Corridor headroom insufficient.';
       updatesEl.innerHTML = `
-        <div><span style="color:#22c55e;">✓</span> status → approved</div>
-        <div><span style="color:#f59e0b;">⟳</span> Eligibility evaluation: ${failedConditions.length} gate(s) pending</div>
-        ${failedConditions.map(f => `<div style="font-size:11px;color:#92400e;padding-left:12px;">• ${f}</div>`).join('')}
+        <div><span style="color:#22c55e;">✓</span> Supervisor approval — compliance cleared</div>
+        <div><span style="color:#f59e0b;">⚠</span> Protocol check: corridor headroom insufficient</div>
+        <div style="font-size:11px;color:#92400e;padding:6px 0 0 12px;line-height:1.5;">${note}</div>
+        <div style="margin-top:8px;font-size:11px;color:#92400e;font-weight:600;">
+          Governor liquidity injection required. Use Re-Evaluate after injection to advance to Ready to Mint.
+        </div>
       `;
-      updatesEl.style.background   = '#fffbeb';
-      updatesEl.style.color        = '#92400e';
-      updatesEl.style.borderColor  = '#fde68a';
+      updatesEl.style.background  = '#fffbeb';
+      updatesEl.style.color       = '#92400e';
+      updatesEl.style.borderColor = '#fde68a';
       if (issuanceEl) issuanceEl.style.display = 'none';
-      btn.innerHTML = '✅ Approved (eligibility pending)';
+      btn.innerHTML = '⚠ Compliance Cleared — Liquidity Insufficient';
+
+    } else {
+      updatesEl.innerHTML = `<div><span style="color:#22c55e;">✓</span> status → ${finalStatus}</div>`;
+      updatesEl.style.background  = '#f9fafb';
+      updatesEl.style.color       = '#374151';
+      updatesEl.style.borderColor = '#e5e7eb';
+      btn.innerHTML = '✅ Processing...';
     }
 
-    // ── Reload queue but do NOT hide the panel — claim stays visible ──
-    // Update the in-memory claims list with the new status so the queue row
-    // reflects approved/issuance_eligible without disappearing.
+    // Update in-memory queue
     const idx = supervisorClaims.findIndex(c => c.id === selectedSupervisorClaimData.id);
-    if (idx !== -1) supervisorClaims[idx] = { ...supervisorClaims[idx], status: finalStatus };
+    if (idx !== -1) supervisorClaims[idx] = { ...supervisorClaims[idx], ...data.data, status: finalStatus };
     applySupervisorFilters();
 
-    // ── Styled result modal (replaces browser alert) ─────────────────────────
     showApprovalResultModal({
-      issuanceEligible,
-      reference:        selectedSupervisorClaimData.reference || finalStatus,
-      failedConditions: data.eligibility?.failed_conditions || [],
-      gates:            data.eligibility?.gates || {}
+      mintingReady,
+      liqInsufficient,
+      reference:    selectedSupervisorClaimData.reference || finalStatus,
+      gates:        data.eligibility?.gates || {},
+      verifyNote:   data.data?.verification_note || '',
+      message:      data.message || ''
     });
 
   } catch (e) {
