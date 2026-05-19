@@ -146,6 +146,124 @@
 
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;">
 
+        <!-- Trade Claim -->
+        <a href="/docs/trade-claim" style="text-decoration:none;" class="dp-mod-card">
+          <div class="dp-card-inner"
+               onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
+               onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div class="dp-card-icon" style="background:#0a3d62;">📋</div>
+              <span class="dp-badge-progress">IN PROGRESS</span>
+            </div>
+            <div>
+              <div class="dp-card-title">Trade Claim</div>
+              <div class="dp-card-desc">
+                Institutional cross-border liquidity claim origination. FX corridor selection, commercial bank registration, beneficiary routing, compliance declaration, and sovereign settlement request orchestration across 54 AU member corridors.
+              </div>
+            </div>
+            <div class="dp-card-tags">
+              <span class="dp-tag">Liquidity Claims</span>
+              <span class="dp-tag">FX Settlement</span>
+              <span class="dp-tag">Trade Financing</span>
+              <span class="dp-tag">Compliance Gate</span>
+            </div>
+            <div style="margin-top:8px;padding-top:12px;border-top:1px solid #f0f2f8;">
+              <div style="font-size:11px;color:#7a7f9a;line-height:1.7;">
+                <b style="color:#0a1628;">Workflow:</b> Draft → Validation → Supervisor Review → Governor Authorization → Settlement
+              </div>
+            </div>
+            <div class="dp-card-cta">View documentation →</div>
+          </div>
+        </a>
+
+        <!-- Supervisor Desk -->
+        <a href="/docs/supervisor-desk" style="text-decoration:none;" class="dp-mod-card">
+          <div class="dp-card-inner"
+               onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
+               onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div class="dp-card-icon" style="background:#1a4d3e;">🕐</div>
+              <span class="dp-badge-progress">IN PROGRESS</span>
+            </div>
+            <div>
+              <div class="dp-card-title">Supervisor Approval Desk</div>
+              <div class="dp-card-desc">
+                Operational governance layer for trade claim review. Multi-tier compliance verification, FX exposure assessment, five-gate issuance eligibility evaluation, risk scoring, and workflow routing with full immutable audit chain visibility.
+              </div>
+            </div>
+            <div class="dp-card-tags">
+              <span class="dp-tag">Approval Workflow</span>
+              <span class="dp-tag">Compliance Review</span>
+              <span class="dp-tag">Risk Scoring</span>
+              <span class="dp-tag">Escalation Routing</span>
+            </div>
+            <div style="margin-top:8px;padding-top:12px;border-top:1px solid #f0f2f8;">
+              <div style="font-size:11px;color:#7a7f9a;line-height:1.7;">
+                <b style="color:#0a1628;">Gates:</b> Supervisor Approval · Compliance · Corridor Limits · Liquidity · Governance
+              </div>
+            </div>
+            <div class="dp-card-cta">View documentation →</div>
+          </div>
+        </a>
+
+        <!-- Governor Desk -->
+        <a href="/docs/governor-desk" style="text-decoration:none;" class="dp-mod-card">
+          <div class="dp-card-inner"
+               onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
+               onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div class="dp-card-icon" style="background:#2c1654;">🏛️</div>
+              <span class="dp-badge-progress">IN PROGRESS</span>
+            </div>
+            <div>
+              <div class="dp-card-title">Governor's Desk</div>
+              <div class="dp-card-desc">
+                Sovereign executive authorization layer. High-value claim review, treasury exposure analysis, FX reserve impact assessment, macroscopic corridor controls, circuit breaker orchestration, and dual-signature final approval with non-repudiation audit generation.
+              </div>
+            </div>
+            <div class="dp-card-tags">
+              <span class="dp-tag">Executive Auth</span>
+              <span class="dp-tag">Sovereign Governance</span>
+              <span class="dp-tag">Dual-Signature</span>
+              <span class="dp-tag">Treasury Impact</span>
+            </div>
+            <div style="margin-top:8px;padding-top:12px;border-top:1px solid #f0f2f8;">
+              <div style="font-size:11px;color:#7a7f9a;line-height:1.7;">
+                <b style="color:#0a1628;">Authority:</b> Final approval · Emergency override · Regulatory escalation · Settlement trigger
+              </div>
+            </div>
+            <div class="dp-card-cta">View documentation →</div>
+          </div>
+        </a>
+
+      </div><!-- /web grid -->
+
+      <div class="dp-callout dp-info" style="margin-top:40px;">
+        <span class="dp-ci">ℹ</span>
+        <div>
+          <strong>API Reference:</strong> Full API specification available upon request.
+          Contact <a href="mailto:governors@bearercore.com" style="color:#1976d2;font-weight:600;">governors@bearercore.com</a> for integration credentials.
+          All endpoints follow the <code>/api/v2/</code> namespace with Doorkeeper OAuth2 authentication.
+        </div>
+      </div>
+    </div>
+  </div><!-- /panel-web -->
+
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <!-- TAB 2 — Qt6 System Clients                                          -->
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <div class="dp-tab-panel" id="panel-qt6">
+    <div style="max-width:1060px;margin:0 auto;padding:40px 48px 80px;">
+
+      <h2 style="font-family:Georgia,serif;font-size:18px;font-weight:normal;color:#0a1628;margin-bottom:6px;">
+        Platform Modules: Qt6 System Clients
+      </h2>
+      <p style="font-size:14px;color:#7a7f9a;margin-bottom:32px;">
+        Select a module to open its full specification.
+      </p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;">
+
         <!-- Corridor Operations -->
         <a href="/docs/corridor-ops" style="text-decoration:none;" class="dp-mod-card">
           <div class="dp-card-inner"
@@ -191,7 +309,7 @@
         </a>
 
         <!-- Validation Desk -->
-        <a href="/docs/validation-desk" style="text-decoration:none;">
+        <a href="/docs/validation-desk" style="text-decoration:none;" class="dp-mod-card">
           <div class="dp-card-inner"
                onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
                onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
@@ -212,8 +330,8 @@
           </div>
         </a>
 
-        <!-- Governance -->
-        <a href="/docs/governance" style="text-decoration:none;">
+        <!-- Governance & Authorization -->
+        <a href="/docs/governance" style="text-decoration:none;" class="dp-mod-card">
           <div class="dp-card-inner"
                onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
                onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
@@ -234,7 +352,7 @@
           </div>
         </a>
 
-        <!-- System Events -->
+        <!-- System Event Stream -->
         <a href="/docs/system-events" style="text-decoration:none;" class="dp-mod-card">
           <div class="dp-card-inner"
                onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
@@ -279,7 +397,7 @@
         </a>
 
         <!-- Deposit & Burn -->
-        <a href="/docs/deposit-burn" style="text-decoration:none;">
+        <a href="/docs/deposit-burn" style="text-decoration:none;" class="dp-mod-card">
           <div class="dp-card-inner"
                onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
                onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
@@ -322,7 +440,7 @@
           </div>
         </a>
 
-      </div><!-- /web grid -->
+      </div><!-- /qt6 grid -->
 
       <div class="dp-callout dp-info" style="margin-top:40px;">
         <span class="dp-ci">ℹ</span>
@@ -330,106 +448,6 @@
           <strong>API Reference:</strong> Full API specification available upon request.
           Contact <a href="mailto:governors@bearercore.com" style="color:#1976d2;font-weight:600;">governors@bearercore.com</a> for integration credentials.
           All endpoints follow the <code>/api/v2/</code> namespace with Doorkeeper OAuth2 authentication.
-        </div>
-      </div>
-    </div>
-  </div><!-- /panel-web -->
-
-  <!-- ════════════════════════════════════════════════════════════════════ -->
-  <!-- TAB 2 — Qt6 System Clients                                          -->
-  <!-- ════════════════════════════════════════════════════════════════════ -->
-  <div class="dp-tab-panel" id="panel-qt6">
-    <div style="max-width:1060px;margin:0 auto;padding:40px 48px 80px;">
-
-      <h2 style="font-family:Georgia,serif;font-size:18px;font-weight:normal;color:#0a1628;margin-bottom:6px;">
-        Platform Modules: Qt6 System Clients
-      </h2>
-      <p style="font-size:14px;color:#7a7f9a;margin-bottom:32px;">
-        Native C++ desktop application modules. Documentation in preparation.
-      </p>
-
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;">
-
-        <!-- Issuance & Key Management -->
-        <div class="dp-card-inner" style="opacity:0.75;">
-          <div style="display:flex;align-items:center;justify-content:space-between;">
-            <div class="dp-card-icon" style="background:#152240;">🪙</div>
-            <span class="dp-badge-soon">COMING SOON</span>
-          </div>
-          <div>
-            <div class="dp-card-title">Issuance &amp; Key Management</div>
-            <div class="dp-card-desc">Ed25519 cryptographic key pair generation, batch minting signature flows, serial number allocation, PNG metadata embedding, and SFTP delivery to commercial banks.</div>
-          </div>
-          <div class="dp-card-tags">
-            <span class="dp-tag">Ed25519 Signing</span>
-            <span class="dp-tag">Batch Minting</span>
-            <span class="dp-tag">CVIB Pipeline</span>
-          </div>
-          <div class="dp-card-cta" style="color:#9ca3af;">Documentation in preparation</div>
-        </div>
-
-        <!-- Validation Desk Client -->
-        <div class="dp-card-inner" style="opacity:0.75;">
-          <div style="display:flex;align-items:center;justify-content:space-between;">
-            <div class="dp-card-icon" style="background:#1e3260;">📷</div>
-            <span class="dp-badge-soon">COMING SOON</span>
-          </div>
-          <div>
-            <div class="dp-card-title">Validation Desk Client</div>
-            <div class="dp-card-desc">QR/barcode camera parsing optimization, offline transaction validation pipelines, client-side Ed25519 signature decoding, and AES-GCM QR payload decryption.</div>
-          </div>
-          <div class="dp-card-tags">
-            <span class="dp-tag">QR Parsing</span>
-            <span class="dp-tag">Offline Validation</span>
-            <span class="dp-tag">AES-GCM Decrypt</span>
-          </div>
-          <div class="dp-card-cta" style="color:#9ca3af;">Documentation in preparation</div>
-        </div>
-
-        <!-- Deposit & Burn Terminal -->
-        <div class="dp-card-inner" style="opacity:0.75;">
-          <div style="display:flex;align-items:center;justify-content:space-between;">
-            <div class="dp-card-icon" style="background:#c0392b;">🔥</div>
-            <span class="dp-badge-soon">COMING SOON</span>
-          </div>
-          <div>
-            <div class="dp-card-title">Deposit &amp; Burn Terminal</div>
-            <div class="dp-card-desc">Native UI modules for physical-to-digital redemption workflows. Local cash-code lifecycle states, vault encryption, and burn authorization flows from the desktop client.</div>
-          </div>
-          <div class="dp-card-tags">
-            <span class="dp-tag">Vault Encryption</span>
-            <span class="dp-tag">Cash Redemption</span>
-            <span class="dp-tag">Burn Auth</span>
-          </div>
-          <div class="dp-card-cta" style="color:#9ca3af;">Documentation in preparation</div>
-        </div>
-
-        <!-- Cross-Platform Compilation -->
-        <div class="dp-card-inner" style="opacity:0.75;">
-          <div style="display:flex;align-items:center;justify-content:space-between;">
-            <div class="dp-card-icon" style="background:#0B1E2D;">⚙</div>
-            <span class="dp-badge-soon">COMING SOON</span>
-          </div>
-          <div>
-            <div class="dp-card-title">Cross-Platform Compilation</div>
-            <div class="dp-card-desc">Build targets and toolchains for secure deployment. macOS ARM64, qmake configuration, OpenSSL 3, libsodium, Crypto++, Boost ASIO linkage, and code-signing procedures.</div>
-          </div>
-          <div class="dp-card-tags">
-            <span class="dp-tag">macOS ARM64</span>
-            <span class="dp-tag">qmake / CMake</span>
-            <span class="dp-tag">Code Signing</span>
-          </div>
-          <div class="dp-card-cta" style="color:#9ca3af;">Documentation in preparation</div>
-        </div>
-
-      </div><!-- /qt6 grid -->
-
-      <div class="dp-callout" style="margin-top:40px;background:#f9fafb;border:1.5px dashed #dde1ef;">
-        <span class="dp-ci" style="color:#7a7f9a;">📋</span>
-        <div style="color:#7a7f9a;">
-          <strong style="color:#0a1628;">Qt6 documentation is in preparation.</strong>
-          Specifications for the C++ native client stack will be published in the next documentation cycle.
-          Contact <a href="mailto:governors@bearercore.com" style="color:#1976d2;font-weight:600;">governors@bearercore.com</a> for early access.
         </div>
       </div>
     </div>
