@@ -2581,7 +2581,26 @@ async function resolveCommercialBankHolderId(institutionName, swiftCode) {
   if (displayField) { displayField.value = ''; displayField.placeholder = 'Resolving…'; }
   if (statusIcon) statusIcon.textContent = '⏳';
 
-  const key = await findHolderKey(institutionName, swiftCode);
+  let key = null;
+
+  // Primary: direct SWIFT code lookup — queries commercial_bank_holder_keys DB in production
+  if (swiftCode) {
+    try {
+      const res = await fetch(`/api/v2/holder_keys?swift_code=${encodeURIComponent(swiftCode.trim().toUpperCase())}`, {
+        headers: { 'Authorization': `Bearer ${getAccessToken()}`, 'Accept': 'application/json' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const records = Array.isArray(data) ? data : (data.data || []);
+        key = records[0] || null;
+      }
+    } catch (e) {
+      console.warn('[resolveCommercialBankHolderId] SWIFT lookup error:', e.message);
+    }
+  }
+
+  // Fallback: name-based search through full list (bearerCORE sandbox / no SWIFT code)
+  if (!key) key = await findHolderKey(institutionName, null);
 
   if (hiddenField)  hiddenField.value  = key ? key.holder_id : '';
   if (displayField) {

@@ -176,7 +176,11 @@ module Api
       ].freeze
 
       def index
-        render json: STUB_HOLDER_KEYS
+        swift_code = params[:swift_code]&.upcase&.strip
+        keys = swift_code.present?
+          ? STUB_HOLDER_KEYS.select { |k| k[:swift_code] == swift_code }
+          : STUB_HOLDER_KEYS
+        render json: keys
       end
     end
   end
