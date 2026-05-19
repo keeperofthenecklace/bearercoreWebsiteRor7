@@ -525,17 +525,35 @@ let govSelectedCorridorId    = '';
 let govSelectedCorridorLabel = '';
 
 const GOV_BLOCS = {
+  'WAMZ':   ['NGA','GHA','SLE','GIN','LBR','GMB'],
   'ECOWAS': ['NGA','GHA','SEN','CIV','BEN','TGO','GIN','SLE','GMB','LBR','GNB','CPV'],
   'AES':    ['BFA','MLI','NER'],
   'EAC':    ['KEN','TZA','UGA','RWA','BDI','SSD'],
   'SADC':   ['ZAF','ZWE','ZMB','MOZ','MWI','BWA','NAM','LSO','SWZ','AGO','MDG','MUS'],
   'CEMAC':  ['CMR','CAF','COG','GAB','GNQ','TCD'],
+  'AfCFTA': [],
   'AMU':    ['MAR','DZA','TUN','LBY','MRT'],
   'IGAD':   ['ETH','SOM','DJI','ERI','SDN'],
 };
 
-function govGetBloc(isoCode) {
-  const code = (isoCode || '').toUpperCase().slice(0, 3);
+const GOV_BLOC_META = {
+  'WAMZ':   { label: 'West African Monetary Zone',           color: '#f59e0b' },
+  'ECOWAS': { label: 'Eco Community of West African States', color: '#3b82f6' },
+  'AES':    { label: 'Alliance of Sahel States',             color: '#ef4444' },
+  'EAC':    { label: 'East African Community',               color: '#10b981' },
+  'SADC':   { label: 'Southern African Development Community', color: '#8b5cf6' },
+  'CEMAC':  { label: 'Central African Economic Community',   color: '#06b6d4' },
+  'AfCFTA': { label: 'Inter-Bloc / AfCFTA Corridors',        color: '#e879f9' },
+  'AMU':    { label: 'Arab Maghreb Union',                   color: '#64748b' },
+  'IGAD':   { label: 'Intergovernmental Authority on Development', color: '#94a3b8' },
+};
+
+function govGetBloc(corridorOrCode) {
+  if (corridorOrCode && typeof corridorOrCode === 'object') {
+    if (corridorOrCode.bloc) return corridorOrCode.bloc;
+    corridorOrCode = corridorOrCode.source_country;
+  }
+  const code = (corridorOrCode || '').toUpperCase().slice(0, 3);
   for (const [bloc, members] of Object.entries(GOV_BLOCS)) {
     if (members.includes(code)) return bloc;
   }
@@ -748,7 +766,7 @@ function govBuildCorridorSelect(corridors) {
 
   const groups = {};
   filtered.forEach(c => {
-    const bloc = govGetBloc(c.source_country);
+    const bloc = govGetBloc(c);
     if (!groups[bloc]) groups[bloc] = [];
     groups[bloc].push(c);
   });
@@ -765,8 +783,9 @@ function govBuildCorridorSelect(corridors) {
 
   const orderedBlocs = [...Object.keys(GOV_BLOCS), 'Other'].filter(b => groups[b]?.length > 0);
   orderedBlocs.forEach(bloc => {
+    const meta  = GOV_BLOC_META[bloc] || { label: bloc };
     const group = document.createElement('optgroup');
-    group.label = `— ${bloc} —`;
+    group.label = `— ${bloc}: ${meta.label} —`;
     group.style.cssText = 'background:#0a1628; color:#64748b;';
     groups[bloc].forEach(c => {
       const display = c.corridor_display || c.code || `${c.source_country} → ${c.target_country}`;
@@ -1042,7 +1061,7 @@ function renderCorridorReservoirGrid(corridors) {
   // Group by bloc
   const groups = {};
   corridors.forEach(c => {
-    const bloc = govGetBloc(c.source_country);
+    const bloc = govGetBloc(c);
     if (!groups[bloc]) groups[bloc] = [];
     groups[bloc].push(c);
   });
@@ -1155,15 +1174,25 @@ function renderCorridorReservoirGrid(corridors) {
         </div>`;
     }).join('');
 
+    const meta = GOV_BLOC_META[bloc] || { label: bloc, color: '#64748b' };
     return `
-      <div style="margin-bottom:20px;">
+      <div style="margin-bottom:24px;">
         <div style="
-          font-size:10px;font-weight:700;color:#64748b;
-          text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;
-          display:flex;align-items:center;gap:8px;
+          display:flex;align-items:center;gap:10px;margin-bottom:10px;
+          padding-bottom:8px;border-bottom:1px solid #1e3a5f;
         ">
-          <span>${bloc}</span>
-          <span style="font-size:11px;color:#cbd5e1;font-weight:400;">(${groups[bloc].length} corridor${groups[bloc].length !== 1 ? 's' : ''})</span>
+          <span style="
+            display:inline-block;width:4px;height:20px;border-radius:2px;
+            background:${meta.color};flex-shrink:0;
+          "></span>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:${meta.color};text-transform:uppercase;letter-spacing:1.5px;">
+              ${bloc}
+            </div>
+            <div style="font-size:10px;color:#64748b;margin-top:1px;">
+              ${meta.label} &middot; ${groups[bloc].length} corridor${groups[bloc].length !== 1 ? 's' : ''}
+            </div>
+          </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
           ${cards}
