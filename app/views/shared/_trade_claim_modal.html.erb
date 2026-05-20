@@ -79,7 +79,7 @@
     ">
       <form id="tradeClaimForm" onsubmit="submitTradeClaim(event)">
         
-        <!-- Section 1: Claiming Institution -->
+        <!-- Section 1: Originating Entity -->
         <div class="trade-claim-section" style="
           background: #f8fafb;
           border-radius: 12px;
@@ -97,13 +97,16 @@
               justify-content: center;
             ">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <path d="M3 9h18M9 21V9"></path>
               </svg>
             </div>
-            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
-              Claiming Institution
-            </h3>
+            <div>
+              <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
+                Originating Entity
+              </h3>
+              <span style="font-size: 12px; color: #6b7280;">Source Vault Node &amp; Claiming Institution</span>
+            </div>
           </div>
 
           <!-- Country + Central Bank SWIFT — 2 column row -->
@@ -225,7 +228,7 @@
           </div>
         </div>
 
-        <!-- Section 2: Trade Details -->
+        <!-- Section 2: Sovereign Corridor & Funding Architecture -->
         <div class="trade-claim-section" style="
           background: #f8fafb;
           border-radius: 12px;
@@ -243,13 +246,15 @@
               justify-content: center;
             ">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                <line x1="1" y1="10" x2="23" y2="10"></line>
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
               </svg>
             </div>
-            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
-              Trade Details
-            </h3>
+            <div>
+              <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
+                Sovereign Corridor &amp; Funding Architecture
+              </h3>
+              <span style="font-size: 12px; color: #6b7280;">Settlement Corridor · FX Reference · Minting Target</span>
+            </div>
           </div>
 
           <!-- Corridor Selection -->
@@ -271,6 +276,49 @@
             " onchange="onCorridorChange(this.value)">
               <option value="">Select Corridor...</option>
             </select>
+          </div>
+
+          <!-- FX Reference + Sovereign Minting Node — 2-column row -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                FX Reference / Bilateral Quote ID
+                <span style="color: #ef4444;">*</span>
+              </label>
+              <input type="text" id="tc_fx_reference_id" name="fx_reference_id" required
+                placeholder="e.g. FX-BOG-CBN-2026-05-19A"
+                style="
+                  width: 100%;
+                  padding: 12px 16px;
+                  border: 1px solid #d1d5db;
+                  border-radius: 8px;
+                  font-size: 13px;
+                  font-family: 'Courier New', monospace;
+                  letter-spacing: 0.2px;
+                  box-sizing: border-box;
+                " />
+              <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">Bilateral quote ID proving the FX rate used to justify this issuance amount.</p>
+            </div>
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                Sovereign Minting Destination Node
+                <span style="font-size: 11px; color: #6b7280; font-weight: 400;">(auto-resolved)</span>
+              </label>
+              <input type="text" id="tc_sovereign_minting_node" name="sovereign_minting_node" readonly
+                placeholder="Select Corridor first..."
+                style="
+                  width: 100%;
+                  padding: 12px 16px;
+                  border: 1px solid #d1d5db;
+                  border-radius: 8px;
+                  font-size: 13px;
+                  background: #f3f4f6;
+                  color: #374151;
+                  box-sizing: border-box;
+                  cursor: not-allowed;
+                " />
+              <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">CBN Vault Terminal that will handle Qt6 minting execution.</p>
+            </div>
           </div>
 
           <!-- Institution Name (populated from destination country of corridor) -->
@@ -350,6 +398,53 @@
                 " />
               <span id="commHolderIdStatus" style="font-size: 18px; flex-shrink: 0;"></span>
             </div>
+          </div>
+
+          <!-- Source Vault Node amber warning — shown when institution is selected -->
+          <div id="sourceVaultWarning" style="
+            display: none;
+            background: #fffbeb;
+            border: 1.5px solid #f59e0b;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            display: none;
+            align-items: flex-start;
+            gap: 10px;
+          ">
+            <span style="font-size: 16px; flex-shrink: 0; margin-top: 1px;">⚠️</span>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: #92400e; margin-bottom: 2px;">Asset Assignment Lock</div>
+              <div style="font-size: 12px; color: #92400e; line-height: 1.5;">
+                Minted cryptographic cash units will be legally domiciled to this Node's cryptographic ledger balance upon SFTP extraction.
+                Verify this matches your bank's Qt6 workstation endpoint before submitting.
+              </div>
+            </div>
+          </div>
+
+          <!-- Ghana Trader Holder ID — pre-authorized local recipient -->
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+              Local Trader Holder ID
+              <span style="font-size: 11px; color: #6b7280; font-weight: 400; margin-left: 4px;">
+                (origin-country pre-authorized recipient wallet)
+              </span>
+            </label>
+            <input type="text" id="tc_trader_holder_id" name="trader_holder_id"
+              placeholder="e.g. TRD-GHA-994205-X"
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                font-size: 14px;
+                font-family: 'Courier New', monospace;
+                letter-spacing: 0.2px;
+                box-sizing: border-box;
+              " />
+            <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">
+              Registry identifier for the trader in the origin country. Ownership transfers to this ID immediately after SFTP receipt.
+            </p>
           </div>
 
           <!-- Trade Direction & Currency -->
@@ -703,7 +798,7 @@
           </div>
         </div>
 
-        <!-- Section 4: Beneficiary -->
+        <!-- Section 4: Beneficiary Destination -->
         <div class="trade-claim-section" style="
           background: #f8fafb;
           border-radius: 12px;
@@ -721,24 +816,26 @@
               justify-content: center;
             ">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 8 16 12 12 16"></polyline>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
               </svg>
             </div>
-            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
-              Beneficiary Information
-            </h3>
+            <div>
+              <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
+                Beneficiary Destination
+              </h3>
+              <span style="font-size: 12px; color: #6b7280;">Ultimate Credit Destination &amp; Retailer Holder ID</span>
+            </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
             <div>
               <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-                Beneficiary Name
+                Beneficiary Business Name
               </label>
-              <input type="text" id="tc_beneficiary_name" name="beneficiary_name" 
-                placeholder="Kenya Exports Ltd" 
+              <input type="text" id="tc_beneficiary_name" name="beneficiary_name"
+                placeholder="Lagos Retail Logistics Ltd."
                 style="
                   width: 100%;
                   padding: 12px 16px;
@@ -752,8 +849,8 @@
               <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
                 Beneficiary Country <span style="font-size: 11px; color: #6b7280; font-weight: 400;">(auto-filled)</span>
               </label>
-              <input type="text" id="tc_beneficiary_country" name="beneficiary_country" 
-                placeholder="Select Corridor first..." 
+              <input type="text" id="tc_beneficiary_country" name="beneficiary_country"
+                placeholder="Select Corridor first..."
                 maxlength="3"
                 readonly
                 style="
@@ -768,6 +865,31 @@
                   cursor: not-allowed;
                 " />
             </div>
+          </div>
+
+          <!-- Destination Retailer Holder ID -->
+          <div style="margin-bottom: 0;">
+            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+              Destination Retailer Holder ID
+              <span style="font-size: 11px; color: #6b7280; font-weight: 400; margin-left: 4px;">
+                (ultimate credit destination on the CBN network)
+              </span>
+            </label>
+            <input type="text" id="tc_destination_retailer_holder_id" name="destination_retailer_holder_id"
+              placeholder="e.g. NGA-MERCH-883012-B"
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                font-size: 13px;
+                font-family: 'Courier New', monospace;
+                letter-spacing: 0.2px;
+                box-sizing: border-box;
+              " />
+            <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">
+              Final recipient wallet address in the destination country. Required for cross-ledger ownership mapping on the centralized registry.
+            </p>
           </div>
         </div>
 
@@ -1128,19 +1250,55 @@
         </div>
       </div>
 
+      <!-- Node Assignment Panel — amber highlight -->
+      <div id="confirmNodePanel" style="
+        background: #fffbeb; border: 1.5px solid #f59e0b;
+        border-radius: 10px; overflow: hidden; margin-bottom: 16px;
+      ">
+        <div style="background: #fef3c7; padding: 8px 16px; border-bottom: 1px solid #fde68a;">
+          <span style="font-size: 11px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px;">
+            ⚠️ Sovereign Asset Assignment
+          </span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 16px; border-bottom: 1px solid #fde68a;">
+          <span style="font-size: 13px; color: #92400e;">Legal Owner Post-Minting</span>
+          <span id="confirmNodeId" style="font-size: 12px; font-weight: 700; color: #92400e; font-family: monospace; text-align: right; max-width: 220px; word-break: break-all;"></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 16px;">
+          <span style="font-size: 13px; color: #92400e;">Target Network</span>
+          <span id="confirmTargetNetwork" style="font-size: 13px; font-weight: 600; color: #92400e;"></span>
+        </div>
+      </div>
+
       <!-- Warning notice -->
       <div style="
-        background: #fffbeb; border: 1px solid #fde68a;
+        background: #fef2f2; border: 1px solid #fecaca;
         border-radius: 10px; padding: 12px 14px;
         display: flex; gap: 10px; align-items: flex-start;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
       ">
         <span style="font-size: 16px; flex-shrink: 0; margin-top: 1px;">⚠️</span>
-        <p style="margin: 0; font-size: 12px; color: #92400e; line-height: 1.5;">
+        <p style="margin: 0; font-size: 12px; color: #991b1b; line-height: 1.5;">
           Once submitted, this trade claim will enter the supervisory review queue and
           <strong>cannot be edited</strong>. Please verify all details are correct.
         </p>
       </div>
+
+      <!-- Verification checkbox -->
+      <label style="
+        display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+        padding: 14px 16px; margin-bottom: 20px;
+      ">
+        <input type="checkbox" id="confirmNodeVerifyCheck"
+          onchange="updateConfirmSubmitBtn()"
+          style="width: 18px; height: 18px; margin-top: 2px; cursor: pointer; accent-color: #d97706; flex-shrink: 0;" />
+        <span style="font-size: 13px; color: #374151; line-height: 1.5;">
+          I verify that the Source Vault Node ID shown above matches our bank's secure
+          <strong>Qt6 local physical workstation endpoint</strong> and is the correct
+          cryptographic ledger destination for this minting operation.
+        </span>
+      </label>
 
       <!-- Buttons -->
       <div style="display: flex; gap: 10px;">
@@ -1154,21 +1312,20 @@
           onmouseout="this.style.background='white'; this.style.borderColor='#cbd5e1'">
           ← Go Back
         </button>
-        <button onclick="confirmAndSubmitTradeClaim()" id="confirmSubmitBtn" style="
+        <button onclick="confirmAndSubmitTradeClaim()" id="confirmSubmitBtn" disabled style="
           flex: 2; padding: 13px 0;
-          background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+          background: #9ca3af;
           border: none; border-radius: 10px;
           font-size: 14px; font-weight: 700; color: white;
-          cursor: pointer; transition: all 0.15s;
+          cursor: not-allowed; transition: all 0.15s;
           display: flex; align-items: center; justify-content: center; gap: 8px;
-        "
-          onmouseover="this.style.opacity='0.92'"
-          onmouseout="this.style.opacity='1'">
+          opacity: 0.7;
+        ">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                stroke="white" stroke-width="2.5" stroke-linecap="round">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
-          Confirm &amp; Submit
+          Confirm &amp; Authorize
         </button>
       </div>
 
@@ -2302,16 +2459,28 @@ function renderInstitutionOptions(banks) {
 
 function selectInstitution(bank) {
   selectedInstitution = bank;
-  
+
   const name = bank.name || `Bank ${bank.id}`;
-  
+
   document.getElementById('institutionSelectedText').textContent = name;
   document.getElementById('tc_institution_id').value = bank.id;
   document.getElementById('tc_swift_code').value = bank.swift_code || '—';
 
   // Auto-populate commercial bank holder ID from HolderKey registry
-  // Looks up by institution name match — sets the hidden tc_commercial_bank_holder_id field
   resolveCommercialBankHolderId(name, bank.swift_code);
+
+  // Show amber Source Vault Node warning once institution is selected
+  const warning = document.getElementById('sourceVaultWarning');
+  if (warning) warning.style.display = 'flex';
+
+  // Amber border on the Commercial Bank Holder ID row
+  const commRow = document.getElementById('commHolderIdRow');
+  if (commRow) {
+    commRow.style.border       = '1.5px solid #f59e0b';
+    commRow.style.borderRadius = '8px';
+    commRow.style.padding      = '10px 12px';
+    commRow.style.background   = '#fffbeb';
+  }
 
   closeInstitutionDropdown();
 }
@@ -2359,13 +2528,29 @@ function resetDropdowns() {
   corridorSelect.disabled = true;
   corridorSelect.style.background = '#f3f4f6';
   corridorSelect.style.cursor = 'not-allowed';
-  
+
   // Reset currency dropdown
   const currencySelect = document.getElementById('tc_currency_code');
   currencySelect.innerHTML = '<option value="">Select Corridor first...</option>';
   currencySelect.style.background = '#f3f4f6';
   currencySelect.style.borderColor = '#d1d5db';
   currencySelect.style.cursor = 'not-allowed';
+
+  // Reset new cross-border routing fields
+  const traderHolderField = document.getElementById('tc_trader_holder_id');
+  if (traderHolderField) traderHolderField.value = '';
+  const fxRefField = document.getElementById('tc_fx_reference_id');
+  if (fxRefField) fxRefField.value = '';
+  const mintingNodeField = document.getElementById('tc_sovereign_minting_node');
+  if (mintingNodeField) { mintingNodeField.value = ''; mintingNodeField.placeholder = 'Select Corridor first...'; mintingNodeField.style.borderColor = '#d1d5db'; mintingNodeField.style.background = '#f3f4f6'; }
+  const destRetailerField = document.getElementById('tc_destination_retailer_holder_id');
+  if (destRetailerField) destRetailerField.value = '';
+
+  // Reset amber warnings on commHolderIdRow and sourceVaultWarning
+  const commRow = document.getElementById('commHolderIdRow');
+  if (commRow) { commRow.style.border = ''; commRow.style.borderRadius = ''; commRow.style.padding = ''; commRow.style.background = ''; }
+  const sourceVaultWarning = document.getElementById('sourceVaultWarning');
+  if (sourceVaultWarning) sourceVaultWarning.style.display = 'none';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -3263,6 +3448,7 @@ function onCorridorChange(corridorId) {
       benField.style.background = '#f0fdf4';
       benField.style.borderColor = '#10b981';
     }
+    resolveSovereignMintingNode(benCode, null);
     document.getElementById('complianceLimitsSection').style.display = 'none';
     return;
   }
@@ -3327,6 +3513,7 @@ function onCorridorChange(corridorId) {
       benField2.style.borderColor = '#10b981';
     }
 
+    resolveSovereignMintingNode(destCode, null);
     document.getElementById('complianceLimitsSection').style.display = 'none';
     loadInstitutionsForDestination(null, destCode);
     return;
@@ -3440,8 +3627,31 @@ function onCorridorChange(corridorId) {
   // so targetCountry is already resolved above — call unconditionally.
   loadInstitutionsForDestination(null, targetCountry);
 
+  // Auto-resolve Sovereign Minting Destination Node from corridor target
+  resolveSovereignMintingNode(targetCountry, corridor);
+
   // Fetch and display compliance limits for the selected corridor
   fetchComplianceLimits(corridorId, currencyCode);
+}
+
+// Maps target country alpha3 → CBN Vault Terminal label
+function resolveSovereignMintingNode(targetCountryCode, corridor) {
+  const field = document.getElementById('tc_sovereign_minting_node');
+  if (!field) return;
+  if (!targetCountryCode) { field.value = ''; field.placeholder = 'Select Corridor first...'; return; }
+
+  // Use corridor code if available, otherwise derive from country code
+  const corridorCode = (corridor && corridor.code) ? corridor.code : null;
+  const assetCode    = (corridor && corridor.asset_code) ? corridor.asset_code : '';
+  const label = corridorCode
+    ? `${corridorCode} Vault Terminal`
+    : `${targetCountryCode}-CBDC-VAULT-01`;
+
+  field.value = label;
+  field.style.color       = '#374151';
+  field.style.borderColor = '#10b981';
+  field.style.background  = '#f0fdf4';
+  console.log('[resolveSovereignMintingNode]', targetCountryCode, '→', label);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4062,6 +4272,23 @@ async function submitTradeClaim(event) {
 //  Confirmation modal — show / hide
 // ─────────────────────────────────────────────────────────────────────────────
 
+function updateConfirmSubmitBtn() {
+  const checked = document.getElementById('confirmNodeVerifyCheck')?.checked;
+  const btn     = document.getElementById('confirmSubmitBtn');
+  if (!btn) return;
+  if (checked) {
+    btn.disabled = false;
+    btn.style.background = 'linear-gradient(135deg, #059669 0%, #10B981 100%)';
+    btn.style.cursor     = 'pointer';
+    btn.style.opacity    = '1';
+  } else {
+    btn.disabled = true;
+    btn.style.background = '#9ca3af';
+    btn.style.cursor     = 'not-allowed';
+    btn.style.opacity    = '0.7';
+  }
+}
+
 function showTradeClaimConfirmModal() {
   // Populate summary fields
   const corridorSelect  = document.getElementById('tc_corridor_id');
@@ -4094,6 +4321,17 @@ function showTradeClaimConfirmModal() {
   } else {
     document.getElementById('confirmNotesMinted').textContent = '—';
   }
+
+  // Node assignment panel — Source Vault Node ID + Target Network
+  const commHolderId = document.getElementById('tc_commercial_bank_holder_id')?.value || '—';
+  const mintingNode  = document.getElementById('tc_sovereign_minting_node')?.value || '—';
+  document.getElementById('confirmNodeId').textContent      = commHolderId;
+  document.getElementById('confirmTargetNetwork').textContent = mintingNode;
+
+  // Reset verification checkbox and disable submit button
+  const verifyCheck = document.getElementById('confirmNodeVerifyCheck');
+  if (verifyCheck) verifyCheck.checked = false;
+  updateConfirmSubmitBtn();
 
   document.getElementById('tradeClaimConfirmModal').style.display = 'flex';
 }
@@ -4130,6 +4368,11 @@ async function confirmAndSubmitTradeClaim() {
       // commercial_bank_holder_id → Qt6 "Holder ID"    (receiving commercial bank)
       central_bank_holder_id:   document.getElementById('tc_central_bank_holder_id')?.value || '',
       commercial_bank_holder_id: document.getElementById('tc_commercial_bank_holder_id')?.value || '',
+      // Cross-border hub-and-spoke routing fields
+      trader_holder_id:           document.getElementById('tc_trader_holder_id')?.value || '',
+      fx_reference_id:            document.getElementById('tc_fx_reference_id')?.value || '',
+      sovereign_minting_node:     document.getElementById('tc_sovereign_minting_node')?.value || '',
+      destination_retailer_holder_id: document.getElementById('tc_destination_retailer_holder_id')?.value || '',
       description:         document.getElementById('tc_description').value,
       beneficiary_name:    document.getElementById('tc_beneficiary_name').value,
       beneficiary_country: document.getElementById('tc_beneficiary_country').value.toUpperCase(),
@@ -4210,12 +4453,16 @@ async function saveDraft() {
       invoice_ref: document.getElementById('tc_invoice_ref').value,
       central_bank_holder_id:   document.getElementById('tc_central_bank_holder_id')?.value || '',
       commercial_bank_holder_id: document.getElementById('tc_commercial_bank_holder_id')?.value || '',
+      trader_holder_id:           document.getElementById('tc_trader_holder_id')?.value || '',
+      fx_reference_id:            document.getElementById('tc_fx_reference_id')?.value || '',
+      sovereign_minting_node:     document.getElementById('tc_sovereign_minting_node')?.value || '',
+      destination_retailer_holder_id: document.getElementById('tc_destination_retailer_holder_id')?.value || '',
       description: document.getElementById('tc_description').value,
       beneficiary_name: document.getElementById('tc_beneficiary_name').value,
       beneficiary_country: document.getElementById('tc_beneficiary_country').value.toUpperCase()
     }
   };
-  
+
   try {
     const response = await fetch('/api/v2/trade_claims/draft', {
       method: 'POST',
