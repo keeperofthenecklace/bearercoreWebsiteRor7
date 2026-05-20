@@ -79,6 +79,78 @@
     ">
       <form id="tradeClaimForm" onsubmit="submitTradeClaim(event)">
         
+        <!-- Module 00: Local Terminal Utility & Crypto Session -->
+        <div id="cryptoSessionModule" style="
+          background: #ecfdf5;
+          border: 1.5px solid #a7f3d0;
+          border-radius: 12px;
+          padding: 18px 20px;
+          margin-bottom: 20px;
+        ">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="
+                width: 32px; height: 32px;
+                background: #d1fae5; border-radius: 8px;
+                display: flex; align-items: center; justify-content: center;
+              ">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </div>
+              <div>
+                <div style="font-size: 11px; font-weight: 700; color: #065f46; text-transform: uppercase; letter-spacing: 0.6px;">
+                  MODULE 00 — Local Terminal &amp; Crypto Session
+                </div>
+              </div>
+            </div>
+            <div id="sessionNodeStatus" style="
+              font-size: 11px; font-weight: 600; color: #6b7280;
+              background: #f3f4f6; border-radius: 20px; padding: 4px 12px;
+              display: flex; align-items: center; gap: 6px;
+            ">
+              <span id="sessionStatusDot" style="width: 7px; height: 7px; border-radius: 50%; background: #9ca3af; flex-shrink: 0;"></span>
+              <span id="sessionStatusText">Initializing...</span>
+            </div>
+          </div>
+
+          <!-- Source Vault Node ID — auto-populated from authenticated session -->
+          <div style="margin-bottom: 10px;">
+            <label style="display: block; font-size: 12px; font-weight: 600; color: #065f46; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px;">
+              Source Vault Node ID (Commercial Bank Holder ID)
+            </label>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="text" id="tc_source_vault_node_display" readonly
+                placeholder="Deriving from session seed…"
+                style="
+                  flex: 1;
+                  padding: 10px 14px;
+                  border: 1.5px solid #a7f3d0;
+                  border-radius: 8px;
+                  font-size: 11px;
+                  font-family: 'Courier New', monospace;
+                  letter-spacing: 0.3px;
+                  background: #f0fdf4;
+                  color: #065f46;
+                  box-sizing: border-box;
+                " />
+              <span id="sessionKeyStatus" style="font-size: 20px; flex-shrink: 0;">⏳</span>
+            </div>
+            <div id="sessionNodeAlias" style="font-size: 11px; color: #6b7280; margin-top: 5px; font-style: italic;"></div>
+          </div>
+
+          <!-- Session active notice — shown when key is loaded -->
+          <div id="sessionActiveNotice" style="display: none; align-items: flex-start; gap: 8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" style="flex-shrink:0; margin-top:1px;">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span style="font-size: 12px; color: #065f46; line-height: 1.4;">
+              <strong>Cryptographic Session Active:</strong> CVIB metadata envelope will lock minted assets directly to this workstation's key storage.
+            </span>
+          </div>
+        </div>
+
         <!-- Section 1: Originating Entity -->
         <div class="trade-claim-section" style="
           background: #f8fafb;
@@ -400,50 +472,46 @@
             </div>
           </div>
 
-          <!-- Source Vault Node amber warning — shown when institution is selected -->
-          <div id="sourceVaultWarning" style="
-            display: none;
-            background: #fffbeb;
-            border: 1.5px solid #f59e0b;
-            border-radius: 8px;
-            padding: 10px 14px;
-            margin-bottom: 16px;
-            display: none;
-            align-items: flex-start;
-            gap: 10px;
-          ">
-            <span style="font-size: 16px; flex-shrink: 0; margin-top: 1px;">⚠️</span>
-            <div>
-              <div style="font-size: 12px; font-weight: 700; color: #92400e; margin-bottom: 2px;">Asset Assignment Lock</div>
-              <div style="font-size: 12px; color: #92400e; line-height: 1.5;">
-                Minted cryptographic cash units will be legally domiciled to this Node's cryptographic ledger balance upon SFTP extraction.
-                Verify this matches your bank's Qt6 workstation endpoint before submitting.
-              </div>
-            </div>
-          </div>
+          <!-- Vault assignment hint — source node shown in Module 00 -->
+          <div id="sourceVaultWarning" style="display: none;"></div>
 
-          <!-- Ghana Trader Holder ID — pre-authorized local recipient -->
+          <!-- Ghana Trader Account Holder ID — searchable combobox from registry -->
           <div style="margin-bottom: 16px;">
             <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-              Local Trader Holder ID
+              Ghana Trader Account Holder ID
+              <span style="color: #ef4444;">*</span>
               <span style="font-size: 11px; color: #6b7280; font-weight: 400; margin-left: 4px;">
-                (origin-country pre-authorized recipient wallet)
+                (selects Ghanaian merchant wallet for registry ownership shift)
               </span>
             </label>
-            <input type="text" id="tc_trader_holder_id" name="trader_holder_id"
-              placeholder="e.g. TRD-GHA-994205-X"
-              style="
-                width: 100%;
-                padding: 12px 16px;
-                border: 1px solid #d1d5db;
-                border-radius: 8px;
-                font-size: 14px;
-                font-family: 'Courier New', monospace;
-                letter-spacing: 0.2px;
-                box-sizing: border-box;
-              " />
+            <div id="traderHolderDropdown" class="custom-dropdown" style="position: relative;">
+              <div id="traderHolderSelected" onclick="toggleTraderHolderDropdown()" style="
+                width: 100%; padding: 10px 16px; border: 1px solid #d1d5db;
+                border-radius: 8px; font-size: 13px; background: white;
+                cursor: pointer; display: flex; align-items: center;
+                justify-content: space-between; box-sizing: border-box; color: #6b7280;
+                font-family: 'Courier New', monospace;">
+                <span id="traderHolderSelectedText" style="font-family: system-ui, sans-serif; color: #6b7280;">Select trader wallet...</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div id="traderHolderDropdownList" style="
+                display: none; position: absolute; top: 100%; left: 0; right: 0;
+                background: white; border: 1px solid #d1d5db; border-radius: 8px;
+                margin-top: 4px; max-height: 220px; overflow-y: auto; z-index: 1001;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <div style="padding: 8px; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; background: white;">
+                  <input type="text" id="traderHolderSearch" placeholder="Search holder ID or name..."
+                    oninput="filterTraderHolderKeys(this.value)"
+                    style="width: 100%; padding: 7px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; box-sizing: border-box;" />
+                </div>
+                <div id="traderHolderOptions" style="padding: 4px 0;">
+                  <div style="padding: 12px 16px; font-size: 13px; color: #9ca3af;">Loading registered holders...</div>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" id="tc_trader_holder_id" name="trader_holder_id" />
             <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">
-              Registry identifier for the trader in the origin country. Ownership transfers to this ID immediately after SFTP receipt.
+              Registry wallet of the origin-country trader. Ownership transfers to this ID immediately after SFTP receipt.
             </p>
           </div>
 
@@ -867,7 +935,7 @@
             </div>
           </div>
 
-          <!-- Destination Retailer Holder ID -->
+          <!-- Destination Retailer Holder ID — searchable combobox from CBN network registry -->
           <div style="margin-bottom: 0;">
             <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
               Destination Retailer Holder ID
@@ -875,18 +943,32 @@
                 (ultimate credit destination on the CBN network)
               </span>
             </label>
-            <input type="text" id="tc_destination_retailer_holder_id" name="destination_retailer_holder_id"
-              placeholder="e.g. NGA-MERCH-883012-B"
-              style="
-                width: 100%;
-                padding: 12px 16px;
-                border: 1px solid #d1d5db;
-                border-radius: 8px;
-                font-size: 13px;
-                font-family: 'Courier New', monospace;
-                letter-spacing: 0.2px;
-                box-sizing: border-box;
-              " />
+            <div id="retailerHolderDropdown" class="custom-dropdown" style="position: relative;">
+              <div id="retailerHolderSelected" onclick="toggleRetailerHolderDropdown()" style="
+                width: 100%; padding: 10px 16px; border: 1px solid #d1d5db;
+                border-radius: 8px; font-size: 13px; background: white;
+                cursor: pointer; display: flex; align-items: center;
+                justify-content: space-between; box-sizing: border-box; color: #6b7280;
+                font-family: 'Courier New', monospace;">
+                <span id="retailerHolderSelectedText" style="font-family: system-ui, sans-serif; color: #6b7280;">Select retailer wallet...</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div id="retailerHolderDropdownList" style="
+                display: none; position: absolute; top: 100%; left: 0; right: 0;
+                background: white; border: 1px solid #d1d5db; border-radius: 8px;
+                margin-top: 4px; max-height: 220px; overflow-y: auto; z-index: 1001;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <div style="padding: 8px; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; background: white;">
+                  <input type="text" id="retailerHolderSearch" placeholder="Search holder ID or name..."
+                    oninput="filterRetailerHolderKeys(this.value)"
+                    style="width: 100%; padding: 7px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; box-sizing: border-box;" />
+                </div>
+                <div id="retailerHolderOptions" style="padding: 4px 0;">
+                  <div style="padding: 12px 16px; font-size: 13px; color: #9ca3af;">Loading registered holders...</div>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" id="tc_destination_retailer_holder_id" name="destination_retailer_holder_id" />
             <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">
               Final recipient wallet address in the destination country. Required for cross-ledger ownership mapping on the centralized registry.
             </p>
@@ -1178,11 +1260,11 @@
           </svg>
         </div>
         <div>
-          <div style="color: white; font-size: 18px; font-weight: 700; letter-spacing: -0.3px;">
-            Confirm Trade Claim
+          <div style="color: white; font-size: 17px; font-weight: 700; letter-spacing: -0.3px;">
+            🚨 Confirm Sovereign Asset Assignment &amp; Domicile
           </div>
-          <div style="color: rgba(255,255,255,0.8); font-size: 13px; margin-top: 2px;">
-            Please review the details before submitting
+          <div id="confirmModalSubtitle" style="color: rgba(255,255,255,0.85); font-size: 12px; margin-top: 3px; line-height: 1.4;">
+            You are routing an authorization to issue assets via bearerCORE™.
           </div>
         </div>
       </div>
@@ -1251,54 +1333,57 @@
       </div>
 
       <!-- Node Assignment Panel — amber highlight -->
+      <!-- TARGET REGISTRY ENDPOINT RESIDENCY panel -->
       <div id="confirmNodePanel" style="
-        background: #fffbeb; border: 1.5px solid #f59e0b;
+        background: #0f172a; border: 1.5px solid #1e293b;
         border-radius: 10px; overflow: hidden; margin-bottom: 16px;
       ">
-        <div style="background: #fef3c7; padding: 8px 16px; border-bottom: 1px solid #fde68a;">
-          <span style="font-size: 11px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px;">
-            ⚠️ Sovereign Asset Assignment
+        <div style="background: #1e293b; padding: 8px 16px; border-bottom: 1px solid #334155;">
+          <span style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px;">
+            TARGET REGISTRY ENDPOINT RESIDENCY
           </span>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 16px; border-bottom: 1px solid #fde68a;">
-          <span style="font-size: 13px; color: #92400e;">Legal Owner Post-Minting</span>
-          <span id="confirmNodeId" style="font-size: 12px; font-weight: 700; color: #92400e; font-family: monospace; text-align: right; max-width: 220px; word-break: break-all;"></span>
+        <div style="padding: 14px 16px; border-bottom: 1px solid #1e293b;">
+          <div style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Owner Node ID</div>
+          <div id="confirmNodeId" style="font-size: 11px; font-weight: 600; color: #10b981; font-family: 'Courier New', monospace; word-break: break-all; line-height: 1.5;"></div>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 16px;">
-          <span style="font-size: 13px; color: #92400e;">Target Network</span>
-          <span id="confirmTargetNetwork" style="font-size: 13px; font-weight: 600; color: #92400e;"></span>
+        <div style="padding: 10px 16px;">
+          <div style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Node Alias</div>
+          <div id="confirmNodeAlias" style="font-size: 12px; color: #94a3b8; font-style: italic;"></div>
+          <div style="margin-top: 6px; font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Target Network</div>
+          <div id="confirmTargetNetwork" style="font-size: 12px; font-weight: 600; color: #e2e8f0;"></div>
         </div>
       </div>
 
-      <!-- Warning notice -->
-      <div style="
-        background: #fef2f2; border: 1px solid #fecaca;
-        border-radius: 10px; padding: 12px 14px;
-        display: flex; gap: 10px; align-items: flex-start;
-        margin-bottom: 16px;
-      ">
-        <span style="font-size: 16px; flex-shrink: 0; margin-top: 1px;">⚠️</span>
-        <p style="margin: 0; font-size: 12px; color: #991b1b; line-height: 1.5;">
-          Once submitted, this trade claim will enter the supervisory review queue and
-          <strong>cannot be edited</strong>. Please verify all details are correct.
-        </p>
+      <!-- Dual verification checkboxes -->
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+        <label style="
+          display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
+          background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+          padding: 13px 16px;
+        ">
+          <input type="checkbox" id="confirmNodeVerifyCheck"
+            onchange="updateConfirmSubmitBtn()"
+            style="width: 17px; height: 17px; margin-top: 2px; cursor: pointer; accent-color: #059669; flex-shrink: 0;" />
+          <span style="font-size: 13px; color: #374151; line-height: 1.5;">
+            I verify that this specific Holder ID matches our bank's active,
+            <strong>air-gapped Qt6 physical workstation instance</strong>.
+          </span>
+        </label>
+        <label style="
+          display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
+          background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+          padding: 13px 16px;
+        ">
+          <input type="checkbox" id="confirmSpendPinCheck"
+            onchange="updateConfirmSubmitBtn()"
+            style="width: 17px; height: 17px; margin-top: 2px; cursor: pointer; accent-color: #059669; flex-shrink: 0;" />
+          <span style="font-size: 13px; color: #374151; line-height: 1.5;">
+            I understand that the generated PNG banknote file will require our local
+            <strong>Spend PIN</strong> to extract from the incoming SFTP packet.
+          </span>
+        </label>
       </div>
-
-      <!-- Verification checkbox -->
-      <label style="
-        display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
-        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
-        padding: 14px 16px; margin-bottom: 20px;
-      ">
-        <input type="checkbox" id="confirmNodeVerifyCheck"
-          onchange="updateConfirmSubmitBtn()"
-          style="width: 18px; height: 18px; margin-top: 2px; cursor: pointer; accent-color: #d97706; flex-shrink: 0;" />
-        <span style="font-size: 13px; color: #374151; line-height: 1.5;">
-          I verify that the Source Vault Node ID shown above matches our bank's secure
-          <strong>Qt6 local physical workstation endpoint</strong> and is the correct
-          cryptographic ledger destination for this minting operation.
-        </span>
-      </label>
 
       <!-- Buttons -->
       <div style="display: flex; gap: 10px;">
@@ -1310,22 +1395,22 @@
         "
           onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#94a3b8'"
           onmouseout="this.style.background='white'; this.style.borderColor='#cbd5e1'">
-          ← Go Back
+          Cancel Transaction
         </button>
         <button onclick="confirmAndSubmitTradeClaim()" id="confirmSubmitBtn" disabled style="
           flex: 2; padding: 13px 0;
           background: #9ca3af;
           border: none; border-radius: 10px;
           font-size: 14px; font-weight: 700; color: white;
-          cursor: not-allowed; transition: all 0.15s;
+          cursor: not-allowed; transition: all 0.2s;
           display: flex; align-items: center; justify-content: center; gap: 8px;
           opacity: 0.7;
         ">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                stroke="white" stroke-width="2.5" stroke-linecap="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
           </svg>
-          Confirm &amp; Authorize
+          Confirm &amp; Sign Route
         </button>
       </div>
 
@@ -2171,10 +2256,182 @@ function showTradeClaimModal() {
   overlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 
+  loadCryptoSession();
   loadCountries();
   loadCorridors();
   setupCorridorListener();
   generateInvoiceRef();
+  loadHolderKeysForComboboxes();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Module 00: Crypto Session — auto-populate Source Vault Node ID from the
+//  authenticated session's holder key (HolderIdsController#store_key).
+// ─────────────────────────────────────────────────────────────────────────────
+async function loadCryptoSession() {
+  const displayField  = document.getElementById('tc_source_vault_node_display');
+  const hiddenField   = document.getElementById('tc_commercial_bank_holder_id');
+  const aliasEl       = document.getElementById('sessionNodeAlias');
+  const statusText    = document.getElementById('sessionStatusText');
+  const statusDot     = document.getElementById('sessionStatusDot');
+  const keyStatusIcon = document.getElementById('sessionKeyStatus');
+  const activeNotice  = document.getElementById('sessionActiveNotice');
+  const moduleEl      = document.getElementById('cryptoSessionModule');
+
+  const setStatus = (text, color, dot) => {
+    if (statusText) statusText.textContent = text;
+    if (statusDot)  statusDot.style.background = dot;
+    const badge = statusText?.closest?.('[id="sessionNodeStatus"]') ||
+                  document.getElementById('sessionNodeStatus');
+    if (badge) badge.style.color = color;
+  };
+
+  setStatus('Initializing...', '#6b7280', '#9ca3af');
+  if (keyStatusIcon) keyStatusIcon.textContent = '⏳';
+
+  try {
+    const res = await fetch('/api/v2/holder_keys', {
+      headers: { 'Authorization': `Bearer ${getAccessToken()}`, 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const keys = Array.isArray(data) ? data
+               : Array.isArray(data.data) ? data.data
+               : Array.isArray(data.holder_keys) ? data.holder_keys : [];
+
+    if (keys.length > 0) {
+      const key      = keys[0];
+      const holderId = key.holder_id || key.public_key || key.address || '';
+      const alias    = key.institution_name || key.name || 'authenticated session';
+
+      if (displayField) { displayField.value = holderId; displayField.style.borderColor = '#34d399'; }
+      if (hiddenField)  hiddenField.value = holderId;
+      if (aliasEl)      aliasEl.textContent = `Identity Account: ${alias}`;
+      if (keyStatusIcon) keyStatusIcon.textContent = '✅';
+      if (activeNotice)  activeNotice.style.display = 'flex';
+      if (moduleEl) { moduleEl.style.background = '#ecfdf5'; moduleEl.style.borderColor = '#34d399'; }
+      setStatus('AUTHENTICATED — Active Session Seed Verified', '#059669', '#10b981');
+
+      console.log('[loadCryptoSession] Node ID:', holderId.substring(0, 16) + '...', 'alias:', alias);
+    } else {
+      if (displayField) displayField.placeholder = 'No registered key — register workstation first';
+      if (aliasEl) aliasEl.textContent = 'No cryptographic session registered for this account.';
+      if (keyStatusIcon) keyStatusIcon.textContent = '⚠️';
+      if (moduleEl) { moduleEl.style.background = '#fffbeb'; moduleEl.style.borderColor = '#fbbf24'; }
+      setStatus('NO SESSION — Register workstation first', '#d97706', '#f59e0b');
+    }
+  } catch (e) {
+    console.warn('[loadCryptoSession] error:', e.message);
+    if (displayField) displayField.placeholder = 'Session verification failed — reload and try again';
+    if (keyStatusIcon) keyStatusIcon.textContent = '❌';
+    if (moduleEl) { moduleEl.style.background = '#fef2f2'; moduleEl.style.borderColor = '#fca5a5'; }
+    setStatus('VERIFICATION FAILED', '#dc2626', '#ef4444');
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Holder-key comboboxes for Trader (origin) + Retailer (destination)
+// ─────────────────────────────────────────────────────────────────────────────
+let _holderKeysFull = [];   // full list once loaded
+
+async function loadHolderKeysForComboboxes() {
+  try {
+    const res = await fetch('/api/v2/holder_keys', {
+      headers: { 'Authorization': `Bearer ${getAccessToken()}`, 'Accept': 'application/json' }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    _holderKeysFull = Array.isArray(data) ? data
+                   : Array.isArray(data.data) ? data.data
+                   : Array.isArray(data.holder_keys) ? data.holder_keys : [];
+    renderTraderHolderOptions(_holderKeysFull);
+    renderRetailerHolderOptions(_holderKeysFull);
+  } catch (e) {
+    console.warn('[loadHolderKeysForComboboxes]', e.message);
+  }
+}
+
+function renderTraderHolderOptions(keys) {
+  const container = document.getElementById('traderHolderOptions');
+  if (!container) return;
+  if (!keys.length) { container.innerHTML = '<div style="padding:12px 16px;font-size:13px;color:#9ca3af;">No holders registered</div>'; return; }
+  container.innerHTML = keys.map(k => {
+    const id    = k.holder_id || k.public_key || k.address || '';
+    const name  = k.institution_name || k.name || 'Unknown';
+    const short = id.length > 20 ? id.substring(0, 20) + '…' : id;
+    return `<div class="dropdown-option" onclick="selectTraderHolder(${JSON.stringify({id, name}).replace(/"/g,'&quot;')})">
+      <span>👤</span>
+      <div style="min-width:0;">
+        <div style="font-size:13px;">${name}</div>
+        <div style="font-size:10px;font-family:monospace;color:#6b7280;">${short}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRetailerHolderOptions(keys) {
+  const container = document.getElementById('retailerHolderOptions');
+  if (!container) return;
+  if (!keys.length) { container.innerHTML = '<div style="padding:12px 16px;font-size:13px;color:#9ca3af;">No holders registered</div>'; return; }
+  container.innerHTML = keys.map(k => {
+    const id    = k.holder_id || k.public_key || k.address || '';
+    const name  = k.institution_name || k.name || 'Unknown';
+    const short = id.length > 20 ? id.substring(0, 20) + '…' : id;
+    return `<div class="dropdown-option" onclick="selectRetailerHolder(${JSON.stringify({id, name}).replace(/"/g,'&quot;')})">
+      <span>🏪</span>
+      <div style="min-width:0;">
+        <div style="font-size:13px;">${name}</div>
+        <div style="font-size:10px;font-family:monospace;color:#6b7280;">${short}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectTraderHolder(entry) {
+  document.getElementById('tc_trader_holder_id').value = entry.id;
+  const text = document.getElementById('traderHolderSelectedText');
+  if (text) { text.textContent = entry.name; text.style.fontFamily = 'system-ui'; text.style.color = '#374151'; }
+  document.getElementById('traderHolderDropdownList').style.display = 'none';
+}
+
+function selectRetailerHolder(entry) {
+  document.getElementById('tc_destination_retailer_holder_id').value = entry.id;
+  const text = document.getElementById('retailerHolderSelectedText');
+  if (text) { text.textContent = entry.name; text.style.fontFamily = 'system-ui'; text.style.color = '#374151'; }
+  document.getElementById('retailerHolderDropdownList').style.display = 'none';
+}
+
+let isTraderHolderOpen = false;
+let isRetailerHolderOpen = false;
+
+function toggleTraderHolderDropdown() {
+  const list = document.getElementById('traderHolderDropdownList');
+  isTraderHolderOpen = !isTraderHolderOpen;
+  list.style.display = isTraderHolderOpen ? 'block' : 'none';
+  if (isTraderHolderOpen) document.getElementById('traderHolderSearch')?.focus();
+}
+
+function toggleRetailerHolderDropdown() {
+  const list = document.getElementById('retailerHolderDropdownList');
+  isRetailerHolderOpen = !isRetailerHolderOpen;
+  list.style.display = isRetailerHolderOpen ? 'block' : 'none';
+  if (isRetailerHolderOpen) document.getElementById('retailerHolderSearch')?.focus();
+}
+
+function filterTraderHolderKeys(q) {
+  const lower = q.toLowerCase();
+  const filtered = _holderKeysFull.filter(k =>
+    (k.institution_name || k.name || '').toLowerCase().includes(lower) ||
+    (k.holder_id || k.public_key || '').toLowerCase().includes(lower));
+  renderTraderHolderOptions(filtered);
+}
+
+function filterRetailerHolderKeys(q) {
+  const lower = q.toLowerCase();
+  const filtered = _holderKeysFull.filter(k =>
+    (k.institution_name || k.name || '').toLowerCase().includes(lower) ||
+    (k.holder_id || k.public_key || '').toLowerCase().includes(lower));
+  renderRetailerHolderOptions(filtered);
 }
 
 function hideTradeClaimModal() {
@@ -2201,6 +2458,16 @@ document.addEventListener('click', function(e) {
   }
   if (!e.target.closest('#institutionDropdown')) {
     closeInstitutionDropdown();
+  }
+  if (!e.target.closest('#traderHolderDropdown')) {
+    const list = document.getElementById('traderHolderDropdownList');
+    if (list) list.style.display = 'none';
+    isTraderHolderOpen = false;
+  }
+  if (!e.target.closest('#retailerHolderDropdown')) {
+    const list = document.getElementById('retailerHolderDropdownList');
+    if (list) list.style.display = 'none';
+    isRetailerHolderOpen = false;
   }
 });
 
@@ -2539,14 +2806,21 @@ function resetDropdowns() {
   // Reset new cross-border routing fields
   const traderHolderField = document.getElementById('tc_trader_holder_id');
   if (traderHolderField) traderHolderField.value = '';
+  const traderText = document.getElementById('traderHolderSelectedText');
+  if (traderText) { traderText.textContent = 'Select trader wallet...'; traderText.style.color = '#6b7280'; }
+
   const fxRefField = document.getElementById('tc_fx_reference_id');
   if (fxRefField) fxRefField.value = '';
+
   const mintingNodeField = document.getElementById('tc_sovereign_minting_node');
   if (mintingNodeField) { mintingNodeField.value = ''; mintingNodeField.placeholder = 'Select Corridor first...'; mintingNodeField.style.borderColor = '#d1d5db'; mintingNodeField.style.background = '#f3f4f6'; }
+
   const destRetailerField = document.getElementById('tc_destination_retailer_holder_id');
   if (destRetailerField) destRetailerField.value = '';
+  const retailerText = document.getElementById('retailerHolderSelectedText');
+  if (retailerText) { retailerText.textContent = 'Select retailer wallet...'; retailerText.style.color = '#6b7280'; }
 
-  // Reset amber warnings on commHolderIdRow and sourceVaultWarning
+  // Reset commHolderIdRow styling (amber from previous session)
   const commRow = document.getElementById('commHolderIdRow');
   if (commRow) { commRow.style.border = ''; commRow.style.borderRadius = ''; commRow.style.padding = ''; commRow.style.background = ''; }
   const sourceVaultWarning = document.getElementById('sourceVaultWarning');
@@ -4273,12 +4547,13 @@ async function submitTradeClaim(event) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function updateConfirmSubmitBtn() {
-  const checked = document.getElementById('confirmNodeVerifyCheck')?.checked;
-  const btn     = document.getElementById('confirmSubmitBtn');
+  const check1 = document.getElementById('confirmNodeVerifyCheck')?.checked;
+  const check2 = document.getElementById('confirmSpendPinCheck')?.checked;
+  const btn    = document.getElementById('confirmSubmitBtn');
   if (!btn) return;
-  if (checked) {
+  if (check1 && check2) {
     btn.disabled = false;
-    btn.style.background = 'linear-gradient(135deg, #059669 0%, #10B981 100%)';
+    btn.style.background = 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)';
     btn.style.cursor     = 'pointer';
     btn.style.opacity    = '1';
   } else {
@@ -4322,15 +4597,30 @@ function showTradeClaimConfirmModal() {
     document.getElementById('confirmNotesMinted').textContent = '—';
   }
 
-  // Node assignment panel — Source Vault Node ID + Target Network
-  const commHolderId = document.getElementById('tc_commercial_bank_holder_id')?.value || '—';
+  // Node assignment — Owner Node ID, Alias, Target Network
+  const commHolderId = document.getElementById('tc_commercial_bank_holder_id')?.value
+                      || document.getElementById('tc_source_vault_node_display')?.value || '—';
   const mintingNode  = document.getElementById('tc_sovereign_minting_node')?.value || '—';
-  document.getElementById('confirmNodeId').textContent      = commHolderId;
-  document.getElementById('confirmTargetNetwork').textContent = mintingNode;
+  const nodeAlias    = document.getElementById('sessionNodeAlias')?.textContent || '';
+  document.getElementById('confirmNodeId').textContent         = commHolderId;
+  document.getElementById('confirmNodeAlias').textContent      = nodeAlias || '(no alias registered)';
+  document.getElementById('confirmTargetNetwork').textContent  = mintingNode;
 
-  // Reset verification checkbox and disable submit button
-  const verifyCheck = document.getElementById('confirmNodeVerifyCheck');
-  if (verifyCheck) verifyCheck.checked = false;
+  // Update subtitle with amount + currency
+  const subtitleEl = document.getElementById('confirmModalSubtitle');
+  if (subtitleEl) {
+    const cur = document.getElementById('tc_currency_code')?.value || '';
+    const amt = document.getElementById('tc_amount')?.value || '';
+    subtitleEl.textContent = cur && amt
+      ? `You are routing an authorization to issue ${cur} ${amt} via bearerCORE™.`
+      : 'You are routing an authorization to issue assets via bearerCORE™.';
+  }
+
+  // Reset both verification checkboxes and disable submit button
+  const check1 = document.getElementById('confirmNodeVerifyCheck');
+  const check2 = document.getElementById('confirmSpendPinCheck');
+  if (check1) check1.checked = false;
+  if (check2) check2.checked = false;
   updateConfirmSubmitBtn();
 
   document.getElementById('tradeClaimConfirmModal').style.display = 'flex';
