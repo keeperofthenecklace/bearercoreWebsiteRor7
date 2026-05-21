@@ -53,6 +53,16 @@
     <span style="color: rgba(255,255,255,0.15); font-size: 11px;">/</span>
     <a href="/sandbox" style="font-size: 11px; font-weight: 700; color: #C9A84C; letter-spacing: 0.05em; text-decoration: none;">SANDBOX VIEW</a>
     <a href="/technical-overview" style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.45); letter-spacing: 0.05em; text-decoration: none;" onmouseover="this.style.color='rgba(255,255,255,0.75)'" onmouseout="this.style.color='rgba(255,255,255,0.45)'">TECHNICAL REVIEW</a>
+
+    <!-- Admin Console — system utility, intentionally separated from operational tabs -->
+    <div style="margin-left: auto; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
+      <button onclick="showAdminConsoleModal()" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.3); color: #C9A84C; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all 0.15s;" onmouseover="this.style.background='rgba(201,168,76,0.22)'; this.style.borderColor='rgba(201,168,76,0.55)'" onmouseout="this.style.background='rgba(201,168,76,0.12)'; this.style.borderColor='rgba(201,168,76,0.3)'">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Admin Console
+      </button>
+    </div>
   </div>
 </div>
 
@@ -139,46 +149,6 @@
       </div>
 
     </div>
-  </div>
-</section>
-
-
-<%# ─── BEARERCORE ADMIN CONSOLE — MODULE 04: GOVERNANCE ──────────────────── %>
-<section style="padding: 32px 24px; background: linear-gradient(135deg, #0C1B38 0%, #152545 100%); border-top: 1px solid rgba(201,168,76,0.2);">
-  <div style="max-width: 560px; margin: 0 auto;">
-
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-      </svg>
-      <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(201,168,76,0.85);">
-        bearer<strong style="color:#C9A84C;">CORE</strong>™ &nbsp;·&nbsp; Module 04: Governance
-      </span>
-    </div>
-
-    <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(201,168,76,0.3); border-radius: 16px; overflow: hidden;">
-      <div style="background: rgba(201,168,76,0.10); border-bottom: 1px solid rgba(201,168,76,0.2); padding: 12px 20px; display: flex; align-items: center; gap: 10px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="3" y1="9" x2="21" y2="9"></line>
-          <line x1="9" y1="21" x2="9" y2="9"></line>
-        </svg>
-        <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #C9A84C;">Module 04: Governance</span>
-      </div>
-      <div style="padding: 20px 20px 24px;">
-        <h3 style="color: #ffffff; margin: 0 0 8px; font-size: 17px; font-weight: 700; letter-spacing: -0.2px;">Administrator Console</h3>
-        <p style="color: rgba(255,255,255,0.6); margin: 0 0 20px; font-size: 13px; line-height: 1.6;">
-          System-wide orchestration, security parameter locks, and root identity lifecycle management.
-        </p>
-        <button onclick="showAdminConsoleModal()" style="display: inline-flex; align-items: center; gap: 8px; background: #C9A84C; color: #0C1B38; border: none; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 8px; cursor: pointer; letter-spacing: 0.01em; transition: opacity 0.15s;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
-          Launch Admin Console
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-
   </div>
 </section>
 
