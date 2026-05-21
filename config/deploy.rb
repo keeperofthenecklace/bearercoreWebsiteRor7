@@ -34,7 +34,8 @@ append :linked_dirs,
        "vendor",
        "public/system",
        "storage",
-       "app/assets/builds"
+       "app/assets/builds",
+       "public/downloads"
 
 set :keep_releases, 3
 set :passenger_restart_with_touch, true

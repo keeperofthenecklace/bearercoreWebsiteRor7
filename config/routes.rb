@@ -64,6 +64,10 @@ Rails.application.routes.draw do
     end
   end
 
+  get  "download-client",      to: "downloads#client_auth",      as: :client_download
+  post "download-client",      to: "downloads#process_download",  as: :process_client_download
+  get  "download-client/file", to: "downloads#serve_file",        as: :serve_client_download
+
   get "docs",                       to: "docs#index"
   get "docs/corridor-ops",          to: "docs#corridor_ops"
   get "docs/issuance",              to: "docs#issuance"
