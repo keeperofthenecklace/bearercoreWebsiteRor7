@@ -8,23 +8,27 @@ class AdminConsoleController < ApplicationController
   end
 
   def licenses_data
-    licenses = SoftwareLicense.order(created_at: :desc).map do |l|
-      {
-        id:           l.id,
-        name:         l.name,
-        email:        l.email,
-        ip_address:   l.ip_address,
-        status:       l.status,
-        active:       l.active,
-        duration:     l.duration&.strftime("%Y-%m-%d"),
-        centralbank:  l.centralbank,
-        swiftcode:    l.swiftcode,
-        licenseid:    l.licenseid,
-        license_type: l.license_type,
-        uri:          l.uri,
-        bankID:       l.bankID
-      }
+    require "net/http"
+    require "json"
+
+    uri = URI("https://www.smartcheq.com/software_licences.json")
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.open_timeout = 5
+    http.read_timeout = 8
+
+    request = Net::HTTP::Get.new(uri)
+    request["Accept"] = "application/json"
+
+    response = http.request(request)
+
+    if response.is_a?(Net::HTTPSuccess)
+      render json: response.body, content_type: "application/json"
+    else
+      render json: { software_licenses: [], error: "upstream #{response.code}" }, status: :ok
     end
-    render json: { software_licenses: licenses }
+  rescue => e
+    Rails.logger.warn "[AdminConsole#licenses_data] SmartCHEQ fetch failed: #{e.message}"
+    render json: { software_licenses: [], error: e.message }, status: :ok
   end
 end
