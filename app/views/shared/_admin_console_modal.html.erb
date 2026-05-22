@@ -638,7 +638,7 @@ window.setClaimFilter = function(filter) {
           </div>
         </div>
 
-        <div id="tabLicences" class="admin-tab-content" style="display: none; position: relative; overflow: hidden;">
+        <div id="tabLicences" class="admin-tab-content" style="display: none;">
           <div style="margin-bottom: 20px;">
             <h3 style="margin: 0 0 4px; font-size: 17px; font-weight: 700; color: #1a1a1a;">Software Licences</h3>
             <p style="margin: 0; font-size: 12px; color: #9ca3af;">View and manage bearerCORE desktop application licence entitlements for institutional clients.</p>
@@ -702,36 +702,36 @@ window.setClaimFilter = function(filter) {
             </div>
           </div>
 
-          <%# ── Slide-out edit panel ── %>
-          <div id="licenceEditBackdrop" onclick="closeLicenceEditPanel()" style="position:absolute;inset:0;background:rgba(0,0,0,0.22);z-index:50;display:none;border-radius:14px;"></div>
-          <div id="licenceEditPanel" style="position:absolute;top:0;right:0;bottom:0;width:400px;background:white;border-left:1px solid #e5e7eb;box-shadow:-8px 0 32px rgba(0,0,0,0.12);z-index:51;display:none;flex-direction:column;transform:translateX(100%);transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);">
-            <div style="padding:18px 22px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+          <%# ── Slide-out edit panel (fixed — not constrained by table height) ── %>
+          <div id="licenceEditBackdrop" onclick="closeLicenceEditPanel()" style="position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:9998;display:none;"></div>
+          <div id="licenceEditPanel" style="position:fixed;top:0;right:0;bottom:0;width:440px;background:white;border-left:1px solid #e5e7eb;box-shadow:-12px 0 40px rgba(0,0,0,0.18);z-index:9999;display:none;flex-direction:column;transform:translateX(100%);transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);">
+            <div style="padding:20px 24px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:white;">
               <div>
-                <h4 style="margin:0 0 2px;font-size:14px;font-weight:700;color:#1a1a1a;">Edit Licence</h4>
+                <h4 style="margin:0 0 2px;font-size:15px;font-weight:700;color:#1a1a1a;">Edit Licence</h4>
                 <p id="licenceEditSubtitle" style="margin:0;font-size:11px;color:#9ca3af;"></p>
               </div>
-              <button onclick="closeLicenceEditPanel()" style="background:none;border:none;cursor:pointer;padding:4px;color:#9ca3af;line-height:1;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <button onclick="closeLicenceEditPanel()" style="background:#f3f4f6;border:none;cursor:pointer;padding:7px;color:#6b7280;line-height:1;border-radius:8px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
-            <div style="flex:1;overflow-y:auto;padding:20px 22px;">
+            <div style="flex:1;overflow-y:auto;padding:24px 26px;">
               <input type="hidden" id="licenceEditId" value="">
-              <div style="margin-bottom:14px;">
-                <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Name</label>
-                <input id="licenceEditName" type="text" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;box-sizing:border-box;" />
+              <div style="margin-bottom:16px;">
+                <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Name</label>
+                <input id="licenceEditName" type="text" style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;box-sizing:border-box;" />
               </div>
-              <div style="margin-bottom:14px;">
-                <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Email</label>
-                <input id="licenceEditEmail" type="email" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;box-sizing:border-box;" />
+              <div style="margin-bottom:16px;">
+                <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Email</label>
+                <input id="licenceEditEmail" type="email" style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;box-sizing:border-box;" />
               </div>
-              <div style="margin-bottom:14px;">
-                <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">IP Address</label>
-                <input id="licenceEditIp" type="text" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;box-sizing:border-box;" />
+              <div style="margin-bottom:16px;">
+                <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">IP Address</label>
+                <input id="licenceEditIp" type="text" style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;box-sizing:border-box;" />
               </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
                 <div>
-                  <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Status</label>
-                  <select id="licenceEditStatus" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;background:white;box-sizing:border-box;">
+                  <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Status</label>
+                  <select id="licenceEditStatus" style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;background:white;box-sizing:border-box;appearance:auto;">
                     <option value="active">Active</option>
                     <option value="pending">Pending</option>
                     <option value="expired">Expired</option>
@@ -739,35 +739,35 @@ window.setClaimFilter = function(filter) {
                   </select>
                 </div>
                 <div>
-                  <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Active</label>
-                  <select id="licenceEditActive" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;background:white;box-sizing:border-box;">
+                  <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Active</label>
+                  <select id="licenceEditActive" style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;background:white;box-sizing:border-box;appearance:auto;">
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
                 </div>
               </div>
-              <div style="margin-bottom:14px;">
-                <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">License Type</label>
-                <input id="licenceEditLicenseType" type="text" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;box-sizing:border-box;" />
-              </div>
               <div style="margin-bottom:16px;">
-                <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Expiry Date</label>
-                <input id="licenceEditDuration" type="date" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;box-sizing:border-box;" />
+                <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">License Type</label>
+                <input id="licenceEditLicenseType" type="text" style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;box-sizing:border-box;" />
               </div>
-              <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:13px;">
-                <p style="margin:0 0 9px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.06em;">Read-Only</p>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                  <div><div style="font-size:10px;color:#9ca3af;margin-bottom:1px;">Central Bank</div><div id="licenceEditCentralbank" style="font-size:12px;font-weight:600;color:#374151;"></div></div>
-                  <div><div style="font-size:10px;color:#9ca3af;margin-bottom:1px;">SWIFT</div><div id="licenceEditSwiftcode" style="font-size:12px;font-weight:600;color:#374151;font-family:monospace;"></div></div>
-                  <div><div style="font-size:10px;color:#9ca3af;margin-bottom:1px;">Bank ID</div><div id="licenceEditBankId" style="font-size:12px;font-weight:600;color:#374151;word-break:break-all;"></div></div>
-                  <div><div style="font-size:10px;color:#9ca3af;margin-bottom:1px;">URI</div><div id="licenceEditUri" style="font-size:12px;font-weight:600;color:#374151;word-break:break-all;"></div></div>
+              <div style="margin-bottom:20px;">
+                <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Expiry Date</label>
+                <input id="licenceEditDuration" type="date" style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;box-sizing:border-box;" />
+              </div>
+              <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px;">
+                <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.06em;">Read-Only</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                  <div><div style="font-size:10px;color:#9ca3af;margin-bottom:2px;">Central Bank</div><div id="licenceEditCentralbank" style="font-size:12px;font-weight:600;color:#374151;"></div></div>
+                  <div><div style="font-size:10px;color:#9ca3af;margin-bottom:2px;">SWIFT</div><div id="licenceEditSwiftcode" style="font-size:12px;font-weight:600;color:#374151;font-family:monospace;"></div></div>
+                  <div><div style="font-size:10px;color:#9ca3af;margin-bottom:2px;">Bank ID</div><div id="licenceEditBankId" style="font-size:12px;font-weight:600;color:#374151;word-break:break-all;"></div></div>
+                  <div><div style="font-size:10px;color:#9ca3af;margin-bottom:2px;">URI</div><div id="licenceEditUri" style="font-size:12px;font-weight:600;color:#374151;word-break:break-all;"></div></div>
                 </div>
               </div>
-              <div id="licenceEditError" style="display:none;margin-top:12px;padding:10px 13px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:12px;color:#dc2626;"></div>
+              <div id="licenceEditError" style="display:none;margin-top:14px;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:12px;color:#dc2626;"></div>
             </div>
-            <div style="padding:14px 22px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:9px;flex-shrink:0;">
-              <button onclick="closeLicenceEditPanel()" style="padding:8px 16px;background:white;color:#374151;border:1px solid #e5e7eb;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Cancel</button>
-              <button id="licenceEditSaveBtn" onclick="saveLicenceEdit()" style="padding:8px 16px;background:#0C1B38;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Save Changes</button>
+            <div style="padding:16px 26px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;background:white;">
+              <button onclick="closeLicenceEditPanel()" style="padding:9px 20px;background:white;color:#374151;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Cancel</button>
+              <button id="licenceEditSaveBtn" onclick="saveLicenceEdit()" style="padding:9px 20px;background:#0C1B38;color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Save Changes</button>
             </div>
           </div>
 
