@@ -750,17 +750,25 @@ window.setClaimFilter = function(filter) {
                 <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">License Type</label>
                 <input id="licenceEditLicenseType" type="text" style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;box-sizing:border-box;" />
               </div>
-              <div style="margin-bottom:20px;">
+              <div style="margin-bottom:16px;">
                 <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Expiry Date</label>
                 <input id="licenceEditDuration" type="date" style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;box-sizing:border-box;" />
+              </div>
+              <div style="margin-bottom:20px;">
+                <label style="display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Central Bank</label>
+                <div style="position:relative;">
+                  <input id="licenceBankFilter" type="text" placeholder="Type to filter banks…" oninput="filterLicenceBankSelect()" style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-bottom:none;border-radius:8px 8px 0 0;font-size:12px;color:#374151;outline:none;box-sizing:border-box;background:#f9fafb;" />
+                  <select id="licenceEditCentralBank" size="4" style="width:100%;padding:0;border:1px solid #e5e7eb;border-radius:0 0 8px 8px;font-size:13px;color:#1a1a1a;outline:none;background:white;box-sizing:border-box;max-height:130px;overflow-y:auto;">
+                    <option value="">Loading banks…</option>
+                  </select>
+                </div>
               </div>
               <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px;">
                 <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.06em;">Read-Only</p>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                  <div><div style="font-size:10px;color:#9ca3af;margin-bottom:2px;">Central Bank</div><div id="licenceEditCentralbank" style="font-size:12px;font-weight:600;color:#374151;"></div></div>
                   <div><div style="font-size:10px;color:#9ca3af;margin-bottom:2px;">SWIFT</div><div id="licenceEditSwiftcode" style="font-size:12px;font-weight:600;color:#374151;font-family:monospace;"></div></div>
                   <div><div style="font-size:10px;color:#9ca3af;margin-bottom:2px;">Bank ID</div><div id="licenceEditBankId" style="font-size:12px;font-weight:600;color:#374151;word-break:break-all;"></div></div>
-                  <div><div style="font-size:10px;color:#9ca3af;margin-bottom:2px;">URI</div><div id="licenceEditUri" style="font-size:12px;font-weight:600;color:#374151;word-break:break-all;"></div></div>
+                  <div style="grid-column:1/-1;"><div style="font-size:10px;color:#9ca3af;margin-bottom:2px;">URI</div><div id="licenceEditUri" style="font-size:12px;font-weight:600;color:#374151;word-break:break-all;"></div></div>
                 </div>
               </div>
               <div id="licenceEditError" style="display:none;margin-top:14px;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:12px;color:#dc2626;"></div>
@@ -4443,6 +4451,39 @@ window.switchAdminTab = window.switchAdminTab || switchAdminTab;
 
 let allSoftwareLicences = [];
 let licencesById = {};
+let licenceBanksList = null; // null = not yet fetched
+
+async function loadLicenceBanks() {
+  if (licenceBanksList !== null) return licenceBanksList;
+  try {
+    const resp = await fetch('/admin-console/banks-data', { headers: { 'Accept': 'application/json' } });
+    const data = await resp.json();
+    licenceBanksList = data.banks || [];
+  } catch(e) {
+    licenceBanksList = [];
+  }
+  return licenceBanksList;
+}
+
+function populateLicenceBankSelect(currentCentralbank) {
+  const sel = document.getElementById('licenceEditCentralBank');
+  const filter = document.getElementById('licenceBankFilter');
+  if (!sel) return;
+  filter.value = '';
+  const banks = licenceBanksList || [];
+  sel.innerHTML = '<option value="">— No central bank —</option>' +
+    banks.map(b => `<option value="${b.name}"${b.name === currentCentralbank ? ' selected' : ''}>${b.name}</option>`).join('');
+}
+
+function filterLicenceBankSelect() {
+  const q = (document.getElementById('licenceBankFilter')?.value || '').toLowerCase();
+  const sel = document.getElementById('licenceEditCentralBank');
+  const current = sel?.dataset.current || '';
+  const banks = licenceBanksList || [];
+  const filtered = q ? banks.filter(b => b.name.toLowerCase().includes(q)) : banks;
+  sel.innerHTML = '<option value="">— No central bank —</option>' +
+    filtered.map(b => `<option value="${b.name}"${b.name === current ? ' selected' : ''}>${b.name}</option>`).join('');
+}
 
 async function loadSoftwareLicences() {
   const tbody = document.getElementById('licencesTableBody');
@@ -4528,7 +4569,7 @@ function filterSoftwareLicences() {
   renderSoftwareLicences(filtered);
 }
 
-function openLicenceEdit(id) {
+async function openLicenceEdit(id) {
   const l = licencesById[id];
   if (!l) return;
   document.getElementById('licenceEditId').value = id;
@@ -4540,7 +4581,6 @@ function openLicenceEdit(id) {
   document.getElementById('licenceEditActive').value = (l.active === true || l.active === 'yes') ? 'true' : 'false';
   document.getElementById('licenceEditLicenseType').value = l.license_type || '';
   document.getElementById('licenceEditDuration').value = l.duration || '';
-  document.getElementById('licenceEditCentralbank').textContent = l.centralbank || '—';
   document.getElementById('licenceEditSwiftcode').textContent = l.swiftcode || '—';
   document.getElementById('licenceEditBankId').textContent = l.bankID || '—';
   document.getElementById('licenceEditUri').textContent = l.uri || '—';
@@ -4548,11 +4588,17 @@ function openLicenceEdit(id) {
   const btn = document.getElementById('licenceEditSaveBtn');
   btn.textContent = 'Save Changes';
   btn.disabled = false;
+  // Show panel immediately, then populate bank dropdown
   const backdrop = document.getElementById('licenceEditBackdrop');
   const panel    = document.getElementById('licenceEditPanel');
   backdrop.style.display = 'block';
   panel.style.display = 'flex';
   requestAnimationFrame(() => { panel.style.transform = 'translateX(0)'; });
+  // Load banks (cached after first call) and populate select
+  const bankSel = document.getElementById('licenceEditCentralBank');
+  if (bankSel) bankSel.dataset.current = l.centralbank || '';
+  await loadLicenceBanks();
+  populateLicenceBankSelect(l.centralbank || '');
 }
 
 function closeLicenceEditPanel() {
@@ -4571,14 +4617,16 @@ async function saveLicenceEdit() {
   btn.disabled = true;
   btn.textContent = 'Saving…';
   err.style.display = 'none';
+  const centralBankVal = document.getElementById('licenceEditCentralBank')?.value || '';
   const payload = {
-    name:         document.getElementById('licenceEditName').value,
-    email:        document.getElementById('licenceEditEmail').value,
-    ip_address:   document.getElementById('licenceEditIp').value,
-    status:       document.getElementById('licenceEditStatus').value,
-    active:       document.getElementById('licenceEditActive').value === 'true',
-    license_type: document.getElementById('licenceEditLicenseType').value,
-    duration:     document.getElementById('licenceEditDuration').value
+    name:              document.getElementById('licenceEditName').value,
+    email:             document.getElementById('licenceEditEmail').value,
+    ip_address:        document.getElementById('licenceEditIp').value,
+    status:            document.getElementById('licenceEditStatus').value,
+    active:            document.getElementById('licenceEditActive').value === 'true',
+    license_type:      document.getElementById('licenceEditLicenseType').value,
+    duration:          document.getElementById('licenceEditDuration').value,
+    central_bank_name: centralBankVal
   };
   try {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
@@ -4616,6 +4664,7 @@ window.filterSoftwareLicences = filterSoftwareLicences;
 window.openLicenceEdit = openLicenceEdit;
 window.closeLicenceEditPanel = closeLicenceEditPanel;
 window.saveLicenceEdit = saveLicenceEdit;
+window.filterLicenceBankSelect = filterLicenceBankSelect;
 
 // API key management
 window.refreshApiKeys = refreshApiKeys;
