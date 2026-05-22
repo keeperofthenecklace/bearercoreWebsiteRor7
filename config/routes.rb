@@ -64,8 +64,9 @@ Rails.application.routes.draw do
     end
   end
 
-  get "admin-console/license",       to: "admin_console#license",       as: :admin_console_license
-  get "admin-console/licenses-data", to: "admin_console#licenses_data",  as: :admin_console_licenses_data, defaults: { format: :json }
+  get   "admin-console/license",          to: "admin_console#license",         as: :admin_console_license
+  get   "admin-console/licenses-data",    to: "admin_console#licenses_data",   as: :admin_console_licenses_data, defaults: { format: :json }
+  patch "admin-console/licences/:id",     to: "admin_console#update_licence",  as: :admin_console_update_licence
 
   get  "download-client",      to: "downloads#client_auth",      as: :client_download
   post "download-client",      to: "downloads#process_download",  as: :process_client_download
