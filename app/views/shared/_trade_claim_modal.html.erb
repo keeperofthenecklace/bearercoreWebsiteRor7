@@ -200,6 +200,9 @@
         <!-- Hidden fields for form submission -->
         <input type="hidden" id="tc_source_vault_node_display" />
 
+        <!-- Form body — locked/unlocked by Module 00 session state -->
+        <div id="tcFormBody" style="transition: opacity 0.25s;">
+
         <!-- Section 1: Originating Entity -->
         <div class="trade-claim-section" style="
           background: #f8fafb;
@@ -1253,6 +1256,8 @@
             Submit Claim
           </button>
         </div>
+
+        </div><!-- /tcFormBody -->
       </form>
     </div>
   </div>
@@ -2318,6 +2323,26 @@ function showTradeClaimModal() {
 // ─────────────────────────────────────────────────────────────────────────────
 const M00_STORAGE_KEY = 'bc_m00_holder_id';
 
+function m00LockForm() {
+  const body = document.getElementById('tcFormBody');
+  if (!body) return;
+  body.style.opacity        = '0.5';
+  body.style.pointerEvents  = 'none';
+  body.style.userSelect     = 'none';
+  const btn = document.getElementById('submitClaimBtn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.45'; btn.style.cursor = 'not-allowed'; }
+}
+
+function m00UnlockForm() {
+  const body = document.getElementById('tcFormBody');
+  if (!body) return;
+  body.style.opacity        = '1';
+  body.style.pointerEvents  = '';
+  body.style.userSelect     = '';
+  const btn = document.getElementById('submitClaimBtn');
+  if (btn) { btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = 'pointer'; }
+}
+
 function m00Truncate(id) {
   if (!id || id.length <= 20) return id;
   return id.slice(0, 16) + '...' + id.slice(-4);
@@ -2339,6 +2364,7 @@ function m00SetAuthenticated(holderId) {
   if (display)    display.textContent  = m00Truncate(holderId);
   if (hidden)     hidden.value = holderId;
   if (cbHidden)   cbHidden.value = holderId;
+  m00UnlockForm();
 }
 
 function m00SetLocked(holderId) {
@@ -2353,6 +2379,7 @@ function m00SetLocked(holderId) {
     targetDisp.textContent = m00Truncate(holderId) + ' (Commercial Bank Node)';
     targetRow.style.display = 'block';
   }
+  m00LockForm();
 }
 
 async function loadCryptoSession() {
@@ -2383,6 +2410,7 @@ async function loadCryptoSession() {
   }
 
   // Step 3: nothing on server — truly uninitialized
+  m00LockForm();
 }
 
 async function initWorkstationNode() {
@@ -2461,12 +2489,13 @@ function closeM00Session() {
   if (hidden) hidden.value = '';
   if (cbHid)  cbHid.value  = '';
 
-  // Swap auth ↔ uninit panels, restore locked status
+  // Swap auth ↔ uninit panels, restore locked status and lock the form
   const auth   = document.getElementById('m00Auth');
   const uninit = document.getElementById('m00Uninit');
   if (auth)   auth.style.display   = 'none';
   if (uninit) uninit.style.display = 'flex';
   m00SetLocked(localStorage.getItem(M00_STORAGE_KEY));
+  m00LockForm();
 
   // Clear countdown label
   const cdEl = document.getElementById('m00LockCountdown');
