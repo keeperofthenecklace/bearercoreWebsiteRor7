@@ -104,14 +104,30 @@
           </div>
 
           <!-- Locked state: shows target identity + PIN entry -->
-          <div id="m00Uninit" style="padding: 2px 14px 14px; display: flex; flex-direction: column; gap: 6px;">
+          <div id="m00Uninit" style="padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 4px;">
+
             <!-- Target Holder ID — hidden until a key is registered -->
-            <div id="m00TargetRow" style="display:none; line-height:1.7; word-break:break-all;">
-              <span style="color:#8b949e;">| Target Holder ID:</span>
-              <span id="m00TargetDisplay" style="color:#e6edf3; margin-left:4px;"></span>
+            <div id="m00TargetRow" style="display:none;">
+              <div style="font-size:9.5px; color:#4b5563; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:4px; padding-left:2px;">
+                🔒 Institutional Node Identity (Verified)
+              </div>
+              <div style="
+                background:#0a0f16; border:1px solid rgba(255,255,255,0.08);
+                border-radius:5px; padding:7px 12px;
+                display:flex; align-items:center; justify-content:space-between; gap:8px;
+                cursor:not-allowed;
+              ">
+                <span id="m00TargetDisplay" style="
+                  color:#6b7280; font-size:11.5px; font-family:'Courier New',monospace;
+                  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;
+                "></span>
+                <span style="color:#374151; font-size:10px; flex-shrink:0;">⊘</span>
+              </div>
             </div>
+
             <!-- Blank separator -->
-            <div style="color:#8b949e;">|</div>
+            <div style="color:#374151; padding-top:4px;">|</div>
+
             <!-- PIN + action button row -->
             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
               <span style="color:#8b949e; white-space:nowrap;">| Enter Spend PIN:</span>
@@ -140,14 +156,30 @@
           </div>
 
           <!-- Active state: identity confirmed + close session -->
-          <div id="m00Auth" style="display:none; flex-direction:column; padding: 2px 14px 14px; gap: 0;">
-            <!-- Identity row -->
-            <div style="line-height:1.7;">
-              <span style="color:#8b949e;">| Identity:</span>
-              <span id="m00HolderIdDisplay" style="color:#e6edf3; font-size:11.5px; margin-left:6px; word-break:break-all;"></span>
+          <div id="m00Auth" style="display:none; flex-direction:column; padding: 6px 14px 14px; gap: 4px;">
+
+            <!-- Verified identity display -->
+            <div>
+              <div style="font-size:9.5px; color:#166534; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:4px; padding-left:2px;">
+                🔒 Institutional Node Identity (Verified)
+              </div>
+              <div style="
+                background:#0a0f16; border:1px solid rgba(74,222,128,0.2);
+                border-radius:5px; padding:7px 12px;
+                display:flex; align-items:center; gap:8px;
+                cursor:not-allowed;
+              ">
+                <span style="color:#4ade80; font-size:10px; flex-shrink:0;">●</span>
+                <span id="m00HolderIdDisplay" style="
+                  color:#6b7280; font-size:11.5px; font-family:'Courier New',monospace;
+                  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;
+                "></span>
+              </div>
             </div>
+
             <!-- Blank separator -->
-            <div style="color:#8b949e;">|</div>
+            <div style="color:#374151; padding-top:2px;">|</div>
+
             <!-- Close session row -->
             <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding-top:2px;">
               <button type="button" onclick="closeM00Session()" id="m00CloseBtn" style="
@@ -2303,8 +2335,8 @@ function m00SetAuthenticated(holderId) {
   if (statusDot)  { statusDot.style.background = '#4ade80'; }
   if (statusText) { statusText.textContent = 'SESSION ACTIVE (Keys Loaded)'; statusText.style.color = '#4ade80'; }
   if (uninit)     uninit.style.display = 'none';
-  if (auth)       auth.style.display = 'flex';
-  if (display)    display.textContent = m00Truncate(holderId);
+  if (auth)       auth.style.display   = 'flex';
+  if (display)    display.textContent  = m00Truncate(holderId);
   if (hidden)     hidden.value = holderId;
   if (cbHidden)   cbHidden.value = holderId;
 }
