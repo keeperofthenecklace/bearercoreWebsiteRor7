@@ -79,77 +79,77 @@
     ">
       <form id="tradeClaimForm" onsubmit="submitTradeClaim(event)">
         
-        <!-- Module 00: Local Terminal Utility & Crypto Session -->
+        <!-- Module 00: Local Terminal & Crypto Session -->
         <div id="cryptoSessionModule" style="
-          background: #ecfdf5;
-          border: 1.5px solid #a7f3d0;
-          border-radius: 12px;
-          padding: 18px 20px;
+          background: #0d1117;
+          border: 1px solid rgba(255,255,255,0.14);
+          border-radius: 10px;
+          font-family: 'Courier New', Courier, monospace;
+          font-size: 12px;
+          color: #c9d1d9;
           margin-bottom: 20px;
+          overflow: hidden;
         ">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="
-                width: 32px; height: 32px;
-                background: #d1fae5; border-radius: 8px;
-                display: flex; align-items: center; justify-content: center;
-              ">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-              </div>
-              <div>
-                <div style="font-size: 11px; font-weight: 700; color: #065f46; text-transform: uppercase; letter-spacing: 0.6px;">
-                  MODULE 00 — Local Terminal &amp; Crypto Session
-                </div>
-              </div>
-            </div>
-            <div id="sessionNodeStatus" style="
-              font-size: 11px; font-weight: 600; color: #6b7280;
-              background: #f3f4f6; border-radius: 20px; padding: 4px 12px;
-              display: flex; align-items: center; gap: 6px;
-            ">
-              <span id="sessionStatusDot" style="width: 7px; height: 7px; border-radius: 50%; background: #9ca3af; flex-shrink: 0;"></span>
-              <span id="sessionStatusText">Initializing...</span>
-            </div>
+          <!-- Terminal title bar -->
+          <div style="padding: 9px 14px; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 11px; color: #8b949e; letter-spacing: 0.04em;">
+            MODULE 00 — Local Terminal &amp; Crypto Session
+          </div>
+          <div style="border-top: 1px dashed rgba(255,255,255,0.06);"></div>
+
+          <!-- Status row -->
+          <div style="padding: 10px 14px 0; line-height: 1.6;">
+            <span style="color: #8b949e;">| Status:</span>
+            <span id="m00StatusDot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin:0 5px 0 7px;vertical-align:middle;"></span>
+            <span id="m00StatusText" style="font-weight:700;color:#ef4444;">UNINITIALIZED</span>
           </div>
 
-          <!-- Source Vault Node ID — auto-populated from authenticated session -->
-          <div style="margin-bottom: 10px;">
-            <label style="display: block; font-size: 12px; font-weight: 600; color: #065f46; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px;">
-              Source Vault Node ID (Commercial Bank Holder ID)
-            </label>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <input type="text" id="tc_source_vault_node_display" readonly
-                placeholder="Deriving from session seed…"
-                style="
-                  flex: 1;
-                  padding: 10px 14px;
-                  border: 1.5px solid #a7f3d0;
-                  border-radius: 8px;
-                  font-size: 11px;
-                  font-family: 'Courier New', monospace;
-                  letter-spacing: 0.3px;
-                  background: #f0fdf4;
-                  color: #065f46;
-                  box-sizing: border-box;
-                " />
-              <span id="sessionKeyStatus" style="font-size: 20px; flex-shrink: 0;">⏳</span>
-            </div>
-            <div id="sessionNodeAlias" style="font-size: 11px; color: #6b7280; margin-top: 5px; font-style: italic;"></div>
+          <!-- Uninitialized state -->
+          <div id="m00Uninit" style="padding: 8px 14px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span style="color: #8b949e; white-space: nowrap;">| Secure Spend PIN:</span>
+            <input type="password" id="m00PinInput" maxlength="12" placeholder="••••"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();initWorkstationNode();}"
+              style="
+                width: 88px; padding: 5px 10px;
+                background: #161b22; border: 1px solid rgba(255,255,255,0.18);
+                border-radius: 5px; color: #e6edf3;
+                font-family: 'Courier New', monospace; font-size: 13px;
+                letter-spacing: 5px; outline: none; box-sizing: border-box;
+              " />
+            <button id="m00InitBtn" onclick="initWorkstationNode()" style="
+              padding: 5px 13px;
+              background: transparent; border: 1px solid rgba(255,255,255,0.22);
+              border-radius: 5px; color: #c9d1d9;
+              font-family: 'Courier New', monospace; font-size: 11px;
+              font-weight: 700; cursor: pointer; white-space: nowrap;
+              transition: background 0.15s, border-color 0.15s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.07)';this.style.borderColor='rgba(255,255,255,0.4)'"
+               onmouseout="this.style.background='transparent';this.style.borderColor='rgba(255,255,255,0.22)'">
+              [ ⚡ Initialize Workstation Node ]
+            </button>
+            <span id="m00InitSpinner" style="display:none; color:#fbbf24; font-size:11px;">[ ○ Deriving key... ]</span>
           </div>
 
-          <!-- Session active notice — shown when key is loaded -->
-          <div id="sessionActiveNotice" style="display: none; align-items: flex-start; gap: 8px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" style="flex-shrink:0; margin-top:1px;">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span style="font-size: 12px; color: #065f46; line-height: 1.4;">
-              <strong>Cryptographic Session Active:</strong> CVIB metadata envelope will lock minted assets directly to this workstation's key storage.
-            </span>
+          <!-- Authenticated state -->
+          <div id="m00Auth" style="display:none; padding: 8px 14px 14px; align-items: center; gap: 8px; flex-wrap: nowrap; overflow: hidden;">
+            <span style="color:#8b949e; white-space:nowrap; flex-shrink:0;">| Active Holder ID:</span>
+            <span id="m00HolderIdDisplay" style="
+              flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+              color: #e6edf3; font-size: 11.5px; min-width: 0;
+            "></span>
+            <button onclick="copyM00HolderId()" id="m00CopyBtn" title="Copy Holder ID" style="
+              padding: 3px 9px; background: transparent;
+              border: 1px solid rgba(255,255,255,0.16); border-radius: 4px;
+              color: #8b949e; font-family: 'Courier New', monospace; font-size: 10px;
+              cursor: pointer; flex-shrink: 0; white-space: nowrap;
+              transition: background 0.15s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
+              [ ⎘ ]
+            </button>
           </div>
         </div>
+
+        <!-- Hidden fields for form submission -->
+        <input type="hidden" id="tc_source_vault_node_display" />
 
         <!-- Section 1: Originating Entity -->
         <div class="trade-claim-section" style="
@@ -2265,68 +2265,74 @@ function showTradeClaimModal() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Module 00: Crypto Session — auto-populate Source Vault Node ID from the
-//  authenticated session's holder key (HolderIdsController#store_key).
+//  Module 00: Crypto Session — PIN-derived workstation identity
 // ─────────────────────────────────────────────────────────────────────────────
+const M00_STORAGE_KEY = 'bc_m00_holder_id';
+
+function m00SetAuthenticated(holderId) {
+  const statusDot  = document.getElementById('m00StatusDot');
+  const statusText = document.getElementById('m00StatusText');
+  const uninit     = document.getElementById('m00Uninit');
+  const auth       = document.getElementById('m00Auth');
+  const display    = document.getElementById('m00HolderIdDisplay');
+  const hidden     = document.getElementById('tc_source_vault_node_display');
+  const cbHidden   = document.getElementById('tc_commercial_bank_holder_id');
+
+  if (statusDot)  { statusDot.style.background = '#4ade80'; }
+  if (statusText) { statusText.textContent = 'AUTHENTICATED'; statusText.style.color = '#4ade80'; }
+  if (uninit)     uninit.style.display = 'none';
+  if (auth)       { auth.style.display = 'flex'; }
+  if (display)    display.textContent = holderId;
+  if (hidden)     hidden.value = holderId;
+  if (cbHidden)   cbHidden.value = holderId;
+}
+
 async function loadCryptoSession() {
-  const displayField  = document.getElementById('tc_source_vault_node_display');
-  const hiddenField   = document.getElementById('tc_commercial_bank_holder_id');
-  const aliasEl       = document.getElementById('sessionNodeAlias');
-  const statusText    = document.getElementById('sessionStatusText');
-  const statusDot     = document.getElementById('sessionStatusDot');
-  const keyStatusIcon = document.getElementById('sessionKeyStatus');
-  const activeNotice  = document.getElementById('sessionActiveNotice');
-  const moduleEl      = document.getElementById('cryptoSessionModule');
+  const stored = localStorage.getItem(M00_STORAGE_KEY);
+  if (stored) {
+    m00SetAuthenticated(stored);
+  }
+  // else: stays UNINITIALIZED — user must enter PIN
+}
 
-  const setStatus = (text, color, dot) => {
-    if (statusText) statusText.textContent = text;
-    if (statusDot)  statusDot.style.background = dot;
-    const badge = statusText?.closest?.('[id="sessionNodeStatus"]') ||
-                  document.getElementById('sessionNodeStatus');
-    if (badge) badge.style.color = color;
-  };
+async function initWorkstationNode() {
+  const pinInput  = document.getElementById('m00PinInput');
+  const initBtn   = document.getElementById('m00InitBtn');
+  const spinner   = document.getElementById('m00InitSpinner');
+  const pin = pinInput ? pinInput.value.trim() : '';
+  if (!pin) { pinInput && (pinInput.style.borderColor = '#ef4444'); return; }
 
-  setStatus('Initializing...', '#6b7280', '#9ca3af');
-  if (keyStatusIcon) keyStatusIcon.textContent = '⏳';
+  if (initBtn)  initBtn.style.display = 'none';
+  if (spinner)  spinner.style.display = 'inline';
 
   try {
-    const res = await fetch('/api/v2/holder_keys', {
-      headers: { 'Authorization': `Bearer ${getAccessToken()}`, 'Accept': 'application/json' }
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const keys = Array.isArray(data) ? data
-               : Array.isArray(data.data) ? data.data
-               : Array.isArray(data.holder_keys) ? data.holder_keys : [];
+    const encoded = new TextEncoder().encode('bc-module00:' + pin);
+    const hashBuf = await crypto.subtle.digest('SHA-256', encoded);
+    const holderId = Array.from(new Uint8Array(hashBuf))
+      .map(b => b.toString(16).padStart(2, '0')).join('');
 
-    if (keys.length > 0) {
-      const key      = keys[0];
-      const holderId = key.holder_id || key.public_key || key.address || '';
-      const alias    = key.institution_name || key.name || 'authenticated session';
-
-      if (displayField) { displayField.value = holderId; displayField.style.borderColor = '#34d399'; }
-      if (hiddenField)  hiddenField.value = holderId;
-      if (aliasEl)      aliasEl.textContent = `Identity Account: ${alias}`;
-      if (keyStatusIcon) keyStatusIcon.textContent = '✅';
-      if (activeNotice)  activeNotice.style.display = 'flex';
-      if (moduleEl) { moduleEl.style.background = '#ecfdf5'; moduleEl.style.borderColor = '#34d399'; }
-      setStatus('AUTHENTICATED — Active Session Seed Verified', '#059669', '#10b981');
-
-      console.log('[loadCryptoSession] Node ID:', holderId.substring(0, 16) + '...', 'alias:', alias);
-    } else {
-      if (displayField) displayField.placeholder = 'No registered key — register workstation first';
-      if (aliasEl) aliasEl.textContent = 'No cryptographic session registered for this account.';
-      if (keyStatusIcon) keyStatusIcon.textContent = '⚠️';
-      if (moduleEl) { moduleEl.style.background = '#fffbeb'; moduleEl.style.borderColor = '#fbbf24'; }
-      setStatus('NO SESSION — Register workstation first', '#d97706', '#f59e0b');
-    }
-  } catch (e) {
-    console.warn('[loadCryptoSession] error:', e.message);
-    if (displayField) displayField.placeholder = 'Session verification failed — reload and try again';
-    if (keyStatusIcon) keyStatusIcon.textContent = '❌';
-    if (moduleEl) { moduleEl.style.background = '#fef2f2'; moduleEl.style.borderColor = '#fca5a5'; }
-    setStatus('VERIFICATION FAILED', '#dc2626', '#ef4444');
+    localStorage.setItem(M00_STORAGE_KEY, holderId);
+    m00SetAuthenticated(holderId);
+  } catch(e) {
+    console.warn('[Module00] derivation error:', e.message);
+    if (initBtn)  initBtn.style.display = 'inline';
+  } finally {
+    if (spinner) spinner.style.display = 'none';
+    if (pinInput) pinInput.value = '';
   }
+}
+
+function copyM00HolderId() {
+  const holderId = localStorage.getItem(M00_STORAGE_KEY) || '';
+  if (!holderId) return;
+  navigator.clipboard.writeText(holderId).then(() => {
+    const btn = document.getElementById('m00CopyBtn');
+    if (btn) {
+      btn.textContent = '[ ✓ ]';
+      btn.style.color = '#4ade80';
+      setTimeout(() => { btn.textContent = '[ ⎘ ]'; btn.style.color = '#8b949e'; }, 1600);
+    }
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -4601,7 +4607,7 @@ function showTradeClaimConfirmModal() {
   const commHolderId = document.getElementById('tc_commercial_bank_holder_id')?.value
                       || document.getElementById('tc_source_vault_node_display')?.value || '—';
   const mintingNode  = document.getElementById('tc_sovereign_minting_node')?.value || '—';
-  const nodeAlias    = document.getElementById('sessionNodeAlias')?.textContent || '';
+  const nodeAlias    = '';
   document.getElementById('confirmNodeId').textContent         = commHolderId;
   document.getElementById('confirmNodeAlias').textContent      = nodeAlias || '(no alias registered)';
   document.getElementById('confirmTargetNetwork').textContent  = mintingNode;
