@@ -130,21 +130,38 @@
           </div>
 
           <!-- Authenticated state -->
-          <div id="m00Auth" style="display:none; padding: 8px 14px 14px; align-items: center; gap: 8px; flex-wrap: nowrap; overflow: hidden;">
-            <span style="color:#8b949e; white-space:nowrap; flex-shrink:0;">| Active Holder ID:</span>
-            <span id="m00HolderIdDisplay" style="
-              flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-              color: #e6edf3; font-size: 11.5px; min-width: 0;
-            "></span>
-            <button onclick="copyM00HolderId()" id="m00CopyBtn" title="Copy Holder ID" style="
-              padding: 3px 9px; background: transparent;
-              border: 1px solid rgba(255,255,255,0.16); border-radius: 4px;
-              color: #8b949e; font-family: 'Courier New', monospace; font-size: 10px;
-              cursor: pointer; flex-shrink: 0; white-space: nowrap;
-              transition: background 0.15s;
-            " onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
-              [ ⎘ ]
-            </button>
+          <div id="m00Auth" style="display:none; flex-direction:column; padding: 0 14px 14px;">
+            <!-- Holder ID row -->
+            <div style="display:flex; align-items:center; gap:8px; padding-top:8px; overflow:hidden;">
+              <span style="color:#8b949e; white-space:nowrap; flex-shrink:0;">| Active Holder ID:</span>
+              <span id="m00HolderIdDisplay" style="
+                flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+                color:#e6edf3; font-size:11.5px; min-width:0;
+              "></span>
+              <button onclick="copyM00HolderId()" id="m00CopyBtn" title="Copy Holder ID" style="
+                padding:3px 9px; background:transparent;
+                border:1px solid rgba(255,255,255,0.16); border-radius:4px;
+                color:#8b949e; font-family:'Courier New',monospace; font-size:10px;
+                cursor:pointer; flex-shrink:0; white-space:nowrap; transition:background 0.15s;
+              " onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
+                [ ⎘ ]
+              </button>
+            </div>
+            <!-- Blank separator line -->
+            <div style="color:#8b949e; padding-top:4px;">|</div>
+            <!-- Close Session row -->
+            <div style="padding-top:2px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+              <button onclick="closeM00Session()" id="m00CloseBtn" style="
+                padding:5px 14px; background:transparent;
+                border:1px solid rgba(239,68,68,0.45); border-radius:5px;
+                color:#f87171; font-family:'Courier New',monospace; font-size:11px;
+                font-weight:700; cursor:pointer; white-space:nowrap; transition:background 0.15s, border-color 0.15s;
+              " onmouseover="this.style.background='rgba(239,68,68,0.1)';this.style.borderColor='rgba(239,68,68,0.7)'"
+                 onmouseout="this.style.background='transparent';this.style.borderColor='rgba(239,68,68,0.45)'">
+                [ 🔒 Close Session &amp; Lock Vault ]
+              </button>
+              <span id="m00LockCountdown" style="display:none; font-size:10.5px; color:#fbbf24; font-family:'Courier New',monospace;"></span>
+            </div>
           </div>
         </div>
 
@@ -2333,6 +2350,80 @@ function copyM00HolderId() {
       setTimeout(() => { btn.textContent = '[ ⎘ ]'; btn.style.color = '#8b949e'; }, 1600);
     }
   });
+}
+
+function closeM00Session() {
+  localStorage.removeItem(M00_STORAGE_KEY);
+  // Clear any auto-lock timer
+  if (window._m00LockTimer) { clearInterval(window._m00LockTimer); window._m00LockTimer = null; }
+
+  // Wipe form fields
+  const hidden = document.getElementById('tc_source_vault_node_display');
+  const cbHid  = document.getElementById('tc_commercial_bank_holder_id');
+  if (hidden) hidden.value = '';
+  if (cbHid)  cbHid.value  = '';
+
+  // Reset status to UNINITIALIZED
+  const dot  = document.getElementById('m00StatusDot');
+  const text = document.getElementById('m00StatusText');
+  if (dot)  { dot.style.background = '#ef4444'; }
+  if (text) { text.textContent = 'UNINITIALIZED'; text.style.color = '#ef4444'; }
+
+  // Swap auth ↔ uninit panels
+  const auth   = document.getElementById('m00Auth');
+  const uninit = document.getElementById('m00Uninit');
+  if (auth)   auth.style.display   = 'none';
+  if (uninit) uninit.style.display = 'flex';
+
+  // Clear countdown label
+  const cdEl = document.getElementById('m00LockCountdown');
+  if (cdEl) { cdEl.style.display = 'none'; cdEl.textContent = ''; }
+}
+
+function m00StartAutoLock(seconds) {
+  const cdEl = document.getElementById('m00LockCountdown');
+  let remaining = seconds;
+  if (cdEl) { cdEl.textContent = `Session locking in ${remaining}s...`; cdEl.style.display = 'inline'; }
+
+  window._m00LockTimer = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      closeM00Session();
+    } else {
+      if (cdEl) cdEl.textContent = `Session locking in ${remaining}s...`;
+    }
+  }, 1000);
+}
+
+function m00RequireAuth() {
+  const module = document.getElementById('cryptoSessionModule');
+  if (!module) return false;
+  if (localStorage.getItem(M00_STORAGE_KEY)) return true;
+
+  // Shake module and flash message
+  module.style.transition = 'none';
+  module.style.border = '1px solid rgba(239,68,68,0.7)';
+  let shakeCount = 0;
+  const shake = setInterval(() => {
+    module.style.transform = shakeCount % 2 === 0 ? 'translateX(5px)' : 'translateX(-5px)';
+    shakeCount++;
+    if (shakeCount >= 8) {
+      clearInterval(shake);
+      module.style.transform = '';
+      setTimeout(() => { module.style.border = '1px solid rgba(255,255,255,0.14)'; }, 1200);
+    }
+  }, 60);
+
+  // Flash text in the status line
+  const text = document.getElementById('m00StatusText');
+  if (text) {
+    const orig = text.textContent;
+    text.textContent = 'Authentication required to sign transactions.';
+    text.style.color = '#f87171';
+    setTimeout(() => { text.textContent = orig; text.style.color = '#ef4444'; }, 2800);
+  }
+  module.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  return false;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -4538,6 +4629,8 @@ async function submitTradeClaim(event) {
   event.preventDefault();
   hideError();
 
+  if (!m00RequireAuth()) return;
+
   if (!document.getElementById('tc_declaration_trade').checked ||
       !document.getElementById('tc_declaration_aml').checked) {
     showError('Please confirm both declarations to submit.');
@@ -4719,9 +4812,10 @@ async function confirmAndSubmitTradeClaim() {
       }
     }
 
-    // Show success modal
+    // Show success modal and start auto-lock countdown
     showSuccessModal(data);
     hideTradeClaimModal();
+    m00StartAutoLock(5);
 
   } catch (error) {
     console.error('Submission error:', error);
