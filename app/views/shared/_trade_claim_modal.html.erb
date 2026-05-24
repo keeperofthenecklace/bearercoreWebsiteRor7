@@ -201,6 +201,7 @@
         <input type="hidden" id="tc_source_vault_node_display" />
 
         <!-- Form body — locked/unlocked by Module 00 session state -->
+        <div id="tcFormWrapper" style="position: relative;">
         <div id="tcFormBody" style="transition: opacity 0.25s;">
 
         <!-- Section 1: Originating Entity -->
@@ -1258,6 +1259,14 @@
         </div>
 
         </div><!-- /tcFormBody -->
+        <div id="tcFormLockOverlay" style="
+          display: none;
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          z-index: 9999;
+          cursor: not-allowed;
+        "></div>
+        </div><!-- /tcFormWrapper -->
       </form>
     </div>
   </div>
@@ -2324,21 +2333,19 @@ function showTradeClaimModal() {
 const M00_STORAGE_KEY = 'bc_m00_holder_id';
 
 function m00LockForm() {
-  const body = document.getElementById('tcFormBody');
-  if (!body) return;
-  body.style.opacity        = '0.5';
-  body.style.pointerEvents  = 'none';
-  body.style.userSelect     = 'none';
+  const body    = document.getElementById('tcFormBody');
+  const overlay = document.getElementById('tcFormLockOverlay');
+  if (body)    { body.style.opacity = '0.5'; body.style.userSelect = 'none'; }
+  if (overlay) overlay.style.display = 'block';
   const btn = document.getElementById('submitClaimBtn');
   if (btn) { btn.disabled = true; btn.style.opacity = '0.45'; btn.style.cursor = 'not-allowed'; }
 }
 
 function m00UnlockForm() {
-  const body = document.getElementById('tcFormBody');
-  if (!body) return;
-  body.style.opacity        = '1';
-  body.style.pointerEvents  = '';
-  body.style.userSelect     = '';
+  const body    = document.getElementById('tcFormBody');
+  const overlay = document.getElementById('tcFormLockOverlay');
+  if (body)    { body.style.opacity = '1'; body.style.userSelect = ''; }
+  if (overlay) overlay.style.display = 'none';
   const btn = document.getElementById('submitClaimBtn');
   if (btn) { btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = 'pointer'; }
 }
