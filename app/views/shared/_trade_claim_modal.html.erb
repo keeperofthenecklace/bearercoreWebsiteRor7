@@ -2358,13 +2358,31 @@ function m00SetLocked(holderId) {
 async function loadCryptoSession() {
   const holderId = localStorage.getItem(M00_STORAGE_KEY);
   const unlocked = localStorage.getItem(M00_STORAGE_KEY + '_unlocked') === '1';
-  if (holderId && unlocked) {
-    m00SetAuthenticated(holderId);
-  } else if (holderId) {
-    // Registered but locked — show target identity, await PIN
-    m00SetLocked(holderId);
+
+  // Step 1: localStorage has a key
+  if (holderId && unlocked) { m00SetAuthenticated(holderId); return; }
+  if (holderId)             { m00SetLocked(holderId);        return; }
+
+  // Step 2: localStorage empty — try server session recovery
+  try {
+    const res = await fetch('/api/v1/operator/current_identity', {
+      headers: { 'Accept': 'application/json' },
+      credentials: 'same-origin'
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.holder_id) {
+        // Re-hydrate local cache from server session, stay locked (PIN required)
+        localStorage.setItem(M00_STORAGE_KEY, data.holder_id);
+        m00SetLocked(data.holder_id);
+        return;
+      }
+    }
+  } catch(e) {
+    console.warn('[Module00] server identity fetch failed:', e.message);
   }
-  // else: no key yet — stays UNINITIALIZED
+
+  // Step 3: nothing on server — truly uninitialized
 }
 
 async function initWorkstationNode() {
@@ -2397,10 +2415,18 @@ async function initWorkstationNode() {
       return;
     }
 
-    // First use or correct PIN
+    // First use or correct PIN — persist locally and to server session
     localStorage.setItem(M00_STORAGE_KEY, derived);
     localStorage.setItem(M00_STORAGE_KEY + '_unlocked', '1');
     m00SetAuthenticated(derived);
+
+    // Fire-and-forget: store in server session so recovery loop works after cache clear
+    fetch('/api/v1/operator/store_identity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ holder_id: derived, node_alias: 'Commercial Bank Node' })
+    }).catch(e => console.warn('[Module00] server store failed:', e.message));
   } catch(e) {
     console.warn('[Module00] derivation error:', e.message);
     if (initBtn)  initBtn.style.display = 'inline';

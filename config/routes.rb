@@ -17,6 +17,11 @@ Rails.application.routes.draw do
   resources :briefing_requests, only: [:create]
 
   namespace :api do
+    namespace :v1 do
+      get  'operator/current_identity', to: 'operator#current_identity'
+      post 'operator/store_identity',   to: 'operator#store_identity'
+    end
+
     namespace :v2 do
       resources :corridors, only: [:index, :show] do
         member do
