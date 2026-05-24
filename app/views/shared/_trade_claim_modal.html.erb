@@ -94,71 +94,71 @@
           <div style="padding: 9px 14px; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 11px; color: #8b949e; letter-spacing: 0.04em;">
             MODULE 00 — Local Terminal &amp; Crypto Session
           </div>
-          <div style="border-top: 1px dashed rgba(255,255,255,0.06);"></div>
+          <div style="border-top: 1px dashed rgba(255,255,255,0.08); margin: 0 14px;"></div>
 
           <!-- Status row -->
-          <div style="padding: 10px 14px 0; line-height: 1.6;">
+          <div style="padding: 10px 14px 0; line-height: 1.7;">
             <span style="color: #8b949e;">| Status:</span>
             <span id="m00StatusDot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin:0 5px 0 7px;vertical-align:middle;"></span>
             <span id="m00StatusText" style="font-weight:700;color:#ef4444;">UNINITIALIZED</span>
           </div>
 
-          <!-- Uninitialized state -->
-          <div id="m00Uninit" style="padding: 8px 14px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <span style="color: #8b949e; white-space: nowrap;">| Secure Spend PIN:</span>
-            <input type="password" id="m00PinInput" maxlength="12" placeholder="••••"
-              onkeydown="if(event.key==='Enter'){event.preventDefault();initWorkstationNode();}"
-              style="
-                width: 88px; padding: 5px 10px;
-                background: #161b22; border: 1px solid rgba(255,255,255,0.18);
-                border-radius: 5px; color: #e6edf3;
-                font-family: 'Courier New', monospace; font-size: 13px;
-                letter-spacing: 5px; outline: none; box-sizing: border-box;
-              " />
-            <button type="button" id="m00InitBtn" onclick="initWorkstationNode()" style="
-              padding: 5px 13px;
-              background: transparent; border: 1px solid rgba(255,255,255,0.22);
-              border-radius: 5px; color: #c9d1d9;
-              font-family: 'Courier New', monospace; font-size: 11px;
-              font-weight: 700; cursor: pointer; white-space: nowrap;
-              transition: background 0.15s, border-color 0.15s;
-            " onmouseover="this.style.background='rgba(255,255,255,0.07)';this.style.borderColor='rgba(255,255,255,0.4)'"
-               onmouseout="this.style.background='transparent';this.style.borderColor='rgba(255,255,255,0.22)'">
-              [ ⚡ Initialize Workstation Node ]
-            </button>
-            <span id="m00InitSpinner" style="display:none; color:#fbbf24; font-size:11px;">[ ○ Deriving key... ]</span>
+          <!-- Locked state: shows target identity + PIN entry -->
+          <div id="m00Uninit" style="padding: 2px 14px 14px; display: flex; flex-direction: column; gap: 6px;">
+            <!-- Target Holder ID — hidden until a key is registered -->
+            <div id="m00TargetRow" style="display:none; line-height:1.7; word-break:break-all;">
+              <span style="color:#8b949e;">| Target Holder ID:</span>
+              <span id="m00TargetDisplay" style="color:#e6edf3; margin-left:4px;"></span>
+            </div>
+            <!-- Blank separator -->
+            <div style="color:#8b949e;">|</div>
+            <!-- PIN + action button row -->
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <span style="color:#8b949e; white-space:nowrap;">| Enter Spend PIN:</span>
+              <input type="password" id="m00PinInput" maxlength="12" placeholder="••••"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();initWorkstationNode();}"
+                style="
+                  width: 88px; padding: 5px 10px;
+                  background: #161b22; border: 1px solid rgba(255,255,255,0.18);
+                  border-radius: 5px; color: #e6edf3;
+                  font-family: 'Courier New', monospace; font-size: 13px;
+                  letter-spacing: 5px; outline: none; box-sizing: border-box;
+                " />
+              <button type="button" id="m00InitBtn" onclick="initWorkstationNode()" style="
+                padding: 5px 13px; margin-left: auto;
+                background: transparent; border: 1px solid rgba(255,255,255,0.22);
+                border-radius: 5px; color: #c9d1d9;
+                font-family: 'Courier New', monospace; font-size: 11px;
+                font-weight: 700; cursor: pointer; white-space: nowrap;
+                transition: background 0.15s, border-color 0.15s;
+              " onmouseover="this.style.background='rgba(255,255,255,0.07)';this.style.borderColor='rgba(255,255,255,0.4)'"
+                 onmouseout="this.style.background='transparent';this.style.borderColor='rgba(255,255,255,0.22)'">
+                [ 🔒 Unlock &amp; Authorize Claim ]
+              </button>
+              <span id="m00InitSpinner" style="display:none; color:#fbbf24; font-size:11px;">[ ○ Deriving key... ]</span>
+            </div>
           </div>
 
-          <!-- Authenticated state -->
-          <div id="m00Auth" style="display:none; flex-direction:column; padding: 0 14px 14px;">
-            <!-- Holder ID row -->
-            <div style="display:flex; align-items:center; gap:8px; padding-top:8px; overflow:hidden;">
-              <span style="color:#8b949e; white-space:nowrap; flex-shrink:0;">| Active Holder ID:</span>
-              <span id="m00HolderIdDisplay" style="
-                flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-                color:#e6edf3; font-size:11.5px; min-width:0;
-              "></span>
-              <button type="button" onclick="copyM00HolderId()" id="m00CopyBtn" title="Copy Holder ID" style="
-                padding:3px 9px; background:transparent;
-                border:1px solid rgba(255,255,255,0.16); border-radius:4px;
-                color:#8b949e; font-family:'Courier New',monospace; font-size:10px;
-                cursor:pointer; flex-shrink:0; white-space:nowrap; transition:background 0.15s;
-              " onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
-                [ ⎘ ]
-              </button>
+          <!-- Active state: identity confirmed + close session -->
+          <div id="m00Auth" style="display:none; flex-direction:column; padding: 2px 14px 14px; gap: 0;">
+            <!-- Identity row -->
+            <div style="line-height:1.7;">
+              <span style="color:#8b949e;">| Identity:</span>
+              <span id="m00HolderIdDisplay" style="color:#e6edf3; font-size:11.5px; margin-left:6px; word-break:break-all;"></span>
             </div>
-            <!-- Blank separator line -->
-            <div style="color:#8b949e; padding-top:4px;">|</div>
-            <!-- Close Session row -->
-            <div style="padding-top:2px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <!-- Blank separator -->
+            <div style="color:#8b949e;">|</div>
+            <!-- Close session row -->
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding-top:2px;">
               <button type="button" onclick="closeM00Session()" id="m00CloseBtn" style="
                 padding:5px 14px; background:transparent;
                 border:1px solid rgba(239,68,68,0.45); border-radius:5px;
                 color:#f87171; font-family:'Courier New',monospace; font-size:11px;
-                font-weight:700; cursor:pointer; white-space:nowrap; transition:background 0.15s, border-color 0.15s;
+                font-weight:700; cursor:pointer; white-space:nowrap;
+                transition:background 0.15s, border-color 0.15s;
               " onmouseover="this.style.background='rgba(239,68,68,0.1)';this.style.borderColor='rgba(239,68,68,0.7)'"
                  onmouseout="this.style.background='transparent';this.style.borderColor='rgba(239,68,68,0.45)'">
-                [ 🔒 Close Session &amp; Lock Vault ]
+                [ 🔒 Close Session &amp; Unload Keys ]
               </button>
               <span id="m00LockCountdown" style="display:none; font-size:10.5px; color:#fbbf24; font-family:'Courier New',monospace;"></span>
             </div>
@@ -2286,6 +2286,11 @@ function showTradeClaimModal() {
 // ─────────────────────────────────────────────────────────────────────────────
 const M00_STORAGE_KEY = 'bc_m00_holder_id';
 
+function m00Truncate(id) {
+  if (!id || id.length <= 20) return id;
+  return id.slice(0, 16) + '...' + id.slice(-4);
+}
+
 function m00SetAuthenticated(holderId) {
   const statusDot  = document.getElementById('m00StatusDot');
   const statusText = document.getElementById('m00StatusText');
@@ -2296,22 +2301,38 @@ function m00SetAuthenticated(holderId) {
   const cbHidden   = document.getElementById('tc_commercial_bank_holder_id');
 
   if (statusDot)  { statusDot.style.background = '#4ade80'; }
-  if (statusText) { statusText.textContent = 'AUTHENTICATED'; statusText.style.color = '#4ade80'; }
+  if (statusText) { statusText.textContent = 'SESSION ACTIVE (Keys Loaded)'; statusText.style.color = '#4ade80'; }
   if (uninit)     uninit.style.display = 'none';
-  if (auth)       { auth.style.display = 'flex'; }
-  if (display)    display.textContent = holderId;
+  if (auth)       auth.style.display = 'flex';
+  if (display)    display.textContent = m00Truncate(holderId);
   if (hidden)     hidden.value = holderId;
   if (cbHidden)   cbHidden.value = holderId;
 }
 
+function m00SetLocked(holderId) {
+  const statusDot   = document.getElementById('m00StatusDot');
+  const statusText  = document.getElementById('m00StatusText');
+  const targetRow   = document.getElementById('m00TargetRow');
+  const targetDisp  = document.getElementById('m00TargetDisplay');
+
+  if (statusDot)  { statusDot.style.background = '#f59e0b'; }
+  if (statusText) { statusText.textContent = 'VAULT LOCKED'; statusText.style.color = '#f59e0b'; }
+  if (holderId && targetRow && targetDisp) {
+    targetDisp.textContent = m00Truncate(holderId) + ' (Commercial Bank Node)';
+    targetRow.style.display = 'block';
+  }
+}
+
 async function loadCryptoSession() {
-  // Restore authenticated state only if the session was left open
   const holderId = localStorage.getItem(M00_STORAGE_KEY);
   const unlocked = localStorage.getItem(M00_STORAGE_KEY + '_unlocked') === '1';
   if (holderId && unlocked) {
     m00SetAuthenticated(holderId);
+  } else if (holderId) {
+    // Registered but locked — show target identity, await PIN
+    m00SetLocked(holderId);
   }
-  // else: stays UNINITIALIZED — user must enter PIN
+  // else: no key yet — stays UNINITIALIZED
 }
 
 async function initWorkstationNode() {
@@ -2382,17 +2403,12 @@ function closeM00Session() {
   if (hidden) hidden.value = '';
   if (cbHid)  cbHid.value  = '';
 
-  // Reset status to UNINITIALIZED
-  const dot  = document.getElementById('m00StatusDot');
-  const text = document.getElementById('m00StatusText');
-  if (dot)  { dot.style.background = '#ef4444'; }
-  if (text) { text.textContent = 'UNINITIALIZED'; text.style.color = '#ef4444'; }
-
-  // Swap auth ↔ uninit panels
+  // Swap auth ↔ uninit panels, restore locked status
   const auth   = document.getElementById('m00Auth');
   const uninit = document.getElementById('m00Uninit');
   if (auth)   auth.style.display   = 'none';
   if (uninit) uninit.style.display = 'flex';
+  m00SetLocked(localStorage.getItem(M00_STORAGE_KEY));
 
   // Clear countdown label
   const cdEl = document.getElementById('m00LockCountdown');
