@@ -204,7 +204,30 @@
         <div id="tcFormWrapper" style="position: relative;">
         <div id="tcFormBody" style="transition: opacity 0.25s;">
 
-        <!-- Section 1: Originating Entity -->
+        <!-- ─── Progressive Wizard Step Indicator ─── -->
+        <div style="margin-bottom: 24px;">
+          <div style="display: flex; align-items: center;">
+            <div id="tcNavStep1" style="display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:20px; background:#059669; color:white; font-size:12px; font-weight:600; white-space:nowrap; transition:all 0.2s;">
+              <span id="tcNavDot1" style="width:20px; height:20px; border-radius:50%; background:white; color:#059669; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0;">1</span>
+              Token Specs
+            </div>
+            <div id="tcNavLine1" style="flex:1; height:2px; background:#e5e7eb; margin:0 4px; min-width:12px; transition:background 0.2s;"></div>
+            <div id="tcNavStep2" style="display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:20px; background:#f3f4f6; color:#9ca3af; font-size:12px; font-weight:600; white-space:nowrap; transition:all 0.2s;">
+              <span id="tcNavDot2" style="width:20px; height:20px; border-radius:50%; border:2px solid #d1d5db; background:white; color:#9ca3af; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0;">2</span>
+              FX &amp; Route
+            </div>
+            <div id="tcNavLine2" style="flex:1; height:2px; background:#e5e7eb; margin:0 4px; min-width:12px; transition:background 0.2s;"></div>
+            <div id="tcNavStep3" style="display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:20px; background:#f3f4f6; color:#9ca3af; font-size:12px; font-weight:600; white-space:nowrap; transition:all 0.2s;">
+              <span id="tcNavDot3" style="width:20px; height:20px; border-radius:50%; border:2px solid #d1d5db; background:white; color:#9ca3af; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0;">3</span>
+              Auth &amp; Sign
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ STEP 1: Token Specification & Entity Integrity ═══ -->
+        <div id="tcStep1">
+
+        <!-- Section 1: Token Specification & Entity Integrity -->
         <div class="trade-claim-section" style="
           background: #f8fafb;
           border-radius: 12px;
@@ -228,9 +251,9 @@
             </div>
             <div>
               <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
-                Originating Entity
+                Token Specification &amp; Entity Integrity
               </h3>
-              <span style="font-size: 12px; color: #6b7280;">Source Vault Node &amp; Claiming Institution</span>
+              <span style="font-size: 12px; color: #6b7280;">Originating entity, bearer asset token ID &amp; claiming institution</span>
             </div>
           </div>
 
@@ -352,6 +375,11 @@
               " />
           </div>
         </div>
+
+        </div><!-- /tcStep1 -->
+
+        <!-- ═══ STEP 2: Value Conversion & Corridor Routing ═══ -->
+        <div id="tcStep2" style="display: none;">
 
         <!-- Section 2: Sovereign Corridor & Funding Architecture -->
         <div class="trade-claim-section" style="
@@ -1028,7 +1056,12 @@
           </div>
         </div>
 
-        <!-- Section 4: Document Upload -->
+        </div><!-- /tcStep2 -->
+
+        <!-- ═══ STEP 3: Authorization & Signatures ═══ -->
+        <div id="tcStep3" style="display: none;">
+
+        <!-- Section: Document Upload -->
         <div class="trade-claim-section" style="
           background: #f8fafb;
           border-radius: 12px;
@@ -1200,7 +1233,62 @@
           </div>
         </div>
 
-        <!-- Error Message Display -->
+        <!-- Section: Dual-Key Cryptographic Authorization -->
+        <div class="trade-claim-section" style="
+          background: #f8fafb;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 20px;
+          border: 1px solid #e5e7eb;
+        ">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="
+              width: 40px; height: 40px; background: #f0fdf4;
+              border-radius: 10px; display: flex; align-items: center; justify-content: center;
+              font-size: 20px;">🔑</div>
+            <div>
+              <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">Dual-Key Authorization</h3>
+              <span style="font-size: 12px; color: #6b7280;">Cryptographic proxy signature &amp; institutional token validation</span>
+            </div>
+          </div>
+
+          <!-- Public Key: auto-filled from Module 00 -->
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+              Public Key <span style="font-size: 11px; color: #6b7280; font-weight: 400;">(Proxy Master Input — auto-resolved)</span>
+            </label>
+            <input type="text" id="tc_proxy_public_key" name="proxy_public_key" readonly
+              placeholder="Resolved from Module 00 session..."
+              style="
+                width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb;
+                border-radius: 8px; font-size: 12px; font-family: 'Courier New', monospace;
+                background: #f9fafb; color: #374151; box-sizing: border-box;
+                letter-spacing: 0.3px; cursor: not-allowed;
+              " />
+            <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">Auto-populated from the authenticated Module 00 institutional node identity.</p>
+          </div>
+
+          <!-- Token Secret: operator authorization -->
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+              Token Secret Input <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="password" id="tc_token_secret" name="token_secret" required
+              placeholder="Enter institutional authorization token..."
+              style="
+                width: 100%; padding: 12px 16px; border: 1px solid #d1d5db;
+                border-radius: 8px; font-size: 14px; box-sizing: border-box;
+              " />
+            <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">
+              Enter your institutional spend PIN to cryptographically authorize this trade claim submission.
+            </p>
+            <p id="tcTokenSecretError" style="font-size: 12px; color: #dc2626; margin: 5px 0 0; display: none;"></p>
+          </div>
+        </div>
+
+        </div><!-- /tcStep3 -->
+
+        <!-- Error Message Display (persistent across steps) -->
         <div id="tradeClaimError" style="
           display: none;
           background: #fef2f2;
@@ -1212,47 +1300,55 @@
           font-size: 14px;
         "></div>
 
-        <!-- Action Buttons -->
-        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <!-- Wizard Navigation Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
+          <!-- Cancel (always visible) -->
           <button type="button" onclick="hideTradeClaimModal()" style="
-            padding: 12px 24px;
-            background: #f3f4f6;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #374151;
-            cursor: pointer;
-            transition: all 0.2s;
-          " onmouseover="this.style.background='#e5e7eb'" 
+            padding: 12px 24px; background: #f3f4f6; border: 1px solid #d1d5db;
+            border-radius: 8px; font-size: 14px; font-weight: 500; color: #374151;
+            cursor: pointer; transition: all 0.2s;
+          " onmouseover="this.style.background='#e5e7eb'"
              onmouseout="this.style.background='#f3f4f6'">
             Cancel
           </button>
-          <button type="button" onclick="saveDraft()" style="
-            padding: 12px 24px;
-            background: white;
-            border: 1px solid #059669;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #059669;
-            cursor: pointer;
-            transition: all 0.2s;
-          " onmouseover="this.style.background='#f0fdf4'" 
+
+          <!-- Save Draft (steps 1 & 2 only) -->
+          <button type="button" id="tcBtnSaveDraft" onclick="saveDraft()" style="
+            padding: 12px 24px; background: white; border: 1px solid #059669;
+            border-radius: 8px; font-size: 14px; font-weight: 500; color: #059669;
+            cursor: pointer; transition: all 0.2s;
+          " onmouseover="this.style.background='#f0fdf4'"
              onmouseout="this.style.background='white'">
             Save Draft
           </button>
+
+          <!-- Back (steps 2 & 3) -->
+          <button type="button" id="tcBtnBack" onclick="tcStepBack()" style="
+            display: none; padding: 12px 24px; background: white;
+            border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;
+            font-weight: 500; color: #374151; cursor: pointer; transition: all 0.2s;
+          " onmouseover="this.style.background='#f9fafb'"
+             onmouseout="this.style.background='white'">
+            ← Back
+          </button>
+
+          <!-- Next (steps 1 & 2) -->
+          <button type="button" id="tcBtnNext" onclick="tcStepNext()" style="
+            padding: 12px 24px; background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+            border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+            color: white; cursor: pointer; transition: all 0.2s;
+          " onmouseover="this.style.opacity='0.9'"
+             onmouseout="this.style.opacity='1'">
+            Proceed to Route →
+          </button>
+
+          <!-- Submit (step 3 only) -->
           <button type="submit" id="submitClaimBtn" style="
-            padding: 12px 24px;
+            display: none; padding: 12px 24px;
             background: linear-gradient(135deg, #059669 0%, #10B981 100%);
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s;
-          " onmouseover="this.style.opacity='0.9'" 
+            border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+            color: white; cursor: pointer; transition: all 0.2s;
+          " onmouseover="this.style.opacity='0.9'"
              onmouseout="this.style.opacity='1'">
             Submit Claim
           </button>
@@ -2314,11 +2410,120 @@ async function generateInvoiceRef() {
   console.log('[generateInvoiceRef]', field.value, '(maxFound:', maxSeq, ')');
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  Progressive Wizard — 3-step form navigation
+// ─────────────────────────────────────────────────────────────────────────────
+let tcCurrentStep = 1;
+
+function tcGoToStep(n) {
+  for (let i = 1; i <= 3; i++) {
+    const panel = document.getElementById('tcStep' + i);
+    if (panel) panel.style.display = i === n ? '' : 'none';
+    tcUpdateNavIndicator(i, n);
+  }
+  tcCurrentStep = n;
+  tcUpdateNavButtons(n);
+  if (n === 3) tcAutoFillProxyKey();
+}
+
+function tcUpdateNavIndicator(stepNum, currentStep) {
+  const pill = document.getElementById('tcNavStep' + stepNum);
+  const dot  = document.getElementById('tcNavDot'  + stepNum);
+  const line = document.getElementById('tcNavLine' + stepNum);
+  if (!pill || !dot) return;
+  if (stepNum < currentStep) {
+    pill.style.background = '#d1fae5'; pill.style.color = '#059669';
+    dot.style.background  = '#059669'; dot.style.color  = 'white';
+    dot.style.border      = 'none';    dot.textContent  = '✓';
+    if (line) line.style.background = '#059669';
+  } else if (stepNum === currentStep) {
+    pill.style.background = '#059669'; pill.style.color = 'white';
+    dot.style.background  = 'white';   dot.style.color  = '#059669';
+    dot.style.border      = 'none';    dot.textContent  = stepNum;
+    if (line) line.style.background = '#059669';
+  } else {
+    pill.style.background = '#f3f4f6'; pill.style.color = '#9ca3af';
+    dot.style.background  = 'white';   dot.style.color  = '#9ca3af';
+    dot.style.border      = '2px solid #d1d5db'; dot.textContent = stepNum;
+    if (line) line.style.background = '#e5e7eb';
+  }
+}
+
+function tcUpdateNavButtons(step) {
+  const btnBack      = document.getElementById('tcBtnBack');
+  const btnNext      = document.getElementById('tcBtnNext');
+  const btnSubmit    = document.getElementById('submitClaimBtn');
+  const btnSaveDraft = document.getElementById('tcBtnSaveDraft');
+
+  if (btnBack)  btnBack.style.display  = step > 1 ? '' : 'none';
+
+  if (step === 3) {
+    if (btnNext)      btnNext.style.display      = 'none';
+    if (btnSubmit)  { btnSubmit.style.display    = ''; btnSubmit.disabled = false; btnSubmit.style.opacity = ''; btnSubmit.style.cursor = 'pointer'; }
+    if (btnSaveDraft) btnSaveDraft.style.display = 'none';
+  } else {
+    if (btnNext)   { btnNext.style.display  = ''; btnNext.textContent = step === 1 ? 'Proceed to Route →' : 'Proceed to Auth →'; }
+    if (btnSubmit)   btnSubmit.style.display = 'none';
+    if (btnSaveDraft) btnSaveDraft.style.display = '';
+  }
+}
+
+function tcStepNext() {
+  if (tcCurrentStep === 1) {
+    if (!tcValidateStep1()) return;
+    tcGoToStep(2);
+  } else if (tcCurrentStep === 2) {
+    if (!tcValidateStep2()) return;
+    tcGoToStep(3);
+  }
+}
+
+function tcStepBack() {
+  if (tcCurrentStep > 1) tcGoToStep(tcCurrentStep - 1);
+}
+
+function tcValidateStep1() {
+  const country = document.getElementById('tc_country_id')?.value;
+  const swift   = document.getElementById('tc_central_bank_swift')?.value;
+  if (!country || !country.trim()) {
+    showError('Step 1: Please select a country before proceeding.');
+    return false;
+  }
+  if (!swift || !swift.trim()) {
+    showError('Step 1: Please select a Central Bank SWIFT Code.');
+    return false;
+  }
+  hideError();
+  return true;
+}
+
+function tcValidateStep2() {
+  const corridor = document.getElementById('tc_corridor_id')?.value;
+  const amount   = document.getElementById('tc_amount')?.value?.replace(/,/g, '');
+  if (!corridor || !corridor.trim()) {
+    showError('Step 2: Please select a Trade Corridor before proceeding.');
+    return false;
+  }
+  if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+    showError('Step 2: Please enter a valid transaction amount.');
+    return false;
+  }
+  hideError();
+  return true;
+}
+
+function tcAutoFillProxyKey() {
+  const field    = document.getElementById('tc_proxy_public_key');
+  const holderId = localStorage.getItem('bc_m00_holder_id') || '';
+  if (field && holderId) field.value = holderId;
+}
+
 function showTradeClaimModal() {
   const overlay = document.getElementById('tradeClaimModalOverlay');
   overlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 
+  tcGoToStep(1);
   loadCryptoSession();
   loadCountries();
   loadCorridors();
@@ -4765,6 +4970,16 @@ async function submitTradeClaim(event) {
     showError('Please confirm both declarations to submit.');
     return;
   }
+
+  // Validate token secret (Step 3 auth field)
+  const tokenSecret = document.getElementById('tc_token_secret')?.value?.trim();
+  const errEl       = document.getElementById('tcTokenSecretError');
+  if (!tokenSecret) {
+    if (errEl) { errEl.textContent = 'Authorization token is required to sign this claim.'; errEl.style.display = ''; }
+    showError('Please enter your Token Secret in the Dual-Key Authorization section.');
+    return;
+  }
+  if (errEl) errEl.style.display = 'none';
 
   // Show confirmation modal with a summary before proceeding
   showTradeClaimConfirmModal();
