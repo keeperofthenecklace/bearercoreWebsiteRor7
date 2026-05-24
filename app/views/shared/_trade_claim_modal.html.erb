@@ -526,12 +526,12 @@
             </div>
           </div>
 
-          <!-- Commercial Bank Holder ID — read-only, auto-populated when institution selected -->
+          <!-- Destination Institution Holder ID — auto-resolved from institution selection -->
           <div style="margin-bottom: 16px;" id="commHolderIdRow">
             <label style="display: block; font-size: 12px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">
-              Commercial Bank Holder ID
+              Destination Institution Holder ID
               <span style="font-weight: 400; font-size: 11px; color: #9ca3af; margin-left: 6px;">
-                (auto-resolved · SmartCheq Holder ID)
+                (auto-resolved · destination commercial bank routing node)
               </span>
             </label>
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -553,16 +553,20 @@
             </div>
           </div>
 
+          <!-- Hidden: destination institution holder ID (separate from Module 00 source node) -->
+          <input type="hidden" id="tc_dest_institution_holder_id" name="dest_institution_holder_id" />
+
           <!-- Vault assignment hint — source node shown in Module 00 -->
           <div id="sourceVaultWarning" style="display: none;"></div>
 
-          <!-- Ghana Trader Account Holder ID — searchable combobox from registry -->
+          <!-- Origin Trader Account Holder ID — searchable combobox, filtered to origin country -->
           <div style="margin-bottom: 16px;">
             <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-              Ghana Trader Account Holder ID
+              <span id="tcTraderHolderLabel">Origin Trader Account Holder ID</span>
               <span style="color: #ef4444;">*</span>
+              <span id="tcTraderHolderCountryBadge" style="font-size: 11px; color: #059669; font-weight: 600; margin-left: 6px; display: none;"></span>
               <span style="font-size: 11px; color: #6b7280; font-weight: 400; margin-left: 4px;">
-                (selects Ghanaian merchant wallet for registry ownership shift)
+                (buyer wallet — asset custody surrendered on this rail)
               </span>
             </label>
             <div id="traderHolderDropdown" class="custom-dropdown" style="position: relative;">
@@ -591,8 +595,8 @@
               </div>
             </div>
             <input type="hidden" id="tc_trader_holder_id" name="trader_holder_id" />
-            <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">
-              Registry wallet of the origin-country trader. Ownership transfers to this ID immediately after SFTP receipt.
+            <p id="tcTraderHolderHint" style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">
+              Registry wallet of the origin-country trader (buyer). Debit source — ownership surrendered on this rail.
             </p>
           </div>
 
@@ -1019,9 +1023,11 @@
           <!-- Destination Retailer Holder ID — searchable combobox from CBN network registry -->
           <div style="margin-bottom: 0;">
             <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-              Destination Retailer Holder ID
+              <span id="tcRetailerHolderLabel">Target Merchant / Retailer Holder ID</span>
+              <span style="color: #ef4444;">*</span>
+              <span id="tcRetailerHolderCountryBadge" style="font-size: 11px; color: #2563eb; font-weight: 600; margin-left: 6px; display: none;"></span>
               <span style="font-size: 11px; color: #6b7280; font-weight: 400; margin-left: 4px;">
-                (ultimate credit destination on the CBN network)
+                (seller wallet — credit destination on the destination network)
               </span>
             </label>
             <div id="retailerHolderDropdown" class="custom-dropdown" style="position: relative;">
@@ -2782,6 +2788,56 @@ async function loadHolderKeysForComboboxes() {
   }
 }
 
+// Country code → display name map for label updates
+const TC_COUNTRY_NAMES = {
+  'GHA':'Ghana','NGA':'Nigeria','KEN':'Kenya','TZA':'Tanzania','UGA':'Uganda',
+  'RWA':'Rwanda','ETH':'Ethiopia','ZAF':'South Africa','EGY':'Egypt','MAR':'Morocco',
+  'SEN':'Senegal','CIV':'Côte d\'Ivoire','CMR':'Cameroon','GIN':'Guinea',
+  'MLI':'Mali','BFA':'Burkina Faso','NER':'Niger','BEN':'Benin','TGO':'Togo',
+  'GMB':'Gambia','GNB':'Guinea-Bissau','SLE':'Sierra Leone','LBR':'Liberia',
+  'CPV':'Cabo Verde','MRT':'Mauritania','ZMB':'Zambia','ZWE':'Zimbabwe',
+  'BWA':'Botswana','NAM':'Namibia','MOZ':'Mozambique','MWI':'Malawi',
+  'LSO':'Lesotho','SWZ':'Eswatini','AGO':'Angola','COD':'DR Congo',
+  'COG':'Congo','GAB':'Gabon','GNQ':'Equatorial Guinea','CAF':'CAR',
+  'TCD':'Chad','STP':'Sao Tome','DJI':'Djibouti','ERI':'Eritrea',
+  'SOM':'Somalia','SSD':'South Sudan','BDI':'Burundi',
+  'LBY':'Libya','TUN':'Tunisia','DZA':'Algeria','SDN':'Sudan',
+  'MUS':'Mauritius','MDG':'Madagascar','SYC':'Seychelles','COM':'Comoros',
+};
+
+function tcMatchesCountry(k, code) {
+  if (!code) return true;
+  const cc = (k.country_code || k.country || k.iso_code || '').toUpperCase().trim();
+  if (cc && (cc === code || cc === code.slice(0,2))) return true;
+  // Name-based fallback
+  const cname = (TC_COUNTRY_NAMES[code] || '').toLowerCase();
+  return cname && (k.institution_name || k.name || '').toLowerCase().includes(cname);
+}
+
+function updateHolderDropdownsForCorridor(srcCode, destCode) {
+  // --- Trader (origin / buyer) ---
+  const traderLabel  = document.getElementById('tcTraderHolderLabel');
+  const traderBadge  = document.getElementById('tcTraderHolderCountryBadge');
+  const srcName = TC_COUNTRY_NAMES[srcCode] || srcCode || 'Origin';
+  if (traderLabel) traderLabel.textContent = `${srcName} Trader Account Holder ID`;
+  if (traderBadge) { traderBadge.textContent = srcCode ? `[${srcCode}]` : ''; traderBadge.style.display = srcCode ? '' : 'none'; }
+
+  // --- Retailer (destination / seller) ---
+  const retailerLabel = document.getElementById('tcRetailerHolderLabel');
+  const retailerBadge = document.getElementById('tcRetailerHolderCountryBadge');
+  const destName = TC_COUNTRY_NAMES[destCode] || destCode || 'Destination';
+  if (retailerLabel) retailerLabel.textContent = `Target ${destName} Merchant / Retailer Holder ID`;
+  if (retailerBadge) { retailerBadge.textContent = destCode ? `[${destCode}]` : ''; retailerBadge.style.display = destCode ? '' : 'none'; }
+
+  // --- Filter dropdowns by country ---
+  if (!_holderKeysFull.length) return;
+  const traderKeys   = _holderKeysFull.filter(k => tcMatchesCountry(k, srcCode));
+  const retailerKeys = _holderKeysFull.filter(k => tcMatchesCountry(k, destCode));
+  // Fallback: show all if country filter yields nothing (e.g., no country_code on records)
+  renderTraderHolderOptions(traderKeys.length   ? traderKeys   : _holderKeysFull);
+  renderRetailerHolderOptions(retailerKeys.length ? retailerKeys : _holderKeysFull);
+}
+
 function renderTraderHolderOptions(keys) {
   const container = document.getElementById('traderHolderOptions');
   if (!container) return;
@@ -3207,8 +3263,10 @@ function resetDropdowns() {
   const cbRow = document.getElementById('cbHolderIdRow');
   if (cbRow) cbRow.style.display = 'none';
 
+  const destInstHolderField = document.getElementById('tc_dest_institution_holder_id');
+  if (destInstHolderField) destInstHolderField.value = '';
   const commHolderField = document.getElementById('tc_commercial_bank_holder_id');
-  if (commHolderField) commHolderField.value = '';
+  // Do NOT clear tc_commercial_bank_holder_id — it's the Module 00 source vault node
   const commDisplayField = document.getElementById('tc_commercial_bank_holder_id_display');
   if (commDisplayField) { commDisplayField.value = ''; commDisplayField.placeholder = 'Select an institution first...'; commDisplayField.style.color = '#6b7280'; }
   const commStatusIcon = document.getElementById('commHolderIdStatus');
@@ -3454,10 +3512,11 @@ async function resolveCentralBankHolderId(centralBankName) {
               key ? key.holder_id.substring(0, 16) + '...' : 'NOT REGISTERED');
 }
 
-// Resolve and store the commercial bank holder ID for the selected institution.
-// Also updates the read-only display field + status icon in the UI.
+// Resolve and store the DESTINATION institution holder ID for the selected institution.
+// Writes to tc_dest_institution_holder_id — does NOT touch tc_commercial_bank_holder_id
+// which is the source vault node set exclusively by Module 00.
 async function resolveCommercialBankHolderId(institutionName, swiftCode) {
-  const hiddenField  = document.getElementById('tc_commercial_bank_holder_id');
+  const hiddenField  = document.getElementById('tc_dest_institution_holder_id');
   const displayField = document.getElementById('tc_commercial_bank_holder_id_display');
   const statusIcon   = document.getElementById('commHolderIdStatus');
 
@@ -4155,6 +4214,7 @@ function onCorridorChange(corridorId) {
     }
     resolveSovereignMintingNode(benCode, null);
     document.getElementById('complianceLimitsSection').style.display = 'none';
+    updateHolderDropdownsForCorridor(benCode, benCode); // domestic: src === dest
     return;
   }
 
@@ -4221,6 +4281,8 @@ function onCorridorChange(corridorId) {
     resolveSovereignMintingNode(destCode, null);
     document.getElementById('complianceLimitsSection').style.display = 'none';
     loadInstitutionsForDestination(null, destCode);
+    const _vSrcCode = _vParts.length >= 2 ? _vParts[0] : '';
+    updateHolderDropdownsForCorridor(_vSrcCode, destCode);
     return;
   }
 
@@ -4337,6 +4399,16 @@ function onCorridorChange(corridorId) {
 
   // Fetch and display compliance limits for the selected corridor
   fetchComplianceLimits(corridorId, currencyCode);
+
+  // Update trader/retailer labels and filter dropdowns by origin/destination country
+  const _srcCode = [corridor.from_country, corridor.source_country, corridor.origin_country, corridor.from_cb_code]
+    .map(v => (v || '').toString().trim().toUpperCase())
+    .find(v => v.length >= 2) || (selectedCountry ? (
+      [selectedCountry.alpha3, selectedCountry.iso3, selectedCountry.central_bank_code]
+        .map(v => (v || '').toString().trim().toUpperCase())
+        .find(v => v.length === 3) || ''
+    ) : '');
+  updateHolderDropdownsForCorridor(_srcCode, targetCountry);
 }
 
 // Maps target country alpha3 → CBN Vault Terminal label
@@ -5097,10 +5169,12 @@ async function confirmAndSubmitTradeClaim() {
       amount:              getNumericAmount(),
       invoice_ref:         document.getElementById('tc_invoice_ref').value,
       // Holder IDs — CVIB note ownership roles
-      // central_bank_holder_id  → Qt6 "Initial Holder" (issuing central bank)
-      // commercial_bank_holder_id → Qt6 "Holder ID"    (receiving commercial bank)
-      central_bank_holder_id:   document.getElementById('tc_central_bank_holder_id')?.value || '',
-      commercial_bank_holder_id: document.getElementById('tc_commercial_bank_holder_id')?.value || '',
+      // central_bank_holder_id      → Qt6 "Initial Holder" (issuing central bank)
+      // commercial_bank_holder_id   → Module 00 source vault node (origin commercial bank)
+      // dest_institution_holder_id  → destination institution routing node (resolved from corridor)
+      central_bank_holder_id:       document.getElementById('tc_central_bank_holder_id')?.value || '',
+      commercial_bank_holder_id:    document.getElementById('tc_commercial_bank_holder_id')?.value || '',
+      dest_institution_holder_id:   document.getElementById('tc_dest_institution_holder_id')?.value || '',
       // Cross-border hub-and-spoke routing fields
       trader_holder_id:           document.getElementById('tc_trader_holder_id')?.value || '',
       fx_reference_id:            document.getElementById('tc_fx_reference_id')?.value || '',
