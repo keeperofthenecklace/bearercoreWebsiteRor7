@@ -2305,9 +2305,11 @@ function m00SetAuthenticated(holderId) {
 }
 
 async function loadCryptoSession() {
-  const stored = localStorage.getItem(M00_STORAGE_KEY);
-  if (stored) {
-    m00SetAuthenticated(stored);
+  // Restore authenticated state only if the session was left open
+  const holderId = localStorage.getItem(M00_STORAGE_KEY);
+  const unlocked = localStorage.getItem(M00_STORAGE_KEY + '_unlocked') === '1';
+  if (holderId && unlocked) {
+    m00SetAuthenticated(holderId);
   }
   // else: stays UNINITIALIZED — user must enter PIN
 }
@@ -2325,11 +2327,27 @@ async function initWorkstationNode() {
   try {
     const encoded = new TextEncoder().encode('bc-module00:' + pin);
     const hashBuf = await crypto.subtle.digest('SHA-256', encoded);
-    const holderId = Array.from(new Uint8Array(hashBuf))
+    const derived = Array.from(new Uint8Array(hashBuf))
       .map(b => b.toString(16).padStart(2, '0')).join('');
 
-    localStorage.setItem(M00_STORAGE_KEY, holderId);
-    m00SetAuthenticated(holderId);
+    const registered = localStorage.getItem(M00_STORAGE_KEY);
+
+    if (registered && derived !== registered) {
+      // Wrong PIN — flash error, do not authenticate
+      if (pinInput) {
+        pinInput.style.borderColor = '#ef4444';
+        pinInput.value = '';
+        pinInput.placeholder = 'Incorrect PIN';
+        setTimeout(() => { pinInput.style.borderColor = ''; pinInput.placeholder = '••••'; }, 2000);
+      }
+      if (initBtn) initBtn.style.display = 'inline';
+      return;
+    }
+
+    // First use or correct PIN
+    localStorage.setItem(M00_STORAGE_KEY, derived);
+    localStorage.setItem(M00_STORAGE_KEY + '_unlocked', '1');
+    m00SetAuthenticated(derived);
   } catch(e) {
     console.warn('[Module00] derivation error:', e.message);
     if (initBtn)  initBtn.style.display = 'inline';
@@ -2353,7 +2371,8 @@ function copyM00HolderId() {
 }
 
 function closeM00Session() {
-  localStorage.removeItem(M00_STORAGE_KEY);
+  // Lock the session but keep the registered holder ID so the same PIN is required to re-open
+  localStorage.removeItem(M00_STORAGE_KEY + '_unlocked');
   // Clear any auto-lock timer
   if (window._m00LockTimer) { clearInterval(window._m00LockTimer); window._m00LockTimer = null; }
 
@@ -2398,7 +2417,7 @@ function m00StartAutoLock(seconds) {
 function m00RequireAuth() {
   const module = document.getElementById('cryptoSessionModule');
   if (!module) return false;
-  if (localStorage.getItem(M00_STORAGE_KEY)) return true;
+  if (localStorage.getItem(M00_STORAGE_KEY + '_unlocked') === '1') return true;
 
   // Shake module and flash message
   module.style.transition = 'none';
