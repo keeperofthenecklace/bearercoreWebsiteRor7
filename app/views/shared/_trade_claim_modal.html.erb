@@ -4688,6 +4688,9 @@ function resetFxQuoteWidget() {
 async function fetchApprovedQuotes(corridorId, forceRefresh) {
   const id = corridorId || _fxCurrentCorridorId;
   if (!id) return;
+
+  // Detect corridor switch so we don't carry over old quote IDs
+  const corridorChanged = corridorId && corridorId !== _fxCurrentCorridorId;
   _fxCurrentCorridorId = id;
 
   const sel = document.getElementById('fxRefSelect');
@@ -4695,6 +4698,16 @@ async function fetchApprovedQuotes(corridorId, forceRefresh) {
   const txt = document.getElementById('fxRefStatusText');
   const box = document.getElementById('fxReferenceBox');
   const btn = document.getElementById('fxRefFetchBtn');
+  const hid = document.getElementById('tc_fx_reference_id');
+
+  // Immediately clear stale value when corridor changes
+  if (corridorChanged) {
+    if (hid) hid.value = '';
+    if (sel) sel.innerHTML = '<option value="">[ Loading quotes... ]</option>';
+    if (dot) dot.style.background = '#374151';
+    if (box) box.style.borderColor = 'rgba(74,222,128,0.18)';
+    if (txt) { txt.textContent = 'Loading approved treasury quotes…'; txt.style.color = '#6b7280'; }
+  }
 
   if (btn) { btn.disabled = true; btn.innerHTML = '[ &#x23F3; Loading... ]'; }
   if (dot) dot.style.background = '#f59e0b';
@@ -4709,21 +4722,20 @@ async function fetchApprovedQuotes(corridorId, forceRefresh) {
     const quotes = await res.json();
 
     if (!sel) return;
-    const prev = sel.value;
+
+    // Only attempt to restore a previous selection on same-corridor refresh
+    const prev = corridorChanged ? '' : sel.value;
     sel.innerHTML = '<option value="">[ Select approved quote... ]</option>';
     quotes.forEach(function(q) {
       const opt = document.createElement('option');
-      opt.value       = q.id;
+      opt.value          = q.id;
       opt.dataset.rate   = q.rate   || '';
       opt.dataset.source = q.source || '';
-      opt.textContent = q.id;
+      opt.textContent    = q.id;
       if (q.id === prev) opt.selected = true;
       sel.appendChild(opt);
     });
     sel.disabled = false;
-
-    // Auto-select if only one quote and nothing was previously selected
-    if (quotes.length === 1 && !prev) { sel.value = quotes[0].id; onFxQuoteSelect(); return; }
 
     if (sel.value) { onFxQuoteSelect(); return; }
 
