@@ -239,13 +239,13 @@ module Api
         if search.blank?
           return render json: { status: "UNRESOLVED", error_message: "No identifier provided." }, status: :unprocessable_entity
         end
-        record = STUB_HOLDER_KEYS.find { |k| k[:holder_id].to_s.casecmp(search).zero? }
+        record = Smartcheq::HolderKey.find_by(holder_id: search) ||
+                 Smartcheq::HolderKey.find_by(recipient_public_key: search)
         if record
           render json: {
             status:       "VERIFIED",
-            account_name: record[:institution_name],
-            holder_id:    record[:holder_id],
-            country_code: record[:country_code]
+            account_name: record.name.presence || "#{search.first(16)}...",
+            holder_id:    record.holder_id
           }, status: :ok
         else
           render json: {
