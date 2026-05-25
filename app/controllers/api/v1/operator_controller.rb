@@ -12,7 +12,7 @@ module Api
     # identities reads signing nodes from the shared SmartcheqWebsiteRor7
     # database (read-only via SmartcheqRecord / Smartcheq::HolderKey).
     class OperatorController < ApplicationController
-      skip_before_action :verify_authenticity_token, only: [:store_identity]
+      skip_before_action :verify_authenticity_token, only: [:store_identity, :register_node]
       before_action :require_central_bank_access
 
       def current_identity
