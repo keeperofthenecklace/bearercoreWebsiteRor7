@@ -173,10 +173,74 @@ module Api
         { id: 132, holder_id: "HOLDER-MAR-CREDMAMC-001", institution_name: "Crédit du Maroc",                  swift_code: "CREDMAMC", country_code: "MAR", public_key: "ed25519:CRE_MAR001PUBKEY" },
         { id: 133, holder_id: "HOLDER-MAR-CAMRMAMC-001", institution_name: "Crédit Agricole du Maroc",         swift_code: "CAMRMAMC", country_code: "MAR", public_key: "ed25519:CAM001PUBKEY" },
         { id: 134, holder_id: "HOLDER-MAR-BMCIMAMC-001", institution_name: "BMCI",                             swift_code: "BMCIMAMC", country_code: "MAR", public_key: "ed25519:BMI001PUBKEY" },
+
+        # ── CORPORATE TRADE HOLDERS ── GHA ────────────────────────────────────
+        { id: 201, holder_id: "HOLDER-GHA-ACC-002",  institution_name: "Accra Cocoa Exporting Corp",     swift_code: nil, country_code: "GHA", holder_type: "corporate", public_key: "ed25519:GHA_ACC002PUBKEY" },
+        { id: 202, holder_id: "HOLDER-GHA-AAG-014",  institution_name: "Accra Agribusiness Ltd",          swift_code: nil, country_code: "GHA", holder_type: "corporate", public_key: "ed25519:GHA_AAG014PUBKEY" },
+        { id: 203, holder_id: "HOLDER-GHA-GGM-003",  institution_name: "Ghana Gold Merchants Ltd",        swift_code: nil, country_code: "GHA", holder_type: "corporate", public_key: "ed25519:GHA_GGM003PUBKEY" },
+        { id: 204, holder_id: "HOLDER-GHA-TCL-007",  institution_name: "Tema Commodities Ltd",            swift_code: nil, country_code: "GHA", holder_type: "corporate", public_key: "ed25519:GHA_TCL007PUBKEY" },
+        { id: 205, holder_id: "HOLDER-GHA-KCP-011",  institution_name: "Kumasi Cocoa Processors",         swift_code: nil, country_code: "GHA", holder_type: "corporate", public_key: "ed25519:GHA_KCP011PUBKEY" },
+        { id: 206, holder_id: "HOLDER-GHA-GTE-005",  institution_name: "Ghana Timber Export Co",          swift_code: nil, country_code: "GHA", holder_type: "corporate", public_key: "ed25519:GHA_GTE005PUBKEY" },
+        { id: 207, holder_id: "HOLDER-GHA-CCF-009",  institution_name: "Cape Coast Fisheries Corp",       swift_code: nil, country_code: "GHA", holder_type: "corporate", public_key: "ed25519:GHA_CCF009PUBKEY" },
+        { id: 208, holder_id: "HOLDER-GHA-ATF-018",  institution_name: "Accra Trade Finance Ltd",         swift_code: nil, country_code: "GHA", holder_type: "corporate", public_key: "ed25519:GHA_ATF018PUBKEY" },
+
+        # ── CORPORATE TRADE HOLDERS ── NGA ────────────────────────────────────
+        { id: 211, holder_id: "HOLDER-NGA-LCE-001",  institution_name: "Lagos Commodities Exchange",      swift_code: nil, country_code: "NGA", holder_type: "corporate", public_key: "ed25519:NGA_LCE001PUBKEY" },
+        { id: 212, holder_id: "HOLDER-NGA-KGP-004",  institution_name: "Kano Groundnut Processors Ltd",   swift_code: nil, country_code: "NGA", holder_type: "corporate", public_key: "ed25519:NGA_KGP004PUBKEY" },
+        { id: 213, holder_id: "HOLDER-NGA-PHT-006",  institution_name: "Port Harcourt Petroleum Traders", swift_code: nil, country_code: "NGA", holder_type: "corporate", public_key: "ed25519:NGA_PHT006PUBKEY" },
+        { id: 214, holder_id: "HOLDER-NGA-ATF-012",  institution_name: "Abuja Trade Finance Ltd",         swift_code: nil, country_code: "NGA", holder_type: "corporate", public_key: "ed25519:NGA_ATF012PUBKEY" },
+        { id: 215, holder_id: "HOLDER-NGA-IAE-008",  institution_name: "Ibadan Agricultural Exports",     swift_code: nil, country_code: "NGA", holder_type: "corporate", public_key: "ed25519:NGA_IAE008PUBKEY" },
+        { id: 216, holder_id: "HOLDER-NGA-EMC-015",  institution_name: "Enugu Mining Corp",               swift_code: nil, country_code: "NGA", holder_type: "corporate", public_key: "ed25519:NGA_EMC015PUBKEY" },
+        { id: 217, holder_id: "HOLDER-NGA-BSE-019",  institution_name: "Bonny Shipping & Export Ltd",     swift_code: nil, country_code: "NGA", holder_type: "corporate", public_key: "ed25519:NGA_BSE019PUBKEY" },
+
+        # ── CORPORATE TRADE HOLDERS ── KEN ────────────────────────────────────
+        { id: 221, holder_id: "HOLDER-KEN-ALB-001",  institution_name: "Albert Finance Kenya",            swift_code: nil, country_code: "KEN", holder_type: "corporate", public_key: "ed25519:KEN_ALB001PUBKEY" },
+        { id: 222, holder_id: "HOLDER-KEN-NTE-003",  institution_name: "Nairobi Tea Exporters Ltd",       swift_code: nil, country_code: "KEN", holder_type: "corporate", public_key: "ed25519:KEN_NTE003PUBKEY" },
+        { id: 223, holder_id: "HOLDER-KEN-KFC-007",  institution_name: "Kenya Flower Council Ltd",        swift_code: nil, country_code: "KEN", holder_type: "corporate", public_key: "ed25519:KEN_KFC007PUBKEY" },
+        { id: 224, holder_id: "HOLDER-KEN-MCE-009",  institution_name: "Mombasa Coffee Exchange",         swift_code: nil, country_code: "KEN", holder_type: "corporate", public_key: "ed25519:KEN_MCE009PUBKEY" },
+        { id: 225, holder_id: "HOLDER-KEN-NAC-013",  institution_name: "Nakuru Agricultural Co Ltd",      swift_code: nil, country_code: "KEN", holder_type: "corporate", public_key: "ed25519:KEN_NAC013PUBKEY" },
+        { id: 226, holder_id: "HOLDER-KEN-KLT-016",  institution_name: "Kisumu Lake Trade Ltd",           swift_code: nil, country_code: "KEN", holder_type: "corporate", public_key: "ed25519:KEN_KLT016PUBKEY" },
+        { id: 227, holder_id: "HOLDER-KEN-EAG-021",  institution_name: "East Africa Grain Merchants",     swift_code: nil, country_code: "KEN", holder_type: "corporate", public_key: "ed25519:KEN_EAG021PUBKEY" },
+
+        # ── CORPORATE TRADE HOLDERS ── SEN ────────────────────────────────────
+        { id: 231, holder_id: "HOLDER-SEN-DTF-002",  institution_name: "Dakar Trade Finance SARL",        swift_code: nil, country_code: "SEN", holder_type: "corporate", public_key: "ed25519:SEN_DTF002PUBKEY" },
+        { id: 232, holder_id: "HOLDER-SEN-SPE-005",  institution_name: "Sénégal Phosphates Export",       swift_code: nil, country_code: "SEN", holder_type: "corporate", public_key: "ed25519:SEN_SPE005PUBKEY" },
+        { id: 233, holder_id: "HOLDER-SEN-ACS-008",  institution_name: "Afrique Commerce Sénégal",        swift_code: nil, country_code: "SEN", holder_type: "corporate", public_key: "ed25519:SEN_ACS008PUBKEY" },
+        { id: 234, holder_id: "HOLDER-SEN-TPE-011",  institution_name: "Thiès Peanut Exporters Ltd",      swift_code: nil, country_code: "SEN", holder_type: "corporate", public_key: "ed25519:SEN_TPE011PUBKEY" },
+
+        # ── CORPORATE TRADE HOLDERS ── CIV ────────────────────────────────────
+        { id: 241, holder_id: "HOLDER-CIV-ACP-003",  institution_name: "Abidjan Cocoa Processors SA",     swift_code: nil, country_code: "CIV", holder_type: "corporate", public_key: "ed25519:CIV_ACP003PUBKEY" },
+        { id: 242, holder_id: "HOLDER-CIV-CCE-007",  institution_name: "Côte Café Export SARL",           swift_code: nil, country_code: "CIV", holder_type: "corporate", public_key: "ed25519:CIV_CCE007PUBKEY" },
+        { id: 243, holder_id: "HOLDER-CIV-ASR-010",  institution_name: "Abidjan Shipping & Resources",    swift_code: nil, country_code: "CIV", holder_type: "corporate", public_key: "ed25519:CIV_ASR010PUBKEY" },
+        { id: 244, holder_id: "HOLDER-CIV-IPC-014",  institution_name: "Ivorian Palm Corp",               swift_code: nil, country_code: "CIV", holder_type: "corporate", public_key: "ed25519:CIV_IPC014PUBKEY" },
+
+        # ── CORPORATE TRADE HOLDERS ── TZA ────────────────────────────────────
+        { id: 251, holder_id: "HOLDER-TZA-DPE-004",  institution_name: "Dar es Salaam Port Exports Ltd",  swift_code: nil, country_code: "TZA", holder_type: "corporate", public_key: "ed25519:TZA_DPE004PUBKEY" },
+        { id: 252, holder_id: "HOLDER-TZA-TAE-008",  institution_name: "Tanzania Agricultural Exports",   swift_code: nil, country_code: "TZA", holder_type: "corporate", public_key: "ed25519:TZA_TAE008PUBKEY" },
+        { id: 253, holder_id: "HOLDER-TZA-ZCO-012",  institution_name: "Zanzibar Clove Organisation",     swift_code: nil, country_code: "TZA", holder_type: "corporate", public_key: "ed25519:TZA_ZCO012PUBKEY" },
+
+        # ── CORPORATE TRADE HOLDERS ── UGA ────────────────────────────────────
+        { id: 261, holder_id: "HOLDER-UGA-KCE-002",  institution_name: "Kampala Coffee Exporters Ltd",    swift_code: nil, country_code: "UGA", holder_type: "corporate", public_key: "ed25519:UGA_KCE002PUBKEY" },
+        { id: 262, holder_id: "HOLDER-UGA-UTE-006",  institution_name: "Uganda Tea Exporters Corp",       swift_code: nil, country_code: "UGA", holder_type: "corporate", public_key: "ed25519:UGA_UTE006PUBKEY" },
+        { id: 263, holder_id: "HOLDER-UGA-EAF-010",  institution_name: "East Africa Fish Traders",        swift_code: nil, country_code: "UGA", holder_type: "corporate", public_key: "ed25519:UGA_EAF010PUBKEY" },
+
+        # ── CORPORATE TRADE HOLDERS ── ZAF ────────────────────────────────────
+        { id: 271, holder_id: "HOLDER-ZAF-JCT-001",  institution_name: "Johannesburg Commodities Trading", swift_code: nil, country_code: "ZAF", holder_type: "corporate", public_key: "ed25519:ZAF_JCT001PUBKEY" },
+        { id: 272, holder_id: "HOLDER-ZAF-CTF-005",  institution_name: "Cape Town Trade Finance Ltd",     swift_code: nil, country_code: "ZAF", holder_type: "corporate", public_key: "ed25519:ZAF_CTF005PUBKEY" },
+        { id: 273, holder_id: "HOLDER-ZAF-DBE-009",  institution_name: "Durban Bulk Exports Ltd",         swift_code: nil, country_code: "ZAF", holder_type: "corporate", public_key: "ed25519:ZAF_DBE009PUBKEY" },
+
+        # ── CORPORATE TRADE HOLDERS ── RWA ────────────────────────────────────
+        { id: 281, holder_id: "HOLDER-RWA-KCE-003",  institution_name: "Kigali Coffee Exchange",          swift_code: nil, country_code: "RWA", holder_type: "corporate", public_key: "ed25519:RWA_KCE003PUBKEY" },
+        { id: 282, holder_id: "HOLDER-RWA-RME-007",  institution_name: "Rwanda Minerals Export Ltd",      swift_code: nil, country_code: "RWA", holder_type: "corporate", public_key: "ed25519:RWA_RME007PUBKEY" },
       ].freeze
 
       def index
         keys = STUB_HOLDER_KEYS
+
+        if params[:holder_type].present?
+          ht = params[:holder_type].to_s.downcase.strip
+          keys = keys.select { |k| k[:holder_type].to_s.downcase == ht }
+        end
 
         if params[:country_code].present?
           cc = params[:country_code].to_s.upcase.strip
@@ -187,8 +251,7 @@ module Api
           q = params[:query].to_s.downcase.strip
           keys = keys.select { |k|
             k[:institution_name].to_s.downcase.include?(q) ||
-            k[:holder_id].to_s.downcase.include?(q)        ||
-            k[:swift_code].to_s.downcase.include?(q)
+            k[:holder_id].to_s.downcase.include?(q)
           }
         elsif params[:swift_code].present?
           keys = keys.select { |k| k[:swift_code] == params[:swift_code].upcase.strip }

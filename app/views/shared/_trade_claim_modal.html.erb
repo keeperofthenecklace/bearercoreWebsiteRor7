@@ -3070,10 +3070,9 @@ function tcMatchesCountry(k, code) {
 
 async function fetchHolderKeysForCountry(countryCode) {
   try {
-    const url = countryCode
-      ? `/api/v2/holder_keys?country_code=${encodeURIComponent(countryCode)}`
-      : '/api/v2/holder_keys';
-    const res = await fetch(url, {
+    const params = new URLSearchParams({ holder_type: 'corporate' });
+    if (countryCode) params.set('country_code', countryCode);
+    const res = await fetch(`/api/v2/holder_keys?${params}`, {
       headers: { 'Authorization': `Bearer ${getAccessToken()}`, 'Accept': 'application/json' }
     });
     if (!res.ok) return [];
