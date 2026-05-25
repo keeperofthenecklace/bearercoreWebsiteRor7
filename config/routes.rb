@@ -21,6 +21,7 @@ Rails.application.routes.draw do
       get  'operator/current_identity', to: 'operator#current_identity'
       post 'operator/store_identity',   to: 'operator#store_identity'
       get  'operator/identities',       to: 'operator#identities'
+      post 'operator/register_node',    to: 'operator#register_node'
     end
 
     namespace :v2 do

@@ -129,7 +129,20 @@
               </select>
             </div>
 
-            <!-- Resolved Holder ID (shown after selection) -->
+            <!-- New node alias input — shown when registering for first time -->
+            <div id="m00NewNodeRow" style="display:none; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span style="color:#f59e0b; white-space:nowrap; min-width:190px;">| New Node Alias:</span>
+              <input type="text" id="m00NewNodeAlias" placeholder="e.g. GCB – Accra Treasury Desk"
+                style="
+                  flex:1; min-width:180px; padding:5px 8px;
+                  background:#161b22; border:1px solid rgba(245,158,11,0.45);
+                  border-radius:5px; color:#e6edf3;
+                  font-family:'Courier New',monospace; font-size:11px;
+                  outline:none; box-sizing:border-box;
+                " />
+            </div>
+
+            <!-- Resolved Holder ID (shown when known node is pre-selected) -->
             <div id="m00ResolvedRow" style="display:none; align-items:center; gap:8px; flex-wrap:wrap;">
               <span style="color:#8b949e; white-space:nowrap; min-width:190px;">| Resolved Holder ID:</span>
               <span id="m00ResolvedDisplay" style="
@@ -2611,7 +2624,13 @@ async function m00FetchAndPopulateNodes(storedHolderId) {
       sel.appendChild(opt);
     });
 
-    // Show resolved row if a node was pre-selected
+    // Always append "Register New Node" option at the end
+    const regOpt = document.createElement('option');
+    regOpt.value = '__new__';
+    regOpt.textContent = '[ + Register New Signing Node ]';
+    sel.appendChild(regOpt);
+
+    // Show resolved row if a known node was pre-selected
     if (storedHolderId && sel.value === storedHolderId) m00OnNodeSelect();
 
   } catch(e) {
@@ -2620,18 +2639,29 @@ async function m00FetchAndPopulateNodes(storedHolderId) {
   }
 }
 
-// Called when the dropdown selection changes — updates Resolved Holder ID display.
+// Called when the dropdown selection changes — toggles resolved/new-alias rows.
 function m00OnNodeSelect() {
   const sel         = document.getElementById('m00NodeSelect');
   const resolvedRow = document.getElementById('m00ResolvedRow');
   const resolvedEl  = document.getElementById('m00ResolvedDisplay');
+  const newNodeRow  = document.getElementById('m00NewNodeRow');
   const hexStr      = sel ? sel.value : '';
 
-  if (hexStr && resolvedRow && resolvedEl) {
-    resolvedEl.textContent = m00Truncate(hexStr);
-    resolvedRow.style.display = 'flex';
-  } else if (resolvedRow) {
-    resolvedRow.style.display = 'none';
+  if (hexStr === '__new__') {
+    // Registering a new node — show alias input, hide resolved row
+    if (newNodeRow)  newNodeRow.style.display  = 'flex';
+    if (resolvedRow) resolvedRow.style.display = 'none';
+  } else if (hexStr) {
+    // Known node — show resolved holder ID, hide alias input
+    if (newNodeRow)  newNodeRow.style.display  = 'none';
+    if (resolvedRow && resolvedEl) {
+      resolvedEl.textContent = m00Truncate(hexStr);
+      resolvedRow.style.display = 'flex';
+    }
+  } else {
+    // Nothing selected
+    if (newNodeRow)  newNodeRow.style.display  = 'none';
+    if (resolvedRow) resolvedRow.style.display = 'none';
   }
 }
 
@@ -2749,15 +2779,24 @@ async function initWorkstationNode() {
   const pin = pinInput ? pinInput.value.trim() : '';
   if (!pin) { if (pinInput) pinInput.style.borderColor = '#ef4444'; return; }
 
-  // Require a signing node to be selected from the dropdown
-  const selectedHex = sel ? sel.value : '';
-  if (!selectedHex) {
+  const selValue = sel ? sel.value : '';
+  const isNewNode = selValue === '__new__';
+
+  // For a new node registration, require the alias input to be filled
+  if (isNewNode) {
+    const aliasInput = document.getElementById('m00NewNodeAlias');
+    const typedAlias = aliasInput ? aliasInput.value.trim() : '';
+    if (!typedAlias) {
+      if (aliasInput) { aliasInput.style.borderColor = '#ef4444'; setTimeout(() => { aliasInput.style.borderColor = ''; }, 2000); }
+      return;
+    }
+  }
+
+  // For an existing node, require a node to be selected
+  if (!isNewNode && !selValue) {
     if (sel) { sel.style.borderColor = '#ef4444'; setTimeout(() => { sel.style.borderColor = ''; }, 2000); }
     return;
   }
-  const selectedAlias = sel.options[sel.selectedIndex]
-    ? (sel.options[sel.selectedIndex].dataset.alias || 'Commercial Bank Node')
-    : 'Commercial Bank Node';
 
   if (initBtn) initBtn.style.display = 'none';
   if (spinner) spinner.style.display = 'inline';
@@ -2768,31 +2807,51 @@ async function initWorkstationNode() {
     const derived = Array.from(new Uint8Array(hashBuf))
       .map(b => b.toString(16).padStart(2, '0')).join('');
 
-    // PIN must derive to the selected node's holder_id (proves ownership of that node)
-    if (derived !== selectedHex) {
-      if (pinInput) {
-        pinInput.style.borderColor = '#ef4444';
-        pinInput.value = '';
-        pinInput.placeholder = 'Incorrect PIN';
-        setTimeout(() => { pinInput.style.borderColor = ''; pinInput.placeholder = '••••'; }, 2000);
+    let finalHex, finalAlias;
+
+    if (isNewNode) {
+      // First-time registration: derive holder_id from PIN, use typed alias
+      const aliasInput = document.getElementById('m00NewNodeAlias');
+      finalAlias = aliasInput ? aliasInput.value.trim() : 'Commercial Bank Node';
+      finalHex   = derived;
+    } else {
+      // Existing node: PIN must derive to the selected node's holder_id
+      finalHex   = selValue;
+      finalAlias = sel.options[sel.selectedIndex]?.dataset?.alias || 'Commercial Bank Node';
+
+      if (derived !== finalHex) {
+        if (pinInput) {
+          pinInput.style.borderColor = '#ef4444';
+          pinInput.value = '';
+          pinInput.placeholder = 'Incorrect PIN';
+          setTimeout(() => { pinInput.style.borderColor = ''; pinInput.placeholder = '••••'; }, 2000);
+        }
+        if (initBtn) initBtn.style.display = 'inline';
+        return;
       }
-      if (initBtn) initBtn.style.display = 'inline';
-      return;
     }
 
     // Correct PIN — persist and activate session
-    localStorage.setItem(M00_STORAGE_KEY, selectedHex);
+    localStorage.setItem(M00_STORAGE_KEY, finalHex);
     localStorage.setItem(M00_STORAGE_KEY + '_unlocked', '1');
-    localStorage.setItem(M00_STORAGE_KEY + '_alias', selectedAlias);
-    m00SetAuthenticated(selectedHex, selectedAlias);
+    localStorage.setItem(M00_STORAGE_KEY + '_alias', finalAlias);
+    m00SetAuthenticated(finalHex, finalAlias);
 
-    // Fire-and-forget: persist to server session for recovery after cache clear
+    // Persist to server session for recovery after cache clear
     fetch('/api/v1/operator/store_identity', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ holder_id: selectedHex, node_alias: selectedAlias })
+      body: JSON.stringify({ holder_id: finalHex, node_alias: finalAlias })
     }).catch(e => console.warn('[Module00] server store failed:', e.message));
+
+    // Register this node in bearerCORE's signing node registry (idempotent)
+    fetch('/api/v1/operator/register_node', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ holder_id: finalHex, node_alias: finalAlias })
+    }).catch(e => console.warn('[Module00] node registration failed:', e.message));
 
   } catch(e) {
     console.warn('[Module00] derivation error:', e.message);

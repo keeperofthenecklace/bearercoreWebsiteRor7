@@ -38,13 +38,27 @@ module Api
       end
 
       def identities
-        nodes = Smartcheq::HolderKey.signing_nodes.limit(200)
-        render json: nodes.map { |k|
-          { id: k.id, hex_string: k.holder_id, alias: k.display_alias }
+        nodes = M00SigningNode.active_nodes
+        render json: nodes.map { |n|
+          { id: n.id, hex_string: n.holder_id, alias: n.node_alias }
         }
-      rescue => e
-        Rails.logger.warn "[Operator#identities] SmartcheqDB read failed: #{e.message}"
-        render json: [], status: :ok
+      end
+
+      def register_node
+        holder_id  = params[:holder_id].to_s.strip
+        node_alias = params[:node_alias].to_s.strip
+
+        return render json: { error: 'holder_id required' }, status: :unprocessable_entity if holder_id.blank?
+        return render json: { error: 'node_alias required' }, status: :unprocessable_entity if node_alias.blank?
+
+        node = M00SigningNode.find_or_initialize_by(holder_id: holder_id)
+        node.node_alias = node_alias
+        node.active     = true
+        node.save!
+
+        render json: { status: 'registered', id: node.id, alias: node.node_alias }
+      rescue ActiveRecord::RecordInvalid => e
+        render json: { error: e.message }, status: :unprocessable_entity
       end
     end
   end
