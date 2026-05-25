@@ -234,6 +234,15 @@
         <div id="tcFormWrapper" style="position: relative;">
         <div id="tcFormBody" style="transition: opacity 0.25s;">
 
+        <!-- ─── Module 00 Compact Status Banner (Steps 2 & 3) ─── -->
+        <div id="m00StatusBanner" style="display:none; align-items:center; gap:10px;
+          background:#0d1117; border-radius:8px; padding:8px 14px; margin-bottom:16px;
+          font-family:'Courier New',monospace; font-size:11.5px; color:#c9d1d9;
+          border:1px solid rgba(74,222,128,0.25); transition:border-color 0.2s;">
+          <span id="m00BannerDot" style="width:8px;height:8px;border-radius:50%;background:#4ade80;flex-shrink:0;display:inline-block;transition:background 0.2s;"></span>
+          <span id="m00BannerText" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Session Active: —</span>
+        </div>
+
         <!-- ─── Progressive Wizard Step Indicator ─── -->
         <div style="margin-bottom: 24px;">
           <div style="display: flex; align-items: center;">
@@ -2460,6 +2469,17 @@ function tcGoToStep(n) {
   tcCurrentStep = n;
   tcUpdateNavButtons(n);
   if (n === 3) tcAutoFillProxyKey();
+
+  // Steps 2 & 3: collapse Module 00 to compact status banner
+  const fullModule = document.getElementById('cryptoSessionModule');
+  const banner     = document.getElementById('m00StatusBanner');
+  if (n === 1) {
+    if (fullModule) fullModule.style.display = '';
+    if (banner)     banner.style.display     = 'none';
+  } else {
+    if (fullModule) fullModule.style.display = 'none';
+    if (banner)     banner.style.display     = 'flex';
+  }
 }
 
 function tcUpdateNavIndicator(stepNum, currentStep) {
@@ -2710,6 +2730,19 @@ function m00SetAuthenticated(holderId, nodeAlias) {
   if (aliasDisp)  aliasDisp.textContent = nodeAlias ? '(' + nodeAlias + ')' : '';
   if (hidden)     hidden.value = holderId;
   if (cbHidden)   cbHidden.value = holderId;
+
+  // Sync compact status banner for Steps 2 & 3
+  const bannerDot  = document.getElementById('m00BannerDot');
+  const bannerText = document.getElementById('m00BannerText');
+  const bannerEl   = document.getElementById('m00StatusBanner');
+  if (bannerDot)  { bannerDot.style.background = '#4ade80'; }
+  if (bannerEl)   { bannerEl.style.borderColor = 'rgba(74,222,128,0.25)'; }
+  if (bannerText) {
+    const label = nodeAlias ? `${nodeAlias} (${m00Truncate(holderId)})` : m00Truncate(holderId);
+    bannerText.textContent = 'Session Active: ' + label;
+    bannerText.style.color = '#c9d1d9';
+  }
+
   m00UnlockForm();
 }
 
@@ -2903,6 +2936,14 @@ function closeM00Session() {
 
   m00SetLocked(localStorage.getItem(M00_STORAGE_KEY));
   m00LockForm();
+
+  // Flip compact banner to Session Closed state
+  const bannerDot  = document.getElementById('m00BannerDot');
+  const bannerText = document.getElementById('m00BannerText');
+  const bannerEl   = document.getElementById('m00StatusBanner');
+  if (bannerDot)  { bannerDot.style.background = '#ef4444'; }
+  if (bannerEl)   { bannerEl.style.borderColor = 'rgba(239,68,68,0.3)'; }
+  if (bannerText) { bannerText.textContent = 'Session Closed — Re-authenticate to continue'; bannerText.style.color = '#f87171'; }
 
   const cdEl = document.getElementById('m00LockCountdown');
   if (cdEl) { cdEl.style.display = 'none'; cdEl.textContent = ''; }
@@ -4597,6 +4638,16 @@ function onCorridorChange(corridorId) {
         .find(v => v.length === 3) || ''
     ) : '');
   updateHolderDropdownsForCorridor(_srcCode, targetCountry);
+  updateFxReferencePlaceholder(_srcCode, targetCountry);
+}
+
+function updateFxReferencePlaceholder(srcCode, destCode) {
+  const field = document.getElementById('tc_fx_reference_id');
+  if (!field || field.value) return;  // don't overwrite a typed value
+  const src  = (srcCode  || '').toUpperCase() || 'SRC';
+  const dest = (destCode || '').toUpperCase() || 'DST';
+  const date = new Date().toISOString().slice(0, 10);
+  field.placeholder = `FX-${src}-${dest}-${date}A`;
 }
 
 // Maps target country alpha3 → CBN Vault Terminal label
