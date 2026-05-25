@@ -34,6 +34,24 @@ module Api
             bloc:           corridor_obj[:bloc],
             asset_code:     corridor_obj[:asset_code],
           }
+        elsif corridor_id =~ /\A__virtual__([A-Z]{2,3})__([A-Z]{2,3})\z/i
+          src = $1.upcase; dst = $2.upcase
+          {
+            id:             corridor_id,
+            name:           "#{src}–#{dst} Virtual Corridor",
+            code:           "#{src}-#{dst}",
+            source_country: src,
+            target_country: dst
+          }
+        elsif corridor_id =~ /\A([A-Z]{2,3})-([A-Z]{2,3})\z/i
+          src = $1.upcase; dst = $2.upcase
+          {
+            id:             corridor_id,
+            name:           "#{src}–#{dst} Corridor",
+            code:           corridor_id,
+            source_country: src,
+            target_country: dst
+          }
         else
           { id: corridor_id, name: corridor_id }
         end
