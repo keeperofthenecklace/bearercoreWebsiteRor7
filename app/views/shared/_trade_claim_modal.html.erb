@@ -621,7 +621,7 @@
           <!-- Vault assignment hint — source node shown in Module 00 -->
           <div id="sourceVaultWarning" style="display: none;"></div>
 
-          <!-- Origin Trader Account Holder ID — searchable combobox, filtered to origin country -->
+          <!-- Origin Trader Account Holder ID — async identity resolution widget -->
           <div style="margin-bottom: 16px;">
             <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
               <span id="tcTraderHolderLabel">Origin Trader Account Holder ID</span>
@@ -631,35 +631,27 @@
                 (buyer wallet — asset custody surrendered on this rail)
               </span>
             </label>
-            <div id="traderHolderDropdown" class="custom-dropdown" style="position: relative;">
-              <div id="traderHolderSelected" onclick="toggleTraderHolderDropdown()" style="
-                width: 100%; padding: 10px 16px; border: 1px solid #d1d5db;
-                border-radius: 8px; font-size: 13px; background: white;
-                cursor: pointer; display: flex; align-items: center;
-                justify-content: space-between; box-sizing: border-box; color: #6b7280;
-                font-family: 'Courier New', monospace;">
-                <span id="traderHolderSelectedText" style="font-family: system-ui, sans-serif; color: #6b7280;">Select trader wallet...</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            <div id="traderHolderWidget" style="width: 100%;">
+              <div id="traderHolderInputRow" style="
+                display: flex; align-items: stretch; border: 1px solid #d1d5db;
+                border-radius: 8px; overflow: hidden; background: white; box-sizing: border-box;">
+                <input type="text" id="traderHolderInput"
+                  placeholder="Enter or paste unique wallet ID..."
+                  oninput="onHolderInput('trader', this.value)"
+                  style="flex: 1; padding: 10px 12px; border: none; outline: none;
+                         font-family: 'Courier New', monospace; font-size: 12.5px;
+                         background: transparent; color: #374151; min-width: 0;" />
+                <button type="button" id="traderHolderResetBtn" onclick="resetHolderWidget('trader')"
+                  style="display:none; padding: 0 14px; border: none; border-left: 1px solid #e5e7eb;
+                         background: #f3f4f6; cursor: pointer; font-size: 18px; color: #9ca3af;
+                         line-height: 1; align-items: center; justify-content: center;">×</button>
               </div>
-              <div id="traderHolderDropdownList" style="
-                display: none; position: absolute; top: 100%; left: 0; right: 0;
-                background: white; border: 1px solid #d1d5db; border-radius: 8px;
-                margin-top: 4px; max-height: 220px; overflow-y: auto; z-index: 1001;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                <div style="padding: 8px; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; background: white;">
-                  <input type="text" id="traderHolderSearch" placeholder="Search holder ID or name..."
-                    oninput="filterTraderHolderKeys(this.value)"
-                    style="width: 100%; padding: 7px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; box-sizing: border-box;" />
-                </div>
-                <div id="traderHolderOptions" style="padding: 4px 0;">
-                  <div style="padding: 12px 16px; font-size: 13px; color: #9ca3af;">Loading registered holders...</div>
-                </div>
+              <div id="traderHolderStatus" style="margin-top: 5px; font-size: 11.5px; color: #6b7280;
+                   display: flex; align-items: flex-start; gap: 5px; line-height: 1.4;">
+                <span>💡</span><span>Enter the merchant's unique national registry identifier.</span>
               </div>
             </div>
             <input type="hidden" id="tc_trader_holder_id" name="trader_holder_id" />
-            <p id="tcTraderHolderHint" style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">
-              Registry wallet of the origin-country trader (buyer). Debit source — ownership surrendered on this rail.
-            </p>
           </div>
 
           <!-- Trade Direction & Currency -->
@@ -1082,7 +1074,7 @@
             </div>
           </div>
 
-          <!-- Destination Retailer Holder ID — searchable combobox from CBN network registry -->
+          <!-- Destination Retailer Holder ID — async identity resolution widget -->
           <div style="margin-bottom: 0;">
             <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
               <span id="tcRetailerHolderLabel">Target Merchant / Retailer Holder ID</span>
@@ -1092,35 +1084,27 @@
                 (seller wallet — credit destination on the destination network)
               </span>
             </label>
-            <div id="retailerHolderDropdown" class="custom-dropdown" style="position: relative;">
-              <div id="retailerHolderSelected" onclick="toggleRetailerHolderDropdown()" style="
-                width: 100%; padding: 10px 16px; border: 1px solid #d1d5db;
-                border-radius: 8px; font-size: 13px; background: white;
-                cursor: pointer; display: flex; align-items: center;
-                justify-content: space-between; box-sizing: border-box; color: #6b7280;
-                font-family: 'Courier New', monospace;">
-                <span id="retailerHolderSelectedText" style="font-family: system-ui, sans-serif; color: #6b7280;">Select retailer wallet...</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            <div id="retailerHolderWidget" style="width: 100%;">
+              <div id="retailerHolderInputRow" style="
+                display: flex; align-items: stretch; border: 1px solid #d1d5db;
+                border-radius: 8px; overflow: hidden; background: white; box-sizing: border-box;">
+                <input type="text" id="retailerHolderInput"
+                  placeholder="Enter or paste unique wallet ID..."
+                  oninput="onHolderInput('retailer', this.value)"
+                  style="flex: 1; padding: 10px 12px; border: none; outline: none;
+                         font-family: 'Courier New', monospace; font-size: 12.5px;
+                         background: transparent; color: #374151; min-width: 0;" />
+                <button type="button" id="retailerHolderResetBtn" onclick="resetHolderWidget('retailer')"
+                  style="display:none; padding: 0 14px; border: none; border-left: 1px solid #e5e7eb;
+                         background: #f3f4f6; cursor: pointer; font-size: 18px; color: #9ca3af;
+                         line-height: 1; align-items: center; justify-content: center;">×</button>
               </div>
-              <div id="retailerHolderDropdownList" style="
-                display: none; position: absolute; top: 100%; left: 0; right: 0;
-                background: white; border: 1px solid #d1d5db; border-radius: 8px;
-                margin-top: 4px; max-height: 220px; overflow-y: auto; z-index: 1001;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                <div style="padding: 8px; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; background: white;">
-                  <input type="text" id="retailerHolderSearch" placeholder="Search holder ID or name..."
-                    oninput="filterRetailerHolderKeys(this.value)"
-                    style="width: 100%; padding: 7px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; box-sizing: border-box;" />
-                </div>
-                <div id="retailerHolderOptions" style="padding: 4px 0;">
-                  <div style="padding: 12px 16px; font-size: 13px; color: #9ca3af;">Loading registered holders...</div>
-                </div>
+              <div id="retailerHolderStatus" style="margin-top: 5px; font-size: 11.5px; color: #6b7280;
+                   display: flex; align-items: flex-start; gap: 5px; line-height: 1.4;">
+                <span>💡</span><span>Enter the merchant's unique national registry identifier.</span>
               </div>
             </div>
             <input type="hidden" id="tc_destination_retailer_holder_id" name="destination_retailer_holder_id" />
-            <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">
-              Final recipient wallet address in the destination country. Required for cross-ledger ownership mapping on the centralized registry.
-            </p>
           </div>
         </div>
 
@@ -2608,7 +2592,6 @@ function showTradeClaimModal() {
   loadCorridors();
   setupCorridorListener();
   generateInvoiceRef();
-  loadHolderKeysForComboboxes();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3019,27 +3002,94 @@ function m00RequireAuth() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Holder-key comboboxes for Trader (origin) + Retailer (destination)
+//  Holder Identity Resolution Widget — Trader (origin) + Retailer (destination)
+//  4 states: neutral → resolving → verified | error
 // ─────────────────────────────────────────────────────────────────────────────
-let _holderKeysFull      = [];   // full list once loaded
-let _traderKeysFiltered  = [];   // scoped to origin country for current corridor
-let _retailerKeysFiltered = [];  // scoped to destination country for current corridor
+let _activeTraderCountry   = '';
+let _activeRetailerCountry = '';
+const _holderResolveTimers = {};
 
-async function loadHolderKeysForComboboxes() {
+function onHolderInput(side, val) {
+  clearTimeout(_holderResolveTimers[side]);
+  const hiddenId = side === 'trader' ? 'tc_trader_holder_id' : 'tc_destination_retailer_holder_id';
+  document.getElementById(hiddenId).value = '';
+  if (val.trim().length >= 8) {
+    _holderResolveTimers[side] = setTimeout(() => _resolveHolder(side), 700);
+  } else {
+    _setHolderState(side, 'neutral');
+  }
+}
+
+async function _resolveHolder(side) {
+  const inputEl = document.getElementById(`${side}HolderInput`);
+  const val = inputEl ? inputEl.value.trim() : '';
+  if (!val || val.length < 8) return;
+  _setHolderState(side, 'resolving');
   try {
-    const res = await fetch('/api/v2/holder_keys', {
+    const res = await fetch(`/api/v2/holder_keys/resolve?holder_id_input=${encodeURIComponent(val)}`, {
       headers: { 'Authorization': `Bearer ${getAccessToken()}`, 'Accept': 'application/json' }
     });
-    if (!res.ok) return;
     const data = await res.json();
-    _holderKeysFull = Array.isArray(data) ? data
-                   : Array.isArray(data.data) ? data.data
-                   : Array.isArray(data.holder_keys) ? data.holder_keys : [];
-    renderTraderHolderOptions(_holderKeysFull);
-    renderRetailerHolderOptions(_holderKeysFull);
+    const hiddenId = side === 'trader' ? 'tc_trader_holder_id' : 'tc_destination_retailer_holder_id';
+    if (data.status === 'VERIFIED') {
+      _setHolderState(side, 'verified', data.account_name);
+      document.getElementById(hiddenId).value = data.holder_id || val;
+    } else {
+      const country = side === 'trader' ? (_activeTraderCountry || 'National') : (_activeRetailerCountry || 'National');
+      _setHolderState(side, 'error', `No active merchant record matching this ID exists in the ${country} Registry. Please verify the cryptographic string and check connection status.`);
+      document.getElementById(hiddenId).value = '';
+    }
   } catch (e) {
-    console.warn('[loadHolderKeysForComboboxes]', e.message);
+    _setHolderState(side, 'error', 'Resolution service unavailable. Check network connection.');
   }
+}
+
+function _setHolderState(side, state, message) {
+  const inputEl  = document.getElementById(`${side}HolderInput`);
+  const inputRow = document.getElementById(`${side}HolderInputRow`);
+  const statusEl = document.getElementById(`${side}HolderStatus`);
+  const resetBtn = document.getElementById(`${side}HolderResetBtn`);
+  if (!inputEl || !inputRow || !statusEl) return;
+  inputEl.disabled = false;
+  inputEl.readOnly = false;
+  inputEl.style.background = 'transparent';
+  inputEl.style.color = '#374151';
+  if (resetBtn) resetBtn.style.display = 'none';
+  switch (state) {
+    case 'neutral':
+      inputRow.style.border = '1px solid #d1d5db';
+      statusEl.style.color = '#6b7280';
+      statusEl.innerHTML = '<span>💡</span><span>Enter the merchant\'s unique national registry identifier.</span>';
+      break;
+    case 'resolving':
+      inputEl.disabled = true;
+      inputRow.style.border = '1px solid #d1d5db';
+      statusEl.style.color = '#6b7280';
+      statusEl.innerHTML = '<span>🔄</span><span>Resolving identity with National Registry...</span>';
+      break;
+    case 'verified':
+      inputEl.readOnly = true;
+      inputEl.style.background = '#f3f4f6';
+      inputRow.style.border = '1px solid #10b981';
+      if (resetBtn) { resetBtn.style.display = 'flex'; }
+      statusEl.style.color = '#059669';
+      statusEl.innerHTML = `<span>🟢</span><span>Account Verified: ${message || ''}</span>`;
+      break;
+    case 'error':
+      inputRow.style.border = '1px solid #ef4444';
+      statusEl.style.color = '#dc2626';
+      statusEl.innerHTML = `<span>🔴</span><span><strong>IDENTITY RESOLUTION FAILED:</strong><br>${message || 'No matching account found.'}</span>`;
+      break;
+  }
+}
+
+function resetHolderWidget(side) {
+  const inputEl = document.getElementById(`${side}HolderInput`);
+  if (inputEl) inputEl.value = '';
+  const hiddenId = side === 'trader' ? 'tc_trader_holder_id' : 'tc_destination_retailer_holder_id';
+  const hidden = document.getElementById(hiddenId);
+  if (hidden) hidden.value = '';
+  _setHolderState(side, 'neutral');
 }
 
 // Country code → display name map for label updates
@@ -3059,35 +3109,7 @@ const TC_COUNTRY_NAMES = {
   'MUS':'Mauritius','MDG':'Madagascar','SYC':'Seychelles','COM':'Comoros',
 };
 
-function tcMatchesCountry(k, code) {
-  if (!code) return true;
-  const cc = (k.country_code || k.country || k.iso_code || '').toUpperCase().trim();
-  if (cc && (cc === code || cc === code.slice(0,2))) return true;
-  // Name-based fallback
-  const cname = (TC_COUNTRY_NAMES[code] || '').toLowerCase();
-  return cname && (k.institution_name || k.name || '').toLowerCase().includes(cname);
-}
-
-async function fetchHolderKeysForCountry(countryCode) {
-  try {
-    const params = new URLSearchParams({ holder_type: 'corporate' });
-    if (countryCode) params.set('country_code', countryCode);
-    const res = await fetch(`/api/v2/holder_keys?${params}`, {
-      headers: { 'Authorization': `Bearer ${getAccessToken()}`, 'Accept': 'application/json' }
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return Array.isArray(data) ? data
-         : Array.isArray(data.data) ? data.data
-         : Array.isArray(data.holder_keys) ? data.holder_keys : [];
-  } catch (e) {
-    console.warn('[fetchHolderKeysForCountry]', e.message);
-    return [];
-  }
-}
-
-async function updateHolderDropdownsForCorridor(srcCode, destCode) {
-  // --- Labels & badges ---
+function updateHolderDropdownsForCorridor(srcCode, destCode) {
   const traderLabel   = document.getElementById('tcTraderHolderLabel');
   const traderBadge   = document.getElementById('tcTraderHolderCountryBadge');
   const retailerLabel = document.getElementById('tcRetailerHolderLabel');
@@ -3098,97 +3120,10 @@ async function updateHolderDropdownsForCorridor(srcCode, destCode) {
   if (traderBadge)   { traderBadge.textContent = srcCode  ? `[${srcCode}]`  : ''; traderBadge.style.display  = srcCode  ? '' : 'none'; }
   if (retailerLabel) retailerLabel.textContent = `Target ${destName} Merchant / Retailer Holder ID`;
   if (retailerBadge) { retailerBadge.textContent = destCode ? `[${destCode}]` : ''; retailerBadge.style.display = destCode ? '' : 'none'; }
-
-  // --- Fetch per-country directly from API (avoids the global first(20) cap) ---
-  const [traderKeys, retailerKeys] = await Promise.all([
-    fetchHolderKeysForCountry(srcCode),
-    fetchHolderKeysForCountry(destCode)
-  ]);
-  _traderKeysFiltered   = traderKeys.length   ? traderKeys   : _holderKeysFull;
-  _retailerKeysFiltered = retailerKeys.length ? retailerKeys : _holderKeysFull;
-  renderTraderHolderOptions(_traderKeysFiltered);
-  renderRetailerHolderOptions(_retailerKeysFiltered);
-}
-
-function _renderHolderOptions(container, keys, selectFn, icon) {
-  if (!container) return;
-  if (!keys.length) {
-    container.innerHTML = '<div style="padding:10px 14px;font-size:12px;color:#9ca3af;font-family:\'Courier New\',monospace;">No matching holders</div>';
-    return;
-  }
-  container.innerHTML = keys.map(k => {
-    const id   = k.holder_id || k.public_key || k.address || '';
-    const name = k.institution_name || k.name || 'Unknown';
-    const tag  = id.length > 24 ? id.substring(0, 22) + '…' : id;
-    const payload = JSON.stringify({id, name}).replace(/"/g, '&quot;');
-    return `<div class="dropdown-option" onclick="${selectFn}(${payload})" style="
-      display:flex; justify-content:space-between; align-items:center;
-      padding:7px 12px; cursor:pointer; font-size:12.5px; gap:8px;"
-      onmouseenter="this.style.background='#f3f4f6'" onmouseleave="this.style.background=''">
-      <span style="display:flex;align-items:center;gap:6px;">
-        <span style="font-size:14px;">${icon}</span>
-        <span style="color:#111827;">${name}</span>
-      </span>
-      <span style="font-family:'Courier New',monospace;font-size:11px;color:#6b7280;white-space:nowrap;flex-shrink:0;">[ ${tag} ]</span>
-    </div>`;
-  }).join('');
-}
-
-function renderTraderHolderOptions(keys) {
-  _renderHolderOptions(document.getElementById('traderHolderOptions'), keys, 'selectTraderHolder', '👤');
-}
-
-function renderRetailerHolderOptions(keys) {
-  _renderHolderOptions(document.getElementById('retailerHolderOptions'), keys, 'selectRetailerHolder', '🏪');
-}
-
-function selectTraderHolder(entry) {
-  document.getElementById('tc_trader_holder_id').value = entry.id;
-  const text = document.getElementById('traderHolderSelectedText');
-  if (text) { text.textContent = entry.name; text.style.fontFamily = 'system-ui'; text.style.color = '#374151'; }
-  document.getElementById('traderHolderDropdownList').style.display = 'none';
-}
-
-function selectRetailerHolder(entry) {
-  document.getElementById('tc_destination_retailer_holder_id').value = entry.id;
-  const text = document.getElementById('retailerHolderSelectedText');
-  if (text) { text.textContent = entry.name; text.style.fontFamily = 'system-ui'; text.style.color = '#374151'; }
-  document.getElementById('retailerHolderDropdownList').style.display = 'none';
-}
-
-let isTraderHolderOpen = false;
-let isRetailerHolderOpen = false;
-
-function toggleTraderHolderDropdown() {
-  const list = document.getElementById('traderHolderDropdownList');
-  isTraderHolderOpen = !isTraderHolderOpen;
-  list.style.display = isTraderHolderOpen ? 'block' : 'none';
-  if (isTraderHolderOpen) document.getElementById('traderHolderSearch')?.focus();
-}
-
-function toggleRetailerHolderDropdown() {
-  const list = document.getElementById('retailerHolderDropdownList');
-  isRetailerHolderOpen = !isRetailerHolderOpen;
-  list.style.display = isRetailerHolderOpen ? 'block' : 'none';
-  if (isRetailerHolderOpen) document.getElementById('retailerHolderSearch')?.focus();
-}
-
-function filterTraderHolderKeys(q) {
-  const lower  = q.toLowerCase();
-  const source = _traderKeysFiltered.length ? _traderKeysFiltered : _holderKeysFull;
-  const filtered = source.filter(k =>
-    (k.institution_name || k.name || '').toLowerCase().includes(lower) ||
-    (k.holder_id || k.public_key || '').toLowerCase().includes(lower));
-  renderTraderHolderOptions(filtered);
-}
-
-function filterRetailerHolderKeys(q) {
-  const lower  = q.toLowerCase();
-  const source = _retailerKeysFiltered.length ? _retailerKeysFiltered : _holderKeysFull;
-  const filtered = source.filter(k =>
-    (k.institution_name || k.name || '').toLowerCase().includes(lower) ||
-    (k.holder_id || k.public_key || '').toLowerCase().includes(lower));
-  renderRetailerHolderOptions(filtered);
+  _activeTraderCountry   = TC_COUNTRY_NAMES[srcCode]  || srcCode  || '';
+  _activeRetailerCountry = TC_COUNTRY_NAMES[destCode] || destCode || '';
+  resetHolderWidget('trader');
+  resetHolderWidget('retailer');
 }
 
 function hideTradeClaimModal() {
@@ -3215,16 +3150,6 @@ document.addEventListener('click', function(e) {
   }
   if (!e.target.closest('#institutionDropdown')) {
     closeInstitutionDropdown();
-  }
-  if (!e.target.closest('#traderHolderDropdown')) {
-    const list = document.getElementById('traderHolderDropdownList');
-    if (list) list.style.display = 'none';
-    isTraderHolderOpen = false;
-  }
-  if (!e.target.closest('#retailerHolderDropdown')) {
-    const list = document.getElementById('retailerHolderDropdownList');
-    if (list) list.style.display = 'none';
-    isRetailerHolderOpen = false;
   }
 });
 
@@ -3563,11 +3488,8 @@ function resetDropdowns() {
   currencySelect.style.borderColor = '#d1d5db';
   currencySelect.style.cursor = 'not-allowed';
 
-  // Reset new cross-border routing fields
-  const traderHolderField = document.getElementById('tc_trader_holder_id');
-  if (traderHolderField) traderHolderField.value = '';
-  const traderText = document.getElementById('traderHolderSelectedText');
-  if (traderText) { traderText.textContent = 'Select trader wallet...'; traderText.style.color = '#6b7280'; }
+  // Reset holder resolution widgets
+  resetHolderWidget('trader');
 
   const fxRefField = document.getElementById('tc_fx_reference_id');
   if (fxRefField) fxRefField.value = '';
@@ -3575,10 +3497,7 @@ function resetDropdowns() {
   const mintingNodeField = document.getElementById('tc_sovereign_minting_node');
   if (mintingNodeField) { mintingNodeField.value = ''; mintingNodeField.placeholder = 'Select Corridor first...'; mintingNodeField.style.borderColor = '#d1d5db'; mintingNodeField.style.background = '#f3f4f6'; }
 
-  const destRetailerField = document.getElementById('tc_destination_retailer_holder_id');
-  if (destRetailerField) destRetailerField.value = '';
-  const retailerText = document.getElementById('retailerHolderSelectedText');
-  if (retailerText) { retailerText.textContent = 'Select retailer wallet...'; retailerText.style.color = '#6b7280'; }
+  resetHolderWidget('retailer');
 
   // Reset commHolderIdRow styling (amber from previous session)
   const commRow = document.getElementById('commHolderIdRow');

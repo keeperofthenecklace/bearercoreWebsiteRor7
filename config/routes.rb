@@ -45,7 +45,11 @@ Rails.application.routes.draw do
       end
 
       resources :commercial_banks, only: [:index]
-      resources :holder_keys,      only: [:index]
+      resources :holder_keys, only: [:index] do
+        collection do
+          get :resolve
+        end
+      end
       resources :documents,        only: [:index, :create]
 
       resources :trade_claims, only: [:index, :create] do

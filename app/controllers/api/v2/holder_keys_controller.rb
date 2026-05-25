@@ -234,6 +234,27 @@ module Api
         { id: 282, holder_id: "HOLDER-RWA-RME-007",  institution_name: "Rwanda Minerals Export Ltd",      swift_code: nil, country_code: "RWA", holder_type: "corporate", public_key: "ed25519:RWA_RME007PUBKEY" },
       ].freeze
 
+      def resolve
+        search = params[:holder_id_input].to_s.strip
+        if search.blank?
+          return render json: { status: "UNRESOLVED", error_message: "No identifier provided." }, status: :unprocessable_entity
+        end
+        record = STUB_HOLDER_KEYS.find { |k| k[:holder_id].to_s.casecmp(search).zero? }
+        if record
+          render json: {
+            status:       "VERIFIED",
+            account_name: record[:institution_name],
+            holder_id:    record[:holder_id],
+            country_code: record[:country_code]
+          }, status: :ok
+        else
+          render json: {
+            status:        "UNRESOLVED",
+            error_message: "No active merchant record matching this ID exists in the National Registry. Please verify the cryptographic string and check connection status."
+          }, status: :not_found
+        end
+      end
+
       def index
         keys = STUB_HOLDER_KEYS
 
