@@ -176,13 +176,25 @@ module Api
       ].freeze
 
       def index
-        swift_code = params[:swift_code]&.upcase&.strip
-        keys = if swift_code.present?
-          STUB_HOLDER_KEYS.select { |k| k[:swift_code] == swift_code }
-        else
-          STUB_HOLDER_KEYS
+        keys = STUB_HOLDER_KEYS
+
+        if params[:country_code].present?
+          cc = params[:country_code].to_s.upcase.strip
+          keys = keys.select { |k| k[:country_code].to_s.upcase == cc }
         end
-        render json: keys
+
+        if params[:query].present?
+          q = params[:query].to_s.downcase.strip
+          keys = keys.select { |k|
+            k[:institution_name].to_s.downcase.include?(q) ||
+            k[:holder_id].to_s.downcase.include?(q)        ||
+            k[:swift_code].to_s.downcase.include?(q)
+          }
+        elsif params[:swift_code].present?
+          keys = keys.select { |k| k[:swift_code] == params[:swift_code].upcase.strip }
+        end
+
+        render json: keys.first(20)
       end
     end
   end

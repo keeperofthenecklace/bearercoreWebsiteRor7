@@ -3021,7 +3021,9 @@ function m00RequireAuth() {
 // ─────────────────────────────────────────────────────────────────────────────
 //  Holder-key comboboxes for Trader (origin) + Retailer (destination)
 // ─────────────────────────────────────────────────────────────────────────────
-let _holderKeysFull = [];   // full list once loaded
+let _holderKeysFull      = [];   // full list once loaded
+let _traderKeysFiltered  = [];   // scoped to origin country for current corridor
+let _retailerKeysFiltered = [];  // scoped to destination country for current corridor
 
 async function loadHolderKeysForComboboxes() {
   try {
@@ -3081,49 +3083,47 @@ function updateHolderDropdownsForCorridor(srcCode, destCode) {
   if (retailerLabel) retailerLabel.textContent = `Target ${destName} Merchant / Retailer Holder ID`;
   if (retailerBadge) { retailerBadge.textContent = destCode ? `[${destCode}]` : ''; retailerBadge.style.display = destCode ? '' : 'none'; }
 
-  // --- Filter dropdowns by country ---
+  // --- Filter dropdowns by corridor country and store for live search ---
   if (!_holderKeysFull.length) return;
   const traderKeys   = _holderKeysFull.filter(k => tcMatchesCountry(k, srcCode));
   const retailerKeys = _holderKeysFull.filter(k => tcMatchesCountry(k, destCode));
-  // Fallback: show all if country filter yields nothing (e.g., no country_code on records)
-  renderTraderHolderOptions(traderKeys.length   ? traderKeys   : _holderKeysFull);
-  renderRetailerHolderOptions(retailerKeys.length ? retailerKeys : _holderKeysFull);
+  // Store corridor-scoped subsets so search stays within the right country
+  _traderKeysFiltered   = traderKeys.length   ? traderKeys   : _holderKeysFull;
+  _retailerKeysFiltered = retailerKeys.length ? retailerKeys : _holderKeysFull;
+  renderTraderHolderOptions(_traderKeysFiltered);
+  renderRetailerHolderOptions(_retailerKeysFiltered);
+}
+
+function _renderHolderOptions(container, keys, selectFn, icon) {
+  if (!container) return;
+  if (!keys.length) {
+    container.innerHTML = '<div style="padding:10px 14px;font-size:12px;color:#9ca3af;font-family:\'Courier New\',monospace;">No matching holders</div>';
+    return;
+  }
+  container.innerHTML = keys.map(k => {
+    const id   = k.holder_id || k.public_key || k.address || '';
+    const name = k.institution_name || k.name || 'Unknown';
+    const tag  = id.length > 24 ? id.substring(0, 22) + '…' : id;
+    const payload = JSON.stringify({id, name}).replace(/"/g, '&quot;');
+    return `<div class="dropdown-option" onclick="${selectFn}(${payload})" style="
+      display:flex; justify-content:space-between; align-items:center;
+      padding:7px 12px; cursor:pointer; font-size:12.5px; gap:8px;"
+      onmouseenter="this.style.background='#f3f4f6'" onmouseleave="this.style.background=''">
+      <span style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:14px;">${icon}</span>
+        <span style="color:#111827;">${name}</span>
+      </span>
+      <span style="font-family:'Courier New',monospace;font-size:11px;color:#6b7280;white-space:nowrap;flex-shrink:0;">[ ${tag} ]</span>
+    </div>`;
+  }).join('');
 }
 
 function renderTraderHolderOptions(keys) {
-  const container = document.getElementById('traderHolderOptions');
-  if (!container) return;
-  if (!keys.length) { container.innerHTML = '<div style="padding:12px 16px;font-size:13px;color:#9ca3af;">No holders registered</div>'; return; }
-  container.innerHTML = keys.map(k => {
-    const id    = k.holder_id || k.public_key || k.address || '';
-    const name  = k.institution_name || k.name || 'Unknown';
-    const short = id.length > 20 ? id.substring(0, 20) + '…' : id;
-    return `<div class="dropdown-option" onclick="selectTraderHolder(${JSON.stringify({id, name}).replace(/"/g,'&quot;')})">
-      <span>👤</span>
-      <div style="min-width:0;">
-        <div style="font-size:13px;">${name}</div>
-        <div style="font-size:10px;font-family:monospace;color:#6b7280;">${short}</div>
-      </div>
-    </div>`;
-  }).join('');
+  _renderHolderOptions(document.getElementById('traderHolderOptions'), keys, 'selectTraderHolder', '👤');
 }
 
 function renderRetailerHolderOptions(keys) {
-  const container = document.getElementById('retailerHolderOptions');
-  if (!container) return;
-  if (!keys.length) { container.innerHTML = '<div style="padding:12px 16px;font-size:13px;color:#9ca3af;">No holders registered</div>'; return; }
-  container.innerHTML = keys.map(k => {
-    const id    = k.holder_id || k.public_key || k.address || '';
-    const name  = k.institution_name || k.name || 'Unknown';
-    const short = id.length > 20 ? id.substring(0, 20) + '…' : id;
-    return `<div class="dropdown-option" onclick="selectRetailerHolder(${JSON.stringify({id, name}).replace(/"/g,'&quot;')})">
-      <span>🏪</span>
-      <div style="min-width:0;">
-        <div style="font-size:13px;">${name}</div>
-        <div style="font-size:10px;font-family:monospace;color:#6b7280;">${short}</div>
-      </div>
-    </div>`;
-  }).join('');
+  _renderHolderOptions(document.getElementById('retailerHolderOptions'), keys, 'selectRetailerHolder', '🏪');
 }
 
 function selectTraderHolder(entry) {
@@ -3158,16 +3158,18 @@ function toggleRetailerHolderDropdown() {
 }
 
 function filterTraderHolderKeys(q) {
-  const lower = q.toLowerCase();
-  const filtered = _holderKeysFull.filter(k =>
+  const lower  = q.toLowerCase();
+  const source = _traderKeysFiltered.length ? _traderKeysFiltered : _holderKeysFull;
+  const filtered = source.filter(k =>
     (k.institution_name || k.name || '').toLowerCase().includes(lower) ||
     (k.holder_id || k.public_key || '').toLowerCase().includes(lower));
   renderTraderHolderOptions(filtered);
 }
 
 function filterRetailerHolderKeys(q) {
-  const lower = q.toLowerCase();
-  const filtered = _holderKeysFull.filter(k =>
+  const lower  = q.toLowerCase();
+  const source = _retailerKeysFiltered.length ? _retailerKeysFiltered : _holderKeysFull;
+  const filtered = source.filter(k =>
     (k.institution_name || k.name || '').toLowerCase().includes(lower) ||
     (k.holder_id || k.public_key || '').toLowerCase().includes(lower));
   renderRetailerHolderOptions(filtered);
