@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   root "pages#home"
   get  "portal",             to: "pages#portal"
+  get  "issuance/desk",     to: redirect("/portal")
   get  "technical-overview", to: "pages#technical_overview"
   get  "sandbox",            to: "pages#sandbox"
   get  "litepaper",          to: "pages#litepaper"
