@@ -477,19 +477,36 @@
                 FX Reference / Bilateral Quote ID
                 <span style="color: #ef4444;">*</span>
               </label>
-              <input type="text" id="tc_fx_reference_id" name="fx_reference_id" required
-                placeholder="e.g. FX-BOG-CBN-2026-05-19A"
-                style="
-                  width: 100%;
-                  padding: 12px 16px;
-                  border: 1px solid #d1d5db;
-                  border-radius: 8px;
-                  font-size: 13px;
-                  font-family: 'Courier New', monospace;
-                  letter-spacing: 0.2px;
-                  box-sizing: border-box;
-                " />
-              <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">Bilateral quote ID proving the FX rate used to justify this issuance amount.</p>
+              <div id="fxReferenceBox" style="
+                background: #0d1117; border-radius: 8px;
+                border: 1px solid rgba(74,222,128,0.18);
+                font-family: 'Courier New', monospace; font-size: 11.5px;
+                color: #c9d1d9; overflow: hidden;">
+                <div style="display: flex; align-items: stretch;">
+                  <select id="fxRefSelect" onchange="onFxQuoteSelect()" style="
+                    flex: 1; background: transparent; border: none; outline: none;
+                    color: #c9d1d9; font-family: 'Courier New', monospace; font-size: 11.5px;
+                    padding: 9px 12px; cursor: pointer; min-width: 0;" disabled>
+                    <option value="">[ Select a corridor first ]</option>
+                  </select>
+                  <button type="button" id="fxRefFetchBtn" onclick="fetchApprovedQuotes(null, true)"
+                    style="background: rgba(74,222,128,0.07); border: none;
+                    border-left: 1px solid rgba(255,255,255,0.07);
+                    color: #4ade80; font-family: 'Courier New', monospace; font-size: 11px;
+                    padding: 9px 12px; cursor: pointer; white-space: nowrap;" disabled>
+                    [ &#x21BA; Refresh Quotes ]
+                  </button>
+                </div>
+                <div id="fxRefStatusLine" style="
+                  padding: 5px 12px; font-size: 10.5px; color: #6b7280;
+                  border-top: 1px solid rgba(255,255,255,0.06);
+                  display: flex; align-items: center; gap: 6px;">
+                  <span id="fxRefStatusDot" style="width:6px;height:6px;border-radius:50%;background:#374151;flex-shrink:0;"></span>
+                  <span id="fxRefStatusText">Select a corridor to load approved treasury quotes</span>
+                </div>
+              </div>
+              <input type="hidden" id="tc_fx_reference_id" name="fx_reference_id">
+              <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">Select an approved bilateral quote ID locked by the treasury desk for today.</p>
             </div>
             <div>
               <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
@@ -4638,16 +4655,121 @@ function onCorridorChange(corridorId) {
         .find(v => v.length === 3) || ''
     ) : '');
   updateHolderDropdownsForCorridor(_srcCode, targetCountry);
-  updateFxReferencePlaceholder(_srcCode, targetCountry);
+
+  // Fetch approved treasury quotes for the selected corridor
+  if (corridorId && !corridorId.startsWith('__')) {
+    fetchApprovedQuotes(corridorId);
+  } else {
+    resetFxQuoteWidget();
+  }
 }
 
-function updateFxReferencePlaceholder(srcCode, destCode) {
-  const field = document.getElementById('tc_fx_reference_id');
-  if (!field || field.value) return;  // don't overwrite a typed value
-  const src  = (srcCode  || '').toUpperCase() || 'SRC';
-  const dest = (destCode || '').toUpperCase() || 'DST';
-  const date = new Date().toISOString().slice(0, 10);
-  field.placeholder = `FX-${src}-${dest}-${date}A`;
+let _fxCurrentCorridorId = null;
+
+function resetFxQuoteWidget() {
+  const sel = document.getElementById('fxRefSelect');
+  const dot = document.getElementById('fxRefStatusDot');
+  const txt = document.getElementById('fxRefStatusText');
+  const box = document.getElementById('fxReferenceBox');
+  const btn = document.getElementById('fxRefFetchBtn');
+  const hid = document.getElementById('tc_fx_reference_id');
+  if (sel) { sel.innerHTML = '<option value="">[ Select a corridor first ]</option>'; sel.disabled = true; }
+  if (dot) dot.style.background = '#374151';
+  if (txt) { txt.textContent = 'Select a corridor to load approved treasury quotes'; txt.style.color = '#6b7280'; }
+  if (box) box.style.borderColor = 'rgba(74,222,128,0.18)';
+  if (btn) btn.disabled = true;
+  if (hid) hid.value = '';
+  _fxCurrentCorridorId = null;
+}
+
+async function fetchApprovedQuotes(corridorId, forceRefresh) {
+  const id = corridorId || _fxCurrentCorridorId;
+  if (!id) return;
+  _fxCurrentCorridorId = id;
+
+  const sel = document.getElementById('fxRefSelect');
+  const dot = document.getElementById('fxRefStatusDot');
+  const txt = document.getElementById('fxRefStatusText');
+  const box = document.getElementById('fxReferenceBox');
+  const btn = document.getElementById('fxRefFetchBtn');
+
+  if (btn) { btn.disabled = true; btn.innerHTML = '[ &#x23F3; Loading... ]'; }
+  if (dot) dot.style.background = '#f59e0b';
+  if (txt) { txt.textContent = 'Fetching approved treasury quotes…'; txt.style.color = '#f59e0b'; }
+
+  try {
+    const res = await fetch(`/api/v2/corridors/${encodeURIComponent(id)}/fx_quotes`, {
+      headers: { 'Accept': 'application/json' },
+      credentials: 'same-origin'
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const quotes = await res.json();
+
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">[ Select approved quote... ]</option>';
+    quotes.forEach(function(q) {
+      const opt = document.createElement('option');
+      opt.value       = q.id;
+      opt.dataset.rate   = q.rate   || '';
+      opt.dataset.source = q.source || '';
+      opt.textContent = q.id;
+      if (q.id === prev) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.disabled = false;
+
+    // Auto-select if only one quote and nothing was previously selected
+    if (quotes.length === 1 && !prev) { sel.value = quotes[0].id; onFxQuoteSelect(); return; }
+
+    if (sel.value) { onFxQuoteSelect(); return; }
+
+    if (dot) dot.style.background = quotes.length ? '#4ade80' : '#f59e0b';
+    if (box) box.style.borderColor = quotes.length ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)';
+    if (txt) {
+      txt.textContent = quotes.length
+        ? `${quotes.length} approved quote(s) available — select one to continue`
+        : 'No approved quotes found for today — contact Treasury Desk';
+      txt.style.color = quotes.length ? '#8b949e' : '#f87171';
+    }
+  } catch (e) {
+    console.error('[fetchApprovedQuotes]', e);
+    if (dot) dot.style.background = '#ef4444';
+    if (box) box.style.borderColor = 'rgba(239,68,68,0.3)';
+    if (txt) { txt.textContent = 'Failed to fetch quotes — check network'; txt.style.color = '#f87171'; }
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '[ &#x21BA; Refresh Quotes ]'; }
+  }
+}
+
+function onFxQuoteSelect() {
+  const sel = document.getElementById('fxRefSelect');
+  const hid = document.getElementById('tc_fx_reference_id');
+  const dot = document.getElementById('fxRefStatusDot');
+  const txt = document.getElementById('fxRefStatusText');
+  const box = document.getElementById('fxReferenceBox');
+
+  const val    = sel ? sel.value : '';
+  const rate   = sel ? (sel.selectedOptions[0]?.dataset?.rate   || '') : '';
+  const source = sel ? (sel.selectedOptions[0]?.dataset?.source || '') : '';
+
+  if (hid) hid.value = val;
+
+  if (val) {
+    if (dot) dot.style.background = '#4ade80';
+    if (box) box.style.borderColor = 'rgba(74,222,128,0.45)';
+    if (txt) {
+      txt.textContent = rate
+        ? `\u{1F7E2} Linked Rate Verified: ${rate} (Locked by ${source || 'Treasury Desk'})`
+        : `Quote selected: ${val}`;
+      txt.style.color = '#4ade80';
+    }
+  } else {
+    if (dot) dot.style.background = '#374151';
+    if (box) box.style.borderColor = 'rgba(74,222,128,0.18)';
+    if (txt) { txt.textContent = 'No quote selected'; txt.style.color = '#6b7280'; }
+    if (hid) hid.value = '';
+  }
 }
 
 // Maps target country alpha3 → CBN Vault Terminal label

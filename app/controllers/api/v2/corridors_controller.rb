@@ -18,6 +18,32 @@ module Api
 
       HANDSHAKE_WINDOW = 7  # seconds until a pending allocation auto-confirms
 
+      COUNTRY_CURRENCY = {
+        "NGA" => "NGN", "GHA" => "GHS", "SEN" => "XOF", "CIV" => "XOF",
+        "BFA" => "XOF", "MLI" => "XOF", "NER" => "XOF",
+        "KEN" => "KES", "UGA" => "UGX", "TZA" => "TZS", "RWA" => "RWF",
+        "ZAF" => "ZAR", "ZMB" => "ZMW", "MWI" => "MWK", "MOZ" => "MZN",
+        "CMR" => "XAF", "COG" => "XAF", "MAR" => "MAD"
+      }.freeze
+
+      SPOT_RATES = {
+        "NGN-GHS" => 0.01350, "GHS-NGN" => 74.18,
+        "XOF-NGN" => 0.1394,  "NGN-XOF" => 7.171,
+        "XOF-GHS" => 0.00188, "GHS-XOF" => 531.4,
+        "KES-UGX" => 29.72,   "UGX-KES" => 0.03364,
+        "KES-TZS" => 22.46,   "TZS-KES" => 0.04452,
+        "KES-RWF" => 10.83,   "RWF-KES" => 0.09234,
+        "ZAR-ZMW" => 2.984,   "ZMW-ZAR" => 0.3352,
+        "ZAR-MWK" => 27.12,   "MWK-ZAR" => 0.03686,
+        "ZAR-MZN" => 3.418,   "MZN-ZAR" => 0.2926,
+        "XAF-NGN" => 0.1401,  "NGN-XAF" => 7.138,
+        "XAF-XOF" => 1.0,     "XOF-XAF" => 1.0,
+        "MAD-XOF" => 60.84,   "XOF-MAD" => 0.01643,
+        "MAD-NGN" => 44.62,   "NGN-MAD" => 0.02241,
+      }.freeze
+
+      QUOTE_SOURCES = %w[Treasury\ Desk CBN\ Oracle Benchmark\ Rate Interbank\ Fix].freeze
+
       STUB_CORRIDORS = [
         # ── WAMZ — West African Monetary Zone (non-CFA, floating fiat) ────────
         {
@@ -339,6 +365,36 @@ module Api
           corridor_id:  cid,
           message:      "#{corridor[:corridor_display]} resumed. Sovereign liquidity channel re-established."
         }
+      end
+
+      def fx_quotes
+        cid = params[:corridor_id] || params[:id]
+        corridor = STUB_CORRIDORS.find { |c| c[:id].to_s == cid.to_s || c[:code] == cid }
+        return render json: { error: "Corridor not found" }, status: :not_found unless corridor
+
+        src_asset  = corridor[:asset_code].to_s
+        dest_asset = COUNTRY_CURRENCY[corridor[:target_country].to_s] || corridor[:target_country].to_s
+        rate_key   = "#{src_asset}-#{dest_asset}"
+        base_rate  = SPOT_RATES[rate_key] || 1.0
+        date       = Time.now.strftime("%Y-%m-%d")
+        src        = corridor[:source_country]
+        dst        = corridor[:target_country]
+
+        quotes = 3.times.map do |i|
+          # small spread variance per quote
+          spread  = base_rate * (0.9985 + (i * 0.001))
+          rate_v  = spread.round(base_rate < 0.1 ? 6 : base_rate < 10 ? 4 : 2)
+          rate_str = "1 #{src_asset} = #{rate_v} #{dest_asset}"
+          {
+            id:      "FX-#{src}-#{dst}-#{date}-#{format('%03d', i + 1)}A",
+            rate:    rate_str,
+            source:  QUOTE_SOURCES[i] || "Treasury Desk",
+            expires: "#{date}T23:59:59Z",
+            corridor_code: corridor[:code]
+          }
+        end
+
+        render json: quotes
       end
 
       private

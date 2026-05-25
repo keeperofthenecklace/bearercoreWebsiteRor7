@@ -28,6 +28,7 @@ Rails.application.routes.draw do
       resources :corridors, only: [:index, :show] do
         member do
           get  :liquidity_position
+          get  :fx_quotes
           post :halt
           post :unhalt
           post :clear_reconciliation
