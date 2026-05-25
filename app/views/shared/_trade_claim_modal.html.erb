@@ -3068,26 +3068,43 @@ function tcMatchesCountry(k, code) {
   return cname && (k.institution_name || k.name || '').toLowerCase().includes(cname);
 }
 
-function updateHolderDropdownsForCorridor(srcCode, destCode) {
-  // --- Trader (origin / buyer) ---
-  const traderLabel  = document.getElementById('tcTraderHolderLabel');
-  const traderBadge  = document.getElementById('tcTraderHolderCountryBadge');
-  const srcName = TC_COUNTRY_NAMES[srcCode] || srcCode || 'Origin';
-  if (traderLabel) traderLabel.textContent = `${srcName} Trader Account Holder ID`;
-  if (traderBadge) { traderBadge.textContent = srcCode ? `[${srcCode}]` : ''; traderBadge.style.display = srcCode ? '' : 'none'; }
+async function fetchHolderKeysForCountry(countryCode) {
+  try {
+    const url = countryCode
+      ? `/api/v2/holder_keys?country_code=${encodeURIComponent(countryCode)}`
+      : '/api/v2/holder_keys';
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${getAccessToken()}`, 'Accept': 'application/json' }
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data
+         : Array.isArray(data.data) ? data.data
+         : Array.isArray(data.holder_keys) ? data.holder_keys : [];
+  } catch (e) {
+    console.warn('[fetchHolderKeysForCountry]', e.message);
+    return [];
+  }
+}
 
-  // --- Retailer (destination / seller) ---
+async function updateHolderDropdownsForCorridor(srcCode, destCode) {
+  // --- Labels & badges ---
+  const traderLabel   = document.getElementById('tcTraderHolderLabel');
+  const traderBadge   = document.getElementById('tcTraderHolderCountryBadge');
   const retailerLabel = document.getElementById('tcRetailerHolderLabel');
   const retailerBadge = document.getElementById('tcRetailerHolderCountryBadge');
+  const srcName  = TC_COUNTRY_NAMES[srcCode]  || srcCode  || 'Origin';
   const destName = TC_COUNTRY_NAMES[destCode] || destCode || 'Destination';
+  if (traderLabel)   traderLabel.textContent   = `${srcName} Trader Account Holder ID`;
+  if (traderBadge)   { traderBadge.textContent = srcCode  ? `[${srcCode}]`  : ''; traderBadge.style.display  = srcCode  ? '' : 'none'; }
   if (retailerLabel) retailerLabel.textContent = `Target ${destName} Merchant / Retailer Holder ID`;
   if (retailerBadge) { retailerBadge.textContent = destCode ? `[${destCode}]` : ''; retailerBadge.style.display = destCode ? '' : 'none'; }
 
-  // --- Filter dropdowns by corridor country and store for live search ---
-  if (!_holderKeysFull.length) return;
-  const traderKeys   = _holderKeysFull.filter(k => tcMatchesCountry(k, srcCode));
-  const retailerKeys = _holderKeysFull.filter(k => tcMatchesCountry(k, destCode));
-  // Store corridor-scoped subsets so search stays within the right country
+  // --- Fetch per-country directly from API (avoids the global first(20) cap) ---
+  const [traderKeys, retailerKeys] = await Promise.all([
+    fetchHolderKeysForCountry(srcCode),
+    fetchHolderKeysForCountry(destCode)
+  ]);
   _traderKeysFiltered   = traderKeys.length   ? traderKeys   : _holderKeysFull;
   _retailerKeysFiltered = retailerKeys.length ? retailerKeys : _holderKeysFull;
   renderTraderHolderOptions(_traderKeysFiltered);

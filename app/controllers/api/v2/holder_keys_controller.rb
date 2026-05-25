@@ -194,7 +194,8 @@ module Api
           keys = keys.select { |k| k[:swift_code] == params[:swift_code].upcase.strip }
         end
 
-        render json: keys.first(20)
+        limit = params[:country_code].present? ? 50 : 20
+        render json: keys.first(limit)
       end
     end
   end
