@@ -3026,8 +3026,8 @@ async function _resolveHolder(side) {
   if (!val || val.length < 8) return;
   _setHolderState(side, 'resolving');
   try {
-    const res = await fetch(`/api/v2/holder_keys/resolve?holder_id_input=${encodeURIComponent(val)}`, {
-      headers: { 'Authorization': `Bearer ${getAccessToken()}`, 'Accept': 'application/json' }
+    const res = await fetch(`https://smartcheq.com/api/v2/holder_keys/resolve?holder_id_input=${encodeURIComponent(val)}`, {
+      headers: { 'Accept': 'application/json' }
     });
     const data = await res.json();
     const hiddenId = side === 'trader' ? 'tc_trader_holder_id' : 'tc_destination_retailer_holder_id';
