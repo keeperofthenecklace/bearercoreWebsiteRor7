@@ -40,23 +40,26 @@ module Api
       def identities
         nodes = M00SigningNode.active_nodes
         render json: nodes.map { |n|
-          { id: n.id, hex_string: n.holder_id, alias: n.node_alias }
+          { id: n.id, hex_string: n.holder_id, alias: n.node_alias, workstation_id: n.workstation_id }
         }
       end
 
       def register_node
-        holder_id  = params[:holder_id].to_s.strip
-        node_alias = params[:node_alias].to_s.strip
+        holder_id      = params[:holder_id].to_s.strip
+        node_alias     = params[:node_alias].to_s.strip
+        workstation_id = params[:workstation_id].to_s.strip.presence
 
         return render json: { error: 'holder_id required' }, status: :unprocessable_entity if holder_id.blank?
         return render json: { error: 'node_alias required' }, status: :unprocessable_entity if node_alias.blank?
 
         node = M00SigningNode.find_or_initialize_by(holder_id: holder_id)
-        node.node_alias = node_alias
-        node.active     = true
+        node.node_alias     = node_alias
+        node.workstation_id = workstation_id if workstation_id
+        node.active         = true
         node.save!
 
-        render json: { status: 'registered', id: node.id, alias: node.node_alias }
+        render json: { status: 'registered', id: node.id, alias: node.node_alias,
+                       workstation_id: node.workstation_id }
       rescue ActiveRecord::RecordInvalid => e
         render json: { error: e.message }, status: :unprocessable_entity
       end

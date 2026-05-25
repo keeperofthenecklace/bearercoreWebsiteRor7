@@ -2575,6 +2575,8 @@ const M00_STORAGE_KEY = 'bc_m00_holder_id';
 
 // Module-level cache of signing node identities from /api/v1/operator/identities
 let _m00Identities = [];
+// Full workstation fingerprint (set by m00GenerateWorkstationId, used in registration payload)
+let _m00WorkstationId = '';
 
 function m00LockForm() {
   const body    = document.getElementById('tcFormBody');
@@ -2630,6 +2632,12 @@ async function m00FetchAndPopulateNodes(storedHolderId) {
     regOpt.textContent = '[ + Register New Signing Node ]';
     sel.appendChild(regOpt);
 
+    // If no registered nodes exist yet, auto-select the registration option
+    if (_m00Identities.length === 0 && !storedHolderId) {
+      sel.value = '__new__';
+      m00OnNodeSelect();
+    }
+
     // Show resolved row if a known node was pre-selected
     if (storedHolderId && sel.value === storedHolderId) m00OnNodeSelect();
 
@@ -2668,7 +2676,6 @@ function m00OnNodeSelect() {
 // Generates a workstation fingerprint from browser environment data.
 async function m00GenerateWorkstationId() {
   const el = document.getElementById('m00WorkstationId');
-  if (!el) return;
   try {
     const raw = [
       navigator.userAgent,
@@ -2678,9 +2685,10 @@ async function m00GenerateWorkstationId() {
     ].join('|');
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
     const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-    el.textContent = hex.slice(0,16) + '...' + hex.slice(-4) + ' (Detected)';
+    _m00WorkstationId = hex;
+    if (el) el.textContent = hex.slice(0,16) + '...' + hex.slice(-4) + ' (Detected)';
   } catch(e) {
-    el.textContent = 'Detection unavailable';
+    if (el) el.textContent = 'Detection unavailable';
   }
 }
 
@@ -2846,11 +2854,12 @@ async function initWorkstationNode() {
     }).catch(e => console.warn('[Module00] server store failed:', e.message));
 
     // Register this node in bearerCORE's signing node registry (idempotent)
+    // Includes the workstation hardware fingerprint for governance audit trail
     fetch('/api/v1/operator/register_node', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ holder_id: finalHex, node_alias: finalAlias })
+      body: JSON.stringify({ holder_id: finalHex, node_alias: finalAlias, workstation_id: _m00WorkstationId })
     }).catch(e => console.warn('[Module00] node registration failed:', e.message));
 
   } catch(e) {
