@@ -520,11 +520,14 @@
                   padding: 12px 16px;
                   border: 1px solid #d1d5db;
                   border-radius: 8px;
-                  font-size: 13px;
+                  font-size: 12px;
                   background: #f3f4f6;
                   color: #374151;
                   box-sizing: border-box;
                   cursor: not-allowed;
+                  overflow: hidden;
+                  white-space: nowrap;
+                  text-overflow: ellipsis;
                 " />
               <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">CBN Vault Terminal that will handle Qt6 minting execution.</p>
             </div>
@@ -4786,6 +4789,7 @@ function resolveSovereignMintingNode(targetCountryCode, corridor) {
     : `${targetCountryCode}-CBDC-VAULT-01`;
 
   field.value = label;
+  field.title = label;
   field.style.color       = '#374151';
   field.style.borderColor = '#10b981';
   field.style.background  = '#f0fdf4';

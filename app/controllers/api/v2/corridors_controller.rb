@@ -26,20 +26,22 @@ module Api
         "CMR" => "XAF", "COG" => "XAF", "MAR" => "MAD"
       }.freeze
 
+      # Spot rates as of 2026-05 — XOF/XAF are CFA francs pegged to EUR at 655.957;
+      # all NGN cross-rates reflect current Naira float (~1 EUR ≈ 1650 NGN).
       SPOT_RATES = {
-        "NGN-GHS" => 0.01350, "GHS-NGN" => 74.18,
-        "XOF-NGN" => 0.1394,  "NGN-XOF" => 7.171,
-        "XOF-GHS" => 0.00188, "GHS-XOF" => 531.4,
-        "KES-UGX" => 29.72,   "UGX-KES" => 0.03364,
-        "KES-TZS" => 22.46,   "TZS-KES" => 0.04452,
-        "KES-RWF" => 10.83,   "RWF-KES" => 0.09234,
-        "ZAR-ZMW" => 2.984,   "ZMW-ZAR" => 0.3352,
-        "ZAR-MWK" => 27.12,   "MWK-ZAR" => 0.03686,
-        "ZAR-MZN" => 3.418,   "MZN-ZAR" => 0.2926,
-        "XAF-NGN" => 0.1401,  "NGN-XAF" => 7.138,
-        "XAF-XOF" => 1.0,     "XOF-XAF" => 1.0,
-        "MAD-XOF" => 60.84,   "XOF-MAD" => 0.01643,
-        "MAD-NGN" => 44.62,   "NGN-MAD" => 0.02241,
+        "NGN-GHS" => 0.008475, "GHS-NGN" => 118.0,
+        "XOF-NGN" => 2.516,    "NGN-XOF" => 0.3975,
+        "XOF-GHS" => 0.02132,  "GHS-XOF" => 46.9,
+        "KES-UGX" => 29.72,    "UGX-KES" => 0.03364,
+        "KES-TZS" => 22.46,    "TZS-KES" => 0.04452,
+        "KES-RWF" => 10.83,    "RWF-KES" => 0.09234,
+        "ZAR-ZMW" => 2.984,    "ZMW-ZAR" => 0.3352,
+        "ZAR-MWK" => 27.12,    "MWK-ZAR" => 0.03686,
+        "ZAR-MZN" => 3.418,    "MZN-ZAR" => 0.2926,
+        "XAF-NGN" => 2.516,    "NGN-XAF" => 0.3975,
+        "XAF-XOF" => 1.0,      "XOF-XAF" => 1.0,
+        "MAD-XOF" => 60.84,    "XOF-MAD" => 0.01643,
+        "MAD-NGN" => 151.8,    "NGN-MAD" => 0.006587,
       }.freeze
 
       QUOTE_SOURCES = %w[Treasury\ Desk CBN\ Oracle Benchmark\ Rate Interbank\ Fix].freeze
