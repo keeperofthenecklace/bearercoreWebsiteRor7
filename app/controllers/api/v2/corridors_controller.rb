@@ -376,22 +376,25 @@ module Api
 
         src_asset  = corridor[:asset_code].to_s
         dest_asset = COUNTRY_CURRENCY[corridor[:target_country].to_s] || corridor[:target_country].to_s
-        rate_key   = "#{src_asset}-#{dest_asset}"
-        base_rate  = SPOT_RATES[rate_key] || 1.0
         date       = Time.now.strftime("%Y-%m-%d")
         src        = corridor[:source_country]
         dst        = corridor[:target_country]
 
+        # Live rate from API; fall back to static table if unreachable
+        base_rate = FxRateService.rate(src_asset, dest_asset) ||
+                    SPOT_RATES["#{src_asset}-#{dest_asset}"] ||
+                    1.0
+
+        precision = base_rate < 0.01 ? 6 : base_rate < 1 ? 4 : base_rate < 100 ? 2 : 0
+
         quotes = 3.times.map do |i|
-          # small spread variance per quote
-          spread  = base_rate * (0.9985 + (i * 0.001))
-          rate_v  = spread.round(base_rate < 0.1 ? 6 : base_rate < 10 ? 4 : 2)
-          rate_str = "1 #{src_asset} = #{rate_v} #{dest_asset}"
+          spread   = base_rate * (0.9985 + (i * 0.001))
+          rate_v   = spread.round(precision)
           {
-            id:      "FX-#{src}-#{dst}-#{date}-#{format('%03d', i + 1)}A",
-            rate:    rate_str,
-            source:  QUOTE_SOURCES[i] || "Treasury Desk",
-            expires: "#{date}T23:59:59Z",
+            id:            "FX-#{src}-#{dst}-#{date}-#{format('%03d', i + 1)}A",
+            rate:          "1 #{src_asset} = #{rate_v} #{dest_asset}",
+            source:        QUOTE_SOURCES[i] || "Treasury Desk",
+            expires:       "#{date}T23:59:59Z",
             corridor_code: corridor[:code]
           }
         end
