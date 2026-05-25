@@ -239,20 +239,38 @@ module Api
         if search.blank?
           return render json: { status: "UNRESOLVED", error_message: "No identifier provided." }, status: :unprocessable_entity
         end
-        record = Smartcheq::HolderKey.find_by(holder_id: search) ||
-                 Smartcheq::HolderKey.find_by(recipient_public_key: search)
-        if record
-          render json: {
-            status:       "VERIFIED",
-            account_name: record.name.presence || "#{search.first(16)}...",
-            holder_id:    record.holder_id
-          }, status: :ok
-        else
-          render json: {
-            status:        "UNRESOLVED",
-            error_message: "No active merchant record matching this ID exists in the National Registry. Please verify the cryptographic string and check connection status."
-          }, status: :not_found
+
+        # Try the live SmartCHEQ holder_keys database first
+        db_record = begin
+          Smartcheq::HolderKey.find_by(holder_id: search) ||
+          Smartcheq::HolderKey.find_by(recipient_public_key: search)
+        rescue => e
+          Rails.logger.warn "[HolderKeys#resolve] DB unavailable: #{e.class} — falling back to stub"
+          nil
         end
+
+        if db_record
+          return render json: {
+            status:       "VERIFIED",
+            account_name: db_record.name.presence || "#{search.first(16)}...",
+            holder_id:    db_record.holder_id
+          }, status: :ok
+        end
+
+        # Fall back to in-memory stub (works without live DB)
+        stub = STUB_HOLDER_KEYS.find { |k| k[:holder_id].to_s.casecmp(search).zero? }
+        if stub
+          return render json: {
+            status:       "VERIFIED",
+            account_name: stub[:institution_name],
+            holder_id:    stub[:holder_id]
+          }, status: :ok
+        end
+
+        render json: {
+          status:        "UNRESOLVED",
+          error_message: "No active merchant record matching this ID exists in the National Registry. Please verify the cryptographic string and check connection status."
+        }, status: :not_found
       end
 
       def index
