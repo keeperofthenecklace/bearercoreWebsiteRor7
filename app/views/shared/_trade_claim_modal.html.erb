@@ -454,17 +454,16 @@
             <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
               Trade Corridor <span style="color: #ef4444;">*</span>
             </label>
-            <select id="tc_corridor_id" name="corridor_id" required size="8" style="
+            <select id="tc_corridor_id" name="corridor_id" required size="1" style="
               width: 100%;
-              padding: 8px 12px;
+              padding: 10px 12px;
               border: 1px solid #d1d5db;
               border-radius: 8px;
               font-size: 14px;
               background: white;
               cursor: pointer;
               appearance: auto;
-              max-height: 220px;
-              overflow-y: auto;
+              box-sizing: border-box;
             " onchange="onCorridorChange(this.value)">
               <option value="">Select Corridor...</option>
             </select>
@@ -4659,11 +4658,22 @@ function onCorridorChange(corridorId) {
     ) : '');
   updateHolderDropdownsForCorridor(_srcCode, targetCountry);
 
-  // Fetch approved treasury quotes for the selected corridor
-  if (corridorId && !corridorId.startsWith('__')) {
-    fetchApprovedQuotes(corridorId);
-  } else {
+  // Fetch approved treasury quotes — real corridors use their numeric/code ID;
+  // virtual corridors (__virtual__SRC__DEST) are translated to a SRC-DEST pseudo-ID
+  // that the backend resolves via COUNTRY_CURRENCY lookup.
+  if (!corridorId || corridorId === '__domestic__') {
     resetFxQuoteWidget();
+  } else if (corridorId.startsWith('__virtual__')) {
+    const parts = corridorId.slice('__virtual__'.length).split('__');
+    const vSrc  = parts[0] || '';
+    const vDst  = parts.length >= 2 ? parts[1] : '';
+    if (vSrc && vDst) {
+      fetchApprovedQuotes(`${vSrc}-${vDst}`);
+    } else {
+      resetFxQuoteWidget();
+    }
+  } else {
+    fetchApprovedQuotes(corridorId);
   }
 }
 

@@ -370,15 +370,27 @@ module Api
       end
 
       def fx_quotes
-        cid = params[:corridor_id] || params[:id]
-        corridor = STUB_CORRIDORS.find { |c| c[:id].to_s == cid.to_s || c[:code] == cid }
-        return render json: { error: "Corridor not found" }, status: :not_found unless corridor
+        cid      = (params[:corridor_id] || params[:id]).to_s
+        corridor = STUB_CORRIDORS.find { |c| c[:id].to_s == cid || c[:code] == cid }
 
-        src_asset  = corridor[:asset_code].to_s
-        dest_asset = COUNTRY_CURRENCY[corridor[:target_country].to_s] || corridor[:target_country].to_s
-        date       = Time.now.strftime("%Y-%m-%d")
-        src        = corridor[:source_country]
-        dst        = corridor[:target_country]
+        if corridor
+          src_asset     = corridor[:asset_code].to_s
+          dest_asset    = COUNTRY_CURRENCY[corridor[:target_country].to_s] || corridor[:target_country].to_s
+          src           = corridor[:source_country]
+          dst           = corridor[:target_country]
+          corridor_code = corridor[:code]
+        elsif cid =~ /\A([A-Z]{2,3})-([A-Z]{2,3})\z/i
+          # Virtual corridor pseudo-ID e.g. "KEN-GHA" — derive currencies from country map
+          src           = $1.upcase
+          dst           = $2.upcase
+          src_asset     = COUNTRY_CURRENCY[src] || src
+          dest_asset    = COUNTRY_CURRENCY[dst] || dst
+          corridor_code = cid
+        else
+          return render json: { error: "Corridor not found" }, status: :not_found
+        end
+
+        date = Time.now.strftime("%Y-%m-%d")
 
         # Live rate from API; fall back to static table if unreachable
         base_rate = FxRateService.rate(src_asset, dest_asset) ||
@@ -395,7 +407,7 @@ module Api
             rate:          "1 #{src_asset} = #{rate_v} #{dest_asset}",
             source:        QUOTE_SOURCES[i] || "Treasury Desk",
             expires:       "#{date}T23:59:59Z",
-            corridor_code: corridor[:code]
+            corridor_code: corridor_code
           }
         end
 
