@@ -454,17 +454,21 @@
             <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
               Trade Corridor <span style="color: #ef4444;">*</span>
             </label>
-            <select id="tc_corridor_id" name="corridor_id" required size="1" style="
-              width: 100%;
-              padding: 10px 12px;
-              border: 1px solid #d1d5db;
-              border-radius: 8px;
-              font-size: 14px;
-              background: white;
-              cursor: pointer;
-              appearance: auto;
-              box-sizing: border-box;
-            " onchange="onCorridorChange(this.value)">
+            <div id="corridorCustomWrapper" style="position: relative; width: 100%;">
+              <div id="corridorTrigger" onclick="toggleCorridorList(event)" style="
+                width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;
+                font-size: 14px; background: #f3f4f6; display: flex; justify-content: space-between;
+                align-items: center; box-sizing: border-box; user-select: none; cursor: not-allowed;">
+                <span id="corridorTriggerText" style="color:#9ca3af; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Select Country first...</span>
+                <span style="font-size:11px; flex-shrink:0; margin-left:8px; color:#9ca3af;">▼</span>
+              </div>
+              <div id="corridorDropPanel" style="
+                display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+                z-index: 9999; background: white; border: 1px solid #d1d5db; border-radius: 8px;
+                max-height: 260px; overflow-y: auto; box-shadow: 0 4px 16px rgba(0,0,0,0.12);">
+              </div>
+            </div>
+            <select id="tc_corridor_id" name="corridor_id" required style="display:none; position:absolute; opacity:0; pointer-events:none;">
               <option value="">Select Corridor...</option>
             </select>
           </div>
@@ -3532,6 +3536,7 @@ function resetDropdowns() {
   corridorSelect.disabled = true;
   corridorSelect.style.background = '#f3f4f6';
   corridorSelect.style.cursor = 'not-allowed';
+  resetCorridorTrigger();
 
   // Reset currency dropdown
   const currencySelect = document.getElementById('tc_currency_code');
@@ -4064,6 +4069,80 @@ function resetInstitutionDropdown() {
 // CORRIDORS
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ── Custom corridor dropdown ──────────────────────────────────────────────────
+function toggleCorridorList(event) {
+  if (event) event.stopPropagation();
+  const trigger = document.getElementById('corridorTrigger');
+  const panel   = document.getElementById('corridorDropPanel');
+  if (!panel || (trigger && trigger.style.cursor === 'not-allowed')) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    setTimeout(function() { document.addEventListener('click', _closeCorrPanel); }, 0);
+  }
+}
+
+function _closeCorrPanel(e) {
+  const wrapper = document.getElementById('corridorCustomWrapper');
+  if (wrapper && wrapper.contains(e.target)) return;
+  document.removeEventListener('click', _closeCorrPanel);
+  const panel = document.getElementById('corridorDropPanel');
+  if (panel) panel.style.display = 'none';
+}
+
+function selectCorridorOption(value, label) {
+  const sel     = document.getElementById('tc_corridor_id');
+  const txt     = document.getElementById('corridorTriggerText');
+  const trigger = document.getElementById('corridorTrigger');
+  const panel   = document.getElementById('corridorDropPanel');
+  document.removeEventListener('click', _closeCorrPanel);
+  if (sel)     { sel.value = value; }
+  if (txt)     { txt.textContent = label; txt.style.color = '#111827'; }
+  if (trigger) { trigger.style.borderColor = '#6b7280'; }
+  if (panel)   { panel.style.display = 'none'; }
+  onCorridorChange(value);
+}
+
+function syncCustomCorridorDropdown() {
+  const sel   = document.getElementById('tc_corridor_id');
+  const panel = document.getElementById('corridorDropPanel');
+  if (!sel || !panel) return;
+  panel.innerHTML = '';
+  Array.from(sel.children).forEach(function(child) {
+    if (child.tagName === 'OPTGROUP') {
+      const g = document.createElement('div');
+      g.style.cssText = 'padding:5px 10px 2px;font-size:11px;font-weight:600;color:#9ca3af;background:#f9fafb;border-top:1px solid #f3f4f6;pointer-events:none;';
+      g.textContent = child.label;
+      panel.appendChild(g);
+      Array.from(child.children).forEach(function(opt) {
+        if (!opt.value) return;
+        const item = document.createElement('div');
+        item.style.cssText = 'padding:7px 14px;cursor:pointer;font-size:13px;color:#111827;white-space:nowrap;';
+        item.textContent = opt.textContent.trim();
+        item.onmouseenter = function() { item.style.background = '#f3f4f6'; };
+        item.onmouseleave = function() { item.style.background = ''; };
+        item.onclick = function(e) { e.stopPropagation(); selectCorridorOption(opt.value, opt.textContent.trim()); };
+        panel.appendChild(item);
+      });
+    }
+  });
+}
+
+function resetCorridorTrigger(msg) {
+  const txt     = document.getElementById('corridorTriggerText');
+  const trigger = document.getElementById('corridorTrigger');
+  const panel   = document.getElementById('corridorDropPanel');
+  if (txt)     { txt.textContent = msg || 'Select Country first...'; txt.style.color = '#9ca3af'; }
+  if (trigger) { trigger.style.background = '#f3f4f6'; trigger.style.cursor = 'not-allowed'; trigger.style.borderColor = '#d1d5db'; }
+  if (panel)   { panel.style.display = 'none'; }
+}
+
+function enableCorridorTrigger() {
+  const trigger = document.getElementById('corridorTrigger');
+  if (trigger) { trigger.style.background = 'white'; trigger.style.cursor = 'pointer'; trigger.style.borderColor = '#d1d5db'; }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 async function loadCorridors() {
   const select = document.getElementById('tc_corridor_id');
   
@@ -4115,6 +4194,7 @@ function filterCorridorsForCountry(country) {
     select.disabled = true;
     select.style.background = '#f3f4f6';
     select.style.cursor = 'not-allowed';
+    resetCorridorTrigger();
     return;
   }
 
@@ -4362,10 +4442,12 @@ function filterCorridorsForCountry(country) {
       return '<optgroup label="' + groupLabel + '" style="background:#f3f4f6;color:#6b7280;font-weight:600;">' + opts + '</optgroup>';
     }).join('');
 
-  // Enable dropdown
+  // Enable dropdown and sync custom UI
   select.disabled = false;
   select.style.background = 'white';
   select.style.cursor = 'pointer';
+  enableCorridorTrigger();
+  syncCustomCorridorDropdown();
 }
 
 function onCorridorChange(corridorId) {
@@ -4531,6 +4613,11 @@ function onCorridorChange(corridorId) {
     loadInstitutionsForDestination(null, destCode);
     const _vSrcCode = _vParts.length >= 2 ? _vParts[0] : '';
     updateHolderDropdownsForCorridor(_vSrcCode, destCode);
+    if (_vSrcCode && destCode) {
+      fetchApprovedQuotes(_vSrcCode + '-' + destCode);
+    } else {
+      resetFxQuoteWidget();
+    }
     return;
   }
 
