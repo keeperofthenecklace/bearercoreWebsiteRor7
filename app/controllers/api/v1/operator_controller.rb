@@ -2,11 +2,15 @@ module Api
   module V1
     # GET  /api/v1/operator/current_identity
     # POST /api/v1/operator/store_identity
+    # GET  /api/v1/operator/identities
     #
     # Session-backed identity store for Module 00. bearerCORE has no per-user
     # accounts — auth is a single shared session cookie. This controller lets
     # the frontend persist the derived holder_id server-side so it survives
     # browser cache clears across the same authenticated session.
+    #
+    # identities reads signing nodes from the shared SmartcheqWebsiteRor7
+    # database (read-only via SmartcheqRecord / Smartcheq::HolderKey).
     class OperatorController < ApplicationController
       skip_before_action :verify_authenticity_token, only: [:store_identity]
       before_action :require_central_bank_access
@@ -31,6 +35,16 @@ module Api
         session[:m00_holder_id]  = holder_id
         session[:m00_node_alias] = params[:node_alias].to_s.presence || 'Commercial Bank Node'
         render json: { status: 'stored', holder_id: holder_id }
+      end
+
+      def identities
+        nodes = Smartcheq::HolderKey.signing_nodes.limit(200)
+        render json: nodes.map { |k|
+          { id: k.id, hex_string: k.holder_id, alias: k.display_alias }
+        }
+      rescue => e
+        Rails.logger.warn "[Operator#identities] SmartcheqDB read failed: #{e.message}"
+        render json: [], status: :ok
       end
     end
   end
