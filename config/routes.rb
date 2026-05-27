@@ -64,6 +64,7 @@ Rails.application.routes.draw do
         end
         collection do
           post :draft
+          get  :clearance
         end
       end
 

@@ -12,6 +12,18 @@ module Api
         render json: self.class.submitted_claims
       end
 
+      # GET /api/v2/trade_claims/clearance
+      # Returns the latest ready_to_mint claim as a flat JSON object,
+      # or { status: "none" } if no cleared claim exists.
+      def clearance
+        claim = self.class.submitted_claims.find { |c| c[:status] == "ready_to_mint" }
+        if claim
+          render json: { status: "ready_to_mint", claim: claim }
+        else
+          render json: { status: "none" }
+        end
+      end
+
       def create
         body = request.body.read
         data = JSON.parse(body) rescue {}
