@@ -134,6 +134,9 @@ module Api
         # Step 2: automated corridor protocol verification
         CorridorVerificationService.new(claim).execute
 
+        # Push real-time clearance event to desktop operator terminal
+        IssuancePipeline::ClearanceBroadcaster.emit(claim)
+
         render json: {
           status: claim[:status],
           data:   claim,
