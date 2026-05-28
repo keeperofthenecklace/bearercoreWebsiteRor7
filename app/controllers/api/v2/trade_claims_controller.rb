@@ -16,11 +16,11 @@ module Api
       # Returns the latest ready_to_mint claim as a flat JSON object,
       # or { status: "none" } if no cleared claim exists.
       def clearance
-        claim = self.class.submitted_claims.find { |c| c[:status] == "ready_to_mint" }
-        if claim
-          render json: { status: "ready_to_mint", claim: claim }
+        ready = self.class.submitted_claims.select { |c| c[:status] == "ready_to_mint" }
+        if ready.any?
+          render json: { status: "ready_to_mint", claim: ready.last, claims: ready }
         else
-          render json: { status: "none" }
+          render json: { status: "none", claims: [] }
         end
       end
 
