@@ -3,9 +3,30 @@ module Api
     class TradeClaimsController < ApplicationController
       skip_before_action :verify_authenticity_token
 
-      @submitted_claims = []
+      CLAIMS_STORE_PATH = Rails.root.join("tmp", "store", "trade_claims_store.json").freeze
+
       class << self
-        attr_accessor :submitted_claims
+        def submitted_claims
+          @submitted_claims ||= load_claims_from_disk
+        end
+
+        def submitted_claims=(val)
+          @submitted_claims = val
+        end
+
+        def persist_claims!
+          FileUtils.mkdir_p(File.dirname(CLAIMS_STORE_PATH))
+          File.write(CLAIMS_STORE_PATH, @submitted_claims.to_json)
+        rescue => e
+          Rails.logger.warn "[TradeClaimsController] persist_claims! failed: #{e.message}"
+        end
+
+        def load_claims_from_disk
+          raw = JSON.parse(File.read(CLAIMS_STORE_PATH), symbolize_names: true)
+          raw.is_a?(Array) ? raw : []
+        rescue
+          []
+        end
       end
 
       def index
@@ -95,6 +116,7 @@ module Api
           created_at:          Time.now.iso8601,
         }
         self.class.submitted_claims.unshift(record)
+        self.class.persist_claims!
 
         render json: {
           status:  "submitted",
@@ -148,6 +170,7 @@ module Api
 
         # Push real-time clearance event to desktop operator terminal
         IssuancePipeline::ClearanceBroadcaster.emit(claim)
+        self.class.persist_claims!
 
         render json: {
           status: claim[:status],
@@ -174,6 +197,7 @@ module Api
         claim[:status]         = "rejected"
         claim[:rejected_at]    = Time.now.iso8601
         claim[:decision_notes] = notes
+        self.class.persist_claims!
 
         render json: {
           status:  "rejected",
@@ -191,6 +215,7 @@ module Api
         if claim[:status] == "insufficient_corridor_liquidity"
           CorridorVerificationService.new(claim).execute
         end
+        self.class.persist_claims!
 
         render json: {
           status:      claim[:status],
@@ -209,6 +234,7 @@ module Api
 
         claim[:status]         = "clarification_requested"
         claim[:decision_notes] = notes
+        self.class.persist_claims!
 
         render json: {
           status:  "clarification_requested",
@@ -229,6 +255,7 @@ module Api
 
         claim[:status]       = "cancelled"
         claim[:cancelled_at] = Time.now.iso8601
+        self.class.persist_claims!
 
         render json: {
           status:  "cancelled",
