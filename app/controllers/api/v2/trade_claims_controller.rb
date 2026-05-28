@@ -18,7 +18,7 @@ module Api
       def clearance
         ready = self.class.submitted_claims.select { |c| c[:status] == "ready_to_mint" }
         if ready.any?
-          render json: { status: "ready_to_mint", claim: ready.last, claims: ready }
+          render json: { status: "ready_to_mint", claim: ready.first, claims: ready }
         else
           render json: { status: "none", claims: [] }
         end
