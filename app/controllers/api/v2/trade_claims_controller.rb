@@ -168,8 +168,15 @@ module Api
         # Step 2: automated corridor protocol verification
         CorridorVerificationService.new(claim).execute
 
-        # Push real-time clearance event to desktop operator terminal
-        IssuancePipeline::ClearanceBroadcaster.emit(claim)
+        # Push real-time clearance event to desktop operator terminal.
+        # Wrapped in rescue so a Redis/ActionCable outage never rolls back
+        # the supervisor's approval decision.
+        begin
+          IssuancePipeline::ClearanceBroadcaster.emit(claim)
+        rescue => e
+          Rails.logger.error("[TradeClaimsController#approve] ClearanceBroadcaster failed: #{e.class}: #{e.message}")
+        end
+
         self.class.persist_claims!
 
         render json: {
