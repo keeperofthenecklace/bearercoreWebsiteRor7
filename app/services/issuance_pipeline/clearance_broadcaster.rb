@@ -14,6 +14,8 @@ module IssuancePipeline
           authorization_id: claim[:reference],
           asset_code:       corridor[:asset_code] || "—",
           total_amount:     claim[:amount],
+          source_country:   src,
+          target_country:   dst,
           corridor_display: src.present? && dst.present? ? "#{src} → #{dst}" : "—",
           institution:      (claim[:institution] || {})[:name] || "—",
           status:           "CLEARED",
