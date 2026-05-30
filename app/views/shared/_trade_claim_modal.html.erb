@@ -417,696 +417,415 @@
 
         </div><!-- /tcStep1 -->
 
-        <!-- ═══ STEP 2: Value Conversion & Corridor Routing ═══ -->
+        <!-- ═══ STEP 2: FX & Route ═══ -->
         <div id="tcStep2" style="display: none;">
 
-        <!-- Section 2: Sovereign Corridor & Funding Architecture -->
-        <div class="trade-claim-section" style="
-          background: #f8fafb;
-          border-radius: 12px;
-          padding: 20px;
-          margin-bottom: 20px;
-        ">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="
-              width: 40px;
-              height: 40px;
-              background: #dbeafe;
-              border-radius: 10px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            ">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-              </svg>
-            </div>
-            <div>
-              <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
-                Sovereign Corridor &amp; Funding Architecture
-              </h3>
-              <span style="font-size: 12px; color: #6b7280;">Settlement Corridor · FX Reference · Minting Target</span>
-            </div>
-          </div>
-
-          <!-- Corridor Selection -->
-          <div style="margin-bottom: 16px;">
-            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-              Trade Corridor <span style="color: #ef4444;">*</span>
-            </label>
-            <div id="corridorCustomWrapper" style="position: relative; width: 100%;">
-              <div id="corridorTrigger" onclick="toggleCorridorList(event)" style="
-                width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;
-                font-size: 14px; background: #f3f4f6; display: flex; justify-content: space-between;
-                align-items: center; box-sizing: border-box; user-select: none; cursor: not-allowed;">
-                <span id="corridorTriggerText" style="color:#9ca3af; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Select Country first...</span>
-                <span style="font-size:11px; flex-shrink:0; margin-left:8px; color:#9ca3af;">▼</span>
-              </div>
-              <div id="corridorDropPanel" style="
-                display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-                z-index: 9999; background: white; border: 1px solid #d1d5db; border-radius: 8px;
-                max-height: 260px; overflow-y: auto; box-shadow: 0 4px 16px rgba(0,0,0,0.12);">
-              </div>
-            </div>
-            <select id="tc_corridor_id" name="corridor_id" required style="display:none; position:absolute; opacity:0; pointer-events:none;">
-              <option value="">Select Corridor...</option>
-            </select>
-          </div>
-
-          <!-- FX Reference + Sovereign Minting Node — 2-column row -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
-            <div>
-              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-                FX Reference / Bilateral Quote ID
-                <span style="color: #ef4444;">*</span>
-              </label>
-              <div id="fxReferenceBox" style="
-                background: #0d1117; border-radius: 8px;
-                border: 1px solid rgba(74,222,128,0.18);
-                font-family: 'Courier New', monospace; font-size: 11.5px;
-                color: #c9d1d9; overflow: hidden;">
-                <div style="display: flex; align-items: stretch;">
-                  <select id="fxRefSelect" onchange="onFxQuoteSelect()" style="
-                    flex: 1; background: transparent; border: none; outline: none;
-                    color: #c9d1d9; font-family: 'Courier New', monospace; font-size: 11.5px;
-                    padding: 9px 12px; cursor: pointer; min-width: 0;" disabled>
-                    <option value="">[ Select a corridor first ]</option>
-                  </select>
-                  <button type="button" id="fxRefFetchBtn" onclick="fetchApprovedQuotes(null, true)"
-                    style="background: rgba(74,222,128,0.07); border: none;
-                    border-left: 1px solid rgba(255,255,255,0.07);
-                    color: #4ade80; font-family: 'Courier New', monospace; font-size: 11px;
-                    padding: 9px 12px; cursor: pointer; white-space: nowrap;" disabled>
-                    [ &#x21BA; Refresh Quotes ]
-                  </button>
-                </div>
-                <div id="fxRefStatusLine" style="
-                  padding: 5px 12px; font-size: 10.5px; color: #6b7280;
-                  border-top: 1px solid rgba(255,255,255,0.06);
-                  display: flex; align-items: center; gap: 6px;">
-                  <span id="fxRefStatusDot" style="width:6px;height:6px;border-radius:50%;background:#374151;flex-shrink:0;"></span>
-                  <span id="fxRefStatusText">Select a corridor to load approved treasury quotes</span>
-                </div>
-              </div>
-              <input type="hidden" id="tc_fx_reference_id" name="fx_reference_id">
-              <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">Select an approved bilateral quote ID locked by the treasury desk for today.</p>
-            </div>
-            <div>
-              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-                Sovereign Minting Destination Node
-                <span style="font-size: 11px; color: #6b7280; font-weight: 400;">(auto-resolved)</span>
-              </label>
-              <input type="text" id="tc_sovereign_minting_node" name="sovereign_minting_node" readonly
-                placeholder="Select Corridor first..."
-                style="
-                  width: 100%;
-                  padding: 12px 16px;
-                  border: 1px solid #d1d5db;
-                  border-radius: 8px;
-                  font-size: 12px;
-                  background: #f3f4f6;
-                  color: #374151;
-                  box-sizing: border-box;
-                  cursor: not-allowed;
-                  overflow: hidden;
-                  white-space: nowrap;
-                  text-overflow: ellipsis;
-                " />
-              <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">CBN Vault Terminal that will handle Qt6 minting execution.</p>
-            </div>
-          </div>
-
-          <!-- Institution Name (populated from destination country of corridor) -->
-          <div style="margin-bottom: 16px;">
-            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-              Institution Name <span style="color: #ef4444;">*</span>
-            </label>
-            <div id="institutionDropdown" class="custom-dropdown" style="position: relative;">
-              <div id="institutionSelected" onclick="toggleInstitutionDropdown()" style="
-                width: 100%; padding: 12px 16px; border: 1px solid #d1d5db;
-                border-radius: 8px; font-size: 14px; background: #f3f4f6;
-                cursor: not-allowed; display: flex; align-items: center;
-                justify-content: space-between; box-sizing: border-box; color: #6b7280;">
-                <span id="institutionSelectedText">Select Corridor first...</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
-                  <polyline points="6 9 12 15 18 9"/>
+          <!-- Section A: Core Corridor & Treasury Rates -->
+          <div class="trade-claim-section" style="background:#f8fafb;border-radius:12px;padding:20px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+              <div style="width:40px;height:40px;background:#dbeafe;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                 </svg>
               </div>
-              <div id="institutionDropdownList" style="
-                display: none; position: absolute; top: 100%; left: 0; right: 0;
-                background: white; border: 1px solid #d1d5db; border-radius: 8px;
-                margin-top: 4px; max-height: 200px; overflow-y: auto; z-index: 1000;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                <div id="institutionOptions" style="padding: 4px 0;"></div>
+              <div>
+                <div style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Section A</div>
+                <h3 style="margin:0;font-size:15px;font-weight:700;color:#1d1d1f;">Core Corridor &amp; Treasury Rates</h3>
               </div>
             </div>
-            <input type="hidden" id="tc_institution_id" name="institution_id" required />
-            <p id="institutionHint" style="font-size: 12px; color: #6b7280; margin: 6px 0 0;">
-              Select a corridor to load destination-country institutions.
-            </p>
+
+            <!-- Trade Corridor + Sovereign Minting Node — 2-col -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;align-items:start;">
+              <div>
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+                  Trade Corridor <span style="color:#ef4444;">*</span>
+                </label>
+                <div id="corridorCustomWrapper" style="position:relative;width:100%;">
+                  <div id="corridorTrigger" onclick="toggleCorridorList(event)" style="
+                    width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;
+                    font-size:14px;background:#f3f4f6;display:flex;justify-content:space-between;
+                    align-items:center;box-sizing:border-box;user-select:none;cursor:not-allowed;">
+                    <span id="corridorTriggerText" style="color:#9ca3af;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Select Country first...</span>
+                    <span style="font-size:11px;flex-shrink:0;margin-left:8px;color:#9ca3af;">▼</span>
+                  </div>
+                  <div id="corridorDropPanel" style="
+                    display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;
+                    z-index:9999;background:white;border:1px solid #d1d5db;border-radius:8px;
+                    max-height:260px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+                  </div>
+                </div>
+                <select id="tc_corridor_id" name="corridor_id" required style="display:none;position:absolute;opacity:0;pointer-events:none;">
+                  <option value="">Select Corridor...</option>
+                </select>
+              </div>
+              <div>
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+                  Sovereign Minting Node <span style="font-size:11px;color:#6b7280;font-weight:400;">(auto-resolved)</span>
+                </label>
+                <div style="padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;min-height:46px;display:flex;align-items:center;gap:8px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="flex-shrink:0;">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"></path>
+                  </svg>
+                  <input type="text" id="tc_sovereign_minting_node" name="sovereign_minting_node" readonly
+                    placeholder="Select Corridor first..."
+                    style="flex:1;border:none;outline:none;background:transparent;font-size:13px;color:#374151;padding:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;" />
+                </div>
+              </div>
+            </div>
+
+            <!-- FX Reference / Bilateral Quote ID — full width -->
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <label style="font-size:13px;font-weight:500;color:#374151;">
+                  FX Reference / Bilateral Quote ID <span style="color:#ef4444;">*</span>
+                </label>
+                <button type="button" id="fxRefFetchBtn" onclick="fetchApprovedQuotes(null, true)" style="
+                  background:none;border:1px solid #d1d5db;border-radius:6px;
+                  padding:4px 10px;font-size:11px;color:#6b7280;cursor:pointer;
+                  display:flex;align-items:center;gap:4px;transition:background 0.15s;" disabled
+                  onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">
+                  ↻ Refresh Quotes
+                </button>
+              </div>
+              <select id="fxRefSelect" onchange="onFxQuoteSelect()" style="
+                width:100%;padding:11px 14px;border:1px solid #d1d5db;border-radius:8px;
+                font-size:14px;background:white;cursor:pointer;box-sizing:border-box;appearance:none;
+                background-image:url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%236b7280\" stroke-width=\"2\"><polyline points=\"6 9 12 15 18 9\"/></svg>');
+                background-repeat:no-repeat;background-position:right 12px center;" disabled>
+                <option value="">Select a corridor first...</option>
+              </select>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+                <span id="fxRefStatusDot" style="width:8px;height:8px;border-radius:50%;background:#d1d5db;display:inline-block;flex-shrink:0;"></span>
+                <span id="fxRefStatusText" style="font-size:12px;color:#6b7280;">Select a corridor to load approved quotes.</span>
+              </div>
+              <input type="hidden" id="tc_fx_reference_id" name="fx_reference_id">
+            </div>
           </div>
 
-          <!-- Institution Role & SWIFT Code -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px;">
-            <div>
-              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-                Institution Role
+          <!-- Section B: Trader Identities & Settlement Accounts -->
+          <div class="trade-claim-section" style="background:#f8fafb;border-radius:12px;padding:20px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+              <div style="width:40px;height:40px;background:#d1fae5;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="3" y1="9" x2="21" y2="9"></line>
+                  <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Section B</div>
+                <h3 style="margin:0;font-size:15px;font-weight:700;color:#1d1d1f;">Trader Identities &amp; Settlement Accounts</h3>
+              </div>
+            </div>
+
+            <!-- Institution Name + SWIFT inline badge -->
+            <div style="margin-bottom:16px;">
+              <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+                Institution Name <span style="color:#ef4444;">*</span>
               </label>
-              <input type="text" id="tc_institution_role" readonly value="Commercial Bank" style="
-                width: 100%; padding: 12px 16px; border: 1px solid #d1d5db;
-                border-radius: 8px; font-size: 14px; background: #f3f4f6;
-                color: #6b7280; box-sizing: border-box;" />
+              <div style="display:flex;gap:10px;align-items:stretch;">
+                <div id="institutionDropdown" class="custom-dropdown" style="position:relative;flex:1;">
+                  <div id="institutionSelected" onclick="toggleInstitutionDropdown()" style="
+                    width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:8px;
+                    font-size:14px;background:#f3f4f6;cursor:not-allowed;
+                    display:flex;align-items:center;justify-content:space-between;box-sizing:border-box;color:#6b7280;">
+                    <span id="institutionSelectedText">Select Corridor first...</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </div>
+                  <div id="institutionDropdownList" style="
+                    display:none;position:absolute;top:100%;left:0;right:0;background:white;
+                    border:1px solid #d1d5db;border-radius:8px;margin-top:4px;
+                    max-height:200px;overflow-y:auto;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+                    <div id="institutionOptions" style="padding:4px 0;"></div>
+                  </div>
+                </div>
+                <input type="hidden" id="tc_institution_id" name="institution_id" required />
+                <!-- SWIFT badge — auto-populated on bank selection -->
+                <div id="tcInlineSwiftBadge" style="
+                  padding:12px 14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;
+                  font-size:13px;font-weight:600;white-space:nowrap;
+                  display:flex;align-items:center;justify-content:center;min-width:100px;flex-shrink:0;">
+                  <span id="tcInlineSwiftText" style="color:#9ca3af;font-weight:400;font-size:12px;">SWIFT</span>
+                </div>
+              </div>
+              <p id="institutionHint" style="font-size:12px;color:#6b7280;margin:6px 0 0;">
+                Select a corridor to load destination-country institutions.
+              </p>
             </div>
-            <div>
-              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-                SWIFT Code
+
+            <!-- Commercial Bank Holder ID (auto-resolved) -->
+            <div style="margin-bottom:16px;" id="commHolderIdRow">
+              <label style="display:block;font-size:12px;font-weight:500;color:#6b7280;margin-bottom:4px;">
+                Destination Institution Holder ID
+                <span style="font-weight:400;font-size:11px;color:#9ca3af;margin-left:4px;">(auto-resolved)</span>
               </label>
-              <input type="text" id="tc_swift_code" readonly value="—" style="
-                width: 100%; padding: 12px 16px; border: 1px solid #d1d5db;
-                border-radius: 8px; font-size: 14px; background: #f3f4f6;
-                color: #6b7280; box-sizing: border-box;" />
-            </div>
-          </div>
-
-          <!-- Destination Institution Holder ID — auto-resolved from institution selection -->
-          <div style="margin-bottom: 16px;" id="commHolderIdRow">
-            <label style="display: block; font-size: 12px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">
-              Destination Institution Holder ID
-              <span style="font-weight: 400; font-size: 11px; color: #9ca3af; margin-left: 6px;">
-                (auto-resolved · destination commercial bank routing node)
-              </span>
-            </label>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <input type="text" id="tc_commercial_bank_holder_id_display" readonly
-                placeholder="Select an institution first..."
-                style="
-                  flex: 1;
-                  padding: 8px 12px;
-                  border: 1px solid #e5e7eb;
-                  border-radius: 6px;
-                  font-size: 11px;
-                  font-family: 'Courier New', monospace;
-                  background: #f9fafb;
-                  color: #6b7280;
-                  box-sizing: border-box;
-                  letter-spacing: 0.2px;
-                " />
-              <span id="commHolderIdStatus" style="font-size: 18px; flex-shrink: 0;"></span>
-            </div>
-          </div>
-
-          <!-- Hidden: destination institution holder ID (separate from Module 00 source node) -->
-          <input type="hidden" id="tc_dest_institution_holder_id" name="dest_institution_holder_id" />
-
-          <!-- Vault assignment hint — source node shown in Module 00 -->
-          <div id="sourceVaultWarning" style="display: none;"></div>
-
-          <!-- Origin Trader Account Holder ID — async identity resolution widget -->
-          <div style="margin-bottom: 16px;">
-            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-              <span id="tcTraderHolderLabel">Origin Trader Account Holder ID</span>
-              <span style="color: #ef4444;">*</span>
-              <span id="tcTraderHolderCountryBadge" style="font-size: 11px; color: #059669; font-weight: 600; margin-left: 6px; display: none;"></span>
-              <span style="font-size: 11px; color: #6b7280; font-weight: 400; margin-left: 4px;">
-                (buyer wallet — asset custody surrendered on this rail)
-              </span>
-            </label>
-            <div id="traderHolderWidget" style="width: 100%;">
-              <div id="traderHolderInputRow" style="
-                display: flex; align-items: stretch; border: 1px solid #d1d5db;
-                border-radius: 8px; overflow: hidden; background: white; box-sizing: border-box;">
-                <input type="text" id="traderHolderInput"
-                  placeholder="Enter or paste unique wallet ID..."
-                  oninput="onHolderInput('trader', this.value)"
-                  style="flex: 1; padding: 10px 12px; border: none; outline: none;
-                         font-family: 'Courier New', monospace; font-size: 12.5px;
-                         background: transparent; color: #374151; min-width: 0;" />
-                <button type="button" id="traderHolderResetBtn" onclick="resetHolderWidget('trader')"
-                  style="display:none; padding: 0 14px; border: none; border-left: 1px solid #e5e7eb;
-                         background: #f3f4f6; cursor: pointer; font-size: 18px; color: #9ca3af;
-                         line-height: 1; align-items: center; justify-content: center;">×</button>
-              </div>
-              <div id="traderHolderStatus" style="margin-top: 5px; font-size: 11.5px; color: #6b7280;
-                   display: flex; align-items: flex-start; gap: 5px; line-height: 1.4;">
-                <span>💡</span><span>Enter the merchant's unique national registry identifier.</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <input type="text" id="tc_commercial_bank_holder_id_display" readonly
+                  placeholder="Select an institution first..."
+                  style="flex:1;padding:8px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px;
+                         font-family:'Courier New',monospace;background:#f9fafb;color:#6b7280;box-sizing:border-box;letter-spacing:0.2px;" />
+                <span id="commHolderIdStatus" style="font-size:18px;flex-shrink:0;"></span>
               </div>
             </div>
-            <input type="hidden" id="tc_trader_holder_id" name="trader_holder_id" />
-          </div>
 
-          <!-- Trade Direction & Currency -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+            <!-- Hidden inputs (backend compat) -->
+            <input type="hidden" id="tc_dest_institution_holder_id" name="dest_institution_holder_id" />
+            <input type="hidden" id="tc_swift_code" name="swift_code" />
+            <input type="hidden" id="tc_institution_role" name="institution_role" value="Commercial Bank" />
+            <div id="sourceVaultWarning" style="display:none;"></div>
+
+            <!-- Origin Trader Account Holder ID -->
+            <div style="margin-bottom:16px;">
+              <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+                <span id="tcTraderHolderLabel">Origin Trader Account Holder ID</span>
+                <span style="color:#ef4444;">*</span>
+                <span id="tcTraderHolderCountryBadge" style="font-size:11px;color:#059669;font-weight:600;margin-left:6px;display:none;"></span>
+                <span style="font-size:11px;color:#6b7280;font-weight:400;margin-left:4px;">(buyer wallet)</span>
+              </label>
+              <div id="traderHolderWidget" style="width:100%;">
+                <div id="traderHolderInputRow" style="
+                  display:flex;align-items:stretch;border:1px solid #d1d5db;
+                  border-radius:8px;overflow:hidden;background:white;box-sizing:border-box;">
+                  <input type="text" id="traderHolderInput"
+                    placeholder="Enter or paste unique wallet ID..."
+                    oninput="onHolderInput('trader', this.value)"
+                    style="flex:1;padding:10px 12px;border:none;outline:none;
+                           font-family:'Courier New',monospace;font-size:12.5px;
+                           background:transparent;color:#374151;min-width:0;" />
+                  <button type="button" id="traderHolderResetBtn" onclick="resetHolderWidget('trader')"
+                    style="display:none;padding:0 14px;border:none;border-left:1px solid #e5e7eb;
+                           background:#f3f4f6;cursor:pointer;font-size:18px;color:#9ca3af;
+                           line-height:1;align-items:center;justify-content:center;">×</button>
+                </div>
+                <div id="traderHolderStatus" style="margin-top:5px;font-size:11.5px;color:#6b7280;
+                     display:flex;align-items:flex-start;gap:5px;line-height:1.4;">
+                  <span>💡</span><span>Enter the buyer's unique national registry identifier.</span>
+                </div>
+              </div>
+              <input type="hidden" id="tc_trader_holder_id" name="trader_holder_id" />
+            </div>
+
+            <!-- Beneficiary + Country -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+              <div>
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+                  Beneficiary Business Name
+                </label>
+                <input type="text" id="tc_beneficiary_name" name="beneficiary_name"
+                  placeholder="Lagos Retail Logistics Ltd."
+                  style="width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+                  Beneficiary Country <span style="font-size:11px;color:#6b7280;font-weight:400;">(auto-filled)</span>
+                </label>
+                <input type="text" id="tc_beneficiary_country" name="beneficiary_country"
+                  placeholder="Select Corridor first..." maxlength="3" readonly
+                  style="width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;
+                         box-sizing:border-box;text-transform:uppercase;background:#f3f4f6;cursor:not-allowed;" />
+              </div>
+            </div>
+
+            <!-- Destination Retailer Holder ID -->
             <div>
-              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-                Trade Direction <span style="color: #ef4444;">*</span>
+              <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+                <span id="tcRetailerHolderLabel">Target Merchant / Retailer Holder ID</span>
+                <span style="color:#ef4444;">*</span>
+                <span id="tcRetailerHolderCountryBadge" style="font-size:11px;color:#2563eb;font-weight:600;margin-left:6px;display:none;"></span>
+                <span style="font-size:11px;color:#6b7280;font-weight:400;margin-left:4px;">(seller wallet)</span>
+              </label>
+              <div id="retailerHolderWidget" style="width:100%;">
+                <div id="retailerHolderInputRow" style="
+                  display:flex;align-items:stretch;border:1px solid #d1d5db;
+                  border-radius:8px;overflow:hidden;background:white;box-sizing:border-box;">
+                  <input type="text" id="retailerHolderInput"
+                    placeholder="Enter or paste unique wallet ID..."
+                    oninput="onHolderInput('retailer', this.value)"
+                    style="flex:1;padding:10px 12px;border:none;outline:none;
+                           font-family:'Courier New',monospace;font-size:12.5px;
+                           background:transparent;color:#374151;min-width:0;" />
+                  <button type="button" id="retailerHolderResetBtn" onclick="resetHolderWidget('retailer')"
+                    style="display:none;padding:0 14px;border:none;border-left:1px solid #e5e7eb;
+                           background:#f3f4f6;cursor:pointer;font-size:18px;color:#9ca3af;
+                           line-height:1;align-items:center;justify-content:center;">×</button>
+                </div>
+                <div id="retailerHolderStatus" style="margin-top:5px;font-size:11.5px;color:#6b7280;
+                     display:flex;align-items:flex-start;gap:5px;line-height:1.4;">
+                  <span>💡</span><span>Enter the merchant's unique national registry identifier.</span>
+                </div>
+              </div>
+              <input type="hidden" id="tc_destination_retailer_holder_id" name="destination_retailer_holder_id" />
+            </div>
+          </div>
+
+          <!-- Section C: Value Allocation & Denomination Distribution -->
+          <div class="trade-claim-section" style="background:#f8fafb;border-radius:12px;padding:20px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+              <div style="width:40px;height:40px;background:#fef3c7;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                  <line x1="1" y1="10" x2="23" y2="10"></line>
+                </svg>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Section C</div>
+                <h3 style="margin:0;font-size:15px;font-weight:700;color:#1d1d1f;">Value Allocation &amp; Denomination Distribution</h3>
+              </div>
+            </div>
+
+            <!-- Amount + Currency -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+              <div>
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+                  Base Trade Amount <span style="color:#ef4444;">*</span>
+                </label>
+                <input type="text" id="tc_amount" name="amount" required placeholder="1,000,000"
+                  oninput="formatAmountInput(this)"
+                  style="width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+                  Settlement Currency <span style="font-size:11px;color:#6b7280;font-weight:400;">(auto-filled)</span>
+                </label>
+                <select id="tc_currency_code" name="currency_code" required style="
+                  width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:8px;
+                  font-size:14px;background:#f3f4f6;cursor:not-allowed;appearance:none;
+                  background-image:url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%236b7280\" stroke-width=\"2\"><polyline points=\"6 9 12 15 18 9\"/></svg>');
+                  background-repeat:no-repeat;background-position:right 12px center;box-sizing:border-box;">
+                  <option value="">Select Corridor first...</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Trade Direction -->
+            <div style="margin-bottom:16px;">
+              <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+                Trade Direction <span style="color:#ef4444;">*</span>
               </label>
               <select id="tc_trade_direction" name="trade_direction" required style="
-                width: 100%;
-                padding: 12px 16px;
-                border: 1px solid #d1d5db;
-                border-radius: 8px;
-                font-size: 14px;
-                background: white;
-                cursor: pointer;
-                appearance: none;
-                background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%236b7280\" stroke-width=\"2\"><polyline points=\"6 9 12 15 18 9\"/></svg>');
-                background-repeat: no-repeat;
-                background-position: right 12px center;
-              ">
+                width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:8px;
+                font-size:14px;background:white;cursor:pointer;appearance:none;
+                background-image:url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%236b7280\" stroke-width=\"2\"><polyline points=\"6 9 12 15 18 9\"/></svg>');
+                background-repeat:no-repeat;background-position:right 12px center;box-sizing:border-box;">
                 <option value="import">Import</option>
                 <option value="export">Export</option>
               </select>
             </div>
-            <div>
-              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-                Currency <span style="font-size: 11px; color: #6b7280; font-weight: 400;">(auto-filled)</span>
-              </label>
-              <select id="tc_currency_code" name="currency_code" required style="
-                width: 100%;
-                padding: 12px 16px;
-                border: 1px solid #d1d5db;
-                border-radius: 8px;
-                font-size: 14px;
-                background: #f3f4f6;
-                cursor: not-allowed;
-                appearance: none;
-                background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%236b7280\" stroke-width=\"2\"><polyline points=\"6 9 12 15 18 9\"/></svg>');
-                background-repeat: no-repeat;
-                background-position: right 12px center;
-              ">
-                <option value="">Select Corridor first...</option>
-              </select>
+
+            <!-- Invoice Reference -->
+            <div style="margin-bottom:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <label style="font-size:13px;font-weight:500;color:#374151;">Invoice Reference</label>
+                <button type="button" onclick="generateInvoiceRef()" id="btnRefreshInvoiceRef"
+                  style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:11px;
+                         color:#6b7280;display:flex;align-items:center;gap:4px;border-radius:4px;transition:background 0.15s;"
+                  onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">
+                  ↻ Regenerate
+                </button>
+              </div>
+              <input type="text" id="tc_invoice_ref" name="invoice_ref" readonly placeholder="Generating…"
+                style="width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;
+                       box-sizing:border-box;font-family:'Courier New',monospace;letter-spacing:0.3px;
+                       background:#f3f4f6;cursor:default;" />
             </div>
-          </div>
 
-          <!-- Amount -->
-          <div style="margin-bottom: 16px;">
-            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-              Amount <span style="color: #ef4444;">*</span>
-            </label>
-            <input type="text" id="tc_amount" name="amount" required
-              placeholder="1,000,000"
-              oninput="formatAmountInput(this)"
-              style="
-                width: 100%;
-                padding: 12px 16px;
-                border: 1px solid #d1d5db;
-                border-radius: 8px;
-                font-size: 14px;
-                box-sizing: border-box;
-              " />
-          </div>
+            <!-- Description -->
+            <div style="margin-bottom:16px;">
+              <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">Description</label>
+              <input type="text" id="tc_description" name="description"
+                placeholder="Agricultural machinery import"
+                style="width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;" />
+            </div>
 
-          <!-- ── Denomination Mix Preview Panel (Dynamic Currency Profile) ── -->
-          <div id="denomMixPanel" style="display:none; margin-bottom:16px;">
-            <div style="border-radius:10px; border:1px solid #d1fae5; background:#f0fdf4; overflow:hidden;">
-              <!-- Header -->
-              <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-bottom:1px solid #d1fae5;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span style="font-size:15px;">⚖️</span>
-                  <span style="font-size:12px; font-weight:700; color:#065f46; letter-spacing:-.1px;">
-                    Denomination Mix —
-                    <span id="denomMixCurrencyLabel">Standard Liquidity</span>
+            <!-- Collapsible: Denomination Breakdown Mix -->
+            <details id="denomMixDetails" style="margin-bottom:10px;border-radius:8px;overflow:hidden;border:1px solid #d1fae5;">
+              <summary style="
+                padding:12px 14px;cursor:pointer;background:#f0fdf4;list-style:none;
+                display:flex;align-items:center;justify-content:space-between;
+                font-size:13px;font-weight:600;color:#065f46;user-select:none;
+              " onclick="this.parentElement.open ? this.querySelector('.tc-expand-icon').textContent='Expand +' : this.querySelector('.tc-expand-icon').textContent='Collapse −'">
+                <span style="display:flex;align-items:center;gap:6px;">
+                  <span>⚖️</span>
+                  <span>Show Denomination Breakdown Mix</span>
+                  <span id="denomMixSummaryBadge" style="font-size:11px;font-weight:700;color:#059669;background:#d1fae5;padding:2px 8px;border-radius:12px;margin-left:4px;"></span>
+                </span>
+                <span class="tc-expand-icon" style="font-size:12px;color:#059669;font-weight:600;white-space:nowrap;">Expand +</span>
+              </summary>
+              <div id="denomMixPanel" style="background:white;padding:14px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #d1fae5;margin-bottom:10px;">
+                  <span style="font-size:12px;font-weight:700;color:#065f46;"><span id="denomMixCurrencyLabel">Standard Liquidity</span></span>
+                  <span id="denomMixTotalNotes" style="font-size:11px;font-weight:700;color:#059669;background:#d1fae5;padding:3px 10px;border-radius:20px;"></span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="width:9px;height:9px;border-radius:50%;background:#10b981;flex-shrink:0;"></div>
+                    <span style="font-size:11px;font-weight:700;color:#065f46;width:100px;flex-shrink:0;">Bulk (60%)</span>
+                    <div style="flex:1;background:#d1fae5;border-radius:4px;height:7px;overflow:hidden;"><div style="width:60%;height:100%;background:#10b981;border-radius:4px;"></div></div>
+                    <span id="denomMixBulkAmt" style="font-size:11px;color:#065f46;font-weight:600;min-width:64px;text-align:right;"></span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="width:9px;height:9px;border-radius:50%;background:#3b82f6;flex-shrink:0;"></div>
+                    <span style="font-size:11px;font-weight:700;color:#1e40af;width:100px;flex-shrink:0;">Trade (30%)</span>
+                    <div style="flex:1;background:#dbeafe;border-radius:4px;height:7px;overflow:hidden;"><div style="width:30%;height:100%;background:#3b82f6;border-radius:4px;"></div></div>
+                    <span id="denomMixTradeAmt" style="font-size:11px;color:#1e40af;font-weight:600;min-width:64px;text-align:right;"></span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="width:9px;height:9px;border-radius:50%;background:#f59e0b;flex-shrink:0;"></div>
+                    <span style="font-size:11px;font-weight:700;color:#92400e;width:100px;flex-shrink:0;">Micro (10%)</span>
+                    <div style="flex:1;background:#fef3c7;border-radius:4px;height:7px;overflow:hidden;"><div style="width:10%;height:100%;background:#f59e0b;border-radius:4px;"></div></div>
+                    <span id="denomMixMicroAmt" style="font-size:11px;color:#92400e;font-weight:600;min-width:64px;text-align:right;"></span>
+                  </div>
+                  <div id="denomMixCoinRow" style="display:none;align-items:center;gap:8px;">
+                    <div style="width:9px;height:9px;border-radius:50%;background:#8b5cf6;flex-shrink:0;"></div>
+                    <span id="denomMixCoinLabel" style="font-size:11px;font-weight:700;color:#5b21b6;width:100px;flex-shrink:0;">Coins</span>
+                    <div style="flex:1;background:#ede9fe;border-radius:4px;height:7px;overflow:hidden;">
+                      <div id="denomMixCoinBar" style="width:0%;height:100%;background:#8b5cf6;border-radius:4px;transition:width .3s;"></div>
+                    </div>
+                    <span id="denomMixCoinAmt" style="font-size:11px;color:#5b21b6;font-weight:600;min-width:64px;text-align:right;"></span>
+                  </div>
+                </div>
+                <div id="denomMixTable" style="padding-top:10px;margin-top:4px;"></div>
+              </div>
+            </details>
+
+            <!-- Collapsible: Compliance Gating & Corridor Limits -->
+            <details id="complianceDetails" style="border-radius:8px;overflow:hidden;border:1px solid #fde68a;">
+              <summary style="
+                padding:12px 14px;cursor:pointer;background:#fffbeb;list-style:none;
+                display:flex;align-items:center;justify-content:space-between;
+                font-size:13px;font-weight:600;color:#92400e;user-select:none;
+              " onclick="this.parentElement.open ? this.querySelector('.tc-expand-icon').textContent='Expand +' : this.querySelector('.tc-expand-icon').textContent='Collapse −'">
+                <span style="display:flex;align-items:center;gap:6px;">
+                  <span>🛡️</span>
+                  Show Compliance Gating &amp; Corridor Limits Remaining
+                </span>
+                <span class="tc-expand-icon" style="font-size:12px;color:#d97706;font-weight:600;white-space:nowrap;">Expand +</span>
+              </summary>
+              <div id="complianceLimitsSection" style="background:white;padding:14px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;">
+                  <span style="font-size:13px;color:#374151;">Corridor Limit Remaining:</span>
+                  <span id="corridorLimitRemaining" style="font-size:13px;font-weight:600;color:#1d1d1f;">— loading...</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;">
+                  <span style="font-size:13px;color:#374151;">Daily Limit Remaining:</span>
+                  <span id="dailyLimitRemaining" style="font-size:13px;font-weight:600;color:#1d1d1f;">— loading...</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+                  <span style="font-size:13px;color:#374151;">Compliance Status:</span>
+                  <span id="complianceStatusBadge" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#10b981;">
+                    <span id="complianceStatusText">Checking...</span>
+                    <svg id="complianceStatusIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="9 12 12 15 16 10"></polyline>
+                    </svg>
                   </span>
                 </div>
-                <span id="denomMixTotalNotes" style="font-size:11px; font-weight:700; color:#059669; background:#d1fae5; padding:3px 10px; border-radius:20px;"></span>
               </div>
-              <!-- Layer progress bars -->
-              <div style="padding:10px 14px 6px; display:flex; flex-direction:column; gap:5px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <div style="width:9px; height:9px; border-radius:50%; background:#10b981; flex-shrink:0;"></div>
-                  <span style="font-size:11px; font-weight:700; color:#065f46; width:100px; flex-shrink:0;">Bulk (60%)</span>
-                  <div style="flex:1; background:#d1fae5; border-radius:4px; height:7px; overflow:hidden;">
-                    <div style="width:60%; height:100%; background:#10b981; border-radius:4px;"></div>
-                  </div>
-                  <span id="denomMixBulkAmt" style="font-size:11px; color:#065f46; font-weight:600; min-width:64px; text-align:right;"></span>
-                </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <div style="width:9px; height:9px; border-radius:50%; background:#3b82f6; flex-shrink:0;"></div>
-                  <span style="font-size:11px; font-weight:700; color:#1e40af; width:100px; flex-shrink:0;">Trade (30%)</span>
-                  <div style="flex:1; background:#dbeafe; border-radius:4px; height:7px; overflow:hidden;">
-                    <div style="width:30%; height:100%; background:#3b82f6; border-radius:4px;"></div>
-                  </div>
-                  <span id="denomMixTradeAmt" style="font-size:11px; color:#1e40af; font-weight:600; min-width:64px; text-align:right;"></span>
-                </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <div style="width:9px; height:9px; border-radius:50%; background:#f59e0b; flex-shrink:0;"></div>
-                  <span style="font-size:11px; font-weight:700; color:#92400e; width:100px; flex-shrink:0;">Micro (10%)</span>
-                  <div style="flex:1; background:#fef3c7; border-radius:4px; height:7px; overflow:hidden;">
-                    <div style="width:10%; height:100%; background:#f59e0b; border-radius:4px;"></div>
-                  </div>
-                  <span id="denomMixMicroAmt" style="font-size:11px; color:#92400e; font-weight:600; min-width:64px; text-align:right;"></span>
-                </div>
-                <!-- Coin row — shown only when currency has fractional coin support -->
-                <div id="denomMixCoinRow" style="display:none; align-items:center; gap:8px;">
-                  <div style="width:9px; height:9px; border-radius:50%; background:#8b5cf6; flex-shrink:0;"></div>
-                  <span id="denomMixCoinLabel" style="font-size:11px; font-weight:700; color:#5b21b6; width:100px; flex-shrink:0;">Coins</span>
-                  <div style="flex:1; background:#ede9fe; border-radius:4px; height:7px; overflow:hidden;">
-                    <div id="denomMixCoinBar" style="width:0%; height:100%; background:#8b5cf6; border-radius:4px; transition:width .3s;"></div>
-                  </div>
-                  <span id="denomMixCoinAmt" style="font-size:11px; color:#5b21b6; font-weight:600; min-width:64px; text-align:right;"></span>
-                </div>
-              </div>
-              <!-- Per-denomination breakdown table -->
-              <div id="denomMixTable" style="padding:0 14px 10px; margin-top:4px;"></div>
-            </div>
+            </details>
           </div>
-
-          <!-- Invoice Reference & Description -->
-          <div style="margin-bottom: 16px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-              <label style="font-size: 13px; font-weight: 500; color: #374151;">
-                Invoice Reference
-              </label>
-              <button type="button" onclick="generateInvoiceRef()" id="btnRefreshInvoiceRef"
-                title="Generate new reference"
-                style="
-                  background: none; border: none; cursor: pointer; padding: 2px 6px;
-                  font-size: 11px; color: #6b7280; display: flex; align-items: center; gap: 4px;
-                  border-radius: 4px; transition: background 0.15s;
-                "
-                onmouseover="this.style.background='#f3f4f6'"
-                onmouseout="this.style.background='none'">
-                ↻ Regenerate
-              </button>
-            </div>
-            <input type="text" id="tc_invoice_ref" name="invoice_ref" readonly
-              placeholder="Generating…"
-              style="
-                width: 100%;
-                padding: 12px 16px;
-                border: 1px solid #d1d5db;
-                border-radius: 8px;
-                font-size: 14px;
-                box-sizing: border-box;
-                font-family: 'Courier New', monospace;
-                letter-spacing: 0.3px;
-                background: #f3f4f6;
-                cursor: default;
-              " />
-          </div>
-
-          <div>
-            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-              Description
-            </label>
-            <input type="text" id="tc_description" name="description" 
-              placeholder="Agricultural machinery import" 
-              style="
-                width: 100%;
-                padding: 12px 16px;
-                border: 1px solid #d1d5db;
-                border-radius: 8px;
-                font-size: 14px;
-                box-sizing: border-box;
-              " />
-          </div>
-        </div>
-
-        <!-- Section 3: Compliance & Limits (Auto-Computed) -->
-        <div id="complianceLimitsSection" class="trade-claim-section" style="
-          background: #f8fafb;
-          border-radius: 12px;
-          padding: 20px;
-          margin-bottom: 20px;
-          display: none;
-        ">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="
-              width: 40px;
-              height: 40px;
-              background: #fef3c7;
-              border-radius: 10px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            ">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-                <polyline points="10 9 9 9 8 9"></polyline>
-              </svg>
-            </div>
-            <div>
-              <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
-                Compliance & Limits
-              </h3>
-              <span style="font-size: 12px; color: #6b7280;">(Auto-Computed)</span>
-            </div>
-          </div>
-
-          <!-- Corridor Limit Remaining -->
-          <div style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 16px;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            margin-bottom: 10px;
-          ">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="
-                width: 28px;
-                height: 28px;
-                background: #fef3c7;
-                border-radius: 6px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-              ">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="#d97706" stroke="none">
-                  <rect x="3" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="14" width="7" height="7"></rect>
-                  <rect x="3" y="14" width="7" height="7"></rect>
-                </svg>
-              </div>
-              <span style="font-size: 14px; color: #374151;">Corridor Limit Remaining:</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                font-size: 14px;
-                font-weight: 600;
-                color: #1d1d1f;
-              ">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="#d97706" stroke="none">
-                  <rect x="3" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="14" width="7" height="7"></rect>
-                  <rect x="3" y="14" width="7" height="7"></rect>
-                </svg>
-                <span id="corridorLimitRemaining">— loading...</span>
-              </span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" style="cursor: pointer;">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </div>
-          </div>
-
-          <!-- Daily Limit Remaining -->
-          <div style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 16px;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            margin-bottom: 10px;
-          ">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="
-                width: 28px;
-                height: 28px;
-                background: #fef3c7;
-                border-radius: 6px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-              ">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="#d97706" stroke="none">
-                  <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z"/>
-                </svg>
-              </div>
-              <span style="font-size: 14px; color: #374151;">Daily Limit Remaining:</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                font-size: 14px;
-                font-weight: 600;
-                color: #1d1d1f;
-              ">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="#d97706" stroke="none">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-                <span id="dailyLimitRemaining">— loading...</span>
-              </span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" style="cursor: pointer;">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </div>
-          </div>
-
-          <!-- Compliance Status -->
-          <div style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 16px;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-          ">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="
-                width: 28px;
-                height: 28px;
-                background: #d1fae5;
-                border-radius: 6px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-              ">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              </div>
-              <span style="font-size: 14px; color: #374151;">Compliance Status:</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span id="complianceStatusBadge" style="
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                font-size: 14px;
-                font-weight: 600;
-                color: #10b981;
-              ">
-                <span id="complianceStatusText">Checking...</span>
-                <svg id="complianceStatusIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="9 12 12 15 16 10"></polyline>
-                </svg>
-              </span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" style="cursor: pointer;">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 4: Beneficiary Destination -->
-        <div class="trade-claim-section" style="
-          background: #f8fafb;
-          border-radius: 12px;
-          padding: 20px;
-          margin-bottom: 20px;
-        ">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="
-              width: 40px;
-              height: 40px;
-              background: #fef3c7;
-              border-radius: 10px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            ">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 8 16 12 12 16"></polyline>
-                <line x1="8" y1="12" x2="16" y2="12"></line>
-              </svg>
-            </div>
-            <div>
-              <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">
-                Beneficiary Destination
-              </h3>
-              <span style="font-size: 12px; color: #6b7280;">Ultimate Credit Destination &amp; Retailer Holder ID</span>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
-            <div>
-              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-                Beneficiary Business Name
-              </label>
-              <input type="text" id="tc_beneficiary_name" name="beneficiary_name"
-                placeholder="Lagos Retail Logistics Ltd."
-                style="
-                  width: 100%;
-                  padding: 12px 16px;
-                  border: 1px solid #d1d5db;
-                  border-radius: 8px;
-                  font-size: 14px;
-                  box-sizing: border-box;
-                " />
-            </div>
-            <div>
-              <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-                Beneficiary Country <span style="font-size: 11px; color: #6b7280; font-weight: 400;">(auto-filled)</span>
-              </label>
-              <input type="text" id="tc_beneficiary_country" name="beneficiary_country"
-                placeholder="Select Corridor first..."
-                maxlength="3"
-                readonly
-                style="
-                  width: 100%;
-                  padding: 12px 16px;
-                  border: 1px solid #d1d5db;
-                  border-radius: 8px;
-                  font-size: 14px;
-                  box-sizing: border-box;
-                  text-transform: uppercase;
-                  background: #f3f4f6;
-                  cursor: not-allowed;
-                " />
-            </div>
-          </div>
-
-          <!-- Destination Retailer Holder ID — async identity resolution widget -->
-          <div style="margin-bottom: 0;">
-            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-              <span id="tcRetailerHolderLabel">Target Merchant / Retailer Holder ID</span>
-              <span style="color: #ef4444;">*</span>
-              <span id="tcRetailerHolderCountryBadge" style="font-size: 11px; color: #2563eb; font-weight: 600; margin-left: 6px; display: none;"></span>
-              <span style="font-size: 11px; color: #6b7280; font-weight: 400; margin-left: 4px;">
-                (seller wallet — credit destination on the destination network)
-              </span>
-            </label>
-            <div id="retailerHolderWidget" style="width: 100%;">
-              <div id="retailerHolderInputRow" style="
-                display: flex; align-items: stretch; border: 1px solid #d1d5db;
-                border-radius: 8px; overflow: hidden; background: white; box-sizing: border-box;">
-                <input type="text" id="retailerHolderInput"
-                  placeholder="Enter or paste unique wallet ID..."
-                  oninput="onHolderInput('retailer', this.value)"
-                  style="flex: 1; padding: 10px 12px; border: none; outline: none;
-                         font-family: 'Courier New', monospace; font-size: 12.5px;
-                         background: transparent; color: #374151; min-width: 0;" />
-                <button type="button" id="retailerHolderResetBtn" onclick="resetHolderWidget('retailer')"
-                  style="display:none; padding: 0 14px; border: none; border-left: 1px solid #e5e7eb;
-                         background: #f3f4f6; cursor: pointer; font-size: 18px; color: #9ca3af;
-                         line-height: 1; align-items: center; justify-content: center;">×</button>
-              </div>
-              <div id="retailerHolderStatus" style="margin-top: 5px; font-size: 11.5px; color: #6b7280;
-                   display: flex; align-items: flex-start; gap: 5px; line-height: 1.4;">
-                <span>💡</span><span>Enter the merchant's unique national registry identifier.</span>
-              </div>
-            </div>
-            <input type="hidden" id="tc_destination_retailer_holder_id" name="destination_retailer_holder_id" />
-          </div>
-        </div>
 
         </div><!-- /tcStep2 -->
 
@@ -3415,6 +3134,21 @@ function selectInstitution(bank) {
   document.getElementById('tc_institution_id').value = bank.id;
   document.getElementById('tc_swift_code').value = bank.swift_code || '—';
 
+  // Update inline SWIFT badge in Section B
+  const tcSwiftText  = document.getElementById('tcInlineSwiftText');
+  const tcSwiftBadge = document.getElementById('tcInlineSwiftBadge');
+  if (tcSwiftText) {
+    const swift = bank.swift_code || '';
+    tcSwiftText.textContent = swift || '—';
+    tcSwiftText.style.color      = swift ? '#059669' : '#9ca3af';
+    tcSwiftText.style.fontWeight = swift ? '600'     : '400';
+    tcSwiftText.style.fontSize   = '13px';
+    if (tcSwiftBadge) {
+      tcSwiftBadge.style.borderColor  = swift ? '#a7f3d0' : '#e5e7eb';
+      tcSwiftBadge.style.background   = swift ? '#f0fdf4' : '#f9fafb';
+    }
+  }
+
   // Auto-populate commercial bank holder ID from HolderKey registry
   resolveCommercialBankHolderId(name, bank.swift_code);
 
@@ -4710,10 +4444,9 @@ function resetFxQuoteWidget() {
   const box = document.getElementById('fxReferenceBox');
   const btn = document.getElementById('fxRefFetchBtn');
   const hid = document.getElementById('tc_fx_reference_id');
-  if (sel) { sel.innerHTML = '<option value="">[ Select a corridor first ]</option>'; sel.disabled = true; }
-  if (dot) dot.style.background = '#374151';
-  if (txt) { txt.textContent = 'Select a corridor to load approved treasury quotes'; txt.style.color = '#6b7280'; }
-  if (box) box.style.borderColor = 'rgba(74,222,128,0.18)';
+  if (sel) { sel.innerHTML = '<option value="">Select a corridor first...</option>'; sel.disabled = true; }
+  if (dot) dot.style.background = '#d1d5db';
+  if (txt) { txt.textContent = 'Select a corridor to load approved quotes.'; txt.style.color = '#6b7280'; }
   if (btn) btn.disabled = true;
   if (hid) hid.value = '';
   _fxCurrentCorridorId = null;
@@ -4737,15 +4470,14 @@ async function fetchApprovedQuotes(corridorId, forceRefresh) {
   // Immediately clear stale value when corridor changes
   if (corridorChanged) {
     if (hid) hid.value = '';
-    if (sel) sel.innerHTML = '<option value="">[ Loading quotes... ]</option>';
-    if (dot) dot.style.background = '#374151';
-    if (box) box.style.borderColor = 'rgba(74,222,128,0.18)';
-    if (txt) { txt.textContent = 'Loading approved treasury quotes…'; txt.style.color = '#6b7280'; }
+    if (sel) sel.innerHTML = '<option value="">Loading quotes...</option>';
+    if (dot) dot.style.background = '#d1d5db';
+    if (txt) { txt.textContent = 'Loading approved quotes…'; txt.style.color = '#6b7280'; }
   }
 
-  if (btn) { btn.disabled = true; btn.innerHTML = '[ &#x23F3; Loading... ]'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Loading...'; }
   if (dot) dot.style.background = '#f59e0b';
-  if (txt) { txt.textContent = 'Fetching approved treasury quotes…'; txt.style.color = '#f59e0b'; }
+  if (txt) { txt.textContent = 'Fetching approved quotes…'; txt.style.color = '#f59e0b'; }
 
   try {
     const res = await fetch(`/api/v2/corridors/${encodeURIComponent(id)}/fx_quotes`, {
@@ -4773,21 +4505,19 @@ async function fetchApprovedQuotes(corridorId, forceRefresh) {
 
     if (sel.value) { onFxQuoteSelect(); return; }
 
-    if (dot) dot.style.background = quotes.length ? '#4ade80' : '#f59e0b';
-    if (box) box.style.borderColor = quotes.length ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)';
+    if (dot) dot.style.background = quotes.length ? '#059669' : '#f59e0b';
     if (txt) {
       txt.textContent = quotes.length
         ? `${quotes.length} approved quote(s) available — select one to continue`
         : 'No approved quotes found for today — contact Treasury Desk';
-      txt.style.color = quotes.length ? '#8b949e' : '#f87171';
+      txt.style.color = quotes.length ? '#6b7280' : '#f87171';
     }
   } catch (e) {
     console.error('[fetchApprovedQuotes]', e);
     if (dot) dot.style.background = '#ef4444';
-    if (box) box.style.borderColor = 'rgba(239,68,68,0.3)';
     if (txt) { txt.textContent = 'Failed to fetch quotes — check network'; txt.style.color = '#f87171'; }
   } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = '[ &#x21BA; Refresh Quotes ]'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '↻ Refresh Quotes'; }
   }
 }
 
@@ -4805,17 +4535,15 @@ function onFxQuoteSelect() {
   if (hid) hid.value = val;
 
   if (val) {
-    if (dot) dot.style.background = '#4ade80';
-    if (box) box.style.borderColor = 'rgba(74,222,128,0.45)';
+    if (dot) dot.style.background = '#059669';
     if (txt) {
       txt.textContent = rate
-        ? `\u{1F7E2} Linked Rate Verified: ${rate} (Locked by ${source || 'Treasury Desk'})`
+        ? `✓ Rate Verified: ${rate} (Locked by ${source || 'Treasury Desk'})`
         : `Quote selected: ${val}`;
-      txt.style.color = '#4ade80';
+      txt.style.color = '#059669';
     }
   } else {
-    if (dot) dot.style.background = '#374151';
-    if (box) box.style.borderColor = 'rgba(74,222,128,0.18)';
+    if (dot) dot.style.background = '#d1d5db';
     if (txt) { txt.textContent = 'No quote selected'; txt.style.color = '#6b7280'; }
     if (hid) hid.value = '';
   }
@@ -4853,8 +4581,7 @@ async function fetchComplianceLimits(corridorId, currencyCode) {
   const complianceStatusText = document.getElementById('complianceStatusText');
   const complianceStatusIcon = document.getElementById('complianceStatusIcon');
   
-  // Show the section
-  section.style.display = 'block';
+  // Section is now inside a <details> accordion — no display toggle needed
   
   // Set loading state
   corridorLimitEl.textContent = '— loading...';
@@ -5110,14 +4837,12 @@ function renderDenomMixPanel() {
   const total = getNumericAmount();
   const ccy   = document.getElementById('tc_currency_code')?.value || '';
 
-  if (!total || total <= 0) { panel.style.display = 'none'; return; }
+  if (!total || total <= 0) { return; } // panel is inside <details> accordion
 
   const mix  = computeDenomMix(total, ccy);
   const p    = mix.profile;
   const sym  = ccy ? ccy + ' ' : '';
   const dec  = p.coin_decimals || 0;
-
-  panel.style.display = 'block';
 
   // Header currency label
   document.getElementById('denomMixCurrencyLabel').textContent =
