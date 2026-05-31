@@ -18,12 +18,28 @@ class CorridorVerificationService
 
   def initialize(claim)
     @claim = claim
-    @corridor_id = (claim[:corridor] || {})[:id].to_i
+    corridor = claim[:corridor] || {}
+    @corridor_id  = corridor[:id].to_i
+    @corridor_src = corridor[:source_country].to_s.upcase
+    @corridor_dst = corridor[:target_country].to_s.upcase
   end
 
   def execute
     raw = Api::V2::CorridorsController::STUB_CORRIDORS
             .find { |c| c[:id].to_i == @corridor_id }
+
+    # Virtual corridors have string IDs (e.g. '__virtual__GHA__NGA') that .to_i → 0.
+    # Fall back to source/target country so they resolve to a real STUB_CORRIDOR.
+    if raw.nil? && @corridor_src.present? && @corridor_dst.present?
+      raw = Api::V2::CorridorsController::STUB_CORRIDORS
+              .find { |c| c[:source_country] == @corridor_src && c[:target_country] == @corridor_dst }
+      if raw
+        # Remap earmark tracking and corridor storage to the real integer ID so
+        # release_earmark (which reads claim[:corridor][:id]) stays consistent.
+        @corridor_id = raw[:id].to_i
+        @claim[:corridor] = (@claim[:corridor] || {}).merge('id' => @corridor_id)
+      end
+    end
 
     return finalize("insufficient_corridor_liquidity",
                     "Corridor not found. Routing error — verify corridor registration.") unless raw
