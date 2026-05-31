@@ -1150,18 +1150,21 @@ function synthesiseGates(claim, compStatus, claimStatus, isPreApproval) {
   const amlStatus = checks.aml_status      || (compStatus === 'manual_review' ? 'flagged' : compStatus === 'pre_cleared' ? 'clear' : 'pending');
   const limitOk   = checks.limit_status !== 'exceeded';
   const benefOk   = checks.beneficiary_status === 'verified' || compStatus === 'pre_cleared';
-  const isApproved = ['approved','issuance_eligible'].includes(claimStatus);
+  // compliance_cleared and ready_to_mint are fully post-approval states where all
+  // gates have been satisfied — include them so synthesised badges show correctly.
+  const isApproved = ['approved','issuance_eligible','compliance_cleared','ready_to_mint'].includes(claimStatus);
 
   // Gate 1: supervisor_approval
   // Pre-approval → null (pending). Post-approval → true. Never false via synthesis.
   const gate1Passed = isPreApproval ? null : (isApproved ? true : null);
 
   // Gate 2: compliance
-  // Show real compliance info if we have it, but only mark failed if post-approval
-  const compPassed = compStatus === 'pre_cleared' && docStatus === 'validated' && amlStatus === 'clear';
+  // resolveComplianceStatus returns 'cleared' (not 'pre_cleared') for ready_to_mint claims,
+  // so also accept 'cleared'. When isApproved the claim already passed compliance by definition.
+  const compPassed = ['pre_cleared','cleared'].includes(compStatus) && docStatus === 'validated' && amlStatus === 'clear';
   const gate2Passed = isPreApproval
     ? (compPassed ? true : null)   // pre-approval: show green if already pre-cleared, else pending
-    : compPassed;
+    : (isApproved ? true : compPassed);  // reached ready_to_mint = compliance passed
 
   // Gate 3: corridor limits — safe to show even pre-approval (no approval required to check)
   const gate3Passed = limitOk ? true : (isPreApproval ? null : false);
