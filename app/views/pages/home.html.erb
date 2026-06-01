@@ -36,6 +36,15 @@
                     data: { action: "submit->modal#submit" },
                     class: "px-8 py-6" do |f| %>
 
+        <%# ── Bot traps (invisible to humans) ─────────────────────────────── %>
+        <%# Honeypot: CSS-hidden field bots fill; humans never see it %>
+        <div style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true" tabindex="-1">
+          <%= f.label :website, "Website (leave blank)" %>
+          <%= f.text_field :website, autocomplete: "off", tabindex: -1 %>
+        </div>
+        <%# Timing token: form render timestamp so server can reject sub-3s submissions %>
+        <%= hidden_field_tag :form_rendered_at, Time.now.to_i %>
+
         <div class="space-y-4">
 
           <div>
