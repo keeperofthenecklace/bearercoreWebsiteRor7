@@ -4,7 +4,6 @@ class CreateLocalCommercialBanks < ActiveRecord::Migration[7.1]
       t.string :name,         null: false
       t.string :swift_code
       t.string :country_code, null: false
-      t.timestamps
     end
     add_index :commercial_banks, :country_code
     add_index :commercial_banks, [:name, :country_code], unique: true
