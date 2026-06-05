@@ -24,7 +24,8 @@ module Api
         claim = data["trade_claim"] || data
 
         corridor_id  = (claim["corridor_id"] || claim["corridor"]).to_s
-        corridor_obj = Api::V2::CorridorsController::STUB_CORRIDORS.find { |c| c[:id].to_s == corridor_id }
+        corridor_obj = Api::V2::CorridorsController.corridors_data
+                         .find { |c| c[:id].to_s == corridor_id || c[:code] == corridor_id }
 
         institution_id  = claim["institution_id"].to_s
         all_banks       = Api::V2::CommercialBanksController::STUB_BANKS.values.flatten
@@ -39,15 +40,22 @@ module Api
             target_country: corridor_obj[:target_country],
             bloc:           corridor_obj[:bloc],
             asset_code:     corridor_obj[:asset_code],
+            liquidity_position: corridor_obj[:liquidity_position],
           }
         elsif corridor_id =~ /\A__virtual__([A-Z]{2,3})__([A-Z]{2,3})\z/i
           src = $1.upcase; dst = $2.upcase
+          asset = Api::V2::CorridorsController::COUNTRY_CURRENCY[src] || 'USD'
           { id: corridor_id, name: "#{src}–#{dst} Virtual Corridor",
-            code: "#{src}-#{dst}", source_country: src, target_country: dst }
+            code: "#{src}-#{dst}", source_country: src, target_country: dst,
+            asset_code: asset,
+            liquidity_position: { domestic_available: 100_000_000, linked_outstanding: 0, asset_code: asset } }
         elsif corridor_id =~ /\A([A-Z]{2,3})-([A-Z]{2,3})\z/i
           src = $1.upcase; dst = $2.upcase
+          asset = Api::V2::CorridorsController::COUNTRY_CURRENCY[src] || 'USD'
           { id: corridor_id, name: "#{src}–#{dst} Corridor",
-            code: corridor_id, source_country: src, target_country: dst }
+            code: corridor_id, source_country: src, target_country: dst,
+            asset_code: asset,
+            liquidity_position: { domestic_available: 100_000_000, linked_outstanding: 0, asset_code: asset } }
         else
           { id: corridor_id, name: corridor_id }
         end
