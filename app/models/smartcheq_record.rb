@@ -6,11 +6,11 @@ class SmartcheqRecord < ApplicationRecord
   establish_connection(
     adapter:  'postgresql',
     encoding: 'unicode',
-    database: ENV.fetch('SMARTCHEQ_DB_NAME', 'smartcheq_prod_test'),
-    username: ENV.fetch('DB_USERNAME',        'deploy'),
-    password: ENV.fetch('DB_PASSWORD',        'kwame1'),
-    host:     ENV.fetch('DB_HOST',            '127.0.0.1'),
-    port:     ENV.fetch('DB_PORT',            '5432').to_i,
+    database: ENV.fetch('SMARTCHEQ_DB_NAME',     'smartcheq_prod_test'),
+    username: ENV.fetch('SMARTCHEQ_DB_USERNAME',  ENV.fetch('DB_USERNAME', 'deploy')),
+    password: ENV.fetch('SMARTCHEQ_DB_PASSWORD',  ENV.fetch('DB_PASSWORD', 'kwame1')),
+    host:     ENV.fetch('SMARTCHEQ_DB_HOST',      ENV.fetch('DB_HOST', '127.0.0.1')),
+    port:     ENV.fetch('SMARTCHEQ_DB_PORT',      ENV.fetch('DB_PORT', '5432')).to_i,
     pool:     3
   )
 end

@@ -198,21 +198,32 @@ module Api
         country_code = (params[:country_code] || '').upcase.strip
         country_id   = params[:country_id].to_s
 
-        country = if country_code.present?
-          alpha2 = ALPHA3_TO_ALPHA2[country_code] || country_code
-          Smartcheq::Country.find_by(iso_3166_code: alpha2)
-        elsif country_id.present?
-          Smartcheq::Country.find_by(id: country_id)
+        country = begin
+          if country_code.present?
+            alpha2 = ALPHA3_TO_ALPHA2[country_code] || country_code
+            Smartcheq::Country.find_by(iso_3166_code: alpha2)
+          elsif country_id.present?
+            Smartcheq::Country.find_by(id: country_id)
+          end
+        rescue => e
+          Rails.logger.warn "[CommercialBanks#index] SmartCHEQ DB unavailable: #{e.class} — falling back to stub"
+          nil
         end
 
-        return render(json: []) unless country&.bank_id.present?
+        if country&.bank_id.present?
+          begin
+            banks = Smartcheq::CommercialBank.for_bank_id(country.bank_id)
+            iso3  = country_code.present? ? country_code : ALPHA3_TO_ALPHA2.key(country.iso_3166_code)
+            return render json: banks.map { |b|
+              { id: b.id, name: b.name, swift_code: b.swift_code, country_code: iso3 }
+            }
+          rescue => e
+            Rails.logger.warn "[CommercialBanks#index] SmartCHEQ DB query failed: #{e.class} — falling back to stub"
+          end
+        end
 
-        banks = Smartcheq::CommercialBank.for_bank_id(country.bank_id)
-        iso3  = country_code.present? ? country_code : ALPHA3_TO_ALPHA2.key(country.iso_3166_code)
-
-        render json: banks.map { |b|
-          { id: b.id, name: b.name, swift_code: b.swift_code, country_code: iso3 }
-        }
+        stub_banks = country_code.present? ? (STUB_BANKS[country_code] || []) : []
+        render json: stub_banks
       end
     end
   end
