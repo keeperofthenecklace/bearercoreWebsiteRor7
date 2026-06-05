@@ -80,10 +80,19 @@ module Api
 
       COUNTRY_CURRENCY = {
         "NGA" => "NGN", "GHA" => "GHS", "SEN" => "XOF", "CIV" => "XOF",
-        "BFA" => "XOF", "MLI" => "XOF", "NER" => "XOF",
+        "BFA" => "XOF", "MLI" => "XOF", "NER" => "XOF", "BEN" => "XOF",
+        "TGO" => "XOF", "GNB" => "XOF", "CPV" => "CVE", "SLE" => "SLL",
+        "GMB" => "GMD", "GIN" => "GNF", "LBR" => "LRD",
         "KEN" => "KES", "UGA" => "UGX", "TZA" => "TZS", "RWA" => "RWF",
+        "BDI" => "BIF", "SSD" => "SSP", "ETH" => "ETB",
         "ZAF" => "ZAR", "ZMB" => "ZMW", "MWI" => "MWK", "MOZ" => "MZN",
-        "CMR" => "XAF", "COG" => "XAF", "MAR" => "MAD"
+        "ZWE" => "ZWL", "BWA" => "BWP", "NAM" => "NAD", "LSO" => "LSL",
+        "SWZ" => "SZL", "AGO" => "AOA",
+        "CMR" => "XAF", "COG" => "XAF", "GAB" => "XAF", "GNQ" => "XAF",
+        "CAF" => "XAF", "TCD" => "XAF",
+        "MAR" => "MAD", "EGY" => "EGP", "TUN" => "TND", "DZA" => "DZD",
+        "LBY" => "LYD", "MRT" => "MRU",
+        "SOM" => "SOS", "DJI" => "DJF", "ERI" => "ERN", "SDN" => "SDG",
       }.freeze
 
       # Spot rates as of 2026-05 — XOF/XAF are CFA francs pegged to EUR at 655.957;
@@ -98,6 +107,20 @@ module Api
         "ZAR-ZMW" => 2.984,    "ZMW-ZAR" => 0.3352,
         "ZAR-MWK" => 27.12,    "MWK-ZAR" => 0.03686,
         "ZAR-MZN" => 3.418,    "MZN-ZAR" => 0.2926,
+        "ZAR-BWP" => 0.731,    "BWP-ZAR" => 1.368,
+        "ZAR-NAD" => 1.0,      "NAD-ZAR" => 1.0,
+        "ZAR-LSL" => 1.0,      "LSL-ZAR" => 1.0,
+        "ZAR-SZL" => 1.0,      "SZL-ZAR" => 1.0,
+        "ZAR-ZWL" => 18.43,    "ZWL-ZAR" => 0.05426,
+        "ZAR-AOA" => 4.612,    "AOA-ZAR" => 0.2168,
+        "ZAR-NGN" => 88.2,     "NGN-ZAR" => 0.01134,
+        "ZAR-KES" => 7.94,     "KES-ZAR" => 0.1260,
+        "ZAR-GHS" => 1.213,    "GHS-ZAR" => 0.8244,
+        "ZAR-TZS" => 26.07,    "TZS-ZAR" => 0.03835,
+        "ZAR-UGX" => 234.8,    "UGX-ZAR" => 0.004259,
+        "ZAR-RWF" => 86.0,     "RWF-ZAR" => 0.01163,
+        "EGP-NGN" => 21.4,     "NGN-EGP" => 0.04673,
+        "EGP-ZAR" => 3.12,     "ZAR-EGP" => 0.3205,
         "XAF-NGN" => 2.516,    "NGN-XAF" => 0.3975,
         "XAF-XOF" => 1.0,      "XOF-XAF" => 1.0,
         "MAD-XOF" => 60.84,    "XOF-MAD" => 0.01643,
@@ -357,7 +380,7 @@ module Api
       ].freeze
 
       def index
-        per_page = (params[:per_page] || 50).to_i
+        per_page = (params[:per_page] || 1000).to_i
         corridors = self.class.corridors_data.first(per_page).map { |c| apply_corridor_state(c) }
         render json: corridors
       end
@@ -485,7 +508,7 @@ module Api
 
       def fx_quotes
         cid      = (params[:corridor_id] || params[:id]).to_s
-        corridor = STUB_CORRIDORS.find { |c| c[:id].to_s == cid || c[:code] == cid }
+        corridor = self.class.corridors_data.find { |c| c[:id].to_s == cid || c[:code] == cid }
 
         if corridor
           src_asset     = corridor[:asset_code].to_s
