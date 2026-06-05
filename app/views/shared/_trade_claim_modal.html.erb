@@ -624,7 +624,8 @@
                     <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">Amount <span style="color:#ef4444;">*</span></label>
                     <input type="text" id="tc_amount" name="amount" required placeholder="1,000,000"
                       oninput="formatAmountInput(this); tcCheckStep2Ready();"
-                      style="width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;" />
+                      style="width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;transition:border-color 0.2s;" />
+                    <div id="denomMismatchInline" style="display:none;margin-top:6px;padding:8px 10px;background:#fffbeb;border:1px solid #f59e0b;border-radius:6px;font-size:11px;color:#92400e;line-height:1.5;"></div>
                   </div>
                   <div>
                     <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
@@ -662,6 +663,14 @@
                   <input type="text" id="tc_invoice_ref" name="invoice_ref" readonly placeholder="Generating…"
                     style="width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;
                            box-sizing:border-box;font-family:'Courier New',monospace;letter-spacing:0.3px;background:#f3f4f6;cursor:default;" />
+                </div>
+
+                <div id="varianceAckBox" style="display:none;margin-bottom:14px;padding:10px 12px;background:#fffbeb;border:1px solid #f59e0b;border-radius:8px;">
+                  <label style="display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:12px;color:#78350f;line-height:1.5;">
+                    <input type="checkbox" id="varianceAckCheck" onchange="tcCheckStep2Ready()"
+                      style="margin-top:2px;flex-shrink:0;accent-color:#d97706;width:14px;height:14px;" />
+                    <span id="varianceAckText">I acknowledge that the residual amount of this trade claim cannot be serialized into visual banknotes and will be dropped from this issuance batch.</span>
+                  </label>
                 </div>
 
                 <div>
@@ -2237,8 +2246,10 @@ function tcCheckStep2Ready() {
   const rawAmount      = (document.getElementById('tc_amount')?.value || '').replace(/,/g, '').trim();
   const amount         = parseFloat(rawAmount);
 
+  const varianceAcked = _denomUnfilledRem === 0 ||
+    !!(document.getElementById('varianceAckCheck')?.checked);
   const ready = !!(corridor && fxRef && institution && traderHolder && retailerHolder &&
-                   rawAmount && !isNaN(amount) && amount > 0 && _denomUnfilledRem === 0);
+                   rawAmount && !isNaN(amount) && amount > 0 && varianceAcked);
 
   const btn = document.getElementById('tcBtnNext');
   if (!btn) return;
@@ -4861,8 +4872,15 @@ function renderDenomMixPanel() {
 
   if (!total || total <= 0) {
     _denomUnfilledRem = 0;
-    const _wEl = document.getElementById('denomMixWarning');
-    if (_wEl) _wEl.style.display = 'none';
+    const _amtEl  = document.getElementById('tc_amount');
+    const _iw     = document.getElementById('denomMismatchInline');
+    const _ab     = document.getElementById('varianceAckBox');
+    const _ac     = document.getElementById('varianceAckCheck');
+    const _wEl    = document.getElementById('denomMixWarning');
+    if (_amtEl) _amtEl.style.borderColor = '#d1d5db';
+    if (_iw)    _iw.style.display  = 'none';
+    if (_ab)  { _ab.style.display  = 'none'; if (_ac) _ac.checked = false; }
+    if (_wEl)   _wEl.style.display = 'none';
     if (denomPlaceholder) denomPlaceholder.style.display = 'block';
     if (denomContent)     denomContent.style.display     = 'none';
     return;
@@ -4913,24 +4931,54 @@ function renderDenomMixPanel() {
     ...mix.coinItems
   ];
 
-  // ── Unfilled remainder warning ────────────────────────────────────────────
+  // ── Unfilled remainder: drive inline warning, amount border, variance ack ─
   _denomUnfilledRem = mix.unfilledRemainder || 0;
-  const warnEl = document.getElementById('denomMixWarning');
-  if (warnEl) {
-    if (_denomUnfilledRem > 0) {
-      const minNote   = Math.min(...mix.profile.notes);
-      const issuable  = total - _denomUnfilledRem;
-      const nextUp    = issuable + minNote;
-      warnEl.innerHTML =
-        `<strong>⚠ Amount cannot be exactly issued.</strong><br>` +
-        `${sym}${denomFmtNum(_denomUnfilledRem)} cannot be represented — smallest ${ccy} denomination is ` +
-        `${sym}${denomFmtNum(minNote)}.<br>` +
-        `Adjust to <strong>${sym}${denomFmtNum(issuable)}</strong> (round down) ` +
-        `or <strong>${sym}${denomFmtNum(nextUp)}</strong> (round up).`;
-      warnEl.style.display = 'block';
-    } else {
-      warnEl.style.display = 'none';
+  const amountEl    = document.getElementById('tc_amount');
+  const inlineWarn  = document.getElementById('denomMismatchInline');
+  const ackBox      = document.getElementById('varianceAckBox');
+  const ackText     = document.getElementById('varianceAckText');
+  const ackCheck    = document.getElementById('varianceAckCheck');
+  const warnEl      = document.getElementById('denomMixWarning');
+
+  if (_denomUnfilledRem > 0) {
+    const minNote  = Math.min(...mix.profile.notes);
+    const issuable = total - _denomUnfilledRem;
+
+    // 1. Amber border on amount field
+    if (amountEl) amountEl.style.borderColor = '#f59e0b';
+
+    // 1. Inline warning below amount field
+    if (inlineWarn) {
+      inlineWarn.innerHTML =
+        `<strong>⚠ Denomination Mismatch:</strong> The requested amount of ` +
+        `<strong>${denomFmtNum(total)} ${ccy}</strong> cannot be fully fulfilled by the active ` +
+        `${ccy} Currency Profile. The system will round down and issue ` +
+        `<strong>${denomFmtNum(issuable)} ${ccy}</strong> in physical token metaphors. ` +
+        `The remaining <strong>${denomFmtNum(_denomUnfilledRem)} ${ccy}</strong> cannot be processed in this batch.`;
+      inlineWarn.style.display = 'block';
     }
+
+    // 3. Variance acknowledgment checkbox
+    if (ackBox) {
+      if (ackText) ackText.textContent =
+        `I acknowledge that ${ccy} ${denomFmtNum(_denomUnfilledRem)} of this trade claim cannot be ` +
+        `serialized into visual banknotes and will be dropped from this issuance batch.`;
+      ackBox.style.display = 'block';
+    }
+
+    // 2. Red panel banner (secondary context in the denom mix panel)
+    if (warnEl) {
+      warnEl.innerHTML =
+        `<strong>⚠ Unfillable residual: ${sym}${denomFmtNum(_denomUnfilledRem)}</strong> — ` +
+        `smallest ${ccy} denomination is ${sym}${denomFmtNum(minNote)}. ` +
+        `Issuable total: <strong>${sym}${denomFmtNum(issuable)}</strong>.`;
+      warnEl.style.display = 'block';
+    }
+  } else {
+    if (amountEl) amountEl.style.borderColor = '#d1d5db';
+    if (inlineWarn) inlineWarn.style.display = 'none';
+    if (ackBox)   { ackBox.style.display = 'none'; if (ackCheck) ackCheck.checked = false; }
+    if (warnEl)     warnEl.style.display = 'none';
   }
   tcCheckStep2Ready();
 
@@ -4957,6 +5005,17 @@ function renderDenomMixPanel() {
             <td style="padding:3px 0;text-align:right;font-weight:700;color:${isCoin ? '#5b21b6' : '#065f46'};">${sym}${denomFmtNum(i.subtotal, dec)}</td>
           </tr>`;
         }).join('')}
+        ${mix.unfilledRemainder > 0 ? `
+        <tr style="border-top:1px dashed #fca5a5;background:#fef9f0;">
+          <td style="padding:4px 0;font-weight:700;color:#92400e;">Unfulfillable Residual</td>
+          <td style="padding:4px 0;text-align:center;font-size:10px;color:#b45309;">⚠ <em>Variance</em></td>
+          <td style="padding:4px 0;text-align:right;color:#92400e;">—</td>
+          <td style="padding:4px 0;text-align:right;font-weight:700;color:#b45309;">${sym}${denomFmtNum(mix.unfilledRemainder, dec)}</td>
+        </tr>
+        <tr style="border-top:1px solid #065f46;background:#f0fdf4;">
+          <td style="padding:4px 0;font-weight:700;color:#065f46;" colspan="3">Total Issuance</td>
+          <td style="padding:4px 0;text-align:right;font-weight:700;color:#065f46;">${sym}${denomFmtNum(total - mix.unfilledRemainder, dec)}</td>
+        </tr>` : ''}
       </tbody>
     </table>`;
 }
