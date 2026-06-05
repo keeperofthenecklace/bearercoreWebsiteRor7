@@ -11,7 +11,7 @@ class CorridorVerificationService
     attr_accessor :earmarks
 
     def release_earmark(corridor_id, amount)
-      cid = corridor_id.to_i
+      cid = corridor_id.to_s
       @earmarks[cid] = [(@earmarks[cid].to_f - amount.to_f), 0].max
     end
   end
@@ -19,24 +19,22 @@ class CorridorVerificationService
   def initialize(claim)
     @claim = claim
     corridor = claim[:corridor] || {}
-    @corridor_id  = corridor[:id].to_i
+    @corridor_id  = corridor[:id].to_s
     @corridor_src = corridor[:source_country].to_s.upcase
     @corridor_dst = corridor[:target_country].to_s.upcase
   end
 
   def execute
-    raw = Api::V2::CorridorsController::STUB_CORRIDORS
-            .find { |c| c[:id].to_i == @corridor_id }
+    data = Api::V2::CorridorsController.corridors_data
 
-    # Virtual corridors have string IDs (e.g. '__virtual__GHA__NGA') that .to_i → 0.
-    # Fall back to source/target country so they resolve to a real STUB_CORRIDOR.
+    # Match by code/id first, then fall back to source+target country
+    raw = data.find { |c| c[:id].to_s == @corridor_id || c[:code] == @corridor_id }
+
     if raw.nil? && @corridor_src.present? && @corridor_dst.present?
-      raw = Api::V2::CorridorsController::STUB_CORRIDORS
-              .find { |c| c[:source_country] == @corridor_src && c[:target_country] == @corridor_dst }
+      raw = data.find { |c| c[:source_country] == @corridor_src && c[:target_country] == @corridor_dst }
       if raw
-        # Remap earmark tracking and corridor storage to the real integer ID so
-        # release_earmark (which reads claim[:corridor][:id]) stays consistent.
-        @corridor_id = raw[:id].to_i
+        # Normalise corridor ID to the resolved code so earmark tracking stays consistent
+        @corridor_id = raw[:id].to_s
         @claim[:corridor] = (@claim[:corridor] || {}).merge('id' => @corridor_id)
       end
     end
@@ -44,7 +42,7 @@ class CorridorVerificationService
     return finalize("insufficient_corridor_liquidity",
                     "Corridor not found. Routing error — verify corridor registration.") unless raw
 
-    if Api::V2::CorridorsController.halted_ids.include?(@corridor_id)
+    if Api::V2::CorridorsController.halted_ids.map(&:to_s).include?(@corridor_id)
       return finalize("insufficient_corridor_liquidity",
                       "Corridor #{raw[:code]} is halted. Governor must resume the corridor " \
                       "before settlement can proceed.")
@@ -52,13 +50,13 @@ class CorridorVerificationService
 
     lp             = live_liquidity(raw)
     net_headroom   = lp[:domestic_available].to_f - lp[:linked_outstanding].to_f
-    existing       = self.class.earmarks[@corridor_id].to_f
+    existing       = self.class.earmarks[@corridor_id.to_s].to_f
     free_headroom  = net_headroom - existing
     claim_amount   = @claim[:amount].to_f
 
     if free_headroom >= claim_amount
       # Earmark atomically — this amount is now reserved for this claim
-      self.class.earmarks[@corridor_id] = existing + claim_amount
+      self.class.earmarks[@corridor_id.to_s] = existing + claim_amount
 
       finalize(
         "ready_to_mint",
@@ -91,7 +89,7 @@ class CorridorVerificationService
     ledger = Api::V2::CorridorsController.allocation_ledger
     now    = Time.now
     confirmed_total = ledger
-      .select { |a| a[:corridor_id] == @corridor_id }
+      .select { |a| a[:corridor_id].to_s == @corridor_id.to_s }
       .select { |a|
         a[:status] == :confirmed ||
         (a[:status] == :pending &&

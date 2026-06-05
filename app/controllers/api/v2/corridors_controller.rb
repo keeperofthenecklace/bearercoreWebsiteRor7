@@ -12,8 +12,68 @@ module Api
       @halted_ids         = []
       @allocation_ledger  = []
       @reconciliation_log = []
+      @_live_corridors    = nil
+      @_live_corridors_at = nil
+      LIVE_CACHE_TTL = 300  # seconds
+
+      BLOC_MAP = {
+        "NGA" => "WAMZ",  "GHA" => "WAMZ",  "SLE" => "WAMZ",  "GMB" => "WAMZ",  "GIN" => "WAMZ",  "LBR" => "WAMZ",
+        "SEN" => "ECOWAS", "CIV" => "ECOWAS", "BFA" => "AES",   "MLI" => "AES",   "NER" => "AES",
+        "BEN" => "ECOWAS", "TGO" => "ECOWAS", "GNB" => "ECOWAS", "CPV" => "ECOWAS",
+        "CMR" => "CEMAC",  "COG" => "CEMAC",  "GAB" => "CEMAC", "GNQ" => "CEMAC", "CAF" => "CEMAC", "TCD" => "CEMAC",
+        "KEN" => "EAC",    "TZA" => "EAC",    "UGA" => "EAC",   "RWA" => "EAC",   "BDI" => "EAC",   "SSD" => "EAC",
+        "ZAF" => "SADC",   "ZMB" => "SADC",   "ZWE" => "SADC",  "MWI" => "SADC",  "MOZ" => "SADC",  "NAM" => "SADC",
+        "BWA" => "SADC",   "LSO" => "SADC",   "SWZ" => "SADC",  "AGO" => "SADC",
+        "EGY" => "AMU",    "LBY" => "AMU",    "TUN" => "AMU",   "MAR" => "AMU",   "DZA" => "AMU",   "MRT" => "AMU",
+        "ETH" => "IGAD",   "ERI" => "IGAD",   "DJI" => "IGAD",  "SOM" => "IGAD",  "SDN" => "IGAD",
+      }.freeze
+
       class << self
-        attr_accessor :halted_ids, :allocation_ledger, :reconciliation_log
+        attr_accessor :halted_ids, :allocation_ledger, :reconciliation_log,
+                      :_live_corridors, :_live_corridors_at
+
+        def corridors_data
+          if _live_corridors && _live_corridors_at && (Time.now - _live_corridors_at) < LIVE_CACHE_TTL
+            return _live_corridors
+          end
+
+          begin
+            db_corridors = Smartcheq::Corridor.where(active: true).limit(1000)
+            locked_sums  = Smartcheq::BackingLock.locked.group(:corridor_id).sum(:amount_locked)
+
+            self._live_corridors = db_corridors.map { |c|
+              asset_code   = COUNTRY_CURRENCY[c.source_country] || 'USD'
+              locked_total = locked_sums[c.id].to_f
+              # Use corridor's per_tx_limit * 20 as headroom when no explicit backing lock exists
+              available    = locked_total > 0 ? locked_total : c.per_tx_limit.to_f * 20
+              src_bloc     = BLOC_MAP[c.source_country]
+              tgt_bloc     = BLOC_MAP[c.target_country]
+              bloc         = (src_bloc == tgt_bloc && src_bloc) ? src_bloc : "AfCFTA"
+
+              {
+                id:                c.code,
+                code:              c.code,
+                corridor_display:  "#{c.source_country} → #{c.target_country}",
+                bloc:              bloc,
+                source_country:    c.source_country,
+                target_country:    c.target_country,
+                status:            c.effective_status,
+                asset_code:        asset_code,
+                daily_volume:      c.daily_limit.to_i,
+                liquidity_position: {
+                  domestic_available: available,
+                  linked_outstanding: 0,
+                  asset_code:         asset_code
+                }
+              }
+            }
+            self._live_corridors_at = Time.now
+            _live_corridors
+          rescue => e
+            Rails.logger.warn "[CorridorsController] SmartCHEQ DB unavailable (#{e.class}) — using STUB_CORRIDORS"
+            STUB_CORRIDORS
+          end
+        end
       end
 
       HANDSHAKE_WINDOW = 7  # seconds until a pending allocation auto-confirms
@@ -298,12 +358,12 @@ module Api
 
       def index
         per_page = (params[:per_page] || 50).to_i
-        corridors = STUB_CORRIDORS.first(per_page).map { |c| apply_corridor_state(c) }
+        corridors = self.class.corridors_data.first(per_page).map { |c| apply_corridor_state(c) }
         render json: corridors
       end
 
       def show
-        corridor = STUB_CORRIDORS.find { |c| c[:id].to_s == params[:id].to_s || c[:code] == params[:id] }
+        corridor = self.class.corridors_data.find { |c| c[:id].to_s == params[:id].to_s || c[:code] == params[:id] }
         if corridor
           render json: apply_corridor_state(corridor)
         else
@@ -313,7 +373,7 @@ module Api
 
       def liquidity_position
         cid = params[:corridor_id] || params[:id]
-        corridor = STUB_CORRIDORS.find { |c| c[:id].to_s == cid.to_s || c[:code] == cid }
+        corridor = self.class.corridors_data.find { |c| c[:id].to_s == cid.to_s || c[:code] == cid }
         if corridor
           render json: { data: apply_corridor_state(corridor)[:liquidity_position] }
         else
@@ -322,7 +382,7 @@ module Api
       end
 
       def halt
-        corridor = STUB_CORRIDORS.find { |c| c[:id].to_s == params[:corridor_id].to_s }
+        corridor = self.class.corridors_data.find { |c| c[:id].to_s == params[:corridor_id].to_s || c[:code] == params[:corridor_id].to_s }
         unless corridor
           render json: { error: "Corridor not found" }, status: :not_found
           return
@@ -369,7 +429,7 @@ module Api
       end
 
       def clear_reconciliation
-        corridor = STUB_CORRIDORS.find { |c| c[:id].to_s == (params[:corridor_id] || params[:id]).to_s }
+        corridor = self.class.corridors_data.find { |c| c[:id].to_s == (params[:corridor_id] || params[:id]).to_s || c[:code] == (params[:corridor_id] || params[:id]).to_s }
         unless corridor
           render json: { error: "Corridor not found" }, status: :not_found
           return
@@ -393,7 +453,7 @@ module Api
       end
 
       def unhalt
-        corridor = STUB_CORRIDORS.find { |c| c[:id].to_s == (params[:corridor_id] || params[:id]).to_s }
+        corridor = self.class.corridors_data.find { |c| c[:id].to_s == (params[:corridor_id] || params[:id]).to_s || c[:code] == (params[:corridor_id] || params[:id]).to_s }
         unless corridor
           render json: { error: "Corridor not found" }, status: :not_found
           return
