@@ -329,9 +329,7 @@ module Api
             nil
           end
 
-          unless db_result.nil?
-            return render json: db_result
-          end
+          return render json: db_result if db_result.present?
         end
 
         # Stub fallback (also handles country_code / query / holder_type filters)
