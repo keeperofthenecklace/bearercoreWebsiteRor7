@@ -623,7 +623,7 @@
                   <div>
                     <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">Amount <span style="color:#ef4444;">*</span></label>
                     <input type="text" id="tc_amount" name="amount" required placeholder="1,000,000"
-                      oninput="formatAmountInput(this)"
+                      oninput="formatAmountInput(this); tcCheckStep2Ready();"
                       style="width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;" />
                   </div>
                   <div>
@@ -2196,10 +2196,43 @@ function tcUpdateNavButtons(step) {
     if (btnSubmit)  { btnSubmit.style.display    = ''; btnSubmit.disabled = false; btnSubmit.style.opacity = ''; btnSubmit.style.cursor = 'pointer'; }
     if (btnSaveDraft) btnSaveDraft.style.display = 'none';
   } else {
-    if (btnNext)   { btnNext.style.display  = ''; btnNext.textContent = step === 1 ? 'Proceed to Route →' : 'Proceed to Auth →'; }
-    if (btnSubmit)   btnSubmit.style.display = 'none';
+    if (btnNext) {
+      btnNext.style.display  = '';
+      btnNext.textContent    = step === 1 ? 'Proceed to Route →' : 'Proceed to Auth →';
+      // Step 2 starts locked; tcCheckStep2Ready() enables it once all fields are filled
+      if (step === 2) {
+        btnNext.disabled          = true;
+        btnNext.style.opacity     = '0.45';
+        btnNext.style.cursor      = 'not-allowed';
+      } else {
+        btnNext.disabled          = false;
+        btnNext.style.opacity     = '';
+        btnNext.style.cursor      = 'pointer';
+      }
+    }
+    if (btnSubmit)    btnSubmit.style.display  = 'none';
     if (btnSaveDraft) btnSaveDraft.style.display = '';
   }
+}
+
+function tcCheckStep2Ready() {
+  if (tcCurrentStep !== 2) return;
+  const corridor       = document.getElementById('tc_corridor_id')?.value?.trim();
+  const fxRef          = document.getElementById('tc_fx_reference_id')?.value?.trim();
+  const institution    = document.getElementById('tc_institution_id')?.value?.trim();
+  const traderHolder   = document.getElementById('tc_trader_holder_id')?.value?.trim();
+  const retailerHolder = document.getElementById('tc_destination_retailer_holder_id')?.value?.trim();
+  const rawAmount      = (document.getElementById('tc_amount')?.value || '').replace(/,/g, '').trim();
+  const amount         = parseFloat(rawAmount);
+
+  const ready = !!(corridor && fxRef && institution && traderHolder && retailerHolder &&
+                   rawAmount && !isNaN(amount) && amount > 0);
+
+  const btn = document.getElementById('tcBtnNext');
+  if (!btn) return;
+  btn.disabled      = !ready;
+  btn.style.opacity = ready ? '' : '0.45';
+  btn.style.cursor  = ready ? 'pointer' : 'not-allowed';
 }
 
 function tcStepNext() {
@@ -2713,6 +2746,7 @@ async function _resolveHolder(side) {
   } catch (e) {
     _setHolderState(side, 'error', 'Resolution service unavailable. Check network connection.');
   }
+  tcCheckStep2Ready();
 }
 
 function _setHolderState(side, state, message) {
@@ -3118,6 +3152,7 @@ function selectInstitution(bank) {
   }
 
   closeInstitutionDropdown();
+  tcCheckStep2Ready();
 }
 
 function resetDropdowns() {
@@ -4499,6 +4534,7 @@ function onFxQuoteSelect() {
     if (txt) { txt.textContent = 'No quote selected'; txt.style.color = '#6b7280'; }
     if (hid) hid.value = '';
   }
+  tcCheckStep2Ready();
 }
 
 // Maps target country alpha3 → CBN Vault Terminal label
