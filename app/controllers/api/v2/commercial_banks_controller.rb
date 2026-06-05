@@ -3,22 +3,19 @@ module Api
     class CommercialBanksController < ApplicationController
       skip_before_action :verify_authenticity_token
 
-      # ISO 3166-1 alpha-3 → alpha-2 for SmartCHEQ countries table lookup
-      ALPHA3_TO_ALPHA2 = {
-        "DZA" => "DZ", "AGO" => "AO", "BEN" => "BJ", "BWA" => "BW",
-        "BFA" => "BF", "BDI" => "BI", "CMR" => "CM", "CPV" => "CV",
-        "CAF" => "CF", "TCD" => "TD", "COM" => "KM", "COG" => "CG",
-        "COD" => "CD", "CIV" => "CI", "DJI" => "DJ", "EGY" => "EG",
-        "GNQ" => "GQ", "ERI" => "ER", "ETH" => "ET", "GAB" => "GA",
-        "GMB" => "GM", "GHA" => "GH", "GIN" => "GN", "GNB" => "GW",
-        "KEN" => "KE", "LSO" => "LS", "LBR" => "LR", "LBY" => "LY",
-        "MDG" => "MG", "MWI" => "MW", "MLI" => "ML", "MRT" => "MR",
-        "MUS" => "MU", "MAR" => "MA", "MOZ" => "MZ", "NAM" => "NA",
-        "NER" => "NE", "NGA" => "NG", "RWA" => "RW", "STP" => "ST",
-        "SEN" => "SN", "SYC" => "SC", "SLE" => "SL", "SOM" => "SO",
-        "ZAF" => "ZA", "SSD" => "SS", "SDN" => "SD", "SWZ" => "SZ",
-        "TZA" => "TZ", "TGO" => "TG", "TUN" => "TN", "UGA" => "UG",
-        "ZMB" => "ZM", "ZWE" => "ZW", "SHN" => "SH",
+      # SmartCHEQ countries.id → ISO 3166-1 alpha-3 (covers IDs 166–220)
+      SMARTCHEQ_COUNTRY_ID_TO_ALPHA3 = {
+        166 => "DZA", 167 => "EGY", 168 => "LBY", 169 => "MAR", 170 => "SDN",
+        171 => "TUN", 172 => "BDI", 173 => "COM", 174 => "DJI", 175 => "ERI",
+        176 => "ETH", 177 => "KEN", 178 => "MDG", 179 => "MWI", 180 => "MUS",
+        181 => "UGA", 182 => "MOZ", 183 => "RWA", 184 => "SYC", 185 => "SOM",
+        186 => "SSD", 187 => "TZA", 188 => "ZMB", 189 => "AGO", 190 => "CMR",
+        191 => "CAF", 192 => "TCD", 193 => "COD", 194 => "COG", 195 => "GNQ",
+        196 => "GAB", 197 => "STP", 198 => "BEN", 199 => "BFA", 200 => "CPV",
+        201 => "CIV", 202 => "GMB", 203 => "GHA", 204 => "GIN", 205 => "GNB",
+        206 => "LBR", 207 => "MLI", 208 => "MRT", 209 => "NER", 210 => "NGA",
+        211 => "SHN", 212 => "SEN", 213 => "SLE", 214 => "TGO", 215 => "BWA",
+        216 => "SWZ", 217 => "LSO", 218 => "NAM", 219 => "ZAF", 220 => "ZWE",
       }.freeze
 
       STUB_BANKS = {
@@ -196,34 +193,20 @@ module Api
 
       def index
         country_code = (params[:country_code] || '').upcase.strip
-        country_id   = params[:country_id].to_s
+        country_id   = params[:country_id].to_i
 
-        country = begin
-          if country_code.present?
-            alpha2 = ALPHA3_TO_ALPHA2[country_code] || country_code
-            Smartcheq::Country.find_by(iso_3166_code: alpha2)
-          elsif country_id.present?
-            Smartcheq::Country.find_by(id: country_id)
-          end
-        rescue => e
-          Rails.logger.warn "[CommercialBanks#index] SmartCHEQ DB unavailable: #{e.class} — falling back to stub"
-          nil
+        alpha3 = if country_code.present?
+          country_code
+        elsif country_id > 0
+          SMARTCHEQ_COUNTRY_ID_TO_ALPHA3[country_id]
         end
 
-        if country&.bank_id.present?
-          begin
-            banks = Smartcheq::CommercialBank.for_bank_id(country.bank_id)
-            iso3  = country_code.present? ? country_code : ALPHA3_TO_ALPHA2.key(country.iso_3166_code)
-            return render json: banks.map { |b|
-              { id: b.id, name: b.name, swift_code: b.swift_code, country_code: iso3 }
-            }
-          rescue => e
-            Rails.logger.warn "[CommercialBanks#index] SmartCHEQ DB query failed: #{e.class} — falling back to stub"
-          end
-        end
+        return render(json: []) unless alpha3.present?
 
-        stub_banks = country_code.present? ? (STUB_BANKS[country_code] || []) : []
-        render json: stub_banks
+        banks = CommercialBank.for_country(alpha3)
+        render json: banks.map { |b|
+          { id: b.id, name: b.name, swift_code: b.swift_code, country_code: alpha3 }
+        }
       end
     end
   end
