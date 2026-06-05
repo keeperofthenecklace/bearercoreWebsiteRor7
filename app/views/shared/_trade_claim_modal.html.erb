@@ -2148,6 +2148,16 @@ function tcGoToStep(n) {
   tcUpdateNavButtons(n);
   if (n === 3) tcAutoFillProxyKey();
 
+  // Re-filter corridors when entering step 2: if the API was still loading when
+  // the country was selected, the trigger may still be disabled. Run now that
+  // corridors are cached and selectedCountry is set.
+  if (n === 2 && selectedCountry) {
+    const _trig = document.getElementById('corridorTrigger');
+    if (_trig && _trig.style.cursor === 'not-allowed') {
+      filterCorridorsForCountry(selectedCountry);
+    }
+  }
+
   // Steps 2 & 3: collapse Module 00 to compact status banner
   const fullModule = document.getElementById('cryptoSessionModule');
   const banner     = document.getElementById('m00StatusBanner');
@@ -3802,8 +3812,13 @@ function enableCorridorTrigger() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function loadCorridors() {
-  const select = document.getElementById('tc_corridor_id');
-  
+  const select  = document.getElementById('tc_corridor_id');
+  const trigTxt = document.getElementById('corridorTriggerText');
+  if (trigTxt && trigTxt.textContent.indexOf('Select Country') !== -1) {
+    trigTxt.textContent = 'Loading corridors...';
+    trigTxt.style.color = '#9ca3af';
+  }
+
   try {
     const response = await fetch('/api/v2/corridors', {
       headers: {
@@ -3840,6 +3855,8 @@ async function loadCorridors() {
   } catch (error) {
     console.error('[Corridors] Error loading:', error);
     select.innerHTML = '<option value="">Error loading corridors</option>';
+    const _trigTxtErr = document.getElementById('corridorTriggerText');
+    if (_trigTxtErr) { _trigTxtErr.textContent = 'Error loading corridors'; _trigTxtErr.style.color = '#ef4444'; }
   }
 }
 
@@ -4106,6 +4123,13 @@ function filterCorridorsForCountry(country) {
   select.style.cursor = 'pointer';
   enableCorridorTrigger();
   syncCustomCorridorDropdown();
+
+  // Update trigger placeholder so users know corridors are ready to pick
+  const _trigTxt = document.getElementById('corridorTriggerText');
+  if (_trigTxt && _trigTxt.textContent.indexOf('Select Country') !== -1) {
+    _trigTxt.textContent = 'Select Trade Corridor...';
+    _trigTxt.style.color = '#6b7280';
+  }
 }
 
 function onCorridorChange(corridorId) {
