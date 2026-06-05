@@ -752,6 +752,7 @@
                       </div>
                     </div>
                     <div id="denomMixTable" style="padding-top:8px;margin-top:4px;font-size:10px;"></div>
+                    <div id="denomMixWarning" style="display:none;margin-top:10px;padding:9px 12px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;font-size:11px;color:#991b1b;line-height:1.5;"></div>
                   </div>
                 </div>
               </div>
@@ -1993,6 +1994,7 @@ let countriesData = [];
 let commercialBanksData = [];
 let corridorsData = [];
 let selectedCountry = null;
+let _denomUnfilledRem = 0;  // tracks unfillable amount from last computeDenomMix call
 let selectedInstitution = null;
 
 const TC_BLOCS = {
@@ -2236,7 +2238,7 @@ function tcCheckStep2Ready() {
   const amount         = parseFloat(rawAmount);
 
   const ready = !!(corridor && fxRef && institution && traderHolder && retailerHolder &&
-                   rawAmount && !isNaN(amount) && amount > 0);
+                   rawAmount && !isNaN(amount) && amount > 0 && _denomUnfilledRem === 0);
 
   const btn = document.getElementById('tcBtnNext');
   if (!btn) return;
@@ -4839,7 +4841,8 @@ function computeDenomMix(total, currencyCode) {
   const totalNotes = noteItems.reduce((s, i) => s + i.count, 0);
   const totalCoins = coinItems.reduce((s, i) => s + i.count, 0);
 
-  return { noteItems, coinItems, totalNotes, totalCoins, layerSums, ccy, profile, rounded };
+  return { noteItems, coinItems, totalNotes, totalCoins, layerSums, ccy, profile, rounded,
+           unfilledRemainder: rem };
 }
 
 function denomFmtNum(n, decimals) {
@@ -4857,6 +4860,9 @@ function renderDenomMixPanel() {
   const ccy   = document.getElementById('tc_currency_code')?.value || '';
 
   if (!total || total <= 0) {
+    _denomUnfilledRem = 0;
+    const _wEl = document.getElementById('denomMixWarning');
+    if (_wEl) _wEl.style.display = 'none';
     if (denomPlaceholder) denomPlaceholder.style.display = 'block';
     if (denomContent)     denomContent.style.display     = 'none';
     return;
@@ -4906,6 +4912,27 @@ function renderDenomMixPanel() {
     ...mix.noteItems,
     ...mix.coinItems
   ];
+
+  // ── Unfilled remainder warning ────────────────────────────────────────────
+  _denomUnfilledRem = mix.unfilledRemainder || 0;
+  const warnEl = document.getElementById('denomMixWarning');
+  if (warnEl) {
+    if (_denomUnfilledRem > 0) {
+      const minNote   = Math.min(...mix.profile.notes);
+      const issuable  = total - _denomUnfilledRem;
+      const nextUp    = issuable + minNote;
+      warnEl.innerHTML =
+        `<strong>⚠ Amount cannot be exactly issued.</strong><br>` +
+        `${sym}${denomFmtNum(_denomUnfilledRem)} cannot be represented — smallest ${ccy} denomination is ` +
+        `${sym}${denomFmtNum(minNote)}.<br>` +
+        `Adjust to <strong>${sym}${denomFmtNum(issuable)}</strong> (round down) ` +
+        `or <strong>${sym}${denomFmtNum(nextUp)}</strong> (round up).`;
+      warnEl.style.display = 'block';
+    } else {
+      warnEl.style.display = 'none';
+    }
+  }
+  tcCheckStep2Ready();
 
   document.getElementById('denomMixTable').innerHTML =
     `<table style="width:100%; border-collapse:collapse; font-size:11px;">
