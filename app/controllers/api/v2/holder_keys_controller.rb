@@ -315,6 +315,26 @@ module Api
       end
 
       def index
+        # Try live SmartCHEQ DB first; fall back to stub on connection failure
+        if params[:swift_code].present?
+          swift = params[:swift_code].to_s.upcase.strip
+          db_result = begin
+            records = Smartcheq::HolderKey.by_swift_code(swift).limit(1)
+            records.map { |hk|
+              { id: hk.id, holder_id: hk.holder_id, institution_name: hk.name,
+                swift_code: swift, country_code: nil, public_key: hk.recipient_public_key }
+            }
+          rescue => e
+            Rails.logger.warn "[HolderKeys#index] SmartCHEQ DB unavailable: #{e.class} — falling back to stub"
+            nil
+          end
+
+          unless db_result.nil?
+            return render json: db_result
+          end
+        end
+
+        # Stub fallback (also handles country_code / query / holder_type filters)
         keys = STUB_HOLDER_KEYS
 
         if params[:holder_type].present?

@@ -13,6 +13,12 @@ module Smartcheq
         .order(:name)
     }
 
+    scope :by_swift_code, ->(swift) {
+      joins("JOIN commercial_bank_holder_keys ON commercial_bank_holder_keys.holder_key = holder_keys.holder_id")
+        .where("commercial_bank_holder_keys.commercial_bank_swift_code = ?", swift.to_s.upcase.strip)
+        .select("holder_keys.*")
+    }
+
     def display_alias
       name.presence || "#{holder_id.first(16)}..."
     end
