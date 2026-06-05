@@ -42,6 +42,10 @@ module Api
         "XAF-XOF" => 1.0,      "XOF-XAF" => 1.0,
         "MAD-XOF" => 60.84,    "XOF-MAD" => 0.01643,
         "MAD-NGN" => 151.8,    "NGN-MAD" => 0.006587,
+        "NGN-TZS" => 0.09,     "TZS-NGN" => 11.11,
+        "NGN-KES" => 0.09,     "KES-NGN" => 11.11,
+        "NGN-UGX" => 2.67,     "UGX-NGN" => 0.375,
+        "NGN-RWF" => 0.97,     "RWF-NGN" => 1.031,
       }.freeze
 
       QUOTE_SOURCES = %w[Treasury\ Desk CBN\ Oracle Benchmark\ Rate Interbank\ Fix].freeze
@@ -239,6 +243,56 @@ module Api
           source_country: "SEN", target_country: "MAR",
           status: "active", asset_code: "XOF", daily_volume: 1_900_000,
           liquidity_position: { domestic_available: 150_000_000, linked_outstanding: 52_000_000, asset_code: "XOF" }
+        },
+
+        # ── AfCFTA — WAMZ ↔ EAC Cross-Bloc ──────────────────────────────────────
+        {
+          id: 31, code: "NGA-TZA", corridor_display: "NGA → TZA", bloc: "AfCFTA",
+          source_country: "NGA", target_country: "TZA",
+          status: "active", asset_code: "NGN", daily_volume: 5_200_000,
+          liquidity_position: { domestic_available: 80_000_000, linked_outstanding: 12_000_000, asset_code: "NGN" }
+        },
+        {
+          id: 32, code: "TZA-NGA", corridor_display: "TZA → NGA", bloc: "AfCFTA",
+          source_country: "TZA", target_country: "NGA",
+          status: "active", asset_code: "TZS", daily_volume: 3_100_000,
+          liquidity_position: { domestic_available: 900_000_000, linked_outstanding: 133_000_000, asset_code: "TZS" }
+        },
+        {
+          id: 33, code: "NGA-KEN", corridor_display: "NGA → KEN", bloc: "AfCFTA",
+          source_country: "NGA", target_country: "KEN",
+          status: "active", asset_code: "NGN", daily_volume: 7_400_000,
+          liquidity_position: { domestic_available: 100_000_000, linked_outstanding: 18_000_000, asset_code: "NGN" }
+        },
+        {
+          id: 34, code: "KEN-NGA", corridor_display: "KEN → NGA", bloc: "AfCFTA",
+          source_country: "KEN", target_country: "NGA",
+          status: "active", asset_code: "KES", daily_volume: 4_800_000,
+          liquidity_position: { domestic_available: 60_000_000, linked_outstanding: 9_000_000, asset_code: "KES" }
+        },
+        {
+          id: 35, code: "NGA-UGA", corridor_display: "NGA → UGA", bloc: "AfCFTA",
+          source_country: "NGA", target_country: "UGA",
+          status: "active", asset_code: "NGN", daily_volume: 2_900_000,
+          liquidity_position: { domestic_available: 60_000_000, linked_outstanding: 8_500_000, asset_code: "NGN" }
+        },
+        {
+          id: 36, code: "NGA-RWA", corridor_display: "NGA → RWA", bloc: "AfCFTA",
+          source_country: "NGA", target_country: "RWA",
+          status: "active", asset_code: "NGN", daily_volume: 1_800_000,
+          liquidity_position: { domestic_available: 40_000_000, linked_outstanding: 6_200_000, asset_code: "NGN" }
+        },
+        {
+          id: 37, code: "GHA-TZA", corridor_display: "GHA → TZA", bloc: "AfCFTA",
+          source_country: "GHA", target_country: "TZA",
+          status: "active", asset_code: "GHS", daily_volume: 2_100_000,
+          liquidity_position: { domestic_available: 25_000_000, linked_outstanding: 5_400_000, asset_code: "GHS" }
+        },
+        {
+          id: 38, code: "GHA-KEN", corridor_display: "GHA → KEN", bloc: "AfCFTA",
+          source_country: "GHA", target_country: "KEN",
+          status: "active", asset_code: "GHS", daily_volume: 3_300_000,
+          liquidity_position: { domestic_available: 35_000_000, linked_outstanding: 7_100_000, asset_code: "GHS" }
         },
       ].freeze
 
