@@ -1,6 +1,6 @@
 class CreateLocalCommercialBanks < ActiveRecord::Migration[7.1]
   def up
-    create_table :commercial_banks do |t|
+    create_table :commercial_banks, force: :cascade do |t|
       t.string :name,         null: false
       t.string :swift_code
       t.string :country_code, null: false
@@ -9,1115 +9,1116 @@ class CreateLocalCommercialBanks < ActiveRecord::Migration[7.1]
     add_index :commercial_banks, :country_code
     add_index :commercial_banks, [:name, :country_code], unique: true
 
-    execute <<~SQL
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('4 AFRICA EXCHANGE PTY LTD', 'AFEPZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('4 AFRICA EXCHANGE REGISTRY PROPRIETARY LIMITED', 'AERPZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('4AX NOMINEES RF PTY LTD', 'NOPYZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('9 PAYMENT SERVICE BANK LIMITED', 'IPSBNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AB BANK RWANDA PLC', 'ABBRRWRW', 'RWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AB BANK ZAMBIA LTD.', 'ABBAZMLU', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABAY BANK S.C.', 'ABAYETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABC BANKING CORPORATION LTD', 'ABCKMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABC CAPITAL BANK LIMITED', 'ABCFUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABC STOCKBROKERS (PRIVATE) LIMITED', 'ABTIZWH2', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABS SA', 'ABSHSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA ASSET MANAGEMENT (PTY) LTD', 'ABVSZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA BANK (MAURITIUS) LIMITED', 'BARCMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA BANK (SEYCHELLES) LIMITED', 'BARCSCSC', 'SYC');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA BANK BOTSWANA LIMITED', 'BARCBWGX', 'BWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA BANK KENYA PLC', 'BARCKENX', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA BANK LIMITED', 'ABSAZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA BANK MOCAMBIQUE,SA', 'ABMZMZMA', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA BANK OF GHANA LIMITED', 'BARCGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA BANK TANZANIA LIMITED', 'BARCTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA BANK UGANDA LIMITED', 'BARCUGKX', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA BANK ZAMBIA PLC', 'BARCZMLX', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA CAPITAL SECURITIES PROPRIETARY LIMITED', 'ABSAZAJ3', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA SECURITIES NIGERIA LIMITED', 'ASNINGL2', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABSA STOCKBROKERS AND PORTFOLIO MANAGEMENT (PTY) LTD', 'ABSAZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABU DHABI COMMERCIAL BANK - EGYPT ADCB EGYPT', 'ADCBEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ABU DHABI ISLAMIC BANK - EGYPT', 'ABDIEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESBANQUE MADAGASCAR', 'ABMGMGMG', 'MDG');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESS BANK (GHANA) PLC', 'ABNGGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESS BANK (KENYA) PLC', 'ABNGKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESS BANK (RWANDA) PLC', 'BKORRWRW', 'RWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESS BANK (SOUTH AFRICA) LIMITED', 'BATHZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESS BANK BOTSWANA LIMITED', 'FMBZBWGA', 'BWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESS BANK CAMEROON PLC', 'ABNGCMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESS BANK GAMBIA', 'ACGAGMGF', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESS BANK GUINEE', 'ABNGGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESS BANK MOZAMBIQUE, SA', 'ABNGMZMA', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESS BANK PLC', 'ABNGNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESS BANK SIERRA LEONE LIMITED', 'ABSFSLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESS BANK ZAMBIA LIMITED', 'AZAMZMLU', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESS MICROFINANCE BANK TANZANIA LTD', 'ACTZTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ACCESSBANK LIBERIA LIMITED', 'ACLILRLM', 'LBR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ADDIS INTERNATIONAL BANK S.C.', 'ABSCETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFC COMMERCIAL BANK LIMITED', 'AGRZZWHA', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFG BANK COTE D''IVOIRE', 'AFGICIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFG BANK MADAGASCAR', 'AFGMMGMG', 'MDG');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRASIA BANK LIMITED', 'AFBLMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRICA FINANCE CORPORATION', 'AFFCNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRICAN BANK LIMITED', 'AFRCZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRICAN BANKING CORP.OF ZIMBABWE LTD.', 'FMBZZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRICAN BANKING CORPORATION LTD', 'ABCLKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRICAN BANKING CORPORATION TANZANIA LIMITED', 'FMBZTZTX', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRICAN BANKING CORPORATION ZAMBIA', 'FMBZZMLX', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRICAN CENTURY LIMITED', 'AFCNZWHA', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRICAN DEVELOPMENT BANK', 'AFDBCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRICAN EXPORT IMPORT BANK', 'AFXMEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRICAN EXPORT-IMPORT BANK', 'PASSNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRICAN LEASE GUINEE', 'ALGCGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRICAN LEASE TOGO SA', 'ALTBTGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRICAN UNION', 'AFUNETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRIFOCUS SECURITIES (PTY) LTD', 'AFRFZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRILAND FIRST BANK', 'CCEICMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRILAND FIRST BANK COTE D''IVOIRE', 'OMFNCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRILAND FIRST BANK GUINEE S A', 'CCEIGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRILAND FIRST BANK LIBERIA LIMITED', 'CCEILRLM', 'LBR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AFRILAND FIRST BANK UGANDA LIMITED', 'CCEIUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AGIB BANK LTD', 'AGIXGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AGRICULTURAL BANK OF EGYPT (A.B.E)', 'BDACEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AGRICULTURAL DEVELOPMENT BANK', 'ADNTGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AHADU BANK S.C.', 'AHUUETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AHLI UNITED BANK (EGYPT) S.A.E.', 'DEIBEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AIR SENEGAL SA', 'ASSASNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AKIBA COMMERCIAL BANK PLC', 'AKCOTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AL AHLI BANK OF KUWAIT - EGYPT S.A.E.', 'ECBAEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AL AHLY PHAROS SECURITIES BROKERAGE,SAE', 'PHAREGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AL BARAKA BANK TUNISIA', 'BEITTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AL BARID BANK', 'ABBMMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AL SALAM BANK ALGERIA', 'SALGDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AL SALAM BANK SEYCHELLES LIMITED', 'BMUSSCSC', 'SYC');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ALBARAKA BANK', 'ALBRZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ALBARAKA BANK EGYPT', 'ABRKEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ALEXANDER FORBES GROUP SERVICES (PTY) LTD', 'AFGSZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ALGERIAN UNION BANK-SA (AUB-SA)', 'AUBMMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ALIOS FINANCE (SAFCA)', 'SOACCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ALLAN GRAY LIMITED', 'GRAYZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ALTRON FINANCE (PTY) LTD', 'ALTFZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ALUBAF INTERNATIONAL BANK TUNIS', 'ALUBTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AMANA BANK LIMITED', 'AMNNTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AMEN BANK', 'CFCTTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AMHARA BANK S.C.', 'AMHRETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ANCHOR STOCKBROKERS (PTY) LTD', 'ASTYZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ANDISA CAPITAL (PTY) LTD', 'ANDSZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ANGLO AMERICAN SA FINANCE LIMITED', 'AACLZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARAB AFRICAN INTERNATIONAL BANK', 'ARAIEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARAB BANK FOR ECONOMIC DEVELOPMENT IN AFRICA', 'AEDAEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARAB BANK PLC', 'ARABEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARAB BANK PLC', 'ARABMAMC250', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARAB BANK PLC ALGERIA', 'ARABDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARAB BANK PLC.', 'ARABMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARAB BANKING CORPORATION', 'ABCOTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARAB BANKING CORPORATION - ALGERIA', 'ABCODZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARAB BANKING CORPORATION EGYPT', 'MRBAEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARAB INTERNATIONAL BANK', 'ARIBEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARAB INVESTMENT BANK', 'AINBEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARAB TUNISIAN BANK', 'ATBKTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARB APEX BANK LIMITED', 'AREXGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARGON SECURITIES (PTY) LTD', 'AONSZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ARQAAM SECURITIES BROKERAGE, S.A.E. EGYPT', 'ARQAEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ASSET MANAGEMENT CORPORATION OF NIGERIA', 'AMNGNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ATISA SECURITIES (PTY) LTD', 'WWSEZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ATTIJARI BANK', 'BSTUTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ATTIJARI BANK MAURITANIE', 'BCMAMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ATTIJARI INTERNATIONAL BANK S.A. - BANQUE OFF SHORE', 'AIBSMAMT', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ATTIJARIWAFA BANK (FORMERLY BANQUE COMMERCIALE DU MAROC)', 'BCMAMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ATTIJARIWAFA BANK EGYPT S.A.E', 'BCBIEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AVIOR RESEARCH (PTY) LTD', 'GDPTZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AWASH BANK S.C', 'AWINETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AXON SECLEND (PTY) LTD', 'AXSPZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('AZANIA BANK LIMITED', 'AZANTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Access Bank Gambia Limited', 'ABNGGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Access Bank RDC', 'ABNGCDKI', 'COD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Afriland First Bank Congo', 'AFCBCDKI', 'COD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Agricultural Bank of Sudan', 'ABSDSDKH', 'SDN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Al Salam Bank Sudan', 'ALSASDKH', 'SDN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Al Wafa Bank', 'WAFALYLT', 'LBY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Amal Bank', 'AMALSOMS', 'SOM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Arab Gambian Islamic Bank', 'AGIBGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('B.I.C.I. DU GABON', 'BICIGALX', 'GAB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('B.P. BERNSTEIN', 'BERNZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO ANGOLANO DE INVESTIMENTOS, SA', 'BAIPAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO ANGOLANO NEGOCIOS E COMERCIO', 'ANCEAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO BAI CABO VERDE, S.A', 'BAIPCVCV', 'CPV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO BIC CABO VERDE, S.A.', 'BAVDCVCP', 'CPV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO BIC, S.A.', 'BCCBAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO BIG MOCAMBIQUE, S.A.', 'BDIGMZMA', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO CAIXA GERAL DE ANGOLA', 'BCGAAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO COMERCIAL ANGOLANO', 'COMLAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO COMERCIAL DO ATLANTICO', 'BCATCVCV', 'CPV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO COMERCIAL DO HUAMBO', 'BCHUAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO DA AFRICA OCIDENTAL SA', 'BAOBGWGW', 'GNB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO DA UNIAO', 'BDUGGWGW', 'GNB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO DE CABO VERDE', 'BCAVCVCV', 'CPV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO DE DESENVOLVIMENTO DE ANGOLA', 'BDAAAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO DE FOMENTO ANGOLA, S.A.', 'BFMXAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO DE FOMENTO INTERNACIONAL, S.A. (FORMERLY BANCO FIDUCIARIO INTERNACIONAL (I.F.I.), S.A.)', 'BFIICVCV', 'CPV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO DE INVESTIMENTO RURAL, S.A.', 'BIRVAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO DE MOCAMBIQUE', 'BMOCMZMA', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO DE NEGOCIOS INTERNACIONAL', 'BNICAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO DE SABADELL, S.A.', 'BSABMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO ECONOMICO, S.A.', 'BESCAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO INTERATLANTICO, SARL', 'CGDICVCP', 'CPV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO INTERNACIONAL DE MOCAMBIQUE, S.A', 'BIMOMZMX', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO KEVE, SA', 'BRDKAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO MAIS, S.A.', 'PUADAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO MAIS, SA', 'MAISMZMA', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO MILLENNIUM ATLANTICO, S.A.', 'PRTLAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO NACIONAL DE ANGOLA', 'BNANAOLD', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO NACIONAL DE GUINEA ECUATORIAL (BANGE)', 'NAGCGQGQ', 'GNQ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO NACIONAL DE INVESTIMENTO, SA', 'BNIMMZMP', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO POSTAL, S.A.', 'POTAAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO PRESTIGIO, SA.', 'PRTSAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO PRIVADO ATLANTICO', 'BAPANANX', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO PRIVADO INTERNACIONAL (IFI)', 'PRIFCVCV', 'CPV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO SOCIETE GENERALE (MOCAMBIQUE) S.A.', 'SOGEMZMA', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO SOL, S.A.', 'SOLOAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO VALOR BANK', 'BVBXAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO VTB AFRICA, S.A.', 'VTBLAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANCO YETU, S.A.', 'YETUAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANGE BANK CAMEROUN (BANGE CMR S.A)', 'NAGCCMCM', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK AL-MAGHRIB', 'BKAMMAMR', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK ASSAFA', 'ASSFMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK BIC NAMIBIA LIMITED', 'BBNLNANA', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK GABORONE LIMITED', 'BGLIBWGX', 'BWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF ABYSSINIA', 'ABYSETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA', 'BMCEMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA - BENIN', 'AFRIBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA - BURKINA FASSO', 'AFRIBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA - COTE D''IVOIRE', 'AFRICIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA - GHANA LIMITED', 'AMMAGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA - MALI', 'AFRIMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA KENYA LTD', 'AFRIKENX', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA MADAGASCAR', 'AFRIMGMG', 'MDG');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA MER ROUGE', 'MRINDJJD', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA NIGER', 'AFRINENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA RWANDA LTD', 'AFRWRWRW', 'RWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA TANZANIA LIMITED', 'EUAFTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA TOGO', 'AFRITGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA-SENEGAL', 'AFRISNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF AFRICA-UGANDA LTD.', 'AFRIUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF ALEXANDRIA S A E', 'ALEXEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF ALGERIA', 'BALGDZAP', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF BARODA', 'BARBMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF BARODA', 'BARBSCSC', 'SYC');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF BARODA (BOTSWANA) LIMITED', 'BARBBWGX', 'BWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF BARODA (KENYA) LTD', 'BARBKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF BARODA (TANZANIA) LTD', 'BARBTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF BARODA (UGANDA) LIMITED', 'BARBUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF BOTSWANA', 'BBOTBWGX', 'BWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF CEYLON, SEYCHELLES BRANCH', 'BCEYSCSC', 'SYC');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF CHINA (MAURITIUS) LIMITED', 'BKCHMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF CHINA (ZAMBIA) LTD', 'BKCHZMLU', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF CHINA JOHANNESBURG BRANCH', 'BKCHZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF CHINA LIMITED LUANDA BRANCH', 'BKCHAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF COMMUNICATIONS CO., LTD. JOHANNESBURG BRANCH', 'COMMZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF GHANA', 'BAGHGHA5', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF INDIA', 'BKIDKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF INDIA (TANZANIA) LIMITED', 'BKIDTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF INDIA (UGANDA) LTD', 'BKIDUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF INDUSTRY FINANCIAL DEPARTMENT', 'BOIYNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF KIGALI PLC', 'BKIGRWRW', 'RWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF MAURITIUS', 'COCUMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF NAMIBIA', 'CBKNNANA', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF SIERRA LEONE', 'BSLESLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF ST. HELENA', 'BHELSHJJ', 'SHN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF TAIWAN, SOUTH AFRICA BRANCH', 'BKTWZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF TANZANIA', 'TANZTZTX', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF UGANDA', 'UGBAUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK OF ZAMBIA', 'BAZAZMLA', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK ONE LTD', 'BKONMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK SERV LIMITED', 'BKSVZAJS', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK WINDHOEK LIMITED', 'BWLINANX', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANK ZERO MUTUAL BANK', 'ZERMZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANKSERVAFRICA', 'BKSVZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE (MALI) CENTRALE DES ETATS DE L''AFRIQUE ET DE L''OUEST', 'BCAOMLBAMOP', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE AGRICOLE DU FASO', 'BAGFBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE AGRICOLE DU NIGER', 'BANENENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE AL MUAMELAT AS SAHIHA', 'BMSHMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE AL WAVA MAURITANIENNE ISLAMIQUE (BAMIS)', 'BAAWMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE AL-BARAKA D''ALGERIE', 'BRKADZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ATLANTIQUE BURKINA FASO', 'ATBFBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ATLANTIQUE CAMEROUN', 'ATCRCMCM', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ATLANTIQUE COTE D''IVOIRE', 'ATCICIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ATLANTIQUE DA GUINE-BISSAU,SA', 'ATGWGWGW', 'GNB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ATLANTIQUE DU BENIN', 'ATBJBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ATLANTIQUE MALI', 'ATMLMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ATLANTIQUE NIGER', 'ATNENENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ATLANTIQUE SENEGAL', 'ATSNSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ATLANTIQUE TOGO', 'ATTGTGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DE DJIBOUTI', 'BCDJDJJD', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DE LA REPUBLIQUE DE GUINEE', 'REPCGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DE MADAGASCAR', 'REPUMGMG', 'MDG');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DE MAURITANIE', 'BCEMMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DE TUNISIE', 'BCTNTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DES COMOROS', 'COCBKMKM', 'COM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAOBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAOBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAOCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAOMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAONENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAOSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAOTGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST (B.C.E.A.O.)', 'BCAOSNDD', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE CENTRALE POPULAIRE', 'BCPOMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE COMMERCIALE DU BURKINA', 'BNCFBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE COMMERCIALE DU NIGER', 'BCDNNENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE COMMERCIALE DU SAHEL SA', 'ALIMMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DABIDJAN, SA.', 'BDAJCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE CHINE(DJIBOUTI) SA', 'BKCHDJJD', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE DAKAR SA', 'BDKRSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE DEPOT ET CREDIT DJIBOUTI', 'DECDDJJD', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE DEVELOPPEMENT DE GUINEE', 'BDGEGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE DEVELOPPEMENT DES COMORES', 'DEVPKMKM', 'COM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE DEVELOPPEMENT DU MALI - S.A.', 'BDMAMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE DEVELOPPEMENT DU MALI AU TOGO (BDM-TOGO)', 'BDMATGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE DEVELOPPEMENT LOCAL', 'BDLODZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE DEVELOPPEMENT MALI (BDM), SUCCURSALE DU SENEGAL', 'BDMASNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE FINANCEMENT DES PME', 'BFPMTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE L''AGRICULTURE ET DE DEVELOPPEMENT RURAL', 'BADRDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE L''HABITAT DE COTE D''IVOIRE', 'BHCICIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE L''HABITAT DU NIGER - BHN', 'BHDNNENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE L''HABITAT DU SENEGAL', 'LHSESNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE L''UNION - COTE D''IVOIRE', 'BDUTCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE L''UNION BURKINA FASO', 'BDUGBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE TUNISIE', 'BTBKTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DE TUNISIE ET DES EMIRATS', 'BTEXTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DES DEPOTS DU TRESOR PUBLIC', 'BQTRCIAD', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DES ETATS D''AFRIQUE CENTRALE', 'BEACCMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DES ETATS DE L''AFRIQUE CENTRALE D.N. GABON', 'BEACGALI', 'GAB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DES ETATS DE L''AFRIQUE CENTRALE D.N. GUINEE EQUATORIALE', 'BEACGQGQ', 'GNQ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DES FINANCEMENTS ISLAMIQUES', 'FIAQMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DES INSTITUTIONS MUTUALISTES D''AFRIQUE DE L''OUEST', 'BIMUSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DU CAIRE', 'BCAIEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE DU MAGHREB ARABE POUR L''INVESTISSEMENT ET LE COMMERCE', 'BMICDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE EL AMANA (BEA)', 'AMDHMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE EXTERIEURE D''ALGERIE', 'BEXADZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE FEDERALE DE COMMERCE', 'BFDCKMKM', 'COM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE FRANCO TUNISIENNE', 'BFTNTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE INTERNATIONALE ARABE DE TUNISIE', 'BIATTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE INTERNATIONALE DU CAMEROUN POUR L''EPARGNE ET LE CREDIT', 'ICLRCMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE INTERNATIONALE POUR L''AFRIQUE AU NIGER', 'BIANNENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE INTERNATIONALE POUR L''AFRIQUE AU TOGO', 'BILTTGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE INTERNATIONALE POUR L''INDUSTRIE ET LE COMMERCE BENIN', 'AFICBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE INTERNATIONALE POUR LE COMMERCE ET L''INDUSTRIE DE LA COTE D''IVOIRE', 'BICICIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE INTERNATIONALE POUR LE COMMERCE ET L''INDUSTRIE DE LA GUINEE', 'BICIGNCX', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE INTERNATIONALE POUR LE COMMERCE ET L''INDUSTRIE DU SENEGAL', 'BICISNDX', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE INTERNATIONALE POUR LE MALI SA.', 'BIPMMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ISLAMIQUE DE GUINEE', 'ISGUGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ISLAMIQUE DE MAURITANIE', 'BIMMMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ISLAMIQUE DU NIGER POUR LE COMMERCE ET L''INVESTISSEMENT', 'BICVNENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ISLAMIQUE DU SENEGAL', 'ISSNSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE MAGHREBINE D''INVESTISSEMENT ET DE COMMERCE EXTERIEUR', 'BMIETNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE MALGACHE DE L''OCEAN INDIEN', 'BMOIMGMG', 'MDG');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE MALIENNE DE SOLIDARITE', 'BMSMMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE MALIENNE DE SOLIDARITE COTE D''IVOIRE', 'BSOICIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE MAROCAINE POUR LE COMMERCE ET L''INDUSTRIE', 'BMCIMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE MAURITANIENNE DE L''INVESTISSEMENT', 'BQMIMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE MAURITANIENNE POUR LE COMMERCE INTERNATIONAL', 'MBICMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE MISR', 'BMISEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE NATIONALE AGRICOLE', 'BNTETNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE NATIONALE D''ALGERIE', 'BNALDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE NATIONALE D''INVESTISSEMENT', 'CSSSCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE NATIONALE D''INVESTISSEMENT DE GUINEE-SA', 'BNIGGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE NATIONALE DE DEVELOPPEMENT AGRICOLE (BNDA)', 'BNADMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE NATIONALE DE GUINEE', 'BQNGGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE NATIONALE DE MAURITANIE', 'BQNMMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE NATIONALE DU RWANDA (BNR)', 'BNRWRWRW', 'RWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE NATIONALE POUR LE DEVELOPPEMENT ECONOMIQUE DU SENEGAL (BNDE)', 'BNDXSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE OUEST AFRICAINE DE DEVELOPPEMENT (BOAD)', 'BOADTGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE PATRONUS LIMITEE', 'BPLLMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE AGADIR', 'BCPOMAMCCES', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE AL HOCEIMA', 'BCPOMAMCALH', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE BENI MELLAL', 'BCPOMAMCBNM', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE BERKANE', 'BCPOMAMCBRK', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE CASA-ANFA', 'BCPOMAMCCAS', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE DE COTE D''IVOIRE', 'CNCGCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE DE MAURITANIE', 'BPMAMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE EL JADIDA', 'BCPOMAMCELJ', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE FES', 'BCPOMAMCFES', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE GHARB', 'BCPOMAMCGHA', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE LAAYOUNE', 'BCPOMAMCLAY', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE MAROCO-GUINEENNE SA', 'POMBGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE MARRAKECH', 'BCPOMAMCMKH', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE MEKNES', 'BCPOMAMCMEK', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE NADOR', 'BCPOMAMCNAD', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE OUJDA', 'BCPOMAMCOUJ', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE RABAT', 'BCPOMAMCRAB', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE SAFI', 'BCPOMAMCSAF', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POPULAIRE TANGER', 'BCPOMAMCTAT', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POSTALE DU BURKINA FASO (BPBF)', 'BPBFBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POUR L''INDUSTRIE ET LE COMMERCE DES COMORES', 'BICCKMKM', 'COM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POUR LE COMMERCE ET L''INDUSTRIE', 'COLIMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POUR LE COMMERCE ET L''INDUSTRIE - MER ROUGE', 'BCIMDJJX', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POUR LE COMMERCE ET L''INDUSTRIE DE GUINEE', 'COLIGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE POUR LE COMMERCE ET L''INDUSTRIE SENEGAL', 'COLISNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE REGIONALE DE MARCHES', 'BRMXCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE REGIONALE DE MARCHES', 'BRMXNENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE REGIONALE DE MARCHES', 'BRMXSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE SAHELO-SAHARIENNE POUR L''INVESTISSEMENT ET LE COMMERCE (BENIN) S.A.', 'BSAHBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE SAHELO-SAHARIENNE POUR L''INVESTISSEMENT ET LE COMMERCE (BURKINA FASO) S.A.', 'BSAHBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE SAHELO-SAHARIENNE POUR L''INVESTISSEMENT ET LE COMMERCE (MALI) S.A.', 'BSAHMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE SAHELO-SAHARIENNE POUR L''INVESTISSEMENT ET LE COMMERCE (NIGER) S.A.', 'BSAHNENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE SAHELO-SAHARIENNE POUR L''INVESTISSEMENT ET LE COMMERCE (SENEGAL) S.A.', 'BSAHSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE SBM MADAGASCAR', 'BSBMMGMG', 'MDG');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE TUNISO-KOWEITIENNE', 'BTKOTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE TUNISO-LIBYENNE', 'ATLDTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BANQUE ZITOUNA', 'BZITTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BAOBAB BANQUE MADAGASCAR SA', 'BMADMGMG', 'MDG');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BBS BANK LIMITED', 'BBKNBWGX', 'BWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BC PME SA', 'BPMECMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BCI', 'CGDIMZMA', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BCI - BANCO DE COMERCIO E INDUSTRIA', 'BCIDAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BCI-MALI', 'COLIMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BCN-BANCO CABOVERDIANO DE NEGOCIOS SA', 'CANBCVCV', 'CPV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BCP BANK (MAURITIUS) LTD (FORMERLY BANQUE DES MASCAREIGNES LTEE)', 'BAIMMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BCP SECURITIES SERVICES', 'MEDCMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BCS - BANCO DE CREDITO DO SUL, S.A.', 'CDTSAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BELTONE SECURITIES BROKERAGE S.A.E', 'BELTEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BERHAN BANK SC', 'BERHETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BFV-SOCIETE GENERALE', 'BFAVMGMG', 'MDG');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BGFI Bank RDC', 'BGFICDKI', 'COD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BGFI Bank São Tomé', 'BGFISTST', 'STP');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BGFIBANK', 'BGFIGALI', 'GAB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BGFIBANK BENIN', 'BGFIBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BGFIBANK CAMEROUN SA', 'BGFICMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BGFIBANK COTE D''IVOIRE', 'BGFICIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BGFIBANK GUINEE EQUATORIALE', 'BGFIGQGQ', 'GNQ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BGFIBANK MADAGASCAR', 'BGFIMGMG', 'MDG');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BGFIBANK SENEGAL', 'BGFISNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BH BANK', 'BHBKTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BICIM', 'BICIMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BIDVEST BANK LTD', 'BIDBZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BIDVEST TREASURY SERVICES (PTY) LTD', 'BIVTZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BLOOM BANK AFRICA LIMITED, GAMBIA', 'SKYEGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BM MADAGASCAR S.A', 'BAIMMGMG', 'MDG');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BNI MADAGASCAR', 'CLMDMGMG', 'MDG');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BNP PARIBAS EL DJAZAIR', 'BNPADZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BOLSA DE DIVIDA E VALORES DE ANGOLA BODIVA SOCIEDADE GESTORA DE MERCADOS REGULAMENTADOS SA', 'BDVAAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BOTSWANA INSURANCE FUND MANAGEMENT LIMITED', 'BIFMBWGA', 'BWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BOTSWANA STOCK EXCHANGE LIMITED', 'XBOTBWGX', 'BWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BPC-BANCO DE POUPANCA E CREDITO', 'BPCLAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BPR BANK RWANDA PLC', 'BPRWRWRW', 'RWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BRIDGE BANK GROUP COTE D''IVOIRE', 'BGCDCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BRIDGE BANK SENEGAL', 'BGCDSNDK', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BSIC COTE D''IVOIRE', 'BSAHCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BSIC GAMBIA LIMITED', 'BSAHGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BSIC GUINEE CONAKRY', 'BSGNGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BSIC Gambia Limited', 'BSICGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BSIC TOGO SA', 'BSAHTGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BUNNA INTERNATIONAL BANK S.C', 'BUNAETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('BUSINESS CONNEXION (TANZANIA) LIMITED', 'BCTITZTT', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Banco Equador São Tomé e Príncipe', 'EQUASTST', 'STP');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Banco Internacional de São Tomé e Príncipe (BISTP)', 'BISTSTST', 'STP');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Bank of Khartoum', 'KRTNSDKH', 'SDN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Banque Commerciale du Burundi (BANCOBU)', 'BCBUBIBI', 'BDI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Banque Communautaire et Agricole du Burundi', 'CMEBBIBIXXX', 'BDI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Banque de Crédit de Bujumbura', 'BCRBBIBIXXX', 'BDI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Banque de Gestion et de Financement (BGF)', 'BGFOBIBI', 'BDI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Buffalo Commercial Bank', 'BUFFSSJX', 'SSD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CAC INTERNATIONAL BANK', 'CACDDJJD', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CAIRO BANK UGANDA', 'CAIEUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CAIRO CAPITAL SECURITIES', 'CRCSEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CAISSE DE DEPOT ET DE GESTION', 'CADGMAMR', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CAISSE DES DEPOTS ET CONSIGNATIONS', 'CDCDSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CAISSE NATIONALE D''EPARGNE ET DE PREVOYANCE-BANQUE', 'EPPRDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CAISSE REGIONALE DE REFINANCEMENT HYPOTHECAIRE DE L''UEMOA (CRRH- UEMOA)', 'CHRRTGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CAIXA ECONOMICA DE CABO VERDE, SA', 'CXECCVCV', 'CPV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CAIXABANK, S.A. SUCCURSALE AU MAROC', 'CAIXMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CALBANK PLC', 'ACCCGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CANARA BANK  (TANZANIA) LTD', 'CNRBTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CAPITEC BANK LIMITED', 'CABLZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CARITAS MICROFINANCE BANK LIMITED', 'CRMFKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CBAO GROUP ATTIJARIWAFABANK', 'CBAOBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CBAO GROUPE ATTIJARIWAFA BANK', 'CBAONENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CBAO GROUPE ATTIJARIWAFA BANK BURKINA FASO', 'CBAOBFBG', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CBAO, GROUPE ATTIJARIWAFA BANK', 'CBAOSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CBZ BANK LIMITED', 'COBZZWHA', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CCEI BANK BENIN', 'CCEIBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CCEI BANK GE', 'CCEIGQGQ', 'GNQ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CDG CAPITAL', 'RDGCMAMR', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CDH INVESTMENT BANK (CDHIB)', 'CDHIMWMW', 'MWI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTENARY BANK LIMITED', 'MBBCMWMW', 'MWI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTENARY RURAL DEVELOPMENT BANK LIMITED', 'CERBUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTRAL AFRICA BUILDING SOCIETY', 'CABSZWHA', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTRAL BANK OF EGYPT CAIRO', 'CBEGEGCB', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTRAL BANK OF ESWATINI', 'SWAZSZMB', 'SWZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTRAL BANK OF KENYA', 'CBKEKENB', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTRAL BANK OF LESOTHO', 'CBLELSMX', 'LSO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTRAL BANK OF LIBERIA', 'CBLRLRLM', 'LBR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTRAL BANK OF NIGERIA', 'CBNINGLG', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTRAL BANK OF SEYCHELLES', 'SSCBSCSC', 'SYC');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTRAL BANK OF THE GAMBIA', 'CBGAGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTRAL DEPOSITORY AND SETTLEMENT CORPORATION', 'CDSNKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTRAL SECURITIES CLEARING SYSTEM PLC', 'CSCYNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CENTRAL SECURITIES DEPOSITORY (GH) LTD', 'CSDRGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CFG BANK', 'CAFGMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CHINA CONSTRUCTION BANK CORPORATION JOHANNESBURG BRANCH', 'PCBCZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CHINA DASHENG BANK LIMITED', 'CDSHTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CHINGUITTY BANK', 'CZRZMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CHOICE INTERNATIONAL (MAURITIUS) LTD', 'CIMUMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CHOICE MICROFINANCE BANK LIMITED', 'CHFIKENX', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CIRRUS SECURITIES (PTY) LTD', 'NBOENANX', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK COTE D''IVOIRE SA', 'CITICIAX', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK MAGHREB', 'CITIMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK N.A.', 'CITICMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK N.A.', 'CITIGALX', 'GAB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK N.A.', 'CITISNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK N.A.', 'CITITNTX', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK N.A. - CAIRO BRANCH', 'CITIEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK N.A. ALGERIA', 'CITIDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK N.A. NAIROBI', 'CITIKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK NIGERIA LIMITED', 'CITINGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK SOUTH AFRICA', 'CITIZAJX', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK TANZANIA LTD', 'CITITZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK UGANDA LIMITED', 'CITIUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIBANK ZAMBIA LTD', 'CITIZMLU', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CITIGROUP GLOBAL MARKETS (PTY) LTD', 'SSBSZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('COFIPA INVESTMENT BANK CI', 'IBCICIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('COMESA CLEARING HOUSE', 'COCUZWHA', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('COMMERCE AND MORTGAGE BANK (SL) PLC', 'HFCMSLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('COMMERCIAL BANK - CAMEROUN', 'CBCDCMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('COMMERCIAL BANK OF ETHIOPIA', 'CBETETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('COMMERCIAL BANK OF ETHIOPIA DJIBOUTI LTD', 'CBETDJJD', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('COMMERCIAL INTERNATIONAL BANK (CIB) KENYA LIMITED', 'MYBKKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('COMMERCIAL INTERNATIONAL BANK (EGYPT) S.A.E.', 'CIBEEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('COMMERCIAL INTERNATIONAL BROKERAGE COMPANY', 'CIBOEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('COMPAGNIE IVOIRIENNE D''ELECTRICITE', 'CIVDCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('COMPAGNIE NATIONALE ROYAL AIR MAROC', 'RAMSMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('COMPUTERSHARE PROPRIETARY LIMITED', 'CSEVZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CONSILIUM CAPITAL (SA) (PTY) LTD.', 'COCPZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CONSOLIDATED BANK GHANA LIMITED', 'CBGHGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CONSOLIDATED BANK OF KENYA LTD', 'CONKKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CONTROLLER AND ACCOUNTANT-GENERAL''S DEPARTMENT', 'CODGGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('COOPERATIVE BANK OF OROMIA S.C.', 'CBORETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CORIS BANK INTERNATIONAL', 'CORIBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CORIS BANK INTERNATIONAL', 'CORICIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CORIS BANK INTERNATIONAL', 'CORIMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CORIS BANK INTERNATIONAL BENIN', 'CORIBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CORIS BANK INTERNATIONAL GUINEE BISSAU', 'CORIGWGW', 'GNB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CORIS BANK INTERNATIONAL GUINEE S.A.', 'CORIGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CORIS BANK INTERNATIONAL SA-BRANCH OF NIGER', 'CORINENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CORIS BANK INTERNATIONAL SENEGAL SA', 'CORISNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CORIS BANK INTERNATIONAL TOGO', 'CORITGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CORONATION ASSET MANAGEMENT (PTY) LTD', 'COUGZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CORONATION MERCHANT BANK LIMITED', 'CMBBNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CRDB BANK PLC', 'CORUTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CRDB Bank Burundi S.A', 'CORUBIBUXXX', 'BDI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CREDIT AGRICOLE DU MAROC', 'CNCAMAMR', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CREDIT AGRICOLE EGYPT', 'AGRIEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CREDIT BANK PLC', 'CRBTKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CREDIT COMMUNAUTAIRE D''AFRIQUE S.A.', 'CCAMCMCY', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CREDIT DU MAROC', 'CDMAMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CREDIT DU SENEGAL', 'BCMASNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CREDIT FONCIER LIMITED', 'CDFOUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CREDIT IMMOBILIER ET HOTELIER', 'CIHMMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CREDIT INTERNATIONAL SA', 'CLIBSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CREDIT POPULAIRE D''ALGERIE', 'CPALDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('CURO FUND SERVICES (PTY) LTD', 'TAFAZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Charity Bank for Investment', 'CBINSSJX', 'SSD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Commercial Bank of Eritrea', 'CBERERAA', 'ERI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Commercial Bank of Ethiopia South Sudan', 'CBETSSJX', 'SSD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Cooperative Bank of South Sudan', 'COOPSSJX', 'SSD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DAR ES SALAAM STOCK EXCHANGE', 'DSTXTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DASHEN BANK S.C.', 'DASHETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DCB COMMERCIAL BANK PLC', 'DASUTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DEBSWANA DIAMOND COMPANY (PTY) LTD', 'DDCOBWGA', 'BWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DEUTSCHE BANK AG', 'DEUTZAJX', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DEUTSCHE SECURITIES MAURITIUS LTD', 'DEUTMUML', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DEVELOPMENT BANK OF ETHIOPIA', 'DEETETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DEVELOPMENT BANK OF KENYA LIMITED', 'DEVKKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DEVELOPMENT BANK OF RWANDA', 'BRDRRWRW', 'RWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DEVELOPMENT BANK OF SOUTHERN AFRICA LIMITED', 'DESFZAJM', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DFCU BANK LIMITED', 'DFCUUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DIAMA BANK S.A.', 'DIMMGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DIAMOND TRUST BANK KENYA LIMITED', 'DTKEKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DIAMOND TRUST BANK TANZANIA PUBLIC LIMITED COMPANY', 'DTKETZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DIAMOND TRUST BANK UGANDA LIMITED', 'DTKEUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DIB BANK KENYA LTD', 'DUIBKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DIGITAL BANK LIMITED', 'DIGLSCSC', 'SYC');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DISCOVERY BANK LIMITED', 'DISCZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('DUNEARN INVESTMENTS (MAURITIUS) PTE LTD', 'DEIMMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Dahabshiil Bank International', 'DAHBSSOM', 'SOM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Diamond Trust Bank Burundi S.A', 'DTKEBIBIXXX', 'BDI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EAST AFRICA BANK', 'EABDDJJD', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EAST AFRICAN DEVELOPMENT BANK', 'AFDEUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EASTERN AND SOUTHERN AFRICAN TRADE AND DEVELOPMENTBANK', 'ESATKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK - COTE D''IVOIRE S.A.', 'ECOCCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK BENIN', 'ECOCBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK BURKINA', 'ECOCBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK CABO VERDE', 'ECOCCVCV', 'CPV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK CAMEROUN SA.', 'ECOCCMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK GABON', 'ECOCGALI', 'GAB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK GAMBIA', 'ECOCGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK GHANA PLC', 'ECOCGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK GUINEE', 'ECOCGNCN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK GUINEE BISSAU', 'ECOCGWGW', 'GNB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK GUINEE EQUATORIALE', 'ECOCGQGQ', 'GNQ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK KENYA LTD', 'ECOCKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK LIBERIA LIMITED', 'ECOCLRLM', 'LBR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK MALAWI LIMITED', 'ECOCMWMW', 'MWI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK MALI', 'ECOCMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK MOCAMBIQUE, S.A.', 'ECOCMZMP', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK NIGER ECN', 'ECOCNENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK NIGERIA LIMITED', 'ECOCNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK RWANDA', 'ECOCRWRW', 'RWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK SENEGAL', 'ECOCSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK SIERRA LEONE LIMITED', 'ECOCSLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK TANZANIA LIMITED', 'ECOCTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK TOGO', 'ECOCTGTA', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK UGANDA', 'ECOCUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK ZAMBIA', 'ECOCZMLU', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOBANK ZIMBABWE LIMITED', 'ECOCZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ECOWAS BANK FOR INVESTMENT AND DEVELOPMENT', 'EBIDTGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EFG HERMES INTERNATIONAL SECURITIES BROKERAGE (EHISB)', 'EFGHEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EGYPTIAN ARAB LAND BANK', 'ARLBEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EGYPTIAN GULF BANK', 'EGGBEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EGYPTIAN INVESTOR PROTECTION FUND', 'EIPFEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EL SEWEDY ELECTRIC CO. S.A.E.', 'ELSWEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EMIRATES NATIONAL BANK OF DUBAI SAE (FORMERLY BNP PARIBAS SAE,EGYPT)', 'EBILEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EMPOWERBANK LIMITED', 'EMPWZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ENAT BANK S.C', 'ENATETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ENEL GREEN POWER RSA (PTY) LTD', 'ENDEZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ENGEN PETROLEUM LTD', 'ENGZZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EPIC ALGERIE POSTE', 'EPALDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EQUITY BANK (KENYA) LIMITED', 'EQBLKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EQUITY BANK RWANDA PLC', 'EQBLRWRW', 'RWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EQUITY BANK TANZANIA LIMITED', 'EQBLTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EQUITY BANK UGANDA LTD', 'EQBLUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ESKOM TREASURY', 'ESKOZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ETC SURETY SA', 'ETCSCMC2', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EXIM BANK (DJIBOUTI) S.A.', 'EXTNDJJD', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EXIM BANK (UGANDA) LIMITED', 'EXTNUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EXIM BANK COMORES LTD', 'EXTNKMKM', 'COM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EXIMBANK (TANZANIA) LTD', 'EXTNTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('EXPORT DEVELOPMENT BANK OF EGYPT', 'EXDEEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Ecobank Burundi', 'ECOCBIBIXXX', 'BDI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Ecobank Congo', 'ECOCCDKI', 'COD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Ecobank Gambia Limited', 'ECOCGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Ecobank São Tomé e Príncipe', 'ECOCSTST', 'STP');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Energy Bank São Tomé', 'ENRGSTST', 'STP');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Equity Bank Congo', 'EQBLCDKI', 'COD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Equity Bank South Sudan', 'EQBLSSJX', 'SSD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Eritrean Investment and Development Bank', 'EIDBERAA', 'ERI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Export Development Bank Sudan', 'EDBSSDKH', 'SDN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FAISAL ISLAMIC BANK OF EGYPT', 'FIEGEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FAMILY BANK LIMITED', 'FABLKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FARMERS BANK (PTY) LTD', 'FARPSZMA', 'SWZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FAULU MICROFINANCE BANK LIMITED', 'FAUMKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FBC BANK LTD', 'FBCPZWHA', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FBN BANK GAMBIA LIMITED', 'ICBGGMGS', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FBNBANK GHANA LIMITED', 'INCEGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FBNBANK GUINEA SA', 'ICMOGNCN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FBNBANK SENEGAL', 'ICSGSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FBNQUEST MERCHANT BANK LIMITED', 'KDHLNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FDH BANK PLC', 'FDHFMWMW', 'MWI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FFO SECURITIES (PTY) LTD', 'FFOSZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIDELITY BANK GHANA LIMITED', 'FBLIGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIDELITY BANK PLC', 'FIDTNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FINANCE TRUST BANK LTD', 'FTBLUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FINBANK Burundi', 'FIKNBIBIXXX', 'BDI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FINBOND MUTUAL BANK', 'FBMBZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FINCA MICROFINANCE BANK LIMITED', 'FNMITZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FINIBANCO ANGOLA S.A', 'FBCOAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST ABU DHABI BANK MISR S.A.E. (FORMERLY FIRST ABU DHABI BANK)', 'NBADEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST ALLIANCE BANK', 'FALLZMLU', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST ATLANTIC BANK LIMITED', 'FAMCGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST BANK OF NIGERIA LTD', 'FBNINGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST CAPITAL BANK IN ASSOCIATION WITH BARCLAYS', 'FRCGZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST CAPITAL BANK LIMITED', 'FRCGBWGA', 'BWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST CAPITAL BANK LIMITED', 'FRCGZMLU', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST CAPITAL BANK LIMITED', 'BARCZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST CAPITAL BANK PLC., MALAWI', 'FRCGMWMW', 'MWI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST CAPITAL BANK SA', 'FRCGMZMA', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST CITY MONUMENT BANK LIMITED', 'FCMBNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST DISCOUNT HOUSE LIMITED', 'FDHDMWMW', 'MWI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST INTERNATIONAL BANK LIMITED', 'FIBLGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST NATIONAL BANK GHANA LIMITED', 'FIRNGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST NATIONAL BANK OF BOTSWANA LIMITED', 'FIRNBWGX', 'BWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST NATIONAL BANK OF ESWATINI LIMITED', 'FIRNSZMX', 'SWZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST NATIONAL BANK OF LESOTHO', 'FIRNLSMX', 'LSO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST NATIONAL BANK OF NAMIBIA LIMITED', 'FIRNNANX', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRST NATIONAL BANK ZAMBIA LIMITED', 'FIRNZMLX', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRSTBANK SIERRA LEONE LIMITED', 'ICBZSLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FIRSTRAND BANK LIMITED', 'FIRNZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FMDQ SECURITIES EXCHANGE LIMITED', 'FMDQNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FNB MOZAMBIQUE,SA', 'FIRNMZMX', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FNB STOCKBROKING AND PORTFOLIO MANAGEMENT (PTY) LTD', 'BJMRZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FOORD ASSET MANAGEMENT (PROPRIETARY) LIMITED', 'FRDGZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FOUR M TRADERS (PTY) LTD', 'FORMZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FRANSABANK EL DJAZAIR SPA', 'FSBKDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('FSDH MERCHANT BANK LTD', 'FSDHNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Faisal Islamic Bank Sudan', 'FIBSSDKH', 'SDN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('First Bank DRC', 'FIRNCDKI', 'COD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('First International Bank Gambia', 'FIBKGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GABON-POSTE', 'CCPGGALI', 'GAB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GADAA BANK SC', 'GDAAETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GCB BANK PLC', 'GHCBGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GENERALE DE BANQUE DE MAURITANIE POUR L''INVESTISSEMENT ET LE COMMERCE', 'GBMCMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GETBUCKS MICROFINANCE BANK LIMITED', 'GBSPZWHA', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GHANA EXPORT-IMPORT BANK', 'GHEIGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GHANA REVENUE AUTHORITY', 'GHRAGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GLOBAL BANK ETHIOPIA S.C (FORMERLY DEBUB GLOBAL BANK S.C)', 'DEGAETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GLOBAL BANK LIBERIA LIMITED (MEMBER BANKPHB GROUP)', 'PHBXLRLM', 'LBR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GLOBUS BANK LIMITED', 'GLOUNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GOH BETOCH BANK S.C.', 'GOBTETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GOLDMAN SACHS INTERNATIONAL BANK, JOHANNESBURG BRANCH', 'GOSNZAJS', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GRANITE CENTRAL SECURITIES DEPOSITORY', 'GCSOZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GREENWICH MERCHANT BANK LIMITED', 'GMBLNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GRINDROD BANK LIMITED', 'GRIDZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GROUPE OCP', 'GOCPMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GUARANTY TRUST BANK (GAMBIA) LIMITED', 'GTBGGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GUARANTY TRUST BANK (GHANA) LTD', 'GTBIGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GUARANTY TRUST BANK (KENYA) LTD', 'GTBIKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GUARANTY TRUST BANK (LIBERIA) LIMITED', 'GTBILRLM', 'LBR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GUARANTY TRUST BANK (RWANDA) PLC', 'GTBIRWRK', 'RWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GUARANTY TRUST BANK (SL) LTD', 'GTBISLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GUARANTY TRUST BANK (UGANDA) LTD', 'GTBIUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GUARANTY TRUST BANK COTE D''IVOIRE', 'GTBICIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GUARANTY TRUST BANK PLC', 'GTBINGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GUARANTY TRUST BANK TANZANIA LTD', 'GTBITZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GUARDIAN BANK LIMITED', 'GUARKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GULF AFRICAN BANK LTD', 'GAFRKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('GULF BANK ALGERIE', 'AGUBDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Guaranty Trust Bank Gambia', 'GTBINGMG', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HABIB AFRICAN BANK', 'HABLTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HABIB BANK AG ZURICH', 'HBZUKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HABIB BANK LTD MAURITIUS', 'HABBMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HABIB OVERSEAS BANK LIMITED', 'HOBLZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HBZ BANK LIMITED', 'HBZHZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HERITAGE BANK PLC', 'HBCLNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HFC LIMITED', 'HFCOKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HIBRET BANK SHARE COMPANY', 'UNTDETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HIJRA BANK SHARE COMPANY', 'HIJRETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HONGKONG AND SHANGHAI BANKING CORPORATION LTD., THE', 'HSBCMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HOPE PSBANK', 'HPSBNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HOUSING AND DEVELOPMENT BANK', 'HDBKEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HOUSING FINANCE BANK LTD.', 'HFINUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HSBC ALGERIA', 'HSBCDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HSBC BANK EGYPT S.A.E', 'EBBKEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HSBC BANK PLC', 'HSBCZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('HSBC SECURITIES (SOUTH AFRICA) (PTY) LTD', 'SMJCZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Housing and Commerce Bank of Eritrea', 'HCBEERAA', 'ERI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('I AND M BANK (RWANDA) PLC', 'IMRWRWRW', 'RWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('I AND M BANK (T) LIMITED', 'IMBLTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('I AND M BANK (UGANDA) LIMITED', 'ORINUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('I AND M BANK LTD', 'IMBLKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('IHS MAURITIUS CAMEROON', 'IHSAMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('IJG SECURITIES (PTY) LTD', 'IJGLNANA', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('IMARA EDWARDS SECURITIES (PRIVATE) LIMITED', 'IESPZWH2', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INDEPENDENT SECURITIES (PTY) LTD', 'ISECZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INDO-ZAMBIA BANK', 'INZAZMLX', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INDUSTRIAL DEVELOPMENT BANK', 'DIBBEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INDUSTRIAL DEVELOPMENT CORPORATION OF SOUTH AFRICA LIMITED', 'IDCFZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INFRASTRUCTURE DEVELOPMENT BANK OF ZIMBABWE', 'ZDBLZWHA', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INNBUCKS MICROBANK LIMITED', 'NDORZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INTEMBEKO INVESTMENT ADMINISTRATORS (PTY) LTD', 'INTAZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INTERNATIONAL BANK (LIBERIA) LIMITED', 'IBLRLRLM', 'LBR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INTERNATIONAL BANK OF MAURITANIA', 'IBMRMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INTERNATIONAL BUSINESS BANK (IB BANK)', 'IBBABFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INTERNATIONAL BUSINESS BANK DJIBOUTI (IB BANK-DJIBOUTI)', 'IBBDDJJD', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INTERNATIONAL BUSINESS BANK TOGO', 'BTCITGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INTERNATIONAL COMMERCIAL BANK (TANZANIA) LIMITED', 'BKMYTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INTERNATIONAL INVESTMENT BANK S.A, DJIBOUTI', 'ICDJDJJD', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INTERNATIONAL INVESTMENT BANK, SA', 'BESCCVCP', 'CPV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INTERSWITCH LIMITED', 'INTWNGL2', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INVESTEC BANK (MAURITIUS) LIMITED', 'IVESMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INVESTEC BANK LTD.', 'IVESZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INVESTEC MARKETS(PROPRIETARY)LIMITED', 'IVESZAJS', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INVESTEC WEALTH AND INVESTMENT INTERNATIONAL PTY LTD', 'IWIIZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INVESTMENT HOUSE NAMIBIA (PTY) LTD', 'IHNANANX', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('INVESTRUST BANK LTD', 'VSTRZMLU', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Industrial Development Bank Sudan', 'IDBSSDKH', 'SDN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Interbank Burundi S.A', 'IBBUBIBIXXX', 'BDI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('International Bank of Somalia', 'IBSLSOMS', 'SOM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('International Commercial Bank Burundi S.A', 'ICBBBIBIXXX', 'BDI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Ivory Bank South Sudan', 'IVORSSJX', 'SSD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('J.P. MORGAN EQUITIES SOUTH AFRICA PROPRIETARY LIMITED', 'JPMEZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('J.P. MORGAN SECURITIES SOUTH AFRICA PROPRIETARY LIMITED', 'JPMSZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('JAIZ BANK PLC', 'JAIZNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('JPMORGAN CHASE BANK, N.A', 'MGTCZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('JSE INVESTOR SERVICES PTY LTD', 'ULTRZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('JSE LIMITED', 'XJSEZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Jumhouria Bank', 'JUMHLALATRI', 'LBY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('KASADA SERVICES LIMITED', 'KASVMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('KCB BANK KENYA LIMITED', 'KCBLKENX', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('KCB BANK TANZANIA LIMITED', 'KCBLTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('KCB BANK UGANDA LIMITED', 'KCBLUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('KCB Bank Burundi Limited', 'KCBLBIBIXXX', 'BDI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('KELA SECURITIES PTY LTD', 'KESYZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('KENYA WOMEN MICROFINANCE BANK', 'KWMIKENX', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('KEYSTONE BANK (SL) LIMITED', 'PHBXSLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('KEYSTONE BANK LIMITED', 'PLNINGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('KHUMO SECURITIES (PTY) LTD.', 'GENSZAJA', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('KILIMANJARO CO-OPERATIVE BANK LTD', 'KLMJTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('KINGDOM BANK LTD', 'CIFIKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Kenya Commercial Bank South Sudan', 'KCBLSSJX', 'SSD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LA BANQUE AGRICOLE', 'CADKSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LA BANQUE OUTARDE', 'OUTRSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LA FINANCIERE DE L''AFRIQUE DE L''OUEST - LA FINAO', 'FNAOSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LA POSTE TUNISIENNE', 'LPTNTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LA REGIONALE BANK', 'LREGCMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LEFIKA SECURITIES (PTY)LTD', 'LESTZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LESOTHO POSTBANK', 'LESHLSMM', 'LSO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LETSHEGO BANK (T) LIMITED', 'ADVBTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LETSHEGO BANK NAMIBIA LIMITED', 'LFSGNANA', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LIBERIAN BANK FOR DEVELOPMENT AND INVESTMENT', 'LBDELRLM', 'LBR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LIBERTY SECURITIES PROPRIETARY LIMITED', 'LSPRZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LION INTERNATIONAL BANK S.C.', 'LIBSETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LION MICROFINANCE LIMITED', 'LMLDZWHA', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LONGMARK SECURITIES (PTY) LTD', 'ARSYZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('LOTUS BANK LIMITED', 'LOTUNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Libyan Foreign Bank', 'LFBLALTR', 'LBY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Libyan Islamic Bank', 'LIBILYLT', 'LBY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('M-ORIENTAL BANK LTD', 'MORBKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MAENDELEO BANK PLC', 'MBTLTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MAITLAND GROUP SOUTH AFRICA LTD', 'FNSOZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MANDG INVESTMENT MANAGERS (PTY) LTD', 'PPMTZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MANSA BANK', 'MNSACIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MASHREQ BANK', 'MSHQEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MASSMART MANAGEMENT AND FINANCE COMPANY (PTY) LTD', 'MSMFZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MAUBANK LTD', 'MPCBMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MCB SEYCHELLES', 'MCBLSCSC', 'SYC');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MCSD MISR FOR CLEARING,DEPOSITORY AND REGISTRY', 'MCSDEGCA', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MEGABANK (GAMBIA) LIMITED', 'ITBCGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MERCANTILE CREDIT BANK LTD', 'MCBDUGKB', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MERRILL LYNCH SOUTH AFRICA (PROPRIETARY) LIMITED', 'SBKHZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('METBANK LIMITED', 'MBOZZWHA', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MIDBANK', 'MIDBEGCX', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MIDDLE EAST BANK KENYA LTD', 'MIEKKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MINISTERIO DAS FINANCAS - DIRECCAO GERAL DO TESOURO - TESOURARIA GERAL', 'MDFCGWGW', 'GNB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MKOMBOZI COMMERCIAL BANK LTD', 'MKCBTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MOBEX MONEY TRANSFER SERVICES LIMITED', 'MMTSKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MOMENTUM SECURITIES (PTY) LTD.', 'REMAZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MONEYMASTER PAYMENT SERVICE BANK LIMITED', 'MMPSNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MOZA BANCO SA', 'MOZAMZMA', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MTN GROUP FINTECH (PTY) LTD', 'MGFYZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MUCOBA BANK PLC', 'MUOBTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MWALIMU COMMERCIAL BANK PLC', 'MWCOTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MWANGA HAKIKA BANK LIMITED', 'MWCBTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MYBUCKS BANKING CORPORATION LIMITED', 'NFBMMWMW', 'MWI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Mediterranean Bank', 'MEDLLYLT', 'LBY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('MegaBank Gambia Limited', 'MEGBGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Mountain Trade and Development Bank', 'MTDBSSJX', 'SSD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NAMCLEAR (PTY) LIMITED', 'NAMCNANX', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NAMIBIA POST LTD', 'NABBNAN2', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NAMPAK MANAGEMENT SERVICES', 'NAMVZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NATIONAL BANK OF COMMERCE, THE', 'NLCBTZTX', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NATIONAL BANK OF EGYPT', 'NBEGEGCX268', 'EGY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NATIONAL BANK OF ETHIOPIA', 'NBETETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NATIONAL BANK OF KENYA LTD.', 'NBKEKENX', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NATIONAL BANK OF MALAWI', 'NBMAMWMW', 'MWI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NATIONAL BUILDING SOCIETY', 'NABYZWHA', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NATIONAL FINANCIAL CREDIT BANK S.A.', 'NAFCCMCY', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NATIONAL INVESTMENT BANK', 'NIBGGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NATIXIS ALGERIE', 'NATXDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NAVIGARE SECURITIES PTY LTD', 'NAVGZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NBS BANK PLC', 'NBSTMWMW', 'MWI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NCBA BANK KENYA PLC', 'CBAFKENX', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NCBA BANK RWANDA PLC', 'CBAFRWRW', 'RWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NCBA BANK TANZANIA LIMITED', 'CBAFTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NCBA BANK UGANDA LIMITED', 'CBAFUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NEDBANK (LESOTHO) LIMITED', 'NEDLLSMX', 'LSO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NEDBANK ESWATINI LIMITED', 'NESWSZMX', 'SWZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NEDBANK LIMITED', 'NEDSZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NEDBANK MOCAMBIQUE, S.A.', 'UNICMZMX', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NEDBANK NAMIBIA LIMITED', 'NEDSNANX', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NEDBANK ZIMBABWE LIMITED', 'MBCAZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NEDGROUP SECURITIES (PTY) LTD', 'NBOEZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NIB INTERNATIONAL BANK S.C.', 'NIBIETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NIGERIA LNG LIMITED', 'NLNGNGLP', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NIGERIAN EXPORT IMPORT BANK', 'NEXMNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NIGERIAN NATIONAL PETROLEUM COMPANY LIMITED', 'NNPCNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NITENSO', 'NITNZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NMB BANK LIMITED', 'NMBLZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NMB BANK PLC', 'NMIBTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NOAH FINANCIAL INNOVATION (PROPRIETARY) LIMITED', 'METLZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NORTH AFRICA INTERNATIONAL BANK', 'NOAFTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NOUVELLE BANQUE DE MAURITANIE', 'NBMRMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NOUVOBANQ', 'NOVHSCSC', 'SYC');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NOVA MERCHANT BANK LIMITED', 'NVMBNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NSIA BANQUE BENIN SA', 'DBLNBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NSIA BANQUE COTE D''IVOIRE (NSIA BANQUE CI)', 'BIAOCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NSIA BANQUE GUINEE', 'BIAOGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NSIA BANQUE SENEGAL', 'DBLNSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NSIA BANQUE TOGO', 'DBLNTGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('NVEST SECURITIES (PTY) LTD', 'NVSEZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('National Commercial Bank (NCB Libya)', 'NCBLLYLT', 'LBY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('North Africa Bank', 'NABLLYLT', 'LBY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('OFFICE DES CHANGES', 'OFCHMAMR', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('OLD MUTUAL INVESTMENT GROUP(SA) PTY LTD', 'OMAMZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('OMNIBSIC BANK GHANA LIMITED', 'OMBLGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('OMNICANE MANAGEMENT AND CONSULTANCY LIMITED', 'OMMCMUMM', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('OMO BANK SHARE COMPANY', 'OSCOETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('OPPORTUNITY BANK', 'OPUGUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('OPTIMUS BANK LIMITED', 'OPTSNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ORABANK BENIN', 'ORBKBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ORABANK BURKINA-FASO', 'ORBKBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ORABANK COTE D''IVOIRE', 'ORBKCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ORABANK GABON', 'ORBKGALI', 'GAB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ORABANK GUINEE', 'ORBKGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ORABANK GUINEE BISSAU', 'ORBKGWGW', 'GNB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ORABANK MALI', 'ORBKMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ORABANK MAURITANIE', 'ORBKMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ORABANK NIGER', 'ORBKNENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ORABANK SENEGAL', 'ORBKSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ORABANK TOGO', 'ORBKTGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ORANGE BANK AFRICA', 'ORACCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('OROMIA INTERNATIONAL BANK S.C.', 'ORIRETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Omdurman National Bank', 'ONBASDKH', 'SDN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PARALLEX BANK LIMITED', 'PARANGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PARAMOUNT BANK LIMITED', 'PAUTKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PEOPLE''S BANK OF ZANZIBAR, THE', 'PBZATZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PEOPLE''S OWN SAVINGS BANK', 'PWSBZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PEPKOR TRADING (PTY) LTD', 'PEPKZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PERESEC PRIME BROKERS (PTY) LIMITED', 'PRSMZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PHILIPPUS DE WITT (PTY) LTD', 'WIMOZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('POLARIS BANK LIMITED', 'PRDTNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('POSTBANK UGANDA LIMITED', 'UGPBUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PPC LTD', 'PPCPZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PREMIER BANK KENYA LIMITED', 'IFCBKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PREMIUM TRUST BANK LIMITED', 'PTRUNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PRESCIENT FUND SERVICES', 'PRVGZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PRESCIENT SECURITIES PTY LTD', 'PCNTZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PRIME BANK LTD.', 'PRIEKENX', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PROVIDENCE LIFE LIMITED, PCC', 'PLLPMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PROVIDUSBANK PLC', 'UMPLNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PRUDENTIAL BANK LIMITED', 'PUBKGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('PSG SECURITIES LIMITED', 'PSSYZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Premier Bank Somalia', 'PRBKSOMS', 'SOM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('QATAR NATIONAL BANK (QNB)', 'QNBAMRMU', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('QATAR NATIONAL BANK-TUNISIA', 'BTQITNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('QC FINANCE', 'QCFNMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Qatar National Bank Sudan', 'QNBSDSD', 'SDN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('RAFIKI MICROFINANCE BANK', 'RMFBKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('RAMMIS BANK SHARE COMPANY', 'RMSIETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('RAND MERCHANT BANK NIGERIA LIMITED', 'FIRNNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('RAND REFINERY LIMITED', 'RRPLZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('RAYS MICRO FINANCE INSTITUTION S.C', 'RMFIETA2', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('RENCAP SECURITIES (PTY) LTD', 'SBJMZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('REPUBLIC BANK (GHANA) PLC', 'HFCAGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('RESERVE BANK OF MALAWI', 'RBMAMWMR', 'MWI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('RESERVE BANK OF ZIMBABWE', 'REBZZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('RMB INTERNATIONAL (MAURITIUS) LTD', 'FIRNMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('RMB SECURITIES (PTY) LIMITED', 'RMBSZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('RMB STOCKBROKING (PTY) LTD', 'FNEQZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ROKEL COMMERCIAL BANK (SIERRA LEONE) LTD.', 'RCBKSLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ROYAL MONZE INSTITUTE OF MEDICAL EVANGELISM LIMITED', 'RMIEZML2', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Rawbank', 'RAWBCDKI', 'COD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SA STOCK BROKERS (PTY) LTD', 'SBPTZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SABA AFRICAN BANK AS', 'SAFBDJJD', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SALAAM AFRICAN BANK', 'ISEADJJD', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SALAAM BANK LIMITED', 'TOPFUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SALAAM MICROFINANCE BANK LIMITED', 'SLMIKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SANLAM INVESTMENT MANAGEMENT', 'SANLZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SANLAM PRIVATE WEALTH (PTY) LTD', 'GBSEZAJ3', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SANLAM SPECIALISED FINANCE PROPRIETARY LIMITED', 'GBSEZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SAPELLE INTERNATIONAL BANK LIBERIA LIMITED (SIBLL)', 'GNERLRLM', 'LBR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SARPONG CAPITAL MARKETS LIMITED', 'SRCMGHA2', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SASFIN BANK LIMITED', 'SASFZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SASFIN SECURITIES (PTY) LTD', 'SFPSZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SBG SECURITIES (PTY) LIMITED', 'SBEQZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SBI (MAURITIUS) LTD', 'INILMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SBM BANK (KENYA) LIMITED', 'SBMKKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SBM BANK(MAURITIUS)LTD', 'STCBMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SCB CAMEROUN', 'BCMACMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SCM DMA (PTY) LTD', 'SCDPZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SECONDSTAX LIMITED', 'SECXGHA2', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SERITI POWER (PTY) LTD', 'SCHYZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SEYCHELLES COMMERCIAL BANK', 'SEYSSCSC', 'SYC');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SG FRANKEL POLLAK SECURITIES', 'SFPSZAJJ011', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SHABELLE BANK SHARE COMPANY', 'SBEEETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SIDAMA BANK S.C', 'SDMAETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SIDIAN BANK LIMITED', 'SIDNKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SIERRA LEONE COMMERCIAL BANK LTD', 'SLCBSLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SIGNATURE BANK LIMITED', 'SNIGNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SIINQEE BANK S,C', 'SINQETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SILICA ADMINISTRATION SERVICES PTY LTD', 'SILCZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SILK ROAD INTERNATIONAL BANK S.A', 'SRIBDJJD', 'DJI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SILVER BANK LIMITED', 'BTBLMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SIMONIS STORM SECURITIES (PTY) LTD', 'FLMSNANX', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SISHEN IRON ORE COMPANY (PTY) LTD', 'SIOCZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SKI CARBON BLACK (MAURITIUS) LIMITED', 'SKCBMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SKYE BANK (SL) LTD', 'SKYESLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SKYE BANK GUINEA S.A.', 'SKYEGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIAL SECURITY AND NATIONAL INSURANCE TRUST', 'SSNTGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE DE FINANCEMENT DU COMMERCE ET DE L''INDUSTRIE S.A.', 'SFCOGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE DES POSTES DU TOGO', 'SOTOTGTL', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE GENERALE ALGERIE', 'SOGEDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE GENERALE BENIN', 'SOGEBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE GENERALE BENIN SUCCURSALE DU TOGO', 'SOGETGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE GENERALE BURKINA FASO', 'SGBBBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE GENERALE CAMEROUN', 'SGCMCMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE GENERALE COTE D''IVOIRE', 'SGCICIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE GENERALE DE BANQUES EN GUINEE', 'SGGNGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE GENERALE DE BANQUES EN GUINEE EQUATORIALE', 'SGGEGQGQ', 'GNQ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE GENERALE GHANA PLC', 'SSEBGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE GENERALE MAROCAINE DE BANQUES', 'SGMBMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE GENERALE MAURITANIE', 'BIIMMRMR', 'MRT');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE GENERALE OFFSHORE', 'SGTGMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE GENERALE SENEGAL', 'SGSNSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE INTER-AFRICAINE DE BANQUE', 'SIABTGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE IVOIRIENNE DE BANQUE', 'SIVBCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE NATIONALE DES POSTES ET DES SERVICES FINANCIERS (SNPSF)', 'HAHMKMKM', 'COM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE NIGERIENNE DE BANK (SONIBANK), SUCCURSALE DU BENIN', 'SOCNBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE NIGERIENNE DE BANQUE', 'SOCNNENI', 'NER');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOCIETE TUNISIENNE DE BANQUE', 'STBKTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOUTH AFRICAN RESERVE BANK', 'SARBZAJ4', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SOUTHCHESTER INVESTMENT MANAGERS', 'SIVMZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANBIC BANK', 'SBICCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANBIC BANK BOTSWANA LIMITED', 'SBICBWGX', 'BWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANBIC BANK GHANA LTD', 'SBICGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANBIC BANK KENYA LIMITED', 'SBICKENX', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANBIC BANK TANZANIA LIMITED', 'SBICTZTX', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANBIC BANK UGANDA LIMITED', 'SBICUGKX', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANBIC BANK ZAMBIA LTD.', 'SBICZMLX', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANBIC BANK ZIMBABWE LIMITED', 'SBICZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANBIC IBTC BANK PLC', 'SBICNGLX', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANBIC IBTC STOCKBROKERS LIMITED', 'STIKNGL2', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD BANK (MAURITIUS) LIMITED', 'SBICMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD BANK DE ANGOLA S.A.', 'SBICAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD BANK ESWATINI LIMITED', 'SBICSZMX', 'SWZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD BANK NAMIBIA LIMITED', 'SBNMNANX', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD BANK OF SOUTH AFRICA LIMITED,THE', 'SBZAZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD BANK PLC', 'SBICMWMX', 'MWI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD BANK SA', 'SBICMZMX', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK', 'SCBLZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK (MAURITIUS) LTD', 'SCBLMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK ANGOLA SA', 'SCBLAOLU', 'AGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK BOTSWANA LTD.', 'SCHBBWGX', 'BWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK CAMEROON S.A.', 'SCBLCMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK COTE D''IVOIRE', 'SCBLCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK GAMBIA LIMITED', 'SCBLGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK GHANA PLC', 'SCBLGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK KENYA LIMITED', 'SCBLKENX', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK NIGERIA LIMITED', 'SCBLNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK SIERRA LEONE LTD', 'SCBLSLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK TANZANIA LTD', 'SCBLTZTX', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK UGANDA LIMITED', 'SCBLUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK ZAMBIA PLC', 'SCBLZMLX', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD CHARTERED BANK ZIMBABWE LIMITED', 'SCBLZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANDARD LESOTHO BANK LTD.', 'SBICLSMX', 'LSO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STANLIB ASSET MANAGEMENT', 'LBAMZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STATE BANK OF INDIA', 'SBINZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STERLING BANK PLC', 'NAMENGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STEWARD BANK LIMITED', 'STBLZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STRATE', 'STRAZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('STRATE (PTY) LTD', 'STRAZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SUCCESS MICROFINANCE BANK LIMITED', 'SMFBZWHA', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SUNTRUST BANK NIGERIA LIMITED', 'SUTGNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SUNU BANK TOGO', 'BPECTGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SWAZILAND DEVELOPMENT AND SAVINGS BANK', 'SDSBSZMB', 'SWZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SWISS RE AFRICA LTD', 'SWREZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('SYGNIA SECURITIES (PTY) LTD', 'SYSYZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Sahara Bank', 'SAHALYLT', 'LBY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Salaam Somali Bank', 'SALASOMS', 'SOM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Savings and Social Development Bank', 'SSDBSDKH', 'SDN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Standard Bank Congo', 'SBICCDKI', 'COD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Standard Chartered Bank Gambia', 'SCBLGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Sudanese French Bank', 'SUFBSDSD', 'SDN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TAJ BANK LIMITED', 'TAJJNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TAKORADI INTERNATIONAL COMPANY', 'TAKOGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TANZANIA AGRICULTURAL DEVELOPMENT BANK', 'TZADTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TANZANIA COMMMERCIAL BANK PLC', 'TAPBTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TANZANIA REVENUE AUTHORITY', 'TARATZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TELKOM SA LIMITED', 'TELKZAJP', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TERRA PAYMENT SERVICES (MAURITIUS)', 'TPSVMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TERRA PAYMENT SERVICES SOUTH AFRICA (RF) (PTY) LTD', 'TPSVZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('THARISA MINERALS', 'THMNZAJ2', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('THE CO-OPERATIVE BANK OF KENYA LTD', 'KCOOKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('THE COMPANY FOR HABITAT AND HOUSING IN AFRICA (SHELTER - AFRIQUE)', 'SLTEKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('THE FOSCHINI GROUP LIMITED', 'FOHGZAJC', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('THE GOVERNMENT OF THE RSA IN ITS NATIONAL TREASURY', 'TALMZAJP', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('THE HOUSING BANK FOR TRADE AND FINANCE ALGERIA', 'HBHODZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('THE MAURITIUS COMMERCIAL BANK (MADAGASCAR) SA', 'MCBLMGMG', 'MDG');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('THE MAURITIUS COMMERCIAL BANK LIMITED', 'MCBLMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TITAN TRUST BANK LIMITED', 'TTRUNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TRANSNET SOC LIMITED', 'TNETZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TROPICAL BANK LTD', 'TROAUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TRUST BANK ALGERIA', 'TBALDZAL', 'DZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TRUST BANK LTD', 'TBLTGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TRUSTCO BANK NAMIBIA', 'TRNANANX', 'NAM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TRUSTLINK (PTY) LTD', 'LINKZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TSB SECURITIES (PTY) LTD', 'PLRPZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TSEDEY BANK SC', 'TSDYETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TSEHAY BANK S.C', 'TSCPETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TUNIS INTERNATIONAL BANK', 'TUIBTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TUNISIAN FOREIGN BANK', 'UTUBTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TUNISIAN SAUDI BANK', 'TSIDTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('TYMEBANK', 'CBZAZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Trust African Bank', 'TRAFSOMS', 'SOM');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Trust Bank Limited', 'TRUSTGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Trust Merchant Bank (TMB)', 'TMBCCDKI', 'COD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UBA BURKINA', 'BIBUBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UBA DRC (United Bank for Africa)', 'UNAFCDKI', 'COD');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UBA GABON', 'UNAFGALI', 'GAB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UBA KENYA BANK LIMITED', 'UNAFKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UBA MOCAMBIQUE,SA', 'UNAFMZMA', 'MOZ');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UBANK LIMITED', 'YOUBZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UBS SOUTH AFRICA (PROPRIETARY) LIMITED', 'UBSWZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UCHUMI COMMERCIAL BANK LTD', 'UCCTTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UGANDA SECURITIES EXCHANGE LIMITED', 'UGSXUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UMNIA BANK', 'UMNIMAMM', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNION BANCAIRE POUR LE COMMERCE ET L''INDUSTRIE', 'UBCITNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNION BANK OF CAMEROON PLC. (UBC PLC.)', 'UCMACMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNION BANK OF NIGERIA PLC', 'UBNINGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNION GABONAISE DE BANQUE', 'UGABGALI', 'GAB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNION INTERNATIONALE DE BANQUES', 'UIBKTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNION MAROCAINE DE BANQUES', 'UMABMAMC', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNION TOGOLAISE DE BANQUE', 'UNTBTGTG', 'TGO');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNION TRUST BANK LIMITED', 'UTBSSLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITED BANK FOR AFRICA (GHANA) LTD', 'STBGGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITED BANK FOR AFRICA (LIBERIA) LIMITED', 'UNAFLRLM', 'LBR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITED BANK FOR AFRICA (S/L) LTD', 'UNAFSLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITED BANK FOR AFRICA (TANZANIA) LIMITED', 'UNAFTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITED BANK FOR AFRICA (UGANDA) LTD', 'UNAFUGKA', 'UGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITED BANK FOR AFRICA BENIN', 'COBBBJBJ', 'BEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITED BANK FOR AFRICA CAMEROUN S.A.', 'UNAFCMCX', 'CMR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITED BANK FOR AFRICA COTE D''IVOIRE', 'UNAFCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITED BANK FOR AFRICA GUINEA', 'UBAGGNCN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITED BANK FOR AFRICA MALI SA', 'UNAFMLBA', 'MLI');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITED BANK FOR AFRICA PLC', 'UNAFNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITED BANK FOR AFRICA SENEGAL', 'UNAFSNDA', 'SEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITED BANK FOR AFRICA ZAMBIA LIMITED', 'UNAFZMLU', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNITY BANK PLC', 'ICITNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('UNIVERSAL MERCHANT BANK LTD', 'MBGHGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('URWEGO BANK PLC', 'UOBRRWRW', 'RWA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('VALOR FINANCIAL MAURITIUS LTD', 'VFIMMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('VBS MUTUAL BANK', 'VBSMZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('VENTURE GARDEN NIGERIA LIMITED', 'VEGNNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('VERSUS BANK', 'VSBKCIAB', 'CIV');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('VICTORIA COMMERCIAL BANK PLC', 'VICMKENA', 'KEN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('VISIO FUND MANAGEMENT PTY LTD', 'VMGCZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('VISTA BANK (SL) LIMITED', 'FSTISLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('VISTA BANK BURKINA SA', 'BICIBFBX', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('VISTA BANK GUINEE SA', 'FIBLGNGN', 'GIN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('VODACOM GROUP LTD', 'VGRPZAJM', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('VOLKSWAGEN OF SOUTH AFRICA (PTY) LTD', 'VWAGZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('VUNANI CAPITAL MARKETS(PTY)LTD', 'VCMTZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('VUNANI SECURITIES (PROPRIETARY) LIMITED', 'CEQPZAJJ', 'ZAF');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('WANA CORPORATE', 'WACOMAMM', 'MAR');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('WARWYCK PRIVATE BANK LTD', 'WPBLMUMU', 'MUS');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('WEGAGEN BANK S.C.', 'WEGAETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('WEMA BANK PLC', 'WEMANGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('WENDKUNI BANK INTERNATIONAL', 'WBIFBFBF', 'BFA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('WIFACK INTERNATIONAL BANK', 'WKIBTNTT', 'TUN');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Wahda Bank', 'WAHDLYLT', 'LBY');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('YETU MICROFINANCE BANK PLC', 'YETMTZTZ', 'TZA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ZAMBIA INDUSTRIAL COMMERCIAL BANK LIMITED', 'ZICBZMLU', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ZAMBIA NATIONAL COMMERCIAL BANK PLC', 'ZNCOZMLU', 'ZMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ZAMZAM BANK S.C', 'ZAMZETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ZB BANK LTD', 'ZBCOZWHX', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ZEMEN BANK S.C.', 'ZEMEETAA', 'ETH');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ZENITH BANK (GHANA) LTD', 'ZEBLGHAC', 'GHA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ZENITH BANK (SIERRA LEONE) LIMITED', 'ZESLSLFR', 'SLE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ZENITH BANK GAMBIA', 'ZEIBGMGM', 'GMB');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ZENITH BANK PLC', 'ZEIBNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ZENITH PENSIONS CUSTODIAN LIMITED', 'ZEPCNGLA', 'NGA');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('ZIMBABWE WOMEN''S MICROFINANCE BANK LIMITED', 'ZWMFZWHA', 'ZWE');
-INSERT INTO commercial_banks (name, swift_code, country_code) VALUES ('Zenith Bank Gambia Limited', 'ZEIBGMGM', 'GMB');
+    execute <<~'SQL'
+      INSERT INTO commercial_banks (name, swift_code, country_code) VALUES
+      ('4 AFRICA EXCHANGE PTY LTD', 'AFEPZAJ2', 'ZAF'),
+      ('4 AFRICA EXCHANGE REGISTRY PROPRIETARY LIMITED', 'AERPZAJ2', 'ZAF'),
+      ('4AX NOMINEES RF PTY LTD', 'NOPYZAJ2', 'ZAF'),
+      ('9 PAYMENT SERVICE BANK LIMITED', 'IPSBNGLA', 'NGA'),
+      ('AB BANK RWANDA PLC', 'ABBRRWRW', 'RWA'),
+      ('AB BANK ZAMBIA LTD.', 'ABBAZMLU', 'ZMB'),
+      ('ABAY BANK S.C.', 'ABAYETAA', 'ETH'),
+      ('ABC BANKING CORPORATION LTD', 'ABCKMUMU', 'MUS'),
+      ('ABC CAPITAL BANK LIMITED', 'ABCFUGKA', 'UGA'),
+      ('ABC STOCKBROKERS (PRIVATE) LIMITED', 'ABTIZWH2', 'ZWE'),
+      ('ABS SA', 'ABSHSNDA', 'SEN'),
+      ('ABSA ASSET MANAGEMENT (PTY) LTD', 'ABVSZAJJ', 'ZAF'),
+      ('ABSA BANK (MAURITIUS) LIMITED', 'BARCMUMU', 'MUS'),
+      ('ABSA BANK (SEYCHELLES) LIMITED', 'BARCSCSC', 'SYC'),
+      ('ABSA BANK BOTSWANA LIMITED', 'BARCBWGX', 'BWA'),
+      ('ABSA BANK KENYA PLC', 'BARCKENX', 'KEN'),
+      ('ABSA BANK LIMITED', 'ABSAZAJJ', 'ZAF'),
+      ('ABSA BANK MOCAMBIQUE,SA', 'ABMZMZMA', 'MOZ'),
+      ('ABSA BANK OF GHANA LIMITED', 'BARCGHAC', 'GHA'),
+      ('ABSA BANK TANZANIA LIMITED', 'BARCTZTZ', 'TZA'),
+      ('ABSA BANK UGANDA LIMITED', 'BARCUGKX', 'UGA'),
+      ('ABSA BANK ZAMBIA PLC', 'BARCZMLX', 'ZMB'),
+      ('ABSA CAPITAL SECURITIES PROPRIETARY LIMITED', 'ABSAZAJ3', 'ZAF'),
+      ('ABSA SECURITIES NIGERIA LIMITED', 'ASNINGL2', 'NGA'),
+      ('ABSA STOCKBROKERS AND PORTFOLIO MANAGEMENT (PTY) LTD', 'ABSAZAJ2', 'ZAF'),
+      ('ABU DHABI COMMERCIAL BANK - EGYPT ADCB EGYPT', 'ADCBEGCX', 'EGY'),
+      ('ABU DHABI ISLAMIC BANK - EGYPT', 'ABDIEGCA', 'EGY'),
+      ('ACCESBANQUE MADAGASCAR', 'ABMGMGMG', 'MDG'),
+      ('ACCESS BANK (GHANA) PLC', 'ABNGGHAC', 'GHA'),
+      ('ACCESS BANK (KENYA) PLC', 'ABNGKENA', 'KEN'),
+      ('ACCESS BANK (RWANDA) PLC', 'BKORRWRW', 'RWA'),
+      ('ACCESS BANK (SOUTH AFRICA) LIMITED', 'BATHZAJJ', 'ZAF'),
+      ('ACCESS BANK BOTSWANA LIMITED', 'FMBZBWGA', 'BWA'),
+      ('ACCESS BANK CAMEROON PLC', 'ABNGCMCX', 'CMR'),
+      ('ACCESS BANK GAMBIA', 'ACGAGMGF', 'GMB'),
+      ('ACCESS BANK GUINEE', 'ABNGGNGN', 'GIN'),
+      ('ACCESS BANK MOZAMBIQUE, SA', 'ABNGMZMA', 'MOZ'),
+      ('ACCESS BANK PLC', 'ABNGNGLA', 'NGA'),
+      ('ACCESS BANK SIERRA LEONE LIMITED', 'ABSFSLFR', 'SLE'),
+      ('ACCESS BANK ZAMBIA LIMITED', 'AZAMZMLU', 'ZMB'),
+      ('ACCESS MICROFINANCE BANK TANZANIA LTD', 'ACTZTZTZ', 'TZA'),
+      ('ACCESSBANK LIBERIA LIMITED', 'ACLILRLM', 'LBR'),
+      ('ADDIS INTERNATIONAL BANK S.C.', 'ABSCETAA', 'ETH'),
+      ('AFC COMMERCIAL BANK LIMITED', 'AGRZZWHA', 'ZWE'),
+      ('AFG BANK COTE D''IVOIRE', 'AFGICIAB', 'CIV'),
+      ('AFG BANK MADAGASCAR', 'AFGMMGMG', 'MDG'),
+      ('AFRASIA BANK LIMITED', 'AFBLMUMU', 'MUS'),
+      ('AFRICA FINANCE CORPORATION', 'AFFCNGLA', 'NGA'),
+      ('AFRICAN BANK LIMITED', 'AFRCZAJJ', 'ZAF'),
+      ('AFRICAN BANKING CORP.OF ZIMBABWE LTD.', 'FMBZZWHX', 'ZWE'),
+      ('AFRICAN BANKING CORPORATION LTD', 'ABCLKENA', 'KEN'),
+      ('AFRICAN BANKING CORPORATION TANZANIA LIMITED', 'FMBZTZTX', 'TZA'),
+      ('AFRICAN BANKING CORPORATION ZAMBIA', 'FMBZZMLX', 'ZMB'),
+      ('AFRICAN CENTURY LIMITED', 'AFCNZWHA', 'ZWE'),
+      ('AFRICAN DEVELOPMENT BANK', 'AFDBCIAB', 'CIV'),
+      ('AFRICAN EXPORT IMPORT BANK', 'AFXMEGCA', 'EGY'),
+      ('AFRICAN EXPORT-IMPORT BANK', 'PASSNGLA', 'NGA'),
+      ('AFRICAN LEASE GUINEE', 'ALGCGNGN', 'GIN'),
+      ('AFRICAN LEASE TOGO SA', 'ALTBTGTG', 'TGO'),
+      ('AFRICAN UNION', 'AFUNETAA', 'ETH'),
+      ('AFRIFOCUS SECURITIES (PTY) LTD', 'AFRFZAJJ', 'ZAF'),
+      ('AFRILAND FIRST BANK', 'CCEICMCX', 'CMR'),
+      ('AFRILAND FIRST BANK COTE D''IVOIRE', 'OMFNCIAB', 'CIV'),
+      ('AFRILAND FIRST BANK GUINEE S A', 'CCEIGNGN', 'GIN'),
+      ('AFRILAND FIRST BANK LIBERIA LIMITED', 'CCEILRLM', 'LBR'),
+      ('AFRILAND FIRST BANK UGANDA LIMITED', 'CCEIUGKA', 'UGA'),
+      ('AGIB BANK LTD', 'AGIXGMGM', 'GMB'),
+      ('AGRICULTURAL BANK OF EGYPT (A.B.E)', 'BDACEGCA', 'EGY'),
+      ('AGRICULTURAL DEVELOPMENT BANK', 'ADNTGHAC', 'GHA'),
+      ('AHADU BANK S.C.', 'AHUUETAA', 'ETH'),
+      ('AHLI UNITED BANK (EGYPT) S.A.E.', 'DEIBEGCX', 'EGY'),
+      ('AIR SENEGAL SA', 'ASSASNDA', 'SEN'),
+      ('AKIBA COMMERCIAL BANK PLC', 'AKCOTZTZ', 'TZA'),
+      ('AL AHLI BANK OF KUWAIT - EGYPT S.A.E.', 'ECBAEGCA', 'EGY'),
+      ('AL AHLY PHAROS SECURITIES BROKERAGE,SAE', 'PHAREGCA', 'EGY'),
+      ('AL BARAKA BANK TUNISIA', 'BEITTNTT', 'TUN'),
+      ('AL BARID BANK', 'ABBMMAMC', 'MAR'),
+      ('AL SALAM BANK ALGERIA', 'SALGDZAL', 'DZA'),
+      ('AL SALAM BANK SEYCHELLES LIMITED', 'BMUSSCSC', 'SYC'),
+      ('ALBARAKA BANK', 'ALBRZAJJ', 'ZAF'),
+      ('ALBARAKA BANK EGYPT', 'ABRKEGCA', 'EGY'),
+      ('ALEXANDER FORBES GROUP SERVICES (PTY) LTD', 'AFGSZAJJ', 'ZAF'),
+      ('ALGERIAN UNION BANK-SA (AUB-SA)', 'AUBMMRMR', 'MRT'),
+      ('ALIOS FINANCE (SAFCA)', 'SOACCIAB', 'CIV'),
+      ('ALLAN GRAY LIMITED', 'GRAYZAJC', 'ZAF'),
+      ('ALTRON FINANCE (PTY) LTD', 'ALTFZAJJ', 'ZAF'),
+      ('ALUBAF INTERNATIONAL BANK TUNIS', 'ALUBTNTT', 'TUN'),
+      ('AMANA BANK LIMITED', 'AMNNTZTZ', 'TZA'),
+      ('AMEN BANK', 'CFCTTNTT', 'TUN'),
+      ('AMHARA BANK S.C.', 'AMHRETAA', 'ETH'),
+      ('ANCHOR STOCKBROKERS (PTY) LTD', 'ASTYZAJJ', 'ZAF'),
+      ('ANDISA CAPITAL (PTY) LTD', 'ANDSZAJJ', 'ZAF'),
+      ('ANGLO AMERICAN SA FINANCE LIMITED', 'AACLZAJJ', 'ZAF'),
+      ('ARAB AFRICAN INTERNATIONAL BANK', 'ARAIEGCX', 'EGY'),
+      ('ARAB BANK FOR ECONOMIC DEVELOPMENT IN AFRICA', 'AEDAEGCA', 'EGY'),
+      ('ARAB BANK PLC', 'ARABEGCX', 'EGY'),
+      ('ARAB BANK PLC', 'ARABMAMC250', 'MAR'),
+      ('ARAB BANK PLC ALGERIA', 'ARABDZAL', 'DZA'),
+      ('ARAB BANK PLC.', 'ARABMAMC', 'MAR'),
+      ('ARAB BANKING CORPORATION', 'ABCOTNTT', 'TUN'),
+      ('ARAB BANKING CORPORATION - ALGERIA', 'ABCODZAL', 'DZA'),
+      ('ARAB BANKING CORPORATION EGYPT', 'MRBAEGCX', 'EGY'),
+      ('ARAB INTERNATIONAL BANK', 'ARIBEGCX', 'EGY'),
+      ('ARAB INVESTMENT BANK', 'AINBEGCA', 'EGY'),
+      ('ARAB TUNISIAN BANK', 'ATBKTNTT', 'TUN'),
+      ('ARB APEX BANK LIMITED', 'AREXGHAC', 'GHA'),
+      ('ARGON SECURITIES (PTY) LTD', 'AONSZAJJ', 'ZAF'),
+      ('ARQAAM SECURITIES BROKERAGE, S.A.E. EGYPT', 'ARQAEGCA', 'EGY'),
+      ('ASSET MANAGEMENT CORPORATION OF NIGERIA', 'AMNGNGLA', 'NGA'),
+      ('ATISA SECURITIES (PTY) LTD', 'WWSEZAJJ', 'ZAF'),
+      ('ATTIJARI BANK', 'BSTUTNTT', 'TUN'),
+      ('ATTIJARI BANK MAURITANIE', 'BCMAMRMR', 'MRT'),
+      ('ATTIJARI INTERNATIONAL BANK S.A. - BANQUE OFF SHORE', 'AIBSMAMT', 'MAR'),
+      ('ATTIJARIWAFA BANK (FORMERLY BANQUE COMMERCIALE DU MAROC)', 'BCMAMAMC', 'MAR'),
+      ('ATTIJARIWAFA BANK EGYPT S.A.E', 'BCBIEGCX', 'EGY'),
+      ('AVIOR RESEARCH (PTY) LTD', 'GDPTZAJJ', 'ZAF'),
+      ('AWASH BANK S.C', 'AWINETAA', 'ETH'),
+      ('AXON SECLEND (PTY) LTD', 'AXSPZAJ2', 'ZAF'),
+      ('AZANIA BANK LIMITED', 'AZANTZTZ', 'TZA'),
+      ('Access Bank Gambia Limited', 'ABNGGMGM', 'GMB'),
+      ('Access Bank RDC', 'ABNGCDKI', 'COD'),
+      ('Afriland First Bank Congo', 'AFCBCDKI', 'COD'),
+      ('Agricultural Bank of Sudan', 'ABSDSDKH', 'SDN'),
+      ('Al Salam Bank Sudan', 'ALSASDKH', 'SDN'),
+      ('Al Wafa Bank', 'WAFALYLT', 'LBY'),
+      ('Amal Bank', 'AMALSOMS', 'SOM'),
+      ('Arab Gambian Islamic Bank', 'AGIBGMGM', 'GMB'),
+      ('B.I.C.I. DU GABON', 'BICIGALX', 'GAB'),
+      ('B.P. BERNSTEIN', 'BERNZAJJ', 'ZAF'),
+      ('BANCO ANGOLANO DE INVESTIMENTOS, SA', 'BAIPAOLU', 'AGO'),
+      ('BANCO ANGOLANO NEGOCIOS E COMERCIO', 'ANCEAOLU', 'AGO'),
+      ('BANCO BAI CABO VERDE, S.A', 'BAIPCVCV', 'CPV'),
+      ('BANCO BIC CABO VERDE, S.A.', 'BAVDCVCP', 'CPV'),
+      ('BANCO BIC, S.A.', 'BCCBAOLU', 'AGO'),
+      ('BANCO BIG MOCAMBIQUE, S.A.', 'BDIGMZMA', 'MOZ'),
+      ('BANCO CAIXA GERAL DE ANGOLA', 'BCGAAOLU', 'AGO'),
+      ('BANCO COMERCIAL ANGOLANO', 'COMLAOLU', 'AGO'),
+      ('BANCO COMERCIAL DO ATLANTICO', 'BCATCVCV', 'CPV'),
+      ('BANCO COMERCIAL DO HUAMBO', 'BCHUAOLU', 'AGO'),
+      ('BANCO DA AFRICA OCIDENTAL SA', 'BAOBGWGW', 'GNB'),
+      ('BANCO DA UNIAO', 'BDUGGWGW', 'GNB'),
+      ('BANCO DE CABO VERDE', 'BCAVCVCV', 'CPV'),
+      ('BANCO DE DESENVOLVIMENTO DE ANGOLA', 'BDAAAOLU', 'AGO'),
+      ('BANCO DE FOMENTO ANGOLA, S.A.', 'BFMXAOLU', 'AGO'),
+      ('BANCO DE FOMENTO INTERNACIONAL, S.A. (FORMERLY BANCO FIDUCIARIO INTERNACIONAL (I.F.I.), S.A.)', 'BFIICVCV', 'CPV'),
+      ('BANCO DE INVESTIMENTO RURAL, S.A.', 'BIRVAOLU', 'AGO'),
+      ('BANCO DE MOCAMBIQUE', 'BMOCMZMA', 'MOZ'),
+      ('BANCO DE NEGOCIOS INTERNACIONAL', 'BNICAOLU', 'AGO'),
+      ('BANCO DE SABADELL, S.A.', 'BSABMAMC', 'MAR'),
+      ('BANCO ECONOMICO, S.A.', 'BESCAOLU', 'AGO'),
+      ('BANCO INTERATLANTICO, SARL', 'CGDICVCP', 'CPV'),
+      ('BANCO INTERNACIONAL DE MOCAMBIQUE, S.A', 'BIMOMZMX', 'MOZ'),
+      ('BANCO KEVE, SA', 'BRDKAOLU', 'AGO'),
+      ('BANCO MAIS, S.A.', 'PUADAOLU', 'AGO'),
+      ('BANCO MAIS, SA', 'MAISMZMA', 'MOZ'),
+      ('BANCO MILLENNIUM ATLANTICO, S.A.', 'PRTLAOLU', 'AGO'),
+      ('BANCO NACIONAL DE ANGOLA', 'BNANAOLD', 'AGO'),
+      ('BANCO NACIONAL DE GUINEA ECUATORIAL (BANGE)', 'NAGCGQGQ', 'GNQ'),
+      ('BANCO NACIONAL DE INVESTIMENTO, SA', 'BNIMMZMP', 'MOZ'),
+      ('BANCO POSTAL, S.A.', 'POTAAOLU', 'AGO'),
+      ('BANCO PRESTIGIO, SA.', 'PRTSAOLU', 'AGO'),
+      ('BANCO PRIVADO ATLANTICO', 'BAPANANX', 'NAM'),
+      ('BANCO PRIVADO INTERNACIONAL (IFI)', 'PRIFCVCV', 'CPV'),
+      ('BANCO SOCIETE GENERALE (MOCAMBIQUE) S.A.', 'SOGEMZMA', 'MOZ'),
+      ('BANCO SOL, S.A.', 'SOLOAOLU', 'AGO'),
+      ('BANCO VALOR BANK', 'BVBXAOLU', 'AGO'),
+      ('BANCO VTB AFRICA, S.A.', 'VTBLAOLU', 'AGO'),
+      ('BANCO YETU, S.A.', 'YETUAOLU', 'AGO'),
+      ('BANGE BANK CAMEROUN (BANGE CMR S.A)', 'NAGCCMCM', 'CMR'),
+      ('BANK AL-MAGHRIB', 'BKAMMAMR', 'MAR'),
+      ('BANK ASSAFA', 'ASSFMAMC', 'MAR'),
+      ('BANK BIC NAMIBIA LIMITED', 'BBNLNANA', 'NAM'),
+      ('BANK GABORONE LIMITED', 'BGLIBWGX', 'BWA'),
+      ('BANK OF ABYSSINIA', 'ABYSETAA', 'ETH'),
+      ('BANK OF AFRICA', 'BMCEMAMC', 'MAR'),
+      ('BANK OF AFRICA - BENIN', 'AFRIBJBJ', 'BEN'),
+      ('BANK OF AFRICA - BURKINA FASSO', 'AFRIBFBF', 'BFA'),
+      ('BANK OF AFRICA - COTE D''IVOIRE', 'AFRICIAB', 'CIV'),
+      ('BANK OF AFRICA - GHANA LIMITED', 'AMMAGHAC', 'GHA'),
+      ('BANK OF AFRICA - MALI', 'AFRIMLBA', 'MLI'),
+      ('BANK OF AFRICA KENYA LTD', 'AFRIKENX', 'KEN'),
+      ('BANK OF AFRICA MADAGASCAR', 'AFRIMGMG', 'MDG'),
+      ('BANK OF AFRICA MER ROUGE', 'MRINDJJD', 'DJI'),
+      ('BANK OF AFRICA NIGER', 'AFRINENI', 'NER'),
+      ('BANK OF AFRICA RWANDA LTD', 'AFRWRWRW', 'RWA'),
+      ('BANK OF AFRICA TANZANIA LIMITED', 'EUAFTZTZ', 'TZA'),
+      ('BANK OF AFRICA TOGO', 'AFRITGTG', 'TGO'),
+      ('BANK OF AFRICA-SENEGAL', 'AFRISNDA', 'SEN'),
+      ('BANK OF AFRICA-UGANDA LTD.', 'AFRIUGKA', 'UGA'),
+      ('BANK OF ALEXANDRIA S A E', 'ALEXEGCX', 'EGY'),
+      ('BANK OF ALGERIA', 'BALGDZAP', 'DZA'),
+      ('BANK OF BARODA', 'BARBMUMU', 'MUS'),
+      ('BANK OF BARODA', 'BARBSCSC', 'SYC'),
+      ('BANK OF BARODA (BOTSWANA) LIMITED', 'BARBBWGX', 'BWA'),
+      ('BANK OF BARODA (KENYA) LTD', 'BARBKENA', 'KEN'),
+      ('BANK OF BARODA (TANZANIA) LTD', 'BARBTZTZ', 'TZA'),
+      ('BANK OF BARODA (UGANDA) LIMITED', 'BARBUGKA', 'UGA'),
+      ('BANK OF BOTSWANA', 'BBOTBWGX', 'BWA'),
+      ('BANK OF CEYLON, SEYCHELLES BRANCH', 'BCEYSCSC', 'SYC'),
+      ('BANK OF CHINA (MAURITIUS) LIMITED', 'BKCHMUMU', 'MUS'),
+      ('BANK OF CHINA (ZAMBIA) LTD', 'BKCHZMLU', 'ZMB'),
+      ('BANK OF CHINA JOHANNESBURG BRANCH', 'BKCHZAJJ', 'ZAF'),
+      ('BANK OF CHINA LIMITED LUANDA BRANCH', 'BKCHAOLU', 'AGO'),
+      ('BANK OF COMMUNICATIONS CO., LTD. JOHANNESBURG BRANCH', 'COMMZAJJ', 'ZAF'),
+      ('BANK OF GHANA', 'BAGHGHA5', 'GHA'),
+      ('BANK OF INDIA', 'BKIDKENA', 'KEN'),
+      ('BANK OF INDIA (TANZANIA) LIMITED', 'BKIDTZTZ', 'TZA'),
+      ('BANK OF INDIA (UGANDA) LTD', 'BKIDUGKA', 'UGA'),
+      ('BANK OF INDUSTRY FINANCIAL DEPARTMENT', 'BOIYNGLA', 'NGA'),
+      ('BANK OF KIGALI PLC', 'BKIGRWRW', 'RWA'),
+      ('BANK OF MAURITIUS', 'COCUMUMU', 'MUS'),
+      ('BANK OF NAMIBIA', 'CBKNNANA', 'NAM'),
+      ('BANK OF SIERRA LEONE', 'BSLESLFR', 'SLE'),
+      ('BANK OF ST. HELENA', 'BHELSHJJ', 'SHN'),
+      ('BANK OF TAIWAN, SOUTH AFRICA BRANCH', 'BKTWZAJJ', 'ZAF'),
+      ('BANK OF TANZANIA', 'TANZTZTX', 'TZA'),
+      ('BANK OF UGANDA', 'UGBAUGKA', 'UGA'),
+      ('BANK OF ZAMBIA', 'BAZAZMLA', 'ZMB'),
+      ('BANK ONE LTD', 'BKONMUMU', 'MUS'),
+      ('BANK SERV LIMITED', 'BKSVZAJS', 'ZAF'),
+      ('BANK WINDHOEK LIMITED', 'BWLINANX', 'NAM'),
+      ('BANK ZERO MUTUAL BANK', 'ZERMZAJJ', 'ZAF'),
+      ('BANKSERVAFRICA', 'BKSVZAJ2', 'ZAF'),
+      ('BANQUE (MALI) CENTRALE DES ETATS DE L''AFRIQUE ET DE L''OUEST', 'BCAOMLBAMOP', 'MLI'),
+      ('BANQUE AGRICOLE DU FASO', 'BAGFBFBF', 'BFA'),
+      ('BANQUE AGRICOLE DU NIGER', 'BANENENI', 'NER'),
+      ('BANQUE AL MUAMELAT AS SAHIHA', 'BMSHMRMR', 'MRT'),
+      ('BANQUE AL WAVA MAURITANIENNE ISLAMIQUE (BAMIS)', 'BAAWMRMR', 'MRT'),
+      ('BANQUE AL-BARAKA D''ALGERIE', 'BRKADZAL', 'DZA'),
+      ('BANQUE ATLANTIQUE BURKINA FASO', 'ATBFBFBF', 'BFA'),
+      ('BANQUE ATLANTIQUE CAMEROUN', 'ATCRCMCM', 'CMR'),
+      ('BANQUE ATLANTIQUE COTE D''IVOIRE', 'ATCICIAB', 'CIV'),
+      ('BANQUE ATLANTIQUE DA GUINE-BISSAU,SA', 'ATGWGWGW', 'GNB'),
+      ('BANQUE ATLANTIQUE DU BENIN', 'ATBJBJBJ', 'BEN'),
+      ('BANQUE ATLANTIQUE MALI', 'ATMLMLBA', 'MLI'),
+      ('BANQUE ATLANTIQUE NIGER', 'ATNENENI', 'NER'),
+      ('BANQUE ATLANTIQUE SENEGAL', 'ATSNSNDA', 'SEN'),
+      ('BANQUE ATLANTIQUE TOGO', 'ATTGTGTG', 'TGO'),
+      ('BANQUE CENTRALE DE DJIBOUTI', 'BCDJDJJD', 'DJI'),
+      ('BANQUE CENTRALE DE LA REPUBLIQUE DE GUINEE', 'REPCGNGN', 'GIN'),
+      ('BANQUE CENTRALE DE MADAGASCAR', 'REPUMGMG', 'MDG'),
+      ('BANQUE CENTRALE DE MAURITANIE', 'BCEMMRMR', 'MRT'),
+      ('BANQUE CENTRALE DE TUNISIE', 'BCTNTNTT', 'TUN'),
+      ('BANQUE CENTRALE DES COMOROS', 'COCBKMKM', 'COM'),
+      ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAOBJBJ', 'BEN'),
+      ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAOBFBF', 'BFA'),
+      ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAOCIAB', 'CIV'),
+      ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAOMLBA', 'MLI'),
+      ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAONENI', 'NER'),
+      ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAOSNDA', 'SEN'),
+      ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST', 'BCAOTGTG', 'TGO'),
+      ('BANQUE CENTRALE DES ETATS DE L''AFRIQUE DE L''OUEST (B.C.E.A.O.)', 'BCAOSNDD', 'SEN'),
+      ('BANQUE CENTRALE POPULAIRE', 'BCPOMAMC', 'MAR'),
+      ('BANQUE COMMERCIALE DU BURKINA', 'BNCFBFBF', 'BFA'),
+      ('BANQUE COMMERCIALE DU NIGER', 'BCDNNENI', 'NER'),
+      ('BANQUE COMMERCIALE DU SAHEL SA', 'ALIMMLBA', 'MLI'),
+      ('BANQUE DABIDJAN, SA.', 'BDAJCIAB', 'CIV'),
+      ('BANQUE DE CHINE(DJIBOUTI) SA', 'BKCHDJJD', 'DJI'),
+      ('BANQUE DE DAKAR SA', 'BDKRSNDA', 'SEN'),
+      ('BANQUE DE DEPOT ET CREDIT DJIBOUTI', 'DECDDJJD', 'DJI'),
+      ('BANQUE DE DEVELOPPEMENT DE GUINEE', 'BDGEGNGN', 'GIN'),
+      ('BANQUE DE DEVELOPPEMENT DES COMORES', 'DEVPKMKM', 'COM'),
+      ('BANQUE DE DEVELOPPEMENT DU MALI - S.A.', 'BDMAMLBA', 'MLI'),
+      ('BANQUE DE DEVELOPPEMENT DU MALI AU TOGO (BDM-TOGO)', 'BDMATGTG', 'TGO'),
+      ('BANQUE DE DEVELOPPEMENT LOCAL', 'BDLODZAL', 'DZA'),
+      ('BANQUE DE DEVELOPPEMENT MALI (BDM), SUCCURSALE DU SENEGAL', 'BDMASNDA', 'SEN'),
+      ('BANQUE DE FINANCEMENT DES PME', 'BFPMTNTT', 'TUN'),
+      ('BANQUE DE L''AGRICULTURE ET DE DEVELOPPEMENT RURAL', 'BADRDZAL', 'DZA'),
+      ('BANQUE DE L''HABITAT DE COTE D''IVOIRE', 'BHCICIAB', 'CIV'),
+      ('BANQUE DE L''HABITAT DU NIGER - BHN', 'BHDNNENI', 'NER'),
+      ('BANQUE DE L''HABITAT DU SENEGAL', 'LHSESNDA', 'SEN'),
+      ('BANQUE DE L''UNION - COTE D''IVOIRE', 'BDUTCIAB', 'CIV'),
+      ('BANQUE DE L''UNION BURKINA FASO', 'BDUGBFBF', 'BFA'),
+      ('BANQUE DE TUNISIE', 'BTBKTNTT', 'TUN'),
+      ('BANQUE DE TUNISIE ET DES EMIRATS', 'BTEXTNTT', 'TUN'),
+      ('BANQUE DES DEPOTS DU TRESOR PUBLIC', 'BQTRCIAD', 'CIV'),
+      ('BANQUE DES ETATS D''AFRIQUE CENTRALE', 'BEACCMCX', 'CMR'),
+      ('BANQUE DES ETATS DE L''AFRIQUE CENTRALE D.N. GABON', 'BEACGALI', 'GAB'),
+      ('BANQUE DES ETATS DE L''AFRIQUE CENTRALE D.N. GUINEE EQUATORIALE', 'BEACGQGQ', 'GNQ'),
+      ('BANQUE DES FINANCEMENTS ISLAMIQUES', 'FIAQMRMR', 'MRT'),
+      ('BANQUE DES INSTITUTIONS MUTUALISTES D''AFRIQUE DE L''OUEST', 'BIMUSNDA', 'SEN'),
+      ('BANQUE DU CAIRE', 'BCAIEGCX', 'EGY'),
+      ('BANQUE DU MAGHREB ARABE POUR L''INVESTISSEMENT ET LE COMMERCE', 'BMICDZAL', 'DZA'),
+      ('BANQUE EL AMANA (BEA)', 'AMDHMRMR', 'MRT'),
+      ('BANQUE EXTERIEURE D''ALGERIE', 'BEXADZAL', 'DZA'),
+      ('BANQUE FEDERALE DE COMMERCE', 'BFDCKMKM', 'COM'),
+      ('BANQUE FRANCO TUNISIENNE', 'BFTNTNTT', 'TUN'),
+      ('BANQUE INTERNATIONALE ARABE DE TUNISIE', 'BIATTNTT', 'TUN'),
+      ('BANQUE INTERNATIONALE DU CAMEROUN POUR L''EPARGNE ET LE CREDIT', 'ICLRCMCX', 'CMR'),
+      ('BANQUE INTERNATIONALE POUR L''AFRIQUE AU NIGER', 'BIANNENI', 'NER'),
+      ('BANQUE INTERNATIONALE POUR L''AFRIQUE AU TOGO', 'BILTTGTG', 'TGO'),
+      ('BANQUE INTERNATIONALE POUR L''INDUSTRIE ET LE COMMERCE BENIN', 'AFICBJBJ', 'BEN'),
+      ('BANQUE INTERNATIONALE POUR LE COMMERCE ET L''INDUSTRIE DE LA COTE D''IVOIRE', 'BICICIAB', 'CIV'),
+      ('BANQUE INTERNATIONALE POUR LE COMMERCE ET L''INDUSTRIE DE LA GUINEE', 'BICIGNCX', 'GIN'),
+      ('BANQUE INTERNATIONALE POUR LE COMMERCE ET L''INDUSTRIE DU SENEGAL', 'BICISNDX', 'SEN'),
+      ('BANQUE INTERNATIONALE POUR LE MALI SA.', 'BIPMMLBA', 'MLI'),
+      ('BANQUE ISLAMIQUE DE GUINEE', 'ISGUGNGN', 'GIN'),
+      ('BANQUE ISLAMIQUE DE MAURITANIE', 'BIMMMRMR', 'MRT'),
+      ('BANQUE ISLAMIQUE DU NIGER POUR LE COMMERCE ET L''INVESTISSEMENT', 'BICVNENI', 'NER'),
+      ('BANQUE ISLAMIQUE DU SENEGAL', 'ISSNSNDA', 'SEN'),
+      ('BANQUE MAGHREBINE D''INVESTISSEMENT ET DE COMMERCE EXTERIEUR', 'BMIETNTT', 'TUN'),
+      ('BANQUE MALGACHE DE L''OCEAN INDIEN', 'BMOIMGMG', 'MDG'),
+      ('BANQUE MALIENNE DE SOLIDARITE', 'BMSMMLBA', 'MLI'),
+      ('BANQUE MALIENNE DE SOLIDARITE COTE D''IVOIRE', 'BSOICIAB', 'CIV'),
+      ('BANQUE MAROCAINE POUR LE COMMERCE ET L''INDUSTRIE', 'BMCIMAMC', 'MAR'),
+      ('BANQUE MAURITANIENNE DE L''INVESTISSEMENT', 'BQMIMRMR', 'MRT'),
+      ('BANQUE MAURITANIENNE POUR LE COMMERCE INTERNATIONAL', 'MBICMRMR', 'MRT'),
+      ('BANQUE MISR', 'BMISEGCX', 'EGY'),
+      ('BANQUE NATIONALE AGRICOLE', 'BNTETNTT', 'TUN'),
+      ('BANQUE NATIONALE D''ALGERIE', 'BNALDZAL', 'DZA'),
+      ('BANQUE NATIONALE D''INVESTISSEMENT', 'CSSSCIAB', 'CIV'),
+      ('BANQUE NATIONALE D''INVESTISSEMENT DE GUINEE-SA', 'BNIGGNGN', 'GIN'),
+      ('BANQUE NATIONALE DE DEVELOPPEMENT AGRICOLE (BNDA)', 'BNADMLBA', 'MLI'),
+      ('BANQUE NATIONALE DE GUINEE', 'BQNGGNGN', 'GIN'),
+      ('BANQUE NATIONALE DE MAURITANIE', 'BQNMMRMR', 'MRT'),
+      ('BANQUE NATIONALE DU RWANDA (BNR)', 'BNRWRWRW', 'RWA'),
+      ('BANQUE NATIONALE POUR LE DEVELOPPEMENT ECONOMIQUE DU SENEGAL (BNDE)', 'BNDXSNDA', 'SEN'),
+      ('BANQUE OUEST AFRICAINE DE DEVELOPPEMENT (BOAD)', 'BOADTGTG', 'TGO'),
+      ('BANQUE PATRONUS LIMITEE', 'BPLLMUMU', 'MUS'),
+      ('BANQUE POPULAIRE AGADIR', 'BCPOMAMCCES', 'MAR'),
+      ('BANQUE POPULAIRE AL HOCEIMA', 'BCPOMAMCALH', 'MAR'),
+      ('BANQUE POPULAIRE BENI MELLAL', 'BCPOMAMCBNM', 'MAR'),
+      ('BANQUE POPULAIRE BERKANE', 'BCPOMAMCBRK', 'MAR'),
+      ('BANQUE POPULAIRE CASA-ANFA', 'BCPOMAMCCAS', 'MAR'),
+      ('BANQUE POPULAIRE DE COTE D''IVOIRE', 'CNCGCIAB', 'CIV'),
+      ('BANQUE POPULAIRE DE MAURITANIE', 'BPMAMRMR', 'MRT'),
+      ('BANQUE POPULAIRE EL JADIDA', 'BCPOMAMCELJ', 'MAR'),
+      ('BANQUE POPULAIRE FES', 'BCPOMAMCFES', 'MAR'),
+      ('BANQUE POPULAIRE GHARB', 'BCPOMAMCGHA', 'MAR'),
+      ('BANQUE POPULAIRE LAAYOUNE', 'BCPOMAMCLAY', 'MAR'),
+      ('BANQUE POPULAIRE MAROCO-GUINEENNE SA', 'POMBGNGN', 'GIN'),
+      ('BANQUE POPULAIRE MARRAKECH', 'BCPOMAMCMKH', 'MAR'),
+      ('BANQUE POPULAIRE MEKNES', 'BCPOMAMCMEK', 'MAR'),
+      ('BANQUE POPULAIRE NADOR', 'BCPOMAMCNAD', 'MAR'),
+      ('BANQUE POPULAIRE OUJDA', 'BCPOMAMCOUJ', 'MAR'),
+      ('BANQUE POPULAIRE RABAT', 'BCPOMAMCRAB', 'MAR'),
+      ('BANQUE POPULAIRE SAFI', 'BCPOMAMCSAF', 'MAR'),
+      ('BANQUE POPULAIRE TANGER', 'BCPOMAMCTAT', 'MAR'),
+      ('BANQUE POSTALE DU BURKINA FASO (BPBF)', 'BPBFBFBF', 'BFA'),
+      ('BANQUE POUR L''INDUSTRIE ET LE COMMERCE DES COMORES', 'BICCKMKM', 'COM'),
+      ('BANQUE POUR LE COMMERCE ET L''INDUSTRIE', 'COLIMRMR', 'MRT'),
+      ('BANQUE POUR LE COMMERCE ET L''INDUSTRIE - MER ROUGE', 'BCIMDJJX', 'DJI'),
+      ('BANQUE POUR LE COMMERCE ET L''INDUSTRIE DE GUINEE', 'COLIGNGN', 'GIN'),
+      ('BANQUE POUR LE COMMERCE ET L''INDUSTRIE SENEGAL', 'COLISNDA', 'SEN'),
+      ('BANQUE REGIONALE DE MARCHES', 'BRMXCIAB', 'CIV'),
+      ('BANQUE REGIONALE DE MARCHES', 'BRMXNENI', 'NER'),
+      ('BANQUE REGIONALE DE MARCHES', 'BRMXSNDA', 'SEN'),
+      ('BANQUE SAHELO-SAHARIENNE POUR L''INVESTISSEMENT ET LE COMMERCE (BENIN) S.A.', 'BSAHBJBJ', 'BEN'),
+      ('BANQUE SAHELO-SAHARIENNE POUR L''INVESTISSEMENT ET LE COMMERCE (BURKINA FASO) S.A.', 'BSAHBFBF', 'BFA'),
+      ('BANQUE SAHELO-SAHARIENNE POUR L''INVESTISSEMENT ET LE COMMERCE (MALI) S.A.', 'BSAHMLBA', 'MLI'),
+      ('BANQUE SAHELO-SAHARIENNE POUR L''INVESTISSEMENT ET LE COMMERCE (NIGER) S.A.', 'BSAHNENI', 'NER'),
+      ('BANQUE SAHELO-SAHARIENNE POUR L''INVESTISSEMENT ET LE COMMERCE (SENEGAL) S.A.', 'BSAHSNDA', 'SEN'),
+      ('BANQUE SBM MADAGASCAR', 'BSBMMGMG', 'MDG'),
+      ('BANQUE TUNISO-KOWEITIENNE', 'BTKOTNTT', 'TUN'),
+      ('BANQUE TUNISO-LIBYENNE', 'ATLDTNTT', 'TUN'),
+      ('BANQUE ZITOUNA', 'BZITTNTT', 'TUN'),
+      ('BAOBAB BANQUE MADAGASCAR SA', 'BMADMGMG', 'MDG'),
+      ('BBS BANK LIMITED', 'BBKNBWGX', 'BWA'),
+      ('BC PME SA', 'BPMECMCX', 'CMR'),
+      ('BCI', 'CGDIMZMA', 'MOZ'),
+      ('BCI - BANCO DE COMERCIO E INDUSTRIA', 'BCIDAOLU', 'AGO'),
+      ('BCI-MALI', 'COLIMLBA', 'MLI'),
+      ('BCN-BANCO CABOVERDIANO DE NEGOCIOS SA', 'CANBCVCV', 'CPV'),
+      ('BCP BANK (MAURITIUS) LTD (FORMERLY BANQUE DES MASCAREIGNES LTEE)', 'BAIMMUMU', 'MUS'),
+      ('BCP SECURITIES SERVICES', 'MEDCMAMC', 'MAR'),
+      ('BCS - BANCO DE CREDITO DO SUL, S.A.', 'CDTSAOLU', 'AGO'),
+      ('BELTONE SECURITIES BROKERAGE S.A.E', 'BELTEGCA', 'EGY'),
+      ('BERHAN BANK SC', 'BERHETAA', 'ETH'),
+      ('BFV-SOCIETE GENERALE', 'BFAVMGMG', 'MDG'),
+      ('BGFI Bank RDC', 'BGFICDKI', 'COD'),
+      ('BGFI Bank São Tomé', 'BGFISTST', 'STP'),
+      ('BGFIBANK', 'BGFIGALI', 'GAB'),
+      ('BGFIBANK BENIN', 'BGFIBJBJ', 'BEN'),
+      ('BGFIBANK CAMEROUN SA', 'BGFICMCX', 'CMR'),
+      ('BGFIBANK COTE D''IVOIRE', 'BGFICIAB', 'CIV'),
+      ('BGFIBANK GUINEE EQUATORIALE', 'BGFIGQGQ', 'GNQ'),
+      ('BGFIBANK MADAGASCAR', 'BGFIMGMG', 'MDG'),
+      ('BGFIBANK SENEGAL', 'BGFISNDA', 'SEN'),
+      ('BH BANK', 'BHBKTNTT', 'TUN'),
+      ('BICIM', 'BICIMLBA', 'MLI'),
+      ('BIDVEST BANK LTD', 'BIDBZAJJ', 'ZAF'),
+      ('BIDVEST TREASURY SERVICES (PTY) LTD', 'BIVTZAJJ', 'ZAF'),
+      ('BLOOM BANK AFRICA LIMITED, GAMBIA', 'SKYEGMGM', 'GMB'),
+      ('BM MADAGASCAR S.A', 'BAIMMGMG', 'MDG'),
+      ('BNI MADAGASCAR', 'CLMDMGMG', 'MDG'),
+      ('BNP PARIBAS EL DJAZAIR', 'BNPADZAL', 'DZA'),
+      ('BOLSA DE DIVIDA E VALORES DE ANGOLA BODIVA SOCIEDADE GESTORA DE MERCADOS REGULAMENTADOS SA', 'BDVAAOLU', 'AGO'),
+      ('BOTSWANA INSURANCE FUND MANAGEMENT LIMITED', 'BIFMBWGA', 'BWA'),
+      ('BOTSWANA STOCK EXCHANGE LIMITED', 'XBOTBWGX', 'BWA'),
+      ('BPC-BANCO DE POUPANCA E CREDITO', 'BPCLAOLU', 'AGO'),
+      ('BPR BANK RWANDA PLC', 'BPRWRWRW', 'RWA'),
+      ('BRIDGE BANK GROUP COTE D''IVOIRE', 'BGCDCIAB', 'CIV'),
+      ('BRIDGE BANK SENEGAL', 'BGCDSNDK', 'SEN'),
+      ('BSIC COTE D''IVOIRE', 'BSAHCIAB', 'CIV'),
+      ('BSIC GAMBIA LIMITED', 'BSAHGMGM', 'GMB'),
+      ('BSIC GUINEE CONAKRY', 'BSGNGNGN', 'GIN'),
+      ('BSIC Gambia Limited', 'BSICGMGM', 'GMB'),
+      ('BSIC TOGO SA', 'BSAHTGTG', 'TGO'),
+      ('BUNNA INTERNATIONAL BANK S.C', 'BUNAETAA', 'ETH'),
+      ('BUSINESS CONNEXION (TANZANIA) LIMITED', 'BCTITZTT', 'TZA'),
+      ('Banco Equador São Tomé e Príncipe', 'EQUASTST', 'STP'),
+      ('Banco Internacional de São Tomé e Príncipe (BISTP)', 'BISTSTST', 'STP'),
+      ('Bank of Khartoum', 'KRTNSDKH', 'SDN'),
+      ('Banque Commerciale du Burundi (BANCOBU)', 'BCBUBIBI', 'BDI'),
+      ('Banque Communautaire et Agricole du Burundi', 'CMEBBIBIXXX', 'BDI'),
+      ('Banque de Crédit de Bujumbura', 'BCRBBIBIXXX', 'BDI'),
+      ('Banque de Gestion et de Financement (BGF)', 'BGFOBIBI', 'BDI'),
+      ('Buffalo Commercial Bank', 'BUFFSSJX', 'SSD'),
+      ('CAC INTERNATIONAL BANK', 'CACDDJJD', 'DJI'),
+      ('CAIRO BANK UGANDA', 'CAIEUGKA', 'UGA'),
+      ('CAIRO CAPITAL SECURITIES', 'CRCSEGCA', 'EGY'),
+      ('CAISSE DE DEPOT ET DE GESTION', 'CADGMAMR', 'MAR'),
+      ('CAISSE DES DEPOTS ET CONSIGNATIONS', 'CDCDSNDA', 'SEN'),
+      ('CAISSE NATIONALE D''EPARGNE ET DE PREVOYANCE-BANQUE', 'EPPRDZAL', 'DZA'),
+      ('CAISSE REGIONALE DE REFINANCEMENT HYPOTHECAIRE DE L''UEMOA (CRRH- UEMOA)', 'CHRRTGTG', 'TGO'),
+      ('CAIXA ECONOMICA DE CABO VERDE, SA', 'CXECCVCV', 'CPV'),
+      ('CAIXABANK, S.A. SUCCURSALE AU MAROC', 'CAIXMAMC', 'MAR'),
+      ('CALBANK PLC', 'ACCCGHAC', 'GHA'),
+      ('CANARA BANK  (TANZANIA) LTD', 'CNRBTZTZ', 'TZA'),
+      ('CAPITEC BANK LIMITED', 'CABLZAJJ', 'ZAF'),
+      ('CARITAS MICROFINANCE BANK LIMITED', 'CRMFKENA', 'KEN'),
+      ('CBAO GROUP ATTIJARIWAFABANK', 'CBAOBJBJ', 'BEN'),
+      ('CBAO GROUPE ATTIJARIWAFA BANK', 'CBAONENI', 'NER'),
+      ('CBAO GROUPE ATTIJARIWAFA BANK BURKINA FASO', 'CBAOBFBG', 'BFA'),
+      ('CBAO, GROUPE ATTIJARIWAFA BANK', 'CBAOSNDA', 'SEN'),
+      ('CBZ BANK LIMITED', 'COBZZWHA', 'ZWE'),
+      ('CCEI BANK BENIN', 'CCEIBJBJ', 'BEN'),
+      ('CCEI BANK GE', 'CCEIGQGQ', 'GNQ'),
+      ('CDG CAPITAL', 'RDGCMAMR', 'MAR'),
+      ('CDH INVESTMENT BANK (CDHIB)', 'CDHIMWMW', 'MWI'),
+      ('CENTENARY BANK LIMITED', 'MBBCMWMW', 'MWI'),
+      ('CENTENARY RURAL DEVELOPMENT BANK LIMITED', 'CERBUGKA', 'UGA'),
+      ('CENTRAL AFRICA BUILDING SOCIETY', 'CABSZWHA', 'ZWE'),
+      ('CENTRAL BANK OF EGYPT CAIRO', 'CBEGEGCB', 'EGY'),
+      ('CENTRAL BANK OF ESWATINI', 'SWAZSZMB', 'SWZ'),
+      ('CENTRAL BANK OF KENYA', 'CBKEKENB', 'KEN'),
+      ('CENTRAL BANK OF LESOTHO', 'CBLELSMX', 'LSO'),
+      ('CENTRAL BANK OF LIBERIA', 'CBLRLRLM', 'LBR'),
+      ('CENTRAL BANK OF NIGERIA', 'CBNINGLG', 'NGA'),
+      ('CENTRAL BANK OF SEYCHELLES', 'SSCBSCSC', 'SYC'),
+      ('CENTRAL BANK OF THE GAMBIA', 'CBGAGMGM', 'GMB'),
+      ('CENTRAL DEPOSITORY AND SETTLEMENT CORPORATION', 'CDSNKENA', 'KEN'),
+      ('CENTRAL SECURITIES CLEARING SYSTEM PLC', 'CSCYNGLA', 'NGA'),
+      ('CENTRAL SECURITIES DEPOSITORY (GH) LTD', 'CSDRGHAC', 'GHA'),
+      ('CFG BANK', 'CAFGMAMC', 'MAR'),
+      ('CHINA CONSTRUCTION BANK CORPORATION JOHANNESBURG BRANCH', 'PCBCZAJJ', 'ZAF'),
+      ('CHINA DASHENG BANK LIMITED', 'CDSHTZTZ', 'TZA'),
+      ('CHINGUITTY BANK', 'CZRZMRMR', 'MRT'),
+      ('CHOICE INTERNATIONAL (MAURITIUS) LTD', 'CIMUMUMU', 'MUS'),
+      ('CHOICE MICROFINANCE BANK LIMITED', 'CHFIKENX', 'KEN'),
+      ('CIRRUS SECURITIES (PTY) LTD', 'NBOENANX', 'NAM'),
+      ('CITIBANK COTE D''IVOIRE SA', 'CITICIAX', 'CIV'),
+      ('CITIBANK MAGHREB', 'CITIMAMC', 'MAR'),
+      ('CITIBANK N.A.', 'CITICMCX', 'CMR'),
+      ('CITIBANK N.A.', 'CITIGALX', 'GAB'),
+      ('CITIBANK N.A.', 'CITISNDA', 'SEN'),
+      ('CITIBANK N.A.', 'CITITNTX', 'TUN'),
+      ('CITIBANK N.A. - CAIRO BRANCH', 'CITIEGCX', 'EGY'),
+      ('CITIBANK N.A. ALGERIA', 'CITIDZAL', 'DZA'),
+      ('CITIBANK N.A. NAIROBI', 'CITIKENA', 'KEN'),
+      ('CITIBANK NIGERIA LIMITED', 'CITINGLA', 'NGA'),
+      ('CITIBANK SOUTH AFRICA', 'CITIZAJX', 'ZAF'),
+      ('CITIBANK TANZANIA LTD', 'CITITZTZ', 'TZA'),
+      ('CITIBANK UGANDA LIMITED', 'CITIUGKA', 'UGA'),
+      ('CITIBANK ZAMBIA LTD', 'CITIZMLU', 'ZMB'),
+      ('CITIGROUP GLOBAL MARKETS (PTY) LTD', 'SSBSZAJJ', 'ZAF'),
+      ('COFIPA INVESTMENT BANK CI', 'IBCICIAB', 'CIV'),
+      ('COMESA CLEARING HOUSE', 'COCUZWHA', 'ZWE'),
+      ('COMMERCE AND MORTGAGE BANK (SL) PLC', 'HFCMSLFR', 'SLE'),
+      ('COMMERCIAL BANK - CAMEROUN', 'CBCDCMCX', 'CMR'),
+      ('COMMERCIAL BANK OF ETHIOPIA', 'CBETETAA', 'ETH'),
+      ('COMMERCIAL BANK OF ETHIOPIA DJIBOUTI LTD', 'CBETDJJD', 'DJI'),
+      ('COMMERCIAL INTERNATIONAL BANK (CIB) KENYA LIMITED', 'MYBKKENA', 'KEN'),
+      ('COMMERCIAL INTERNATIONAL BANK (EGYPT) S.A.E.', 'CIBEEGCX', 'EGY'),
+      ('COMMERCIAL INTERNATIONAL BROKERAGE COMPANY', 'CIBOEGCX', 'EGY'),
+      ('COMPAGNIE IVOIRIENNE D''ELECTRICITE', 'CIVDCIAB', 'CIV'),
+      ('COMPAGNIE NATIONALE ROYAL AIR MAROC', 'RAMSMAMC', 'MAR'),
+      ('COMPUTERSHARE PROPRIETARY LIMITED', 'CSEVZAJJ', 'ZAF'),
+      ('CONSILIUM CAPITAL (SA) (PTY) LTD.', 'COCPZAJJ', 'ZAF'),
+      ('CONSOLIDATED BANK GHANA LIMITED', 'CBGHGHAC', 'GHA'),
+      ('CONSOLIDATED BANK OF KENYA LTD', 'CONKKENA', 'KEN'),
+      ('CONTROLLER AND ACCOUNTANT-GENERAL''S DEPARTMENT', 'CODGGHAC', 'GHA'),
+      ('COOPERATIVE BANK OF OROMIA S.C.', 'CBORETAA', 'ETH'),
+      ('CORIS BANK INTERNATIONAL', 'CORIBFBF', 'BFA'),
+      ('CORIS BANK INTERNATIONAL', 'CORICIAB', 'CIV'),
+      ('CORIS BANK INTERNATIONAL', 'CORIMLBA', 'MLI'),
+      ('CORIS BANK INTERNATIONAL BENIN', 'CORIBJBJ', 'BEN'),
+      ('CORIS BANK INTERNATIONAL GUINEE BISSAU', 'CORIGWGW', 'GNB'),
+      ('CORIS BANK INTERNATIONAL GUINEE S.A.', 'CORIGNGN', 'GIN'),
+      ('CORIS BANK INTERNATIONAL SA-BRANCH OF NIGER', 'CORINENI', 'NER'),
+      ('CORIS BANK INTERNATIONAL SENEGAL SA', 'CORISNDA', 'SEN'),
+      ('CORIS BANK INTERNATIONAL TOGO', 'CORITGTG', 'TGO'),
+      ('CORONATION ASSET MANAGEMENT (PTY) LTD', 'COUGZAJC', 'ZAF'),
+      ('CORONATION MERCHANT BANK LIMITED', 'CMBBNGLA', 'NGA'),
+      ('CRDB BANK PLC', 'CORUTZTZ', 'TZA'),
+      ('CRDB Bank Burundi S.A', 'CORUBIBUXXX', 'BDI'),
+      ('CREDIT AGRICOLE DU MAROC', 'CNCAMAMR', 'MAR'),
+      ('CREDIT AGRICOLE EGYPT', 'AGRIEGCX', 'EGY'),
+      ('CREDIT BANK PLC', 'CRBTKENA', 'KEN'),
+      ('CREDIT COMMUNAUTAIRE D''AFRIQUE S.A.', 'CCAMCMCY', 'CMR'),
+      ('CREDIT DU MAROC', 'CDMAMAMC', 'MAR'),
+      ('CREDIT DU SENEGAL', 'BCMASNDA', 'SEN'),
+      ('CREDIT FONCIER LIMITED', 'CDFOUGKA', 'UGA'),
+      ('CREDIT IMMOBILIER ET HOTELIER', 'CIHMMAMC', 'MAR'),
+      ('CREDIT INTERNATIONAL SA', 'CLIBSNDA', 'SEN'),
+      ('CREDIT POPULAIRE D''ALGERIE', 'CPALDZAL', 'DZA'),
+      ('CURO FUND SERVICES (PTY) LTD', 'TAFAZAJC', 'ZAF'),
+      ('Charity Bank for Investment', 'CBINSSJX', 'SSD'),
+      ('Commercial Bank of Eritrea', 'CBERERAA', 'ERI'),
+      ('Commercial Bank of Ethiopia South Sudan', 'CBETSSJX', 'SSD'),
+      ('Cooperative Bank of South Sudan', 'COOPSSJX', 'SSD'),
+      ('DAR ES SALAAM STOCK EXCHANGE', 'DSTXTZTZ', 'TZA'),
+      ('DASHEN BANK S.C.', 'DASHETAA', 'ETH'),
+      ('DCB COMMERCIAL BANK PLC', 'DASUTZTZ', 'TZA'),
+      ('DEBSWANA DIAMOND COMPANY (PTY) LTD', 'DDCOBWGA', 'BWA'),
+      ('DEUTSCHE BANK AG', 'DEUTZAJX', 'ZAF'),
+      ('DEUTSCHE SECURITIES MAURITIUS LTD', 'DEUTMUML', 'MUS'),
+      ('DEVELOPMENT BANK OF ETHIOPIA', 'DEETETAA', 'ETH'),
+      ('DEVELOPMENT BANK OF KENYA LIMITED', 'DEVKKENA', 'KEN'),
+      ('DEVELOPMENT BANK OF RWANDA', 'BRDRRWRW', 'RWA'),
+      ('DEVELOPMENT BANK OF SOUTHERN AFRICA LIMITED', 'DESFZAJM', 'ZAF'),
+      ('DFCU BANK LIMITED', 'DFCUUGKA', 'UGA'),
+      ('DIAMA BANK S.A.', 'DIMMGNGN', 'GIN'),
+      ('DIAMOND TRUST BANK KENYA LIMITED', 'DTKEKENA', 'KEN'),
+      ('DIAMOND TRUST BANK TANZANIA PUBLIC LIMITED COMPANY', 'DTKETZTZ', 'TZA'),
+      ('DIAMOND TRUST BANK UGANDA LIMITED', 'DTKEUGKA', 'UGA'),
+      ('DIB BANK KENYA LTD', 'DUIBKENA', 'KEN'),
+      ('DIGITAL BANK LIMITED', 'DIGLSCSC', 'SYC'),
+      ('DISCOVERY BANK LIMITED', 'DISCZAJJ', 'ZAF'),
+      ('DUNEARN INVESTMENTS (MAURITIUS) PTE LTD', 'DEIMMUMU', 'MUS'),
+      ('Dahabshiil Bank International', 'DAHBSSOM', 'SOM'),
+      ('Diamond Trust Bank Burundi S.A', 'DTKEBIBIXXX', 'BDI'),
+      ('EAST AFRICA BANK', 'EABDDJJD', 'DJI'),
+      ('EAST AFRICAN DEVELOPMENT BANK', 'AFDEUGKA', 'UGA'),
+      ('EASTERN AND SOUTHERN AFRICAN TRADE AND DEVELOPMENTBANK', 'ESATKENA', 'KEN'),
+      ('ECOBANK - COTE D''IVOIRE S.A.', 'ECOCCIAB', 'CIV'),
+      ('ECOBANK BENIN', 'ECOCBJBJ', 'BEN'),
+      ('ECOBANK BURKINA', 'ECOCBFBF', 'BFA'),
+      ('ECOBANK CABO VERDE', 'ECOCCVCV', 'CPV'),
+      ('ECOBANK CAMEROUN SA.', 'ECOCCMCX', 'CMR'),
+      ('ECOBANK GABON', 'ECOCGALI', 'GAB'),
+      ('ECOBANK GAMBIA', 'ECOCGMGM', 'GMB'),
+      ('ECOBANK GHANA PLC', 'ECOCGHAC', 'GHA'),
+      ('ECOBANK GUINEE', 'ECOCGNCN', 'GIN'),
+      ('ECOBANK GUINEE BISSAU', 'ECOCGWGW', 'GNB'),
+      ('ECOBANK GUINEE EQUATORIALE', 'ECOCGQGQ', 'GNQ'),
+      ('ECOBANK KENYA LTD', 'ECOCKENA', 'KEN'),
+      ('ECOBANK LIBERIA LIMITED', 'ECOCLRLM', 'LBR'),
+      ('ECOBANK MALAWI LIMITED', 'ECOCMWMW', 'MWI'),
+      ('ECOBANK MALI', 'ECOCMLBA', 'MLI'),
+      ('ECOBANK MOCAMBIQUE, S.A.', 'ECOCMZMP', 'MOZ'),
+      ('ECOBANK NIGER ECN', 'ECOCNENI', 'NER'),
+      ('ECOBANK NIGERIA LIMITED', 'ECOCNGLA', 'NGA'),
+      ('ECOBANK RWANDA', 'ECOCRWRW', 'RWA'),
+      ('ECOBANK SENEGAL', 'ECOCSNDA', 'SEN'),
+      ('ECOBANK SIERRA LEONE LIMITED', 'ECOCSLFR', 'SLE'),
+      ('ECOBANK TANZANIA LIMITED', 'ECOCTZTZ', 'TZA'),
+      ('ECOBANK TOGO', 'ECOCTGTA', 'TGO'),
+      ('ECOBANK UGANDA', 'ECOCUGKA', 'UGA'),
+      ('ECOBANK ZAMBIA', 'ECOCZMLU', 'ZMB'),
+      ('ECOBANK ZIMBABWE LIMITED', 'ECOCZWHX', 'ZWE'),
+      ('ECOWAS BANK FOR INVESTMENT AND DEVELOPMENT', 'EBIDTGTG', 'TGO'),
+      ('EFG HERMES INTERNATIONAL SECURITIES BROKERAGE (EHISB)', 'EFGHEGCA', 'EGY'),
+      ('EGYPTIAN ARAB LAND BANK', 'ARLBEGCA', 'EGY'),
+      ('EGYPTIAN GULF BANK', 'EGGBEGCA', 'EGY'),
+      ('EGYPTIAN INVESTOR PROTECTION FUND', 'EIPFEGCA', 'EGY'),
+      ('EL SEWEDY ELECTRIC CO. S.A.E.', 'ELSWEGCA', 'EGY'),
+      ('EMIRATES NATIONAL BANK OF DUBAI SAE (FORMERLY BNP PARIBAS SAE,EGYPT)', 'EBILEGCX', 'EGY'),
+      ('EMPOWERBANK LIMITED', 'EMPWZWHX', 'ZWE'),
+      ('ENAT BANK S.C', 'ENATETAA', 'ETH'),
+      ('ENEL GREEN POWER RSA (PTY) LTD', 'ENDEZAJJ', 'ZAF'),
+      ('ENGEN PETROLEUM LTD', 'ENGZZAJC', 'ZAF'),
+      ('EPIC ALGERIE POSTE', 'EPALDZAL', 'DZA'),
+      ('EQUITY BANK (KENYA) LIMITED', 'EQBLKENA', 'KEN'),
+      ('EQUITY BANK RWANDA PLC', 'EQBLRWRW', 'RWA'),
+      ('EQUITY BANK TANZANIA LIMITED', 'EQBLTZTZ', 'TZA'),
+      ('EQUITY BANK UGANDA LTD', 'EQBLUGKA', 'UGA'),
+      ('ESKOM TREASURY', 'ESKOZAJJ', 'ZAF'),
+      ('ETC SURETY SA', 'ETCSCMC2', 'CMR'),
+      ('EXIM BANK (DJIBOUTI) S.A.', 'EXTNDJJD', 'DJI'),
+      ('EXIM BANK (UGANDA) LIMITED', 'EXTNUGKA', 'UGA'),
+      ('EXIM BANK COMORES LTD', 'EXTNKMKM', 'COM'),
+      ('EXIMBANK (TANZANIA) LTD', 'EXTNTZTZ', 'TZA'),
+      ('EXPORT DEVELOPMENT BANK OF EGYPT', 'EXDEEGCX', 'EGY'),
+      ('Ecobank Burundi', 'ECOCBIBIXXX', 'BDI'),
+      ('Ecobank Congo', 'ECOCCDKI', 'COD'),
+      ('Ecobank Gambia Limited', 'ECOCGMGM', 'GMB'),
+      ('Ecobank São Tomé e Príncipe', 'ECOCSTST', 'STP'),
+      ('Energy Bank São Tomé', 'ENRGSTST', 'STP'),
+      ('Equity Bank Congo', 'EQBLCDKI', 'COD'),
+      ('Equity Bank South Sudan', 'EQBLSSJX', 'SSD'),
+      ('Eritrean Investment and Development Bank', 'EIDBERAA', 'ERI'),
+      ('Export Development Bank Sudan', 'EDBSSDKH', 'SDN'),
+      ('FAISAL ISLAMIC BANK OF EGYPT', 'FIEGEGCX', 'EGY'),
+      ('FAMILY BANK LIMITED', 'FABLKENA', 'KEN'),
+      ('FARMERS BANK (PTY) LTD', 'FARPSZMA', 'SWZ'),
+      ('FAULU MICROFINANCE BANK LIMITED', 'FAUMKENA', 'KEN'),
+      ('FBC BANK LTD', 'FBCPZWHA', 'ZWE'),
+      ('FBN BANK GAMBIA LIMITED', 'ICBGGMGS', 'GMB'),
+      ('FBNBANK GHANA LIMITED', 'INCEGHAC', 'GHA'),
+      ('FBNBANK GUINEA SA', 'ICMOGNCN', 'GIN'),
+      ('FBNBANK SENEGAL', 'ICSGSNDA', 'SEN'),
+      ('FBNQUEST MERCHANT BANK LIMITED', 'KDHLNGLA', 'NGA'),
+      ('FDH BANK PLC', 'FDHFMWMW', 'MWI'),
+      ('FFO SECURITIES (PTY) LTD', 'FFOSZAJJ', 'ZAF'),
+      ('FIDELITY BANK GHANA LIMITED', 'FBLIGHAC', 'GHA'),
+      ('FIDELITY BANK PLC', 'FIDTNGLA', 'NGA'),
+      ('FINANCE TRUST BANK LTD', 'FTBLUGKA', 'UGA'),
+      ('FINBANK Burundi', 'FIKNBIBIXXX', 'BDI'),
+      ('FINBOND MUTUAL BANK', 'FBMBZAJJ', 'ZAF'),
+      ('FINCA MICROFINANCE BANK LIMITED', 'FNMITZTZ', 'TZA'),
+      ('FINIBANCO ANGOLA S.A', 'FBCOAOLU', 'AGO'),
+      ('FIRST ABU DHABI BANK MISR S.A.E. (FORMERLY FIRST ABU DHABI BANK)', 'NBADEGCA', 'EGY'),
+      ('FIRST ALLIANCE BANK', 'FALLZMLU', 'ZMB'),
+      ('FIRST ATLANTIC BANK LIMITED', 'FAMCGHAC', 'GHA'),
+      ('FIRST BANK OF NIGERIA LTD', 'FBNINGLA', 'NGA'),
+      ('FIRST CAPITAL BANK IN ASSOCIATION WITH BARCLAYS', 'FRCGZWHX', 'ZWE'),
+      ('FIRST CAPITAL BANK LIMITED', 'FRCGBWGA', 'BWA'),
+      ('FIRST CAPITAL BANK LIMITED', 'FRCGZMLU', 'ZMB'),
+      ('FIRST CAPITAL BANK LIMITED', 'BARCZWHX', 'ZWE'),
+      ('FIRST CAPITAL BANK PLC., MALAWI', 'FRCGMWMW', 'MWI'),
+      ('FIRST CAPITAL BANK SA', 'FRCGMZMA', 'MOZ'),
+      ('FIRST CITY MONUMENT BANK LIMITED', 'FCMBNGLA', 'NGA'),
+      ('FIRST DISCOUNT HOUSE LIMITED', 'FDHDMWMW', 'MWI'),
+      ('FIRST INTERNATIONAL BANK LIMITED', 'FIBLGMGM', 'GMB'),
+      ('FIRST NATIONAL BANK GHANA LIMITED', 'FIRNGHAC', 'GHA'),
+      ('FIRST NATIONAL BANK OF BOTSWANA LIMITED', 'FIRNBWGX', 'BWA'),
+      ('FIRST NATIONAL BANK OF ESWATINI LIMITED', 'FIRNSZMX', 'SWZ'),
+      ('FIRST NATIONAL BANK OF LESOTHO', 'FIRNLSMX', 'LSO'),
+      ('FIRST NATIONAL BANK OF NAMIBIA LIMITED', 'FIRNNANX', 'NAM'),
+      ('FIRST NATIONAL BANK ZAMBIA LIMITED', 'FIRNZMLX', 'ZMB'),
+      ('FIRSTBANK SIERRA LEONE LIMITED', 'ICBZSLFR', 'SLE'),
+      ('FIRSTRAND BANK LIMITED', 'FIRNZAJJ', 'ZAF'),
+      ('FMDQ SECURITIES EXCHANGE LIMITED', 'FMDQNGLA', 'NGA'),
+      ('FNB MOZAMBIQUE,SA', 'FIRNMZMX', 'MOZ'),
+      ('FNB STOCKBROKING AND PORTFOLIO MANAGEMENT (PTY) LTD', 'BJMRZAJJ', 'ZAF'),
+      ('FOORD ASSET MANAGEMENT (PROPRIETARY) LIMITED', 'FRDGZAJJ', 'ZAF'),
+      ('FOUR M TRADERS (PTY) LTD', 'FORMZAJJ', 'ZAF'),
+      ('FRANSABANK EL DJAZAIR SPA', 'FSBKDZAL', 'DZA'),
+      ('FSDH MERCHANT BANK LTD', 'FSDHNGLA', 'NGA'),
+      ('Faisal Islamic Bank Sudan', 'FIBSSDKH', 'SDN'),
+      ('First Bank DRC', 'FIRNCDKI', 'COD'),
+      ('First International Bank Gambia', 'FIBKGMGM', 'GMB'),
+      ('GABON-POSTE', 'CCPGGALI', 'GAB'),
+      ('GADAA BANK SC', 'GDAAETAA', 'ETH'),
+      ('GCB BANK PLC', 'GHCBGHAC', 'GHA'),
+      ('GENERALE DE BANQUE DE MAURITANIE POUR L''INVESTISSEMENT ET LE COMMERCE', 'GBMCMRMR', 'MRT'),
+      ('GETBUCKS MICROFINANCE BANK LIMITED', 'GBSPZWHA', 'ZWE'),
+      ('GHANA EXPORT-IMPORT BANK', 'GHEIGHAC', 'GHA'),
+      ('GHANA REVENUE AUTHORITY', 'GHRAGHAC', 'GHA'),
+      ('GLOBAL BANK ETHIOPIA S.C (FORMERLY DEBUB GLOBAL BANK S.C)', 'DEGAETAA', 'ETH'),
+      ('GLOBAL BANK LIBERIA LIMITED (MEMBER BANKPHB GROUP)', 'PHBXLRLM', 'LBR'),
+      ('GLOBUS BANK LIMITED', 'GLOUNGLA', 'NGA'),
+      ('GOH BETOCH BANK S.C.', 'GOBTETAA', 'ETH'),
+      ('GOLDMAN SACHS INTERNATIONAL BANK, JOHANNESBURG BRANCH', 'GOSNZAJS', 'ZAF'),
+      ('GRANITE CENTRAL SECURITIES DEPOSITORY', 'GCSOZAJ2', 'ZAF'),
+      ('GREENWICH MERCHANT BANK LIMITED', 'GMBLNGLA', 'NGA'),
+      ('GRINDROD BANK LIMITED', 'GRIDZAJJ', 'ZAF'),
+      ('GROUPE OCP', 'GOCPMAMC', 'MAR'),
+      ('GUARANTY TRUST BANK (GAMBIA) LIMITED', 'GTBGGMGM', 'GMB'),
+      ('GUARANTY TRUST BANK (GHANA) LTD', 'GTBIGHAC', 'GHA'),
+      ('GUARANTY TRUST BANK (KENYA) LTD', 'GTBIKENA', 'KEN'),
+      ('GUARANTY TRUST BANK (LIBERIA) LIMITED', 'GTBILRLM', 'LBR'),
+      ('GUARANTY TRUST BANK (RWANDA) PLC', 'GTBIRWRK', 'RWA'),
+      ('GUARANTY TRUST BANK (SL) LTD', 'GTBISLFR', 'SLE'),
+      ('GUARANTY TRUST BANK (UGANDA) LTD', 'GTBIUGKA', 'UGA'),
+      ('GUARANTY TRUST BANK COTE D''IVOIRE', 'GTBICIAB', 'CIV'),
+      ('GUARANTY TRUST BANK PLC', 'GTBINGLA', 'NGA'),
+      ('GUARANTY TRUST BANK TANZANIA LTD', 'GTBITZTZ', 'TZA'),
+      ('GUARDIAN BANK LIMITED', 'GUARKENA', 'KEN'),
+      ('GULF AFRICAN BANK LTD', 'GAFRKENA', 'KEN'),
+      ('GULF BANK ALGERIE', 'AGUBDZAL', 'DZA'),
+      ('Guaranty Trust Bank Gambia', 'GTBINGMG', 'GMB'),
+      ('HABIB AFRICAN BANK', 'HABLTZTZ', 'TZA'),
+      ('HABIB BANK AG ZURICH', 'HBZUKENA', 'KEN'),
+      ('HABIB BANK LTD MAURITIUS', 'HABBMUMU', 'MUS'),
+      ('HABIB OVERSEAS BANK LIMITED', 'HOBLZAJJ', 'ZAF'),
+      ('HBZ BANK LIMITED', 'HBZHZAJJ', 'ZAF'),
+      ('HERITAGE BANK PLC', 'HBCLNGLA', 'NGA'),
+      ('HFC LIMITED', 'HFCOKENA', 'KEN'),
+      ('HIBRET BANK SHARE COMPANY', 'UNTDETAA', 'ETH'),
+      ('HIJRA BANK SHARE COMPANY', 'HIJRETAA', 'ETH'),
+      ('HONGKONG AND SHANGHAI BANKING CORPORATION LTD., THE', 'HSBCMUMU', 'MUS'),
+      ('HOPE PSBANK', 'HPSBNGLA', 'NGA'),
+      ('HOUSING AND DEVELOPMENT BANK', 'HDBKEGCA', 'EGY'),
+      ('HOUSING FINANCE BANK LTD.', 'HFINUGKA', 'UGA'),
+      ('HSBC ALGERIA', 'HSBCDZAL', 'DZA'),
+      ('HSBC BANK EGYPT S.A.E', 'EBBKEGCX', 'EGY'),
+      ('HSBC BANK PLC', 'HSBCZAJJ', 'ZAF'),
+      ('HSBC SECURITIES (SOUTH AFRICA) (PTY) LTD', 'SMJCZAJC', 'ZAF'),
+      ('Housing and Commerce Bank of Eritrea', 'HCBEERAA', 'ERI'),
+      ('I AND M BANK (RWANDA) PLC', 'IMRWRWRW', 'RWA'),
+      ('I AND M BANK (T) LIMITED', 'IMBLTZTZ', 'TZA'),
+      ('I AND M BANK (UGANDA) LIMITED', 'ORINUGKA', 'UGA'),
+      ('I AND M BANK LTD', 'IMBLKENA', 'KEN'),
+      ('IHS MAURITIUS CAMEROON', 'IHSAMUMU', 'MUS'),
+      ('IJG SECURITIES (PTY) LTD', 'IJGLNANA', 'NAM'),
+      ('IMARA EDWARDS SECURITIES (PRIVATE) LIMITED', 'IESPZWH2', 'ZWE'),
+      ('INDEPENDENT SECURITIES (PTY) LTD', 'ISECZAJJ', 'ZAF'),
+      ('INDO-ZAMBIA BANK', 'INZAZMLX', 'ZMB'),
+      ('INDUSTRIAL DEVELOPMENT BANK', 'DIBBEGCA', 'EGY'),
+      ('INDUSTRIAL DEVELOPMENT CORPORATION OF SOUTH AFRICA LIMITED', 'IDCFZAJJ', 'ZAF'),
+      ('INFRASTRUCTURE DEVELOPMENT BANK OF ZIMBABWE', 'ZDBLZWHA', 'ZWE'),
+      ('INNBUCKS MICROBANK LIMITED', 'NDORZWHX', 'ZWE'),
+      ('INTEMBEKO INVESTMENT ADMINISTRATORS (PTY) LTD', 'INTAZAJC', 'ZAF'),
+      ('INTERNATIONAL BANK (LIBERIA) LIMITED', 'IBLRLRLM', 'LBR'),
+      ('INTERNATIONAL BANK OF MAURITANIA', 'IBMRMRMR', 'MRT'),
+      ('INTERNATIONAL BUSINESS BANK (IB BANK)', 'IBBABFBF', 'BFA'),
+      ('INTERNATIONAL BUSINESS BANK DJIBOUTI (IB BANK-DJIBOUTI)', 'IBBDDJJD', 'DJI'),
+      ('INTERNATIONAL BUSINESS BANK TOGO', 'BTCITGTG', 'TGO'),
+      ('INTERNATIONAL COMMERCIAL BANK (TANZANIA) LIMITED', 'BKMYTZTZ', 'TZA'),
+      ('INTERNATIONAL INVESTMENT BANK S.A, DJIBOUTI', 'ICDJDJJD', 'DJI'),
+      ('INTERNATIONAL INVESTMENT BANK, SA', 'BESCCVCP', 'CPV'),
+      ('INTERSWITCH LIMITED', 'INTWNGL2', 'NGA'),
+      ('INVESTEC BANK (MAURITIUS) LIMITED', 'IVESMUMU', 'MUS'),
+      ('INVESTEC BANK LTD.', 'IVESZAJJ', 'ZAF'),
+      ('INVESTEC MARKETS(PROPRIETARY)LIMITED', 'IVESZAJS', 'ZAF'),
+      ('INVESTEC WEALTH AND INVESTMENT INTERNATIONAL PTY LTD', 'IWIIZAJJ', 'ZAF'),
+      ('INVESTMENT HOUSE NAMIBIA (PTY) LTD', 'IHNANANX', 'NAM'),
+      ('INVESTRUST BANK LTD', 'VSTRZMLU', 'ZMB'),
+      ('Industrial Development Bank Sudan', 'IDBSSDKH', 'SDN'),
+      ('Interbank Burundi S.A', 'IBBUBIBIXXX', 'BDI'),
+      ('International Bank of Somalia', 'IBSLSOMS', 'SOM'),
+      ('International Commercial Bank Burundi S.A', 'ICBBBIBIXXX', 'BDI'),
+      ('Ivory Bank South Sudan', 'IVORSSJX', 'SSD'),
+      ('J.P. MORGAN EQUITIES SOUTH AFRICA PROPRIETARY LIMITED', 'JPMEZAJJ', 'ZAF'),
+      ('J.P. MORGAN SECURITIES SOUTH AFRICA PROPRIETARY LIMITED', 'JPMSZAJJ', 'ZAF'),
+      ('JAIZ BANK PLC', 'JAIZNGLA', 'NGA'),
+      ('JPMORGAN CHASE BANK, N.A', 'MGTCZAJJ', 'ZAF'),
+      ('JSE INVESTOR SERVICES PTY LTD', 'ULTRZAJC', 'ZAF'),
+      ('JSE LIMITED', 'XJSEZAJJ', 'ZAF'),
+      ('Jumhouria Bank', 'JUMHLALATRI', 'LBY'),
+      ('KASADA SERVICES LIMITED', 'KASVMUMU', 'MUS'),
+      ('KCB BANK KENYA LIMITED', 'KCBLKENX', 'KEN'),
+      ('KCB BANK TANZANIA LIMITED', 'KCBLTZTZ', 'TZA'),
+      ('KCB BANK UGANDA LIMITED', 'KCBLUGKA', 'UGA'),
+      ('KCB Bank Burundi Limited', 'KCBLBIBIXXX', 'BDI'),
+      ('KELA SECURITIES PTY LTD', 'KESYZAJJ', 'ZAF'),
+      ('KENYA WOMEN MICROFINANCE BANK', 'KWMIKENX', 'KEN'),
+      ('KEYSTONE BANK (SL) LIMITED', 'PHBXSLFR', 'SLE'),
+      ('KEYSTONE BANK LIMITED', 'PLNINGLA', 'NGA'),
+      ('KHUMO SECURITIES (PTY) LTD.', 'GENSZAJA', 'ZAF'),
+      ('KILIMANJARO CO-OPERATIVE BANK LTD', 'KLMJTZTZ', 'TZA'),
+      ('KINGDOM BANK LTD', 'CIFIKENA', 'KEN'),
+      ('Kenya Commercial Bank South Sudan', 'KCBLSSJX', 'SSD'),
+      ('LA BANQUE AGRICOLE', 'CADKSNDA', 'SEN'),
+      ('LA BANQUE OUTARDE', 'OUTRSNDA', 'SEN'),
+      ('LA FINANCIERE DE L''AFRIQUE DE L''OUEST - LA FINAO', 'FNAOSNDA', 'SEN'),
+      ('LA POSTE TUNISIENNE', 'LPTNTNTT', 'TUN'),
+      ('LA REGIONALE BANK', 'LREGCMCX', 'CMR'),
+      ('LEFIKA SECURITIES (PTY)LTD', 'LESTZAJJ', 'ZAF'),
+      ('LESOTHO POSTBANK', 'LESHLSMM', 'LSO'),
+      ('LETSHEGO BANK (T) LIMITED', 'ADVBTZTZ', 'TZA'),
+      ('LETSHEGO BANK NAMIBIA LIMITED', 'LFSGNANA', 'NAM'),
+      ('LIBERIAN BANK FOR DEVELOPMENT AND INVESTMENT', 'LBDELRLM', 'LBR'),
+      ('LIBERTY SECURITIES PROPRIETARY LIMITED', 'LSPRZAJJ', 'ZAF'),
+      ('LION INTERNATIONAL BANK S.C.', 'LIBSETAA', 'ETH'),
+      ('LION MICROFINANCE LIMITED', 'LMLDZWHA', 'ZWE'),
+      ('LONGMARK SECURITIES (PTY) LTD', 'ARSYZAJJ', 'ZAF'),
+      ('LOTUS BANK LIMITED', 'LOTUNGLA', 'NGA'),
+      ('Libyan Foreign Bank', 'LFBLALTR', 'LBY'),
+      ('Libyan Islamic Bank', 'LIBILYLT', 'LBY'),
+      ('M-ORIENTAL BANK LTD', 'MORBKENA', 'KEN'),
+      ('MAENDELEO BANK PLC', 'MBTLTZTZ', 'TZA'),
+      ('MAITLAND GROUP SOUTH AFRICA LTD', 'FNSOZAJC', 'ZAF'),
+      ('MANDG INVESTMENT MANAGERS (PTY) LTD', 'PPMTZAJC', 'ZAF'),
+      ('MANSA BANK', 'MNSACIAB', 'CIV'),
+      ('MASHREQ BANK', 'MSHQEGCA', 'EGY'),
+      ('MASSMART MANAGEMENT AND FINANCE COMPANY (PTY) LTD', 'MSMFZAJJ', 'ZAF'),
+      ('MAUBANK LTD', 'MPCBMUMU', 'MUS'),
+      ('MCB SEYCHELLES', 'MCBLSCSC', 'SYC'),
+      ('MCSD MISR FOR CLEARING,DEPOSITORY AND REGISTRY', 'MCSDEGCA', 'EGY'),
+      ('MEGABANK (GAMBIA) LIMITED', 'ITBCGMGM', 'GMB'),
+      ('MERCANTILE CREDIT BANK LTD', 'MCBDUGKB', 'UGA'),
+      ('MERRILL LYNCH SOUTH AFRICA (PROPRIETARY) LIMITED', 'SBKHZAJJ', 'ZAF'),
+      ('METBANK LIMITED', 'MBOZZWHA', 'ZWE'),
+      ('MIDBANK', 'MIDBEGCX', 'EGY'),
+      ('MIDDLE EAST BANK KENYA LTD', 'MIEKKENA', 'KEN'),
+      ('MINISTERIO DAS FINANCAS - DIRECCAO GERAL DO TESOURO - TESOURARIA GERAL', 'MDFCGWGW', 'GNB'),
+      ('MKOMBOZI COMMERCIAL BANK LTD', 'MKCBTZTZ', 'TZA'),
+      ('MOBEX MONEY TRANSFER SERVICES LIMITED', 'MMTSKENA', 'KEN'),
+      ('MOMENTUM SECURITIES (PTY) LTD.', 'REMAZAJJ', 'ZAF'),
+      ('MONEYMASTER PAYMENT SERVICE BANK LIMITED', 'MMPSNGLA', 'NGA'),
+      ('MOZA BANCO SA', 'MOZAMZMA', 'MOZ'),
+      ('MTN GROUP FINTECH (PTY) LTD', 'MGFYZAJJ', 'ZAF'),
+      ('MUCOBA BANK PLC', 'MUOBTZTZ', 'TZA'),
+      ('MWALIMU COMMERCIAL BANK PLC', 'MWCOTZTZ', 'TZA'),
+      ('MWANGA HAKIKA BANK LIMITED', 'MWCBTZTZ', 'TZA'),
+      ('MYBUCKS BANKING CORPORATION LIMITED', 'NFBMMWMW', 'MWI'),
+      ('Mediterranean Bank', 'MEDLLYLT', 'LBY'),
+      ('MegaBank Gambia Limited', 'MEGBGMGM', 'GMB'),
+      ('Mountain Trade and Development Bank', 'MTDBSSJX', 'SSD'),
+      ('NAMCLEAR (PTY) LIMITED', 'NAMCNANX', 'NAM'),
+      ('NAMIBIA POST LTD', 'NABBNAN2', 'NAM'),
+      ('NAMPAK MANAGEMENT SERVICES', 'NAMVZAJ2', 'ZAF'),
+      ('NATIONAL BANK OF COMMERCE, THE', 'NLCBTZTX', 'TZA'),
+      ('NATIONAL BANK OF EGYPT', 'NBEGEGCX268', 'EGY'),
+      ('NATIONAL BANK OF ETHIOPIA', 'NBETETAA', 'ETH'),
+      ('NATIONAL BANK OF KENYA LTD.', 'NBKEKENX', 'KEN'),
+      ('NATIONAL BANK OF MALAWI', 'NBMAMWMW', 'MWI'),
+      ('NATIONAL BUILDING SOCIETY', 'NABYZWHA', 'ZWE'),
+      ('NATIONAL FINANCIAL CREDIT BANK S.A.', 'NAFCCMCY', 'CMR'),
+      ('NATIONAL INVESTMENT BANK', 'NIBGGHAC', 'GHA'),
+      ('NATIXIS ALGERIE', 'NATXDZAL', 'DZA'),
+      ('NAVIGARE SECURITIES PTY LTD', 'NAVGZAJJ', 'ZAF'),
+      ('NBS BANK PLC', 'NBSTMWMW', 'MWI'),
+      ('NCBA BANK KENYA PLC', 'CBAFKENX', 'KEN'),
+      ('NCBA BANK RWANDA PLC', 'CBAFRWRW', 'RWA'),
+      ('NCBA BANK TANZANIA LIMITED', 'CBAFTZTZ', 'TZA'),
+      ('NCBA BANK UGANDA LIMITED', 'CBAFUGKA', 'UGA'),
+      ('NEDBANK (LESOTHO) LIMITED', 'NEDLLSMX', 'LSO'),
+      ('NEDBANK ESWATINI LIMITED', 'NESWSZMX', 'SWZ'),
+      ('NEDBANK LIMITED', 'NEDSZAJJ', 'ZAF'),
+      ('NEDBANK MOCAMBIQUE, S.A.', 'UNICMZMX', 'MOZ'),
+      ('NEDBANK NAMIBIA LIMITED', 'NEDSNANX', 'NAM'),
+      ('NEDBANK ZIMBABWE LIMITED', 'MBCAZWHX', 'ZWE'),
+      ('NEDGROUP SECURITIES (PTY) LTD', 'NBOEZAJ2', 'ZAF'),
+      ('NIB INTERNATIONAL BANK S.C.', 'NIBIETAA', 'ETH'),
+      ('NIGERIA LNG LIMITED', 'NLNGNGLP', 'NGA'),
+      ('NIGERIAN EXPORT IMPORT BANK', 'NEXMNGLA', 'NGA'),
+      ('NIGERIAN NATIONAL PETROLEUM COMPANY LIMITED', 'NNPCNGLA', 'NGA'),
+      ('NITENSO', 'NITNZAJ2', 'ZAF'),
+      ('NMB BANK LIMITED', 'NMBLZWHX', 'ZWE'),
+      ('NMB BANK PLC', 'NMIBTZTZ', 'TZA'),
+      ('NOAH FINANCIAL INNOVATION (PROPRIETARY) LIMITED', 'METLZAJJ', 'ZAF'),
+      ('NORTH AFRICA INTERNATIONAL BANK', 'NOAFTNTT', 'TUN'),
+      ('NOUVELLE BANQUE DE MAURITANIE', 'NBMRMRMR', 'MRT'),
+      ('NOUVOBANQ', 'NOVHSCSC', 'SYC'),
+      ('NOVA MERCHANT BANK LIMITED', 'NVMBNGLA', 'NGA'),
+      ('NSIA BANQUE BENIN SA', 'DBLNBJBJ', 'BEN'),
+      ('NSIA BANQUE COTE D''IVOIRE (NSIA BANQUE CI)', 'BIAOCIAB', 'CIV'),
+      ('NSIA BANQUE GUINEE', 'BIAOGNGN', 'GIN'),
+      ('NSIA BANQUE SENEGAL', 'DBLNSNDA', 'SEN'),
+      ('NSIA BANQUE TOGO', 'DBLNTGTG', 'TGO'),
+      ('NVEST SECURITIES (PTY) LTD', 'NVSEZAJC', 'ZAF'),
+      ('National Commercial Bank (NCB Libya)', 'NCBLLYLT', 'LBY'),
+      ('North Africa Bank', 'NABLLYLT', 'LBY'),
+      ('OFFICE DES CHANGES', 'OFCHMAMR', 'MAR'),
+      ('OLD MUTUAL INVESTMENT GROUP(SA) PTY LTD', 'OMAMZAJC', 'ZAF'),
+      ('OMNIBSIC BANK GHANA LIMITED', 'OMBLGHAC', 'GHA'),
+      ('OMNICANE MANAGEMENT AND CONSULTANCY LIMITED', 'OMMCMUMM', 'MUS'),
+      ('OMO BANK SHARE COMPANY', 'OSCOETAA', 'ETH'),
+      ('OPPORTUNITY BANK', 'OPUGUGKA', 'UGA'),
+      ('OPTIMUS BANK LIMITED', 'OPTSNGLA', 'NGA'),
+      ('ORABANK BENIN', 'ORBKBJBJ', 'BEN'),
+      ('ORABANK BURKINA-FASO', 'ORBKBFBF', 'BFA'),
+      ('ORABANK COTE D''IVOIRE', 'ORBKCIAB', 'CIV'),
+      ('ORABANK GABON', 'ORBKGALI', 'GAB'),
+      ('ORABANK GUINEE', 'ORBKGNGN', 'GIN'),
+      ('ORABANK GUINEE BISSAU', 'ORBKGWGW', 'GNB'),
+      ('ORABANK MALI', 'ORBKMLBA', 'MLI'),
+      ('ORABANK MAURITANIE', 'ORBKMRMR', 'MRT'),
+      ('ORABANK NIGER', 'ORBKNENI', 'NER'),
+      ('ORABANK SENEGAL', 'ORBKSNDA', 'SEN'),
+      ('ORABANK TOGO', 'ORBKTGTG', 'TGO'),
+      ('ORANGE BANK AFRICA', 'ORACCIAB', 'CIV'),
+      ('OROMIA INTERNATIONAL BANK S.C.', 'ORIRETAA', 'ETH'),
+      ('Omdurman National Bank', 'ONBASDKH', 'SDN'),
+      ('PARALLEX BANK LIMITED', 'PARANGLA', 'NGA'),
+      ('PARAMOUNT BANK LIMITED', 'PAUTKENA', 'KEN'),
+      ('PEOPLE''S BANK OF ZANZIBAR, THE', 'PBZATZTZ', 'TZA'),
+      ('PEOPLE''S OWN SAVINGS BANK', 'PWSBZWHX', 'ZWE'),
+      ('PEPKOR TRADING (PTY) LTD', 'PEPKZAJC', 'ZAF'),
+      ('PERESEC PRIME BROKERS (PTY) LIMITED', 'PRSMZAJJ', 'ZAF'),
+      ('PHILIPPUS DE WITT (PTY) LTD', 'WIMOZAJJ', 'ZAF'),
+      ('POLARIS BANK LIMITED', 'PRDTNGLA', 'NGA'),
+      ('POSTBANK UGANDA LIMITED', 'UGPBUGKA', 'UGA'),
+      ('PPC LTD', 'PPCPZAJJ', 'ZAF'),
+      ('PREMIER BANK KENYA LIMITED', 'IFCBKENA', 'KEN'),
+      ('PREMIUM TRUST BANK LIMITED', 'PTRUNGLA', 'NGA'),
+      ('PRESCIENT FUND SERVICES', 'PRVGZAJC', 'ZAF'),
+      ('PRESCIENT SECURITIES PTY LTD', 'PCNTZAJC', 'ZAF'),
+      ('PRIME BANK LTD.', 'PRIEKENX', 'KEN'),
+      ('PROVIDENCE LIFE LIMITED, PCC', 'PLLPMUMU', 'MUS'),
+      ('PROVIDUSBANK PLC', 'UMPLNGLA', 'NGA'),
+      ('PRUDENTIAL BANK LIMITED', 'PUBKGHAC', 'GHA'),
+      ('PSG SECURITIES LIMITED', 'PSSYZAJJ', 'ZAF'),
+      ('Premier Bank Somalia', 'PRBKSOMS', 'SOM'),
+      ('QATAR NATIONAL BANK (QNB)', 'QNBAMRMU', 'MRT'),
+      ('QATAR NATIONAL BANK-TUNISIA', 'BTQITNTT', 'TUN'),
+      ('QC FINANCE', 'QCFNMUMU', 'MUS'),
+      ('Qatar National Bank Sudan', 'QNBSDSD', 'SDN'),
+      ('RAFIKI MICROFINANCE BANK', 'RMFBKENA', 'KEN'),
+      ('RAMMIS BANK SHARE COMPANY', 'RMSIETAA', 'ETH'),
+      ('RAND MERCHANT BANK NIGERIA LIMITED', 'FIRNNGLA', 'NGA'),
+      ('RAND REFINERY LIMITED', 'RRPLZAJJ', 'ZAF'),
+      ('RAYS MICRO FINANCE INSTITUTION S.C', 'RMFIETA2', 'ETH'),
+      ('RENCAP SECURITIES (PTY) LTD', 'SBJMZAJJ', 'ZAF'),
+      ('REPUBLIC BANK (GHANA) PLC', 'HFCAGHAC', 'GHA'),
+      ('RESERVE BANK OF MALAWI', 'RBMAMWMR', 'MWI'),
+      ('RESERVE BANK OF ZIMBABWE', 'REBZZWHX', 'ZWE'),
+      ('RMB INTERNATIONAL (MAURITIUS) LTD', 'FIRNMUMU', 'MUS'),
+      ('RMB SECURITIES (PTY) LIMITED', 'RMBSZAJJ', 'ZAF'),
+      ('RMB STOCKBROKING (PTY) LTD', 'FNEQZAJJ', 'ZAF'),
+      ('ROKEL COMMERCIAL BANK (SIERRA LEONE) LTD.', 'RCBKSLFR', 'SLE'),
+      ('ROYAL MONZE INSTITUTE OF MEDICAL EVANGELISM LIMITED', 'RMIEZML2', 'ZMB'),
+      ('Rawbank', 'RAWBCDKI', 'COD'),
+      ('SA STOCK BROKERS (PTY) LTD', 'SBPTZAJJ', 'ZAF'),
+      ('SABA AFRICAN BANK AS', 'SAFBDJJD', 'DJI'),
+      ('SALAAM AFRICAN BANK', 'ISEADJJD', 'DJI'),
+      ('SALAAM BANK LIMITED', 'TOPFUGKA', 'UGA'),
+      ('SALAAM MICROFINANCE BANK LIMITED', 'SLMIKENA', 'KEN'),
+      ('SANLAM INVESTMENT MANAGEMENT', 'SANLZAJC', 'ZAF'),
+      ('SANLAM PRIVATE WEALTH (PTY) LTD', 'GBSEZAJ3', 'ZAF'),
+      ('SANLAM SPECIALISED FINANCE PROPRIETARY LIMITED', 'GBSEZAJ2', 'ZAF'),
+      ('SAPELLE INTERNATIONAL BANK LIBERIA LIMITED (SIBLL)', 'GNERLRLM', 'LBR'),
+      ('SARPONG CAPITAL MARKETS LIMITED', 'SRCMGHA2', 'GHA'),
+      ('SASFIN BANK LIMITED', 'SASFZAJJ', 'ZAF'),
+      ('SASFIN SECURITIES (PTY) LTD', 'SFPSZAJJ', 'ZAF'),
+      ('SBG SECURITIES (PTY) LIMITED', 'SBEQZAJJ', 'ZAF'),
+      ('SBI (MAURITIUS) LTD', 'INILMUMU', 'MUS'),
+      ('SBM BANK (KENYA) LIMITED', 'SBMKKENA', 'KEN'),
+      ('SBM BANK(MAURITIUS)LTD', 'STCBMUMU', 'MUS'),
+      ('SCB CAMEROUN', 'BCMACMCX', 'CMR'),
+      ('SCM DMA (PTY) LTD', 'SCDPZAJJ', 'ZAF'),
+      ('SECONDSTAX LIMITED', 'SECXGHA2', 'GHA'),
+      ('SERITI POWER (PTY) LTD', 'SCHYZAJJ', 'ZAF'),
+      ('SEYCHELLES COMMERCIAL BANK', 'SEYSSCSC', 'SYC'),
+      ('SG FRANKEL POLLAK SECURITIES', 'SFPSZAJJ011', 'ZAF'),
+      ('SHABELLE BANK SHARE COMPANY', 'SBEEETAA', 'ETH'),
+      ('SIDAMA BANK S.C', 'SDMAETAA', 'ETH'),
+      ('SIDIAN BANK LIMITED', 'SIDNKENA', 'KEN'),
+      ('SIERRA LEONE COMMERCIAL BANK LTD', 'SLCBSLFR', 'SLE'),
+      ('SIGNATURE BANK LIMITED', 'SNIGNGLA', 'NGA'),
+      ('SIINQEE BANK S,C', 'SINQETAA', 'ETH'),
+      ('SILICA ADMINISTRATION SERVICES PTY LTD', 'SILCZAJJ', 'ZAF'),
+      ('SILK ROAD INTERNATIONAL BANK S.A', 'SRIBDJJD', 'DJI'),
+      ('SILVER BANK LIMITED', 'BTBLMUMU', 'MUS'),
+      ('SIMONIS STORM SECURITIES (PTY) LTD', 'FLMSNANX', 'NAM'),
+      ('SISHEN IRON ORE COMPANY (PTY) LTD', 'SIOCZAJJ', 'ZAF'),
+      ('SKI CARBON BLACK (MAURITIUS) LIMITED', 'SKCBMUMU', 'MUS'),
+      ('SKYE BANK (SL) LTD', 'SKYESLFR', 'SLE'),
+      ('SKYE BANK GUINEA S.A.', 'SKYEGNGN', 'GIN'),
+      ('SOCIAL SECURITY AND NATIONAL INSURANCE TRUST', 'SSNTGHAC', 'GHA'),
+      ('SOCIETE DE FINANCEMENT DU COMMERCE ET DE L''INDUSTRIE S.A.', 'SFCOGNGN', 'GIN'),
+      ('SOCIETE DES POSTES DU TOGO', 'SOTOTGTL', 'TGO'),
+      ('SOCIETE GENERALE ALGERIE', 'SOGEDZAL', 'DZA'),
+      ('SOCIETE GENERALE BENIN', 'SOGEBJBJ', 'BEN'),
+      ('SOCIETE GENERALE BENIN SUCCURSALE DU TOGO', 'SOGETGTG', 'TGO'),
+      ('SOCIETE GENERALE BURKINA FASO', 'SGBBBFBF', 'BFA'),
+      ('SOCIETE GENERALE CAMEROUN', 'SGCMCMCX', 'CMR'),
+      ('SOCIETE GENERALE COTE D''IVOIRE', 'SGCICIAB', 'CIV'),
+      ('SOCIETE GENERALE DE BANQUES EN GUINEE', 'SGGNGNGN', 'GIN'),
+      ('SOCIETE GENERALE DE BANQUES EN GUINEE EQUATORIALE', 'SGGEGQGQ', 'GNQ'),
+      ('SOCIETE GENERALE GHANA PLC', 'SSEBGHAC', 'GHA'),
+      ('SOCIETE GENERALE MAROCAINE DE BANQUES', 'SGMBMAMC', 'MAR'),
+      ('SOCIETE GENERALE MAURITANIE', 'BIIMMRMR', 'MRT'),
+      ('SOCIETE GENERALE OFFSHORE', 'SGTGMAMC', 'MAR'),
+      ('SOCIETE GENERALE SENEGAL', 'SGSNSNDA', 'SEN'),
+      ('SOCIETE INTER-AFRICAINE DE BANQUE', 'SIABTGTG', 'TGO'),
+      ('SOCIETE IVOIRIENNE DE BANQUE', 'SIVBCIAB', 'CIV'),
+      ('SOCIETE NATIONALE DES POSTES ET DES SERVICES FINANCIERS (SNPSF)', 'HAHMKMKM', 'COM'),
+      ('SOCIETE NIGERIENNE DE BANK (SONIBANK), SUCCURSALE DU BENIN', 'SOCNBJBJ', 'BEN'),
+      ('SOCIETE NIGERIENNE DE BANQUE', 'SOCNNENI', 'NER'),
+      ('SOCIETE TUNISIENNE DE BANQUE', 'STBKTNTT', 'TUN'),
+      ('SOUTH AFRICAN RESERVE BANK', 'SARBZAJ4', 'ZAF'),
+      ('SOUTHCHESTER INVESTMENT MANAGERS', 'SIVMZAJ2', 'ZAF'),
+      ('STANBIC BANK', 'SBICCIAB', 'CIV'),
+      ('STANBIC BANK BOTSWANA LIMITED', 'SBICBWGX', 'BWA'),
+      ('STANBIC BANK GHANA LTD', 'SBICGHAC', 'GHA'),
+      ('STANBIC BANK KENYA LIMITED', 'SBICKENX', 'KEN'),
+      ('STANBIC BANK TANZANIA LIMITED', 'SBICTZTX', 'TZA'),
+      ('STANBIC BANK UGANDA LIMITED', 'SBICUGKX', 'UGA'),
+      ('STANBIC BANK ZAMBIA LTD.', 'SBICZMLX', 'ZMB'),
+      ('STANBIC BANK ZIMBABWE LIMITED', 'SBICZWHX', 'ZWE'),
+      ('STANBIC IBTC BANK PLC', 'SBICNGLX', 'NGA'),
+      ('STANBIC IBTC STOCKBROKERS LIMITED', 'STIKNGL2', 'NGA'),
+      ('STANDARD BANK (MAURITIUS) LIMITED', 'SBICMUMU', 'MUS'),
+      ('STANDARD BANK DE ANGOLA S.A.', 'SBICAOLU', 'AGO'),
+      ('STANDARD BANK ESWATINI LIMITED', 'SBICSZMX', 'SWZ'),
+      ('STANDARD BANK NAMIBIA LIMITED', 'SBNMNANX', 'NAM'),
+      ('STANDARD BANK OF SOUTH AFRICA LIMITED,THE', 'SBZAZAJJ', 'ZAF'),
+      ('STANDARD BANK PLC', 'SBICMWMX', 'MWI'),
+      ('STANDARD BANK SA', 'SBICMZMX', 'MOZ'),
+      ('STANDARD CHARTERED BANK', 'SCBLZAJ2', 'ZAF'),
+      ('STANDARD CHARTERED BANK (MAURITIUS) LTD', 'SCBLMUMU', 'MUS'),
+      ('STANDARD CHARTERED BANK ANGOLA SA', 'SCBLAOLU', 'AGO'),
+      ('STANDARD CHARTERED BANK BOTSWANA LTD.', 'SCHBBWGX', 'BWA'),
+      ('STANDARD CHARTERED BANK CAMEROON S.A.', 'SCBLCMCX', 'CMR'),
+      ('STANDARD CHARTERED BANK COTE D''IVOIRE', 'SCBLCIAB', 'CIV'),
+      ('STANDARD CHARTERED BANK GAMBIA LIMITED', 'SCBLGMGM', 'GMB'),
+      ('STANDARD CHARTERED BANK GHANA PLC', 'SCBLGHAC', 'GHA'),
+      ('STANDARD CHARTERED BANK KENYA LIMITED', 'SCBLKENX', 'KEN'),
+      ('STANDARD CHARTERED BANK NIGERIA LIMITED', 'SCBLNGLA', 'NGA'),
+      ('STANDARD CHARTERED BANK SIERRA LEONE LTD', 'SCBLSLFR', 'SLE'),
+      ('STANDARD CHARTERED BANK TANZANIA LTD', 'SCBLTZTX', 'TZA'),
+      ('STANDARD CHARTERED BANK UGANDA LIMITED', 'SCBLUGKA', 'UGA'),
+      ('STANDARD CHARTERED BANK ZAMBIA PLC', 'SCBLZMLX', 'ZMB'),
+      ('STANDARD CHARTERED BANK ZIMBABWE LIMITED', 'SCBLZWHX', 'ZWE'),
+      ('STANDARD LESOTHO BANK LTD.', 'SBICLSMX', 'LSO'),
+      ('STANLIB ASSET MANAGEMENT', 'LBAMZAJJ', 'ZAF'),
+      ('STATE BANK OF INDIA', 'SBINZAJJ', 'ZAF'),
+      ('STERLING BANK PLC', 'NAMENGLA', 'NGA'),
+      ('STEWARD BANK LIMITED', 'STBLZWHX', 'ZWE'),
+      ('STRATE', 'STRAZAJ2', 'ZAF'),
+      ('STRATE (PTY) LTD', 'STRAZAJJ', 'ZAF'),
+      ('SUCCESS MICROFINANCE BANK LIMITED', 'SMFBZWHA', 'ZWE'),
+      ('SUNTRUST BANK NIGERIA LIMITED', 'SUTGNGLA', 'NGA'),
+      ('SUNU BANK TOGO', 'BPECTGTG', 'TGO'),
+      ('SWAZILAND DEVELOPMENT AND SAVINGS BANK', 'SDSBSZMB', 'SWZ'),
+      ('SWISS RE AFRICA LTD', 'SWREZAJJ', 'ZAF'),
+      ('SYGNIA SECURITIES (PTY) LTD', 'SYSYZAJ2', 'ZAF'),
+      ('Sahara Bank', 'SAHALYLT', 'LBY'),
+      ('Salaam Somali Bank', 'SALASOMS', 'SOM'),
+      ('Savings and Social Development Bank', 'SSDBSDKH', 'SDN'),
+      ('Standard Bank Congo', 'SBICCDKI', 'COD'),
+      ('Standard Chartered Bank Gambia', 'SCBLGMGM', 'GMB'),
+      ('Sudanese French Bank', 'SUFBSDSD', 'SDN'),
+      ('TAJ BANK LIMITED', 'TAJJNGLA', 'NGA'),
+      ('TAKORADI INTERNATIONAL COMPANY', 'TAKOGHAC', 'GHA'),
+      ('TANZANIA AGRICULTURAL DEVELOPMENT BANK', 'TZADTZTZ', 'TZA'),
+      ('TANZANIA COMMMERCIAL BANK PLC', 'TAPBTZTZ', 'TZA'),
+      ('TANZANIA REVENUE AUTHORITY', 'TARATZTZ', 'TZA'),
+      ('TELKOM SA LIMITED', 'TELKZAJP', 'ZAF'),
+      ('TERRA PAYMENT SERVICES (MAURITIUS)', 'TPSVMUMU', 'MUS'),
+      ('TERRA PAYMENT SERVICES SOUTH AFRICA (RF) (PTY) LTD', 'TPSVZAJJ', 'ZAF'),
+      ('THARISA MINERALS', 'THMNZAJ2', 'ZAF'),
+      ('THE CO-OPERATIVE BANK OF KENYA LTD', 'KCOOKENA', 'KEN'),
+      ('THE COMPANY FOR HABITAT AND HOUSING IN AFRICA (SHELTER - AFRIQUE)', 'SLTEKENA', 'KEN'),
+      ('THE FOSCHINI GROUP LIMITED', 'FOHGZAJC', 'ZAF'),
+      ('THE GOVERNMENT OF THE RSA IN ITS NATIONAL TREASURY', 'TALMZAJP', 'ZAF'),
+      ('THE HOUSING BANK FOR TRADE AND FINANCE ALGERIA', 'HBHODZAL', 'DZA'),
+      ('THE MAURITIUS COMMERCIAL BANK (MADAGASCAR) SA', 'MCBLMGMG', 'MDG'),
+      ('THE MAURITIUS COMMERCIAL BANK LIMITED', 'MCBLMUMU', 'MUS'),
+      ('TITAN TRUST BANK LIMITED', 'TTRUNGLA', 'NGA'),
+      ('TRANSNET SOC LIMITED', 'TNETZAJJ', 'ZAF'),
+      ('TROPICAL BANK LTD', 'TROAUGKA', 'UGA'),
+      ('TRUST BANK ALGERIA', 'TBALDZAL', 'DZA'),
+      ('TRUST BANK LTD', 'TBLTGMGM', 'GMB'),
+      ('TRUSTCO BANK NAMIBIA', 'TRNANANX', 'NAM'),
+      ('TRUSTLINK (PTY) LTD', 'LINKZAJJ', 'ZAF'),
+      ('TSB SECURITIES (PTY) LTD', 'PLRPZAJJ', 'ZAF'),
+      ('TSEDEY BANK SC', 'TSDYETAA', 'ETH'),
+      ('TSEHAY BANK S.C', 'TSCPETAA', 'ETH'),
+      ('TUNIS INTERNATIONAL BANK', 'TUIBTNTT', 'TUN'),
+      ('TUNISIAN FOREIGN BANK', 'UTUBTNTT', 'TUN'),
+      ('TUNISIAN SAUDI BANK', 'TSIDTNTT', 'TUN'),
+      ('TYMEBANK', 'CBZAZAJJ', 'ZAF'),
+      ('Trust African Bank', 'TRAFSOMS', 'SOM'),
+      ('Trust Bank Limited', 'TRUSTGMGM', 'GMB'),
+      ('Trust Merchant Bank (TMB)', 'TMBCCDKI', 'COD'),
+      ('UBA BURKINA', 'BIBUBFBF', 'BFA'),
+      ('UBA DRC (United Bank for Africa)', 'UNAFCDKI', 'COD'),
+      ('UBA GABON', 'UNAFGALI', 'GAB'),
+      ('UBA KENYA BANK LIMITED', 'UNAFKENA', 'KEN'),
+      ('UBA MOCAMBIQUE,SA', 'UNAFMZMA', 'MOZ'),
+      ('UBANK LIMITED', 'YOUBZAJJ', 'ZAF'),
+      ('UBS SOUTH AFRICA (PROPRIETARY) LIMITED', 'UBSWZAJJ', 'ZAF'),
+      ('UCHUMI COMMERCIAL BANK LTD', 'UCCTTZTZ', 'TZA'),
+      ('UGANDA SECURITIES EXCHANGE LIMITED', 'UGSXUGKA', 'UGA'),
+      ('UMNIA BANK', 'UMNIMAMM', 'MAR'),
+      ('UNION BANCAIRE POUR LE COMMERCE ET L''INDUSTRIE', 'UBCITNTT', 'TUN'),
+      ('UNION BANK OF CAMEROON PLC. (UBC PLC.)', 'UCMACMCX', 'CMR'),
+      ('UNION BANK OF NIGERIA PLC', 'UBNINGLA', 'NGA'),
+      ('UNION GABONAISE DE BANQUE', 'UGABGALI', 'GAB'),
+      ('UNION INTERNATIONALE DE BANQUES', 'UIBKTNTT', 'TUN'),
+      ('UNION MAROCAINE DE BANQUES', 'UMABMAMC', 'MAR'),
+      ('UNION TOGOLAISE DE BANQUE', 'UNTBTGTG', 'TGO'),
+      ('UNION TRUST BANK LIMITED', 'UTBSSLFR', 'SLE'),
+      ('UNITED BANK FOR AFRICA (GHANA) LTD', 'STBGGHAC', 'GHA'),
+      ('UNITED BANK FOR AFRICA (LIBERIA) LIMITED', 'UNAFLRLM', 'LBR'),
+      ('UNITED BANK FOR AFRICA (S/L) LTD', 'UNAFSLFR', 'SLE'),
+      ('UNITED BANK FOR AFRICA (TANZANIA) LIMITED', 'UNAFTZTZ', 'TZA'),
+      ('UNITED BANK FOR AFRICA (UGANDA) LTD', 'UNAFUGKA', 'UGA'),
+      ('UNITED BANK FOR AFRICA BENIN', 'COBBBJBJ', 'BEN'),
+      ('UNITED BANK FOR AFRICA CAMEROUN S.A.', 'UNAFCMCX', 'CMR'),
+      ('UNITED BANK FOR AFRICA COTE D''IVOIRE', 'UNAFCIAB', 'CIV'),
+      ('UNITED BANK FOR AFRICA GUINEA', 'UBAGGNCN', 'GIN'),
+      ('UNITED BANK FOR AFRICA MALI SA', 'UNAFMLBA', 'MLI'),
+      ('UNITED BANK FOR AFRICA PLC', 'UNAFNGLA', 'NGA'),
+      ('UNITED BANK FOR AFRICA SENEGAL', 'UNAFSNDA', 'SEN'),
+      ('UNITED BANK FOR AFRICA ZAMBIA LIMITED', 'UNAFZMLU', 'ZMB'),
+      ('UNITY BANK PLC', 'ICITNGLA', 'NGA'),
+      ('UNIVERSAL MERCHANT BANK LTD', 'MBGHGHAC', 'GHA'),
+      ('URWEGO BANK PLC', 'UOBRRWRW', 'RWA'),
+      ('VALOR FINANCIAL MAURITIUS LTD', 'VFIMMUMU', 'MUS'),
+      ('VBS MUTUAL BANK', 'VBSMZAJJ', 'ZAF'),
+      ('VENTURE GARDEN NIGERIA LIMITED', 'VEGNNGLA', 'NGA'),
+      ('VERSUS BANK', 'VSBKCIAB', 'CIV'),
+      ('VICTORIA COMMERCIAL BANK PLC', 'VICMKENA', 'KEN'),
+      ('VISIO FUND MANAGEMENT PTY LTD', 'VMGCZAJJ', 'ZAF'),
+      ('VISTA BANK (SL) LIMITED', 'FSTISLFR', 'SLE'),
+      ('VISTA BANK BURKINA SA', 'BICIBFBX', 'BFA'),
+      ('VISTA BANK GUINEE SA', 'FIBLGNGN', 'GIN'),
+      ('VODACOM GROUP LTD', 'VGRPZAJM', 'ZAF'),
+      ('VOLKSWAGEN OF SOUTH AFRICA (PTY) LTD', 'VWAGZAJJ', 'ZAF'),
+      ('VUNANI CAPITAL MARKETS(PTY)LTD', 'VCMTZAJJ', 'ZAF'),
+      ('VUNANI SECURITIES (PROPRIETARY) LIMITED', 'CEQPZAJJ', 'ZAF'),
+      ('WANA CORPORATE', 'WACOMAMM', 'MAR'),
+      ('WARWYCK PRIVATE BANK LTD', 'WPBLMUMU', 'MUS'),
+      ('WEGAGEN BANK S.C.', 'WEGAETAA', 'ETH'),
+      ('WEMA BANK PLC', 'WEMANGLA', 'NGA'),
+      ('WENDKUNI BANK INTERNATIONAL', 'WBIFBFBF', 'BFA'),
+      ('WIFACK INTERNATIONAL BANK', 'WKIBTNTT', 'TUN'),
+      ('Wahda Bank', 'WAHDLYLT', 'LBY'),
+      ('YETU MICROFINANCE BANK PLC', 'YETMTZTZ', 'TZA'),
+      ('ZAMBIA INDUSTRIAL COMMERCIAL BANK LIMITED', 'ZICBZMLU', 'ZMB'),
+      ('ZAMBIA NATIONAL COMMERCIAL BANK PLC', 'ZNCOZMLU', 'ZMB'),
+      ('ZAMZAM BANK S.C', 'ZAMZETAA', 'ETH'),
+      ('ZB BANK LTD', 'ZBCOZWHX', 'ZWE'),
+      ('ZEMEN BANK S.C.', 'ZEMEETAA', 'ETH'),
+      ('ZENITH BANK (GHANA) LTD', 'ZEBLGHAC', 'GHA'),
+      ('ZENITH BANK (SIERRA LEONE) LIMITED', 'ZESLSLFR', 'SLE'),
+      ('ZENITH BANK GAMBIA', 'ZEIBGMGM', 'GMB'),
+      ('ZENITH BANK PLC', 'ZEIBNGLA', 'NGA'),
+      ('ZENITH PENSIONS CUSTODIAN LIMITED', 'ZEPCNGLA', 'NGA'),
+      ('ZIMBABWE WOMEN''S MICROFINANCE BANK LIMITED', 'ZWMFZWHA', 'ZWE'),
+      ('Zenith Bank Gambia Limited', 'ZEIBGMGM', 'GMB');
     SQL
   end
 
