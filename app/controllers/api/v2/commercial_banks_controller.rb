@@ -3,6 +3,24 @@ module Api
     class CommercialBanksController < ApplicationController
       skip_before_action :verify_authenticity_token
 
+      # ISO 3166-1 alpha-3 → alpha-2 for SmartCHEQ countries table lookup
+      ALPHA3_TO_ALPHA2 = {
+        "DZA" => "DZ", "AGO" => "AO", "BEN" => "BJ", "BWA" => "BW",
+        "BFA" => "BF", "BDI" => "BI", "CMR" => "CM", "CPV" => "CV",
+        "CAF" => "CF", "TCD" => "TD", "COM" => "KM", "COG" => "CG",
+        "COD" => "CD", "CIV" => "CI", "DJI" => "DJ", "EGY" => "EG",
+        "GNQ" => "GQ", "ERI" => "ER", "ETH" => "ET", "GAB" => "GA",
+        "GMB" => "GM", "GHA" => "GH", "GIN" => "GN", "GNB" => "GW",
+        "KEN" => "KE", "LSO" => "LS", "LBR" => "LR", "LBY" => "LY",
+        "MDG" => "MG", "MWI" => "MW", "MLI" => "ML", "MRT" => "MR",
+        "MUS" => "MU", "MAR" => "MA", "MOZ" => "MZ", "NAM" => "NA",
+        "NER" => "NE", "NGA" => "NG", "RWA" => "RW", "STP" => "ST",
+        "SEN" => "SN", "SYC" => "SC", "SLE" => "SL", "SOM" => "SO",
+        "ZAF" => "ZA", "SSD" => "SS", "SDN" => "SD", "SWZ" => "SZ",
+        "TZA" => "TZ", "TGO" => "TG", "TUN" => "TN", "UGA" => "UG",
+        "ZMB" => "ZM", "ZWE" => "ZW", "SHN" => "SH",
+      }.freeze
+
       STUB_BANKS = {
         "NGA" => [
           { id: 101, name: "First Bank of Nigeria",         swift_code: "FBNINGLA", country_code: "NGA" },
@@ -180,17 +198,21 @@ module Api
         country_code = (params[:country_code] || '').upcase.strip
         country_id   = params[:country_id].to_s
 
-        banks = if country_code.present?
-          STUB_BANKS[country_code] || []
+        country = if country_code.present?
+          alpha2 = ALPHA3_TO_ALPHA2[country_code] || country_code
+          Smartcheq::Country.find_by(iso_3166_code: alpha2)
         elsif country_id.present?
-          # Look up ISO code by matching country id (1=NGA, 2=GHA, etc.)
-          iso = STUB_BANKS.keys.find { |k| Api::V2::CountriesController::STUB_COUNTRIES.find { |c| c[:id].to_s == country_id && (c[:code] == k || c[:alpha2] == k) } }
-          iso ? STUB_BANKS[iso] : []
-        else
-          STUB_BANKS.values.flatten
+          Smartcheq::Country.find_by(id: country_id)
         end
 
-        render json: banks
+        return render(json: []) unless country&.bank_id.present?
+
+        banks = Smartcheq::CommercialBank.for_bank_id(country.bank_id)
+        iso3  = country_code.present? ? country_code : ALPHA3_TO_ALPHA2.key(country.iso_3166_code)
+
+        render json: banks.map { |b|
+          { id: b.id, name: b.name, swift_code: b.swift_code, country_code: iso3 }
+        }
       end
     end
   end
