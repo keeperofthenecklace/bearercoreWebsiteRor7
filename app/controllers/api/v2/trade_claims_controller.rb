@@ -131,6 +131,19 @@ module Api
         # Persist both steps atomically
         claim.save!
 
+        # Pre-provision the SmartCHEQ corridor so Qt6's adopt_clearance call
+        # succeeds even for country pairs not yet registered in SmartCHEQ.
+        if claim.status == "ready_to_mint"
+          begin
+            corridor = claim[:corridor] || {}
+            src = (corridor[:source_country] || corridor['source_country']).to_s.upcase
+            dst = (corridor[:target_country] || corridor['target_country']).to_s.upcase
+            Smartcheq::Corridor.find_or_provision!(src, dst) if src.present? && dst.present?
+          rescue => e
+            Rails.logger.warn "[TradeClaimsController#approve] corridor provision skipped: #{e.class}: #{e.message}"
+          end
+        end
+
         begin
           IssuancePipeline::ClearanceBroadcaster.emit(claim)
         rescue => e
@@ -174,6 +187,17 @@ module Api
         if claim.status == "insufficient_corridor_liquidity"
           CorridorVerificationService.new(claim).execute
           claim.save!
+
+          if claim.status == "ready_to_mint"
+            begin
+              corridor = claim[:corridor] || {}
+              src = (corridor[:source_country] || corridor['source_country']).to_s.upcase
+              dst = (corridor[:target_country] || corridor['target_country']).to_s.upcase
+              Smartcheq::Corridor.find_or_provision!(src, dst) if src.present? && dst.present?
+            rescue => e
+              Rails.logger.warn "[TradeClaimsController#re_evaluate] corridor provision skipped: #{e.class}: #{e.message}"
+            end
+          end
         end
 
         render json: {
