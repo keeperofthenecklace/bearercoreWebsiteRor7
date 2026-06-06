@@ -1311,7 +1311,16 @@ function updateApprovalUpdates(claim) {
 
   if (issuanceEl) issuanceEl.style.display = 'none';
 
-  if (cs === 'pre_cleared') {
+  if (status === 'ready_to_mint') {
+    el.innerHTML = '<div>✓ status → ready to mint</div><div>✓ corridor headroom confirmed</div><div>✓ awaiting Qt6 issuance pickup</div>';
+    el.style.background = '#f0fdf4'; el.style.color = '#166534'; el.style.borderColor = '#bbf7d0';
+  } else if (status === 'insufficient_corridor_liquidity') {
+    el.innerHTML = '<div>⚠ compliance cleared — liquidity insufficient</div><div>○ corridor headroom not confirmed</div><div style="font-size:11px;margin-top:4px;">Use Re-Evaluate after Governor injects liquidity.</div>';
+    el.style.background = '#fffbeb'; el.style.color = '#92400e'; el.style.borderColor = '#fde68a';
+  } else if (status === 'compliance_cleared') {
+    el.innerHTML = '<div>✓ supervisor approval recorded</div><div>⟳ corridor protocol check in progress…</div>';
+    el.style.background = '#eff6ff'; el.style.color = '#1d4ed8'; el.style.borderColor = '#bfdbfe';
+  } else if (cs === 'pre_cleared') {
     el.innerHTML = `
       <div>⟳ Awaiting supervisor approval</div>
       <div style="font-size:11px;color:#6b7280;margin-top:4px;">On approval, the system will automatically evaluate all 5 gating conditions.</div>
