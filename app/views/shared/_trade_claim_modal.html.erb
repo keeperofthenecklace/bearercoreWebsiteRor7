@@ -5410,6 +5410,7 @@ async function confirmAndSubmitTradeClaim() {
   const payload = {
     trade_claim: {
       institution_id:      selectedInstitution ? selectedInstitution.id : document.getElementById('tc_institution_id').value,
+      institution_name:    selectedInstitution ? selectedInstitution.name : '',
       corridor_id:         document.getElementById('tc_corridor_id').value,
       trade_direction:     document.getElementById('tc_trade_direction').value,
       currency_code:       document.getElementById('tc_currency_code').value,

@@ -144,6 +144,10 @@ module Api
               allocated_at: Time.now,
               status:       :pending,
             }
+            # Bust the live corridor cache so the injection is visible immediately
+            # on the next CorridorVerificationService call (e.g. Re-Evaluate).
+            Api::V2::CorridorsController._live_corridors    = nil
+            Api::V2::CorridorsController._live_corridors_at = nil
           end
 
           render json: {

@@ -377,6 +377,18 @@ module Api
           status: "active", asset_code: "GHS", daily_volume: 3_300_000,
           liquidity_position: { domestic_available: 35_000_000, linked_outstanding: 7_100_000, asset_code: "GHS" }
         },
+        {
+          id: 39, code: "GHA-RWA", corridor_display: "GHA → RWA", bloc: "AfCFTA",
+          source_country: "GHA", target_country: "RWA",
+          status: "active", asset_code: "GHS", daily_volume: 1_800_000,
+          liquidity_position: { domestic_available: 1_000_000, linked_outstanding: 0, asset_code: "GHS" }
+        },
+        {
+          id: 40, code: "RWA-GHA", corridor_display: "RWA → GHA", bloc: "AfCFTA",
+          source_country: "RWA", target_country: "GHA",
+          status: "active", asset_code: "RWF", daily_volume: 1_200_000,
+          liquidity_position: { domestic_available: 50_000_000, linked_outstanding: 0, asset_code: "RWF" }
+        },
       ].freeze
 
       def index
