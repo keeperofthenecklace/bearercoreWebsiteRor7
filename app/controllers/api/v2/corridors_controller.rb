@@ -125,6 +125,7 @@ module Api
         "XAF-XOF" => 1.0,      "XOF-XAF" => 1.0,
         "MAD-XOF" => 60.84,    "XOF-MAD" => 0.01643,
         "MAD-NGN" => 151.8,    "NGN-MAD" => 0.006587,
+        "MAD-SLL" => 2_480.0,  "SLL-MAD" => 0.000403,
         "NGN-TZS" => 0.09,     "TZS-NGN" => 11.11,
         "NGN-KES" => 0.09,     "KES-NGN" => 11.11,
         "NGN-UGX" => 2.67,     "UGX-NGN" => 0.375,
@@ -388,6 +389,18 @@ module Api
           source_country: "RWA", target_country: "GHA",
           status: "active", asset_code: "RWF", daily_volume: 1_200_000,
           liquidity_position: { domestic_available: 50_000_000, linked_outstanding: 0, asset_code: "RWF" }
+        },
+        {
+          id: 41, code: "MAR-SLE", corridor_display: "MAR → SLE", bloc: "AfCFTA",
+          source_country: "MAR", target_country: "SLE",
+          status: "active", asset_code: "MAD", daily_volume: 500_000,
+          liquidity_position: { domestic_available: 25_000_000, linked_outstanding: 0, asset_code: "MAD" }
+        },
+        {
+          id: 42, code: "SLE-MAR", corridor_display: "SLE → MAR", bloc: "AfCFTA",
+          source_country: "SLE", target_country: "MAR",
+          status: "active", asset_code: "SLL", daily_volume: 1_200_000_000,
+          liquidity_position: { domestic_available: 60_000_000_000, linked_outstanding: 0, asset_code: "SLL" }
         },
       ].freeze
 
