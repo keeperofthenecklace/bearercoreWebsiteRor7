@@ -339,7 +339,7 @@
   <%# ── Top bar ── %>
   <header class="gateway-topbar">
     <a href="/" class="gateway-brand">
-      <%= image_tag "bearercore_logo.png", alt: "bearerCORE" %>
+      <%= image_tag "bc_shield.png", alt: "bearerCORE" %>
       <span class="gateway-brand-name">
         bearer<strong>CORE</strong><sup>™</sup>
       </span>
@@ -350,6 +350,14 @@
   <%# ── Main ── %>
   <main class="gateway-main">
     <div class="gateway-card">
+
+      <div style="text-align: center; margin-bottom: 28px;">
+        <%= image_tag "bearercore_logo.png",
+              alt: "bearerCORE Sovereign Seal",
+              style: "width: 148px; height: 148px; border-radius: 50%;
+                      box-shadow: 0 0 0 1px rgba(201,168,76,0.18),
+                                  0 12px 48px rgba(0,0,0,0.32);" %>
+      </div>
 
       <div class="gateway-eyebrow">Restricted Access</div>
       <h1 class="gateway-heading">Central Bank Access</h1>
