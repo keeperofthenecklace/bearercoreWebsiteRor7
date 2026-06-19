@@ -199,17 +199,17 @@
       </div>
 
       <h3>Sovereign Clearance Status</h3>
-      <p>A live panel reflecting the governance gate that precedes minting. Bound to <code>GET /api/v2/issuance_authorizations/:auth_code</code>.</p>
+      <p>A live panel reflecting the governance gate that precedes minting. Bound to <code>GET /api/v2/issuance_authorizations/:auth_code</code>. Because SELECT SOURCE only lists claims with <code>state=cleared</code>, any claim the operator can select already resolves to a <em>Cleared</em> gate the moment the cascade loads — the panel reflects an approved authorization, not a pending one.</p>
       <div class="dp-table-wrap"><table class="dp-table">
-        <thead><tr><th>Field</th><th>Meaning</th><th>Example from UI</th></tr></thead>
+        <thead><tr><th>Field</th><th>Meaning</th><th>Example (selected claim)</th></tr></thead>
         <tbody>
           <tr><td>Authorization ID</td><td>The cleared authorization reference</td><td>INV-2026-167-002</td></tr>
-          <tr><td>Clearance Gate</td><td>Current governance state of the claim</td><td>Awaiting supervisor approval…</td></tr>
-          <tr><td>Approved By</td><td>Supervisor who cleared the claim</td><td>— (not yet approved)</td></tr>
-          <tr><td>Clearing Source</td><td>Origin of the clearance decision</td><td>Pending supervisor review</td></tr>
+          <tr><td>Clearance Gate</td><td>Current governance state of the claim</td><td>Cleared</td></tr>
+          <tr><td>Approved By</td><td>Supervisor who cleared the claim</td><td>[Supervisor ID]</td></tr>
+          <tr><td>Clearing Source</td><td>Origin of the clearance decision</td><td>Governance tab · Four-Eyes</td></tr>
         </tbody>
       </table></div>
-      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>While the Clearance Gate reads <em>Awaiting supervisor approval</em>, the Operator PIN field accepts input but Package Authorization is rejected server-side (HTTP 409) until a second operator approves the claim — Four-Eyes is enforced on the server, not the client.</div></div>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>Four-Eyes is enforced server-side. The dropdown can only surface cleared claims, so the standard path never sees a pending gate — but if an <em>uncleared</em> <code>auth_code</code> is submitted out-of-band (terminal/debug console), Package Authorization is rejected with HTTP&nbsp;409 <code>clearance_pending</code>. The client never makes the trust decision.</div></div>
 
       <h3>Issuance Execution Pipeline</h3>
       <p>Three sequential phases, surfaced as a tabbed strip. Each phase unlocks only when its predecessor reports success.</p>
@@ -369,9 +369,9 @@
       <h3>No Active Trade Claims</h3>
       <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>With <code>— No active trade claims —</code> selected, the PIN button is disabled and the pipeline shows "Select a cleared trade claim from SELECT SOURCE above to begin." All right-pane properties remain blank.</div></div>
 
-      <h3>Clearance Not Granted</h3>
-      <div class="dp-rule">Client: Operator PIN accepted but Phase 1 blocked.</div>
-      <div class="dp-rule">Server: HTTP 409 {code: clearance_pending} until a second operator approves. Four-Eyes is enforced server-side.</div>
+      <h3>Clearance Not Granted (out-of-band)</h3>
+      <div class="dp-rule">Not reachable via SELECT SOURCE — the dropdown only lists <code>state=cleared</code> claims, so the standard operator path cannot select an uncleared authorization.</div>
+      <div class="dp-rule">Arises only if an uncleared <code>auth_code</code> is submitted directly (terminal/debug console): server returns HTTP 409 {code: clearance_pending}. Four-Eyes is enforced server-side, never on the client.</div>
 
       <h3>Production vs. Specimen</h3>
       <div class="dp-table-wrap"><table class="dp-table">
@@ -399,14 +399,14 @@
         <h2>End-to-End Flow</h2>
       </div>
       <p>Complete walkthrough: minting a ₦200 batch for WEMA BANK PLC under authorization INV-2026-167-002.</p>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div><strong>Governance clearance is a prerequisite, not a step.</strong> SELECT SOURCE draws from <code>GET /api/v2/issuance_authorizations?state=cleared</code> — only claims that have already passed the Four-Eyes governance gate are selectable. By the time a claim appears in the dropdown it is server-side cleared, so the sequence below starts from an already-approved authorization and never waits on a supervisor mid-flow.</div></div>
       <div class="dp-flow">
-        <div class="dp-step"><h4>Select claim</h4><p>Operator picks the cleared trade claim from SELECT SOURCE. Issuer identity, asset, and corridor identity auto-populate. Clearance Status loads INV-2026-167-002.</p></div>
-        <div class="dp-step"><h4>Supervisor clears</h4><p>Second operator approves in the Governance tab. Clearance Gate flips to "Cleared"; Approved By populates.</p></div>
-        <div class="dp-step"><h4>Configure batch</h4><p>Right pane: select Backing Lock, Issuer Key, public key, and packaging (Watermark=Production, Marking=None for live tender). Set denomination + count.</p></div>
-        <div class="dp-step"><h4>Authorize</h4><p>Enter 4-digit PIN → Phase 1 returns batch_id + payloads. Pipeline advances.</p></div>
-        <div class="dp-step"><h4>Generate</h4><p>Phase 2 mints, signs (Ed25519), and vault-encrypts each note; manifest sealed with SHA-256.</p></div>
-        <div class="dp-step"><h4>Distribute</h4><p>Phase 3 confirms the manifest and ships the ZIP to WEMA BANK PLC (AACLZAJJ) via SFTP. Registry feed shows the batch and note count.</p></div>
+        <div class="dp-step"><h4>1 · Select claim</h4><p>Operator picks a <em>pre-cleared</em> trade claim from SELECT SOURCE. The configuration cascade instantly populates read-only issuer identity, currency metadata, and corridor identities, and surfaces the already-approved Sovereign Clearance Status (Clearance Gate: Cleared, Approved By: [Supervisor ID]).</p></div>
+        <div class="dp-step"><h4>2 · Configure batch</h4><p>Operator verifies the auto-populated data, selects Backing Lock and Issuer Key, picks the public key, and confirms packaging (Watermark=Production, Marking=None for live tender). Sets denomination + count.</p></div>
+        <div class="dp-step"><h4>3 · Authorize</h4><p>Operator enters the 4-digit PIN. Because the claim was cleared prior to selection, the server accepts the PIN payload, validates the session, and returns batch_id + per-note payloads (HTTP 200) — no 409 conflict on the standard path.</p></div>
+        <div class="dp-step"><h4>4 · Generate &amp; distribute</h4><p>Phase 2 mints, signs (Ed25519), and vault-encrypts each note; manifest sealed with SHA-256. Phase 3 confirms the manifest and ships the ZIP to WEMA BANK PLC (AACLZAJJ) via SFTP. Registry feed shows the batch and note count.</p></div>
       </div>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div><strong>Demonstrating Four-Eyes live.</strong> To show server-side enforcement to an audience, exercise the failure mode <em>before</em> Step 1: force an uncleared authorization ID via the terminal or debug console and submit a PIN to surface the <code>HTTP 409 clearance_pending</code> block, proving the server protects the network. The standard operational walkthrough, by contrast, is a smooth continuous progression starting from an already-cleared claim.</div></div>
       <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>End state: batch MINTED, manifest verified, notes delivered to the claiming institution and entered into the validation registry — full audit trail recorded under operator Albert McKeever LGS (Governor).</div></div>
     </div>
 
@@ -428,7 +428,7 @@
 
       <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div><strong>State inertia (§8).</strong> With <code>SELECT SOURCE</code> reading <code>— No active trade claims —</code>, the system enforces strict inertia: left-pane fields (Issuer Identity, Asset Code, Corridor Identity) are blank, the Issuance Registry shows its empty state, and right-pane properties are unpopulated. This is the correct cold-start.</div></div>
 
-      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div><strong>Four-Eyes gate (§4).</strong> The Sovereign Clearance Status shows <code>INV-2026-167-002</code> with a Clearance Gate of <em>Awaiting supervisor approval…</em>. Phase 1 remains gated until a second operator clears the claim in Governance — even a valid 4-digit PIN is rejected server-side with HTTP&nbsp;409 <code>clearance_pending</code>.</div></div>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div><strong>Four-Eyes is a prerequisite (§4).</strong> SELECT SOURCE only lists claims with <code>state=cleared</code>, so a selectable claim already shows a Clearance Gate of <em>Cleared</em> with Approved By populated. To demonstrate the server-side gate live, exercise the failure mode <em>before</em> Step 1 — force an uncleared <code>auth_code</code> via the terminal/debug console to surface the HTTP&nbsp;409 <code>clearance_pending</code> block.</div></div>
 
       <div class="dp-callout dp-danger"><span class="dp-ci">⛔</span><div><strong>Tender safety (§5).</strong> For a pre-demo state, keep Packaging at <code>Watermark: Simulation Only</code> / <code>Marking: None (Original)</code> — every note scales to 70% with a diagonal SPECIMEN overlay, so no accidental live currency reaches a commercial bank's SFTP pipeline during testing. Switch to <code>Watermark = Production</code> only to demonstrate live minting.</div></div>
 
@@ -436,18 +436,16 @@
       <div class="dp-table-wrap"><table class="dp-table">
         <thead><tr><th>Step</th><th>Document Rule (§9)</th><th>Expected UI State</th></tr></thead>
         <tbody>
-          <tr><td><strong>1 · Select Claim</strong></td><td>Pick the cleared claim from SELECT SOURCE; issuer, asset, and corridor identity auto-populate.</td><td><strong>Mismatched / Incomplete</strong> until clicked. SELECT SOURCE still reads <em>— No active trade claims —</em>; selecting it triggers the configuration cascade (§3) that fills the empty left pane.</td></tr>
-          <tr><td><strong>2 · Supervisor Clears</strong></td><td>Second operator approves in Governance; Clearance Gate flips to "Cleared"; Approved By populates.</td><td><strong>Pending.</strong> Clearance Gate reads <em>Awaiting supervisor approval…</em> and Approved By is blank (—). Phase 1 stays blocked until the gate flips.</td></tr>
-          <tr><td><strong>3 · Configure Batch</strong></td><td>Right pane: select Backing Lock, Issuer Key, public key, packaging. Set denomination + count.</td><td><strong>Partially Configured.</strong> Claiming Institution mapped to WEMA BANK PLC (AACLZAJJ), Public Key populated (<code>a03e7f5158ba2ffc…</code>). Switch Watermark to Production for live tender.</td></tr>
-          <tr><td><strong>4 · Authorize</strong></td><td>Enter 4-digit PIN → Phase 1 returns batch_id + payloads; pipeline advances.</td><td><strong>Locked.</strong> Operator PIN fields visible; button reads <em>Enter 4-Digit Operator PIN</em>. Once Step 2 clears server-side, the 4 digits unlock submission.</td></tr>
-          <tr><td><strong>5 · Generate</strong></td><td>Phase 2 mints, signs (Ed25519), vault-encrypts each note; manifest sealed with SHA-256.</td><td><strong>Ready to Track.</strong> Vault Generation is greyed as the second milestone in the Issuance Execution Pipeline strip, ready to take focus when Phase 1 completes.</td></tr>
-          <tr><td><strong>6 · Distribute</strong></td><td>Phase 3 confirms the manifest and ships the ZIP to WEMA BANK PLC (AACLZAJJ) via SFTP.</td><td><strong>Target Validated.</strong> Destination node locked in; status bar confirms a live session — <em>Session active · Operator: Albert McKeever LGS (Governor)</em> — licensed to the Central Bank of Azania.</td></tr>
+          <tr><td><strong>1 · Select Claim</strong></td><td>Pick a <em>pre-cleared</em> claim from SELECT SOURCE; issuer, asset, and corridor identity auto-populate and the cleared Clearance Status surfaces.</td><td><strong>Cascade Loads.</strong> SELECT SOURCE flips from <em>— No active trade claims —</em> to the chosen claim; the empty left pane fills (§3) and Clearance Gate reads <em>Cleared</em> with Approved By populated.</td></tr>
+          <tr><td><strong>2 · Configure Batch</strong></td><td>Right pane: verify auto-populated data, select Backing Lock, Issuer Key, public key; set packaging + denomination + count.</td><td><strong>Partially Configured.</strong> Claiming Institution mapped to WEMA BANK PLC (AACLZAJJ), Public Key populated (<code>a03e7f5158ba2ffc…</code>). Switch Watermark to Production for live tender.</td></tr>
+          <tr><td><strong>3 · Authorize</strong></td><td>Enter 4-digit PIN → because the claim is already cleared, the server accepts immediately and returns batch_id + payloads (HTTP 200).</td><td><strong>Unlocks.</strong> Operator PIN fields visible; button reads <em>Enter 4-Digit Operator PIN</em>. Entering 4 digits submits cleanly — no 409 on the standard path.</td></tr>
+          <tr><td><strong>4 · Generate &amp; Distribute</strong></td><td>Phase 2 mints, signs (Ed25519), vault-encrypts; manifest sealed with SHA-256. Phase 3 confirms manifest and ships the ZIP via SFTP.</td><td><strong>Target Validated.</strong> Vault Generation takes focus in the Issuance Execution Pipeline strip; destination node locked in; status bar confirms a live session — <em>Operator: Albert McKeever LGS (Governor)</em>, Central Bank of Azania.</td></tr>
         </tbody>
       </table></div>
 
       <h3>Advancing to a Live Minting State</h3>
-      <div class="dp-rule">Have a supervisor account approve the backing liquidity lock for <code>INV-2026-167-002</code> in the Governance tab so the Clearance Gate flips to Cleared.</div>
-      <div class="dp-rule">Re-select the cleared claim from SELECT SOURCE to trigger the configuration cascade that populates the currency metadata fields.</div>
+      <div class="dp-rule"><strong>Prerequisite:</strong> a supervisor approves the claim in the Governance tab so it reaches <code>state=cleared</code> and becomes selectable in SELECT SOURCE. This happens before the operator opens the Issuance tab — it is not a step in the live mint.</div>
+      <div class="dp-rule">Select the cleared claim from SELECT SOURCE to trigger the configuration cascade that populates the currency metadata fields.</div>
       <div class="dp-rule">Click SELECT SOURCE at the very start of the demo to kick off auto-population, and explicitly switch <code>Simulation Only → Production</code> to show how live currency is securely handled.</div>
 
       <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>When all three pre-demo safeguards hold and the six UI states match the map above, the running terminal mirrors the specification exactly — the layout, data structures, and conditional locks are demo-ready.</div></div>
