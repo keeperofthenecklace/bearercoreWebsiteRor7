@@ -70,6 +70,8 @@ Rails.application.routes.draw do
 
       # Inbound RTGS boundary — commercial bank pacs.009 settlement webhook.
       post "rtgs/inbound/pacs009", to: "rtgs_webhooks#receive_pacs009"
+      # RTGS reserve-interface heartbeat (read-only) for the Qt6 gateway indicator.
+      get  "rtgs/status",          to: "rtgs_status#show"
 
       namespace :governance do
         resources :proposals, only: [:index, :create] do
