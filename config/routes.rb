@@ -68,6 +68,9 @@ Rails.application.routes.draw do
         end
       end
 
+      # Inbound RTGS boundary — commercial bank pacs.009 settlement webhook.
+      post "rtgs/inbound/pacs009", to: "rtgs_webhooks#receive_pacs009"
+
       namespace :governance do
         resources :proposals, only: [:index, :create] do
           member do

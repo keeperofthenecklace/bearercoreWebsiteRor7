@@ -3,35 +3,17 @@ module Api
     class TradeClaimsController < ApplicationController
       skip_before_action :verify_authenticity_token
 
-      def index
-        render json: TradeClaim.order(created_at: :desc).all
-      end
-
-      # GET /api/v2/trade_claims/clearance
-      # Returns the latest ready_to_mint claim, or { status: "none" } if none.
-      def clearance
-        ready = TradeClaim.where(status: 'ready_to_mint').order(created_at: :desc)
-        if ready.any?
-          render json: { status: "ready_to_mint", claim: ready.first, claims: ready }
-        else
-          render json: { status: "none", claims: [] }
-        end
-      end
-
-      def create
-        body = request.body.read
-        data = JSON.parse(body) rescue {}
-        claim = data["trade_claim"] || data
-
-        corridor_id  = (claim["corridor_id"] || claim["corridor"]).to_s
+      # ── Shared resolvers ────────────────────────────────────────────────────
+      # Resolve a corridor_id (live id/code, __virtual__SRC__DST, or SRC-DST)
+      # into the jsonb corridor record stored on a TradeClaim. Reused by the
+      # RTGS gateway (IssuancePipeline::RtgsInboundService) so there is a single
+      # source of truth for corridor shaping.
+      def self.build_corridor_record(corridor_id)
+        corridor_id  = corridor_id.to_s
         corridor_obj = Api::V2::CorridorsController.corridors_data
                          .find { |c| c[:id].to_s == corridor_id || c[:code] == corridor_id }
 
-        institution_id  = claim["institution_id"].to_s
-        all_banks       = Api::V2::CommercialBanksController::STUB_BANKS.values.flatten
-        institution_obj = all_banks.find { |b| b[:id].to_s == institution_id }
-
-        corridor_record = if corridor_obj
+        if corridor_obj
           {
             id:             corridor_obj[:id],
             name:           "#{corridor_obj[:source_country]}–#{corridor_obj[:target_country]} Corridor",
@@ -59,15 +41,60 @@ module Api
         else
           { id: corridor_id, name: corridor_id }
         end
+      end
 
-        institution_record = if institution_obj
-          { id:           institution_obj[:id],
-            name:         institution_obj[:name],
-            swift_code:   institution_obj[:swift_code],
-            country_code: institution_obj[:country_code] }
+      # Resolve a stub-bank institution_id into the jsonb institution record.
+      def self.build_institution_record(institution_id, fallback_name: nil)
+        institution_id = institution_id.to_s
+        obj = Api::V2::CommercialBanksController::STUB_BANKS.values.flatten
+                .find { |b| b[:id].to_s == institution_id }
+        if obj
+          { id: obj[:id], name: obj[:name], swift_code: obj[:swift_code], country_code: obj[:country_code] }
         else
-          { id: institution_id, name: claim["institution_name"] || "Unknown" }
+          { id: institution_id, name: fallback_name.presence || "Unknown" }
         end
+      end
+
+      # Resolve an institution from a SWIFT/BIC (RTGS sender). Falls back to the
+      # bare BIC when the sender is not in the known stub-bank registry.
+      def self.build_institution_record_by_bic(bic, fallback_name: nil)
+        bic8 = bic.to_s.upcase[0, 8]
+        obj  = Api::V2::CommercialBanksController::STUB_BANKS.values.flatten
+                 .find { |b| b[:swift_code].to_s.upcase == bic8 }
+        if obj
+          { id: obj[:id], name: obj[:name], swift_code: obj[:swift_code], country_code: obj[:country_code] }
+        else
+          { id: bic8, name: fallback_name.presence || bic8, swift_code: bic8 }
+        end
+      end
+
+      def index
+        render json: TradeClaim.order(created_at: :desc).all
+      end
+
+      # GET /api/v2/trade_claims/clearance
+      # Returns the latest ready_to_mint claim, or { status: "none" } if none.
+      def clearance
+        ready = TradeClaim.where(status: 'ready_to_mint').order(created_at: :desc)
+        if ready.any?
+          render json: { status: "ready_to_mint", claim: ready.first, claims: ready }
+        else
+          render json: { status: "none", claims: [] }
+        end
+      end
+
+      def create
+        body = request.body.read
+        data = JSON.parse(body) rescue {}
+        claim = data["trade_claim"] || data
+
+        corridor_id  = (claim["corridor_id"] || claim["corridor"]).to_s
+        institution_id = claim["institution_id"].to_s
+
+        corridor_record    = self.class.build_corridor_record(corridor_id)
+        institution_record = self.class.build_institution_record(
+          institution_id, fallback_name: claim["institution_name"]
+        )
 
         tc = TradeClaim.create!(
           reference:           claim["reference"] || claim["invoice_ref"] || "TC-#{Time.now.strftime('%Y%m%d%H%M%S')}",
