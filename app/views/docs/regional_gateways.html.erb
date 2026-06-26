@@ -1,0 +1,233 @@
+<%# app/views/docs/regional_gateways.html.erb
+    Regional Gateways — External Rail Management — Full System Specification
+    Modelled on the Sovereign Core Terminal UI (June 2026). %>
+
+<%= render 'docs/doc_styles' %>
+
+<div class="dp-wrap">
+
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">Regional Gateways — External Rail Management</span>
+    <span class="dp-topbar-tag">Complete</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:700px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · Module Specification</div>
+      <h1>Regional Gateways</h1>
+      <p class="dp-cover-desc">
+        The Regional Gateways tab is the administrator's control surface for the external
+        settlement rails that bridge bearerCORE to the wider financial system — the
+        <strong>PAPSS</strong> regional clearing rail and the national <strong>RTGS</strong>
+        reserve interface. It configures the ISO 20022 endpoints, monitors live rail
+        connectivity, surfaces diagnostic error codes, and keeps an immutable handshake
+        audit trail. Access is restricted to System Administrators and (read-only)
+        Forensic Auditors.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>1.0</b></div>
+        <div>Scope <b>PAPSS · National RTGS · DLT</b></div>
+        <div>Updated <b>June 2026</b></div>
+        <div>Status <b>Production Reference</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-secnav">
+    <a href="#overview">Overview</a>
+    <a href="#heartbeat">Heartbeat</a>
+    <a href="#papss">PAPSS</a>
+    <a href="#rtgs">RTGS</a>
+    <a href="#errors">Error Codes</a>
+    <a href="#logs">Rail Bridge Logs</a>
+    <a href="#access">Access &amp; Guardrails</a>
+    <a href="#pipeline">RTGS Pipeline</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <!-- §1 Overview -->
+    <div class="dp-section" id="overview">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§1</div>
+        <h2>System Overview</h2>
+      </div>
+      <p>
+        Regional Gateways manages the institutional connections to external settlement
+        networks. The central pane is a stack of rail panels — a live <strong>Gateway
+        Heartbeat</strong>, the <strong>PAPSS</strong> and <strong>RTGS</strong>
+        configuration cards, a <strong>Diagnostic Hub</strong> error-code reference, and the
+        <strong>Rail Bridge Logs</strong> audit trail. The right pane (Gateway Properties)
+        explains each rail and the guardrails that protect config writes.
+      </p>
+
+      <figure style="margin: 1.25rem 0 1.75rem; text-align: center;">
+        <img src="/docs/regional-gateways-tab.png"
+             alt="bearerCORE Regional Gateways tab — Gateway Heartbeat, PAPSS and RTGS configuration cards, error-code diagnostic hub, and Rail Bridge Logs"
+             style="width: 100%; max-width: 1180px; height: auto; border: 1px solid #d7dce3; border-radius: 8px; box-shadow: 0 2px 10px rgba(16,24,40,.08);"
+             loading="lazy">
+        <figcaption style="margin-top: .5rem; font-size: 12px; color: #6c757d;">
+          The Regional Gateways tab in the bearerCORE desktop client — Gateway Heartbeat,
+          PAPSS &amp; RTGS configuration, the Diagnostic Hub, and Rail Bridge Logs.
+        </figcaption>
+      </figure>
+
+      <h3>The Four Rails</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Rail</th><th>Protocol</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><strong>PAPSS Clearing Rail</strong></td><td><code>ISO 20022 / pacs.008</code></td><td>Pan-African Payment and Settlement System — credit-transfer clearing across AU corridors.</td></tr>
+          <tr><td><strong>RTGS Reserve Interface</strong></td><td><code>ISO 20022 / pacs.009</code></td><td>National real-time gross settlement — verifies commercial-bank reserve before a CBDC mint.</td></tr>
+          <tr><td><strong>DLT Corridor Node</strong></td><td><code>JSON-RPC 2.0</code></td><td>Distributed-ledger peer for corridor state and anchoring.</td></tr>
+          <tr><td><strong>ISO 20022 Message Bus</strong></td><td><code>camt.056</code></td><td>Message transport / acknowledgement bus for cancellation &amp; status flows.</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>The <strong>RTGS Reserve Interface</strong> here is the operator-facing configuration and monitoring surface for the national RTGS rail. It is distinct from the production <code>POST /api/v2/rtgs/inbound/pacs009</code> ingest gateway documented in <a href="/docs/issuance#rtgs">Issuance §11</a> — see <a href="#pipeline">§8</a> for how the two relate.</div></div>
+    </div>
+
+    <!-- §2 Gateway Heartbeat -->
+    <div class="dp-section" id="heartbeat">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§2</div>
+        <h2>Gateway Heartbeat — Live Connectivity</h2>
+      </div>
+      <p>A connectivity strip that auto-refreshes every <strong>60 seconds</strong> and on demand via <strong>Ping All Gateways</strong>. Each row reports the rail, its protocol, a status LED, and the timestamp of the last successful handshake.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Status LED</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>🟢 <strong>ONLINE</strong></td><td>Rail reachable; last handshake succeeded within the window.</td></tr>
+          <tr><td>⚪ <strong>UNKNOWN</strong></td><td>No handshake yet this session, or the endpoint is unconfigured — neutral, not an error.</td></tr>
+          <tr><td>🔴 <strong>CONFIG ERROR / OFFLINE</strong></td><td>Endpoint configured but the handshake failed; the matching error code is written to Rail Bridge Logs.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="dp-rule">A red LED is always paired with a diagnostic code in the Rail Bridge Logs — match it against the <a href="#errors">Diagnostic Hub</a> to decide whether the failure is technical or compliance.</div>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>An unconfigured rail reads <strong>UNKNOWN</strong> (grey), not red. The status only turns red once an endpoint is set but the handshake or a required field (e.g. a routing BIC) is missing or rejected.</div></div>
+    </div>
+
+    <!-- §3 PAPSS -->
+    <div class="dp-section" id="papss">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§3</div>
+        <h2>PAPSS — Pan-African Payment and Settlement System</h2>
+      </div>
+      <p>Configuration card for the regional clearing rail (ISO 20022 / pacs.008). Unset fields show a grey placeholder hint rather than a stored value.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Purpose</th><th>Placeholder / Example</th></tr></thead>
+        <tbody>
+          <tr><td>Gateway Type</td><td>Rail template selector</td><td>PAPSS Regional Rail (ISO 20022 / pacs.008)</td></tr>
+          <tr><td>API Endpoint</td><td>Clearing API base URL</td><td><code>https://api.papss.afreximbank.com/v1</code></td></tr>
+          <tr><td>API Key</td><td>Bearer credential (masked)</td><td>••••</td></tr>
+          <tr><td>Organisation ID</td><td>Participant identifier</td><td><code>e.g. AZA-CB-001</code></td></tr>
+          <tr><td>SSL Client Cert Path</td><td>mTLS client certificate on disk</td><td><code>/etc/smartcheq/certs/papss-client.pem</code></td></tr>
+          <tr><td>Cert Fingerprint (SHA-256)</td><td>Read-only — confirms remote mTLS identity</td><td>auto-populated on successful handshake</td></tr>
+          <tr><td>Last Successful Sync</td><td>Read-only timestamp of last good clearing sync</td><td>2026-06-19 21:28:32</td></tr>
+          <tr><td>Maintenance Mode</td><td>Pause automatic PAPSS settlements (manual reconciliation)</td><td>checkbox</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Actions</h3>
+      <div class="dp-rule"><strong>Test PAPSS Connection</strong> — performs a handshake and writes the result to Rail Bridge Logs.</div>
+      <div class="dp-rule"><strong>Save PAPSS Config</strong> — persists the card. Disabled for Forensic Auditors.</div>
+      <div class="dp-rule"><strong>View PAPSS Logs</strong> — filters the Rail Bridge Logs to PAPSS entries.</div>
+    </div>
+
+    <!-- §4 RTGS -->
+    <div class="dp-section" id="rtgs">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4</div>
+        <h2>RTGS — Real-Time Gross Settlement Interface</h2>
+      </div>
+      <p>Configuration card for the national RTGS rail (ISO 20022 / pacs.009). The RTGS interface verifies a commercial bank's reserve balance before a CBDC mint.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Field</th><th>Purpose</th><th>Placeholder / Example</th></tr></thead>
+        <tbody>
+          <tr><td>Gateway Type</td><td>Rail template selector</td><td>RTGS National Rail (ISO 20022 / pacs.009)</td></tr>
+          <tr><td>RTGS Endpoint</td><td>RTGS API base URL</td><td><code>https://rtgs-sandbox.centralbank.internal/api</code></td></tr>
+          <tr><td>Routing Code (BIC)</td><td>Settlement routing identifier</td><td><code>e.g. AZANCBXX</code></td></tr>
+          <tr><td>Reserve Account ID</td><td>Central-bank reserve account to query</td><td><code>e.g. RES-AZ-RESERVE-01</code></td></tr>
+          <tr><td>Query Timeout (ms)</td><td>Reserve-check timeout</td><td><code>5000</code></td></tr>
+          <tr><td>Cert Fingerprint (SHA-256)</td><td>Read-only — confirms remote mTLS identity</td><td>auto-populated on successful handshake</td></tr>
+          <tr><td>Last Reserve Verify</td><td>Read-only timestamp of last reserve verification</td><td>2026-06-22 09:45:12</td></tr>
+          <tr><td>Maintenance Mode</td><td>Pause automatic RTGS reserve checks (manual reconciliation)</td><td>checkbox</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Actions</h3>
+      <div class="dp-rule"><strong>Verify RTGS Reserve</strong> — runs a reserve check against the endpoint; surfaces field-level errors when the endpoint is set but a required value (e.g. the routing BIC) is missing.</div>
+      <div class="dp-rule"><strong>Save RTGS Config</strong> — persists the card. Disabled for Forensic Auditors.</div>
+      <div class="dp-rule"><strong>View RTGS Logs</strong> — filters the Rail Bridge Logs to RTGS entries.</div>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>A populated <strong>RTGS Endpoint</strong> with an empty <strong>Routing Code (BIC)</strong> raises <code>[BE05] Gateway Address Error</code> and flips the heartbeat LED red until the BIC is supplied.</div></div>
+    </div>
+
+    <!-- §5 Error Codes -->
+    <div class="dp-section" id="errors">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§5</div>
+        <h2>PAPSS / RTGS Error Code Reference — Diagnostic Hub</h2>
+      </div>
+      <p>When the heartbeat LED turns red, the error code appears in Rail Bridge Logs. Match it here to decide whether the failure is technical or compliance.</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Code</th><th>bearerCORE Alert</th><th>Operator Instruction</th></tr></thead>
+        <tbody>
+          <tr><td><code>RJ01</code></td><td>⚠ Reserves Exhausted</td><td>Verify RTGS liquidity before re-attempting.</td></tr>
+          <tr><td><code>BE05</code></td><td>⏱ Gateway Address Error</td><td>Verify the target BIC in Regional Gateways config.</td></tr>
+          <tr><td><code>AG01</code></td><td>⛔ Compliance Block</td><td>Flagged by PAPSS; check AML / Sanctions list.</td></tr>
+          <tr><td><code>TM01</code></td><td>⏱ Network Latency Alert</td><td>Transient — retry; escalate if persistent.</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- §6 Rail Bridge Logs -->
+    <div class="dp-section" id="logs">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6</div>
+        <h2>Rail Bridge Logs — External Handshake Audit Trail</h2>
+      </div>
+      <p>A live console of every external handshake — pings, test connections, reserve verifications, and the resulting acknowledgements or error codes. A filter bar scopes the view to <strong>All</strong>, <strong>PAPSS</strong>, <strong>RTGS</strong>, or <strong>DLT</strong>.</p>
+      <div class="dp-rule">Lines carrying a known error code are enriched with a severity glyph, e.g. <code>⚠ [BE05] GATEWAY ADDRESS ERROR | …</code>, so operators triage at a glance.</div>
+      <div class="dp-callout dp-danger"><span class="dp-ci">⛔</span><div><strong>Clear Logs</strong> wipes the live visibility window into ongoing rail negotiations and is irreversible — the action is guarded by an explicit confirmation prompt before the audit buffer is cleared.</div></div>
+    </div>
+
+    <!-- §7 Access & Guardrails -->
+    <div class="dp-section" id="access">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§7</div>
+        <h2>Access Control &amp; Guardrails</h2>
+      </div>
+      <div class="dp-rule"><strong>Restricted</strong> to System Administrators and Forensic Auditors.</div>
+      <div class="dp-rule"><strong>Forensic Auditors — read-only.</strong> All Save / edit actions and config fields are disabled; the view is for inspection only.</div>
+      <div class="dp-rule"><strong>Maintenance Mode</strong> pauses auto-settlement on the affected rail and raises an alert to Issuance and Corridor Ops.</div>
+      <div class="dp-rule"><strong>Cert Fingerprint (SHA-256)</strong> is read-only and confirms the mTLS identity of the remote gateway endpoint; it is populated only on a successful handshake.</div>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>Endpoint URL changes require <strong>dual-authorisation confirmation</strong> before they are written to config — a single operator cannot silently re-point a settlement rail.</div></div>
+    </div>
+
+    <!-- §8 Integration with the RTGS Issuance Pipeline -->
+    <div class="dp-section" id="pipeline">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§8</div>
+        <h2>Integration with the RTGS Issuance Pipeline</h2>
+      </div>
+      <p>
+        Regional Gateways configures and monitors the rails; the actual settlement-to-mint
+        flow runs through the inbound RTGS gateway documented in
+        <a href="/docs/issuance#rtgs">Issuance §11</a>. The two surfaces share one reserve
+        interface but play different roles.
+      </p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th></th><th>Regional Gateways (this page)</th><th>Inbound RTGS Gateway (Issuance §11)</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Role</strong></td><td>Configure &amp; monitor the rail</td><td>Ingest live pacs.009 settlements</td></tr>
+          <tr><td><strong>Direction</strong></td><td>Operator → config / health checks</td><td>Commercial bank → <code>POST /api/v2/rtgs/inbound/pacs009</code></td></tr>
+          <tr><td><strong>Output</strong></td><td>Endpoint config, heartbeat, audit log</td><td>Pre-cleared d-CBDC trade claim → SELECT SOURCE</td></tr>
+          <tr><td><strong>Security</strong></td><td>mTLS fingerprint, dual-auth config writes</td><td>mTLS + shared-secret webhook, idempotent ingest</td></tr>
+        </tbody>
+      </table></div>
+      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>The Corridor Ops gateway strip also surfaces an <strong>● RTGS Reserve: CONNECTED / IDLE / UNKNOWN</strong> heartbeat from <code>GET /api/v2/rtgs/status</code> — the same reserve interface, reflected where corridor operators work.</div></div>
+    </div>
+
+  </div><!-- /dp-main -->
+
+  <div class="dp-footer">
+    bearerCORE™ &middot; Regional Gateways Specification &middot; TowerPoint Group &middot; June 2026
+  </div>
+</div>

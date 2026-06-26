@@ -37,4 +37,7 @@ class DocsController < ApplicationController
 
   def governor_desk
   end
+
+  def regional_gateways
+  end
 end

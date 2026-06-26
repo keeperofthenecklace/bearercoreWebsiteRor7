@@ -101,6 +101,7 @@ Rails.application.routes.draw do
   get "docs/governance",            to: "docs#governance"
   get "docs/audit-report",          to: "docs#audit_report"
   get "docs/system-events",         to: "docs#system_events"
+  get "docs/regional-gateways",     to: "docs#regional_gateways"
   get "docs/interface-standards",   to: "docs#interface_standards"
   get "docs/trade-claim",           to: "docs#trade_claim"
   get "docs/supervisor-desk",       to: "docs#supervisor_desk"
@@ -115,5 +116,6 @@ Rails.application.routes.draw do
   get "documents/governance",           to: "docs#governance",          as: :documents_governance
   get "documents/audit-report",         to: "docs#audit_report",        as: :documents_audit_report
   get "documents/system-events",        to: "docs#system_events",       as: :documents_system_events
+  get "documents/regional-gateways",    to: "docs#regional_gateways",   as: :documents_regional_gateways
   get "documents/interface-standards",  to: "docs#interface_standards", as: :documents_interface_standards
 end
