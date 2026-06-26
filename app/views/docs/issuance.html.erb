@@ -43,6 +43,7 @@
     <a href="#rules">Rules</a>
     <a href="#flow">End-to-End Flow</a>
     <a href="#demo">Live Demo</a>
+    <a href="#rtgs">RTGS Clearing</a>
   </nav>
 
   <div class="dp-main">
@@ -105,6 +106,8 @@
           <tr><td><strong>CVIB Note</strong></td><td>A single Central Bank Issuance Bill — a true PNG bearer note with embedded metadata, QR, barcode, and Ed25519 signature.</td><td>₦200 denomination note</td></tr>
           <tr><td><strong>CVIB Batch</strong></td><td>A group of notes minted together under one authorization, sealed by a single SHA-256 manifest hash.</td><td>Batch ID (UUID)</td></tr>
           <tr><td><strong>Claiming Institution</strong></td><td>The commercial bank that receives the minted batch as bearer instruments.</td><td>WEMA BANK PLC · AACLZAJJ</td></tr>
+          <tr><td><strong>Clearing Source</strong></td><td>How an authorization reached a mintable state — either a <strong>supervisor-cleared trade claim</strong> (cross-border, l-CBDC) or an <strong>RTGS liquidity swap</strong> (domestic, pre-cleared d-CBDC). Surfaced in Sovereign Clearance Status. See §11.</td><td>RTGS Liquidity Swap (d-CBDC)</td></tr>
+          <tr><td><strong>RTGS Liquidity Swap</strong></td><td>A commercial bank's real-time gross settlement of fiat to the central bank, captured as an ISO 20022 <code>pacs.009</code> message and surfaced as a pre-cleared issuance source — the deposit itself backs the issuance.</td><td>RTGS-E2E-56a5123d…</td></tr>
         </tbody>
       </table></div>
 
@@ -169,7 +172,8 @@
       </div>
 
       <h3>Select Source</h3>
-      <p>Editable QComboBox listing cleared trade claims, populated from <code>GET /api/v2/issuance_authorizations?state=cleared</code>. The refresh button re-queries the registry. Until a claim is selected the entire mint workflow is inert and the dropdown reads <code>— No active trade claims —</code>.</p>
+      <p>Editable QComboBox listing cleared issuance authorizations, populated from <code>GET /api/v2/issuance_authorizations</code>. The refresh button re-queries the registry. Until a source is selected the entire mint workflow is inert and the dropdown reads <code>— No active trade claims —</code>.</p>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>SELECT SOURCE lists authorizations from <strong>both clearing sources</strong> — supervisor-cleared trade claims (l-CBDC, <code>L-{CCY}</code>) and RTGS liquidity swaps (d-CBDC, native <code>{CCY}</code>). Each entry shows its corridor, asset, amount and a <strong>🟢 READY TO MINT</strong> badge. See <a href="#rtgs">§11 — RTGS Settlement Clearing</a>.</div></div>
 
       <h4>On Selection — Configuration Cascade</h4>
       <div class="dp-flow">
@@ -210,6 +214,7 @@
         </tbody>
       </table></div>
       <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>Four-Eyes is enforced server-side. The dropdown can only surface cleared claims, so the standard path never sees a pending gate — but if an <em>uncleared</em> <code>auth_code</code> is submitted out-of-band (terminal/debug console), Package Authorization is rejected with HTTP&nbsp;409 <code>clearance_pending</code>. The client never makes the trust decision.</div></div>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div><strong>Two clearance postures.</strong> A <em>trade-claim</em> authorization shows <code>Clearance Gate: Passed</code>, <code>Approved By: Supervisor / …</code>, <code>Clearing Source: Regional Supervisor Desk</code>. An <em>RTGS</em> authorization (d-CBDC) instead shows <code>Clearance Gate: Cleared (Deterministic)</code>, <code>Approved By: RTGS System Core</code>, <code>Clearing Source: RTGS Liquidity Swap (d-CBDC)</code> — the fiat has already settled, so clearance is deterministic rather than discretionary. The client selects the posture from the authorization's <code>clearing_source</code> field. See <a href="#rtgs">§11</a>.</div></div>
 
       <h3>Issuance Execution Pipeline</h3>
       <p>Three sequential phases, surfaced as a tabbed strip. Each phase unlocks only when its predecessor reports success.</p>
@@ -449,6 +454,51 @@
       <div class="dp-rule">Click SELECT SOURCE at the very start of the demo to kick off auto-population, and explicitly switch <code>Simulation Only → Production</code> to show how live currency is securely handled.</div>
 
       <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>When all three pre-demo safeguards hold and the four UI states match the map above, the running terminal mirrors the specification exactly — the layout, data structures, and conditional locks are demo-ready.</div></div>
+    </div>
+
+    <!-- §11 RTGS Settlement Clearing -->
+    <div class="dp-section" id="rtgs">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§11</div>
+        <h2>RTGS Settlement Clearing (d-CBDC)</h2>
+      </div>
+      <p>
+        Issuance authorizations reach a mintable state through one of two clearing
+        sources. Cross-border obligations clear through the <strong>supervisor / Four-Eyes
+        governance gate</strong> as <em>linked</em> CBDC (l-CBDC). Domestic liquidity clears
+        through the <strong>RTGS gateway</strong> as <em>domestic</em> CBDC (d-CBDC): when a
+        commercial bank moves fiat to the central bank's settlement account over the
+        real-time gross settlement network, that deposit is captured and surfaced as a
+        pre-cleared issuance source — the settlement itself is the backing.
+      </p>
+
+      <h3>Clearing Source Comparison</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th></th><th>Trade Claim (l-CBDC)</th><th>RTGS Liquidity Swap (d-CBDC)</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Origin</strong></td><td>Cross-border trade obligation</td><td>Domestic RTGS fiat settlement (ISO 20022 pacs.009)</td></tr>
+          <tr><td><strong>Clearance</strong></td><td>Supervisor / Four-Eyes (discretionary)</td><td>Deterministic — pre-cleared out-of-band</td></tr>
+          <tr><td><strong>Asset type</strong></td><td><code>linked</code></td><td><code>domestic</code></td></tr>
+          <tr><td><strong>Asset code</strong></td><td><code>L-{CCY}</code> (e.g. L-ZAR)</td><td>native <code>{CCY}</code> (e.g. ZAR)</td></tr>
+          <tr><td><strong>Backing</strong></td><td>Reserve lock on the source-side corridor</td><td>The settlement deposit self-funds</td></tr>
+          <tr><td><strong>Clearing Source label</strong></td><td>Regional Supervisor Desk</td><td>RTGS Liquidity Swap (d-CBDC)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Inbound RTGS Pipeline</h3>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>1 · Settlement received</h4><p>A commercial bank's RTGS network posts an ISO 20022 <code>pacs.009</code> message to <code>POST /api/v2/rtgs/inbound/pacs009</code> over mutual TLS with a shared-secret header. The raw payload is audited.</p></div>
+        <div class="dp-step"><h4>2 · Idempotent ingest</h4><p>The message is parsed and keyed on <code>(BizMsgIdr, UETR)</code>. A duplicate returns <code>200 DUPLICATE_IGNORED</code>; a first-seen message advances.</p></div>
+        <div class="dp-step"><h4>3 · Pre-cleared claim</h4><p>A trade claim is created and run through corridor verification. Domestic settlements self-fund; cross-border ones draw corridor headroom. On success the claim reaches <code>ready_to_mint</code> and broadcasts a sovereign clearance event.</p></div>
+        <div class="dp-step"><h4>4 · Surfaced to operator</h4><p>The desktop client adopts the cleared claim into an IssuanceAuthorization (<code>auth_code: BC-RTGS-…</code>) so it appears in SELECT SOURCE with the d-CBDC clearance posture — ready to mint with no supervisor step.</p></div>
+      </div>
+
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div><strong>Domestic self-funding.</strong> An RTGS settlement is treated as its own backing — the fiat has already moved to the central bank, so a domestic d-CBDC swap clears deterministically to <code>ready_to_mint</code> without a separate corridor reserve. Cross-border RTGS still verifies corridor headroom and parks at <code>insufficient_corridor_liquidity</code> (awaiting Governor liquidity injection) if depleted.</div></div>
+
+      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div><strong>Asset naming.</strong> Linked instruments are explicitly marked <code>L-{CCY}</code> because they are reserve-backed derivatives, not native currency. Domestic d-CBDC keeps the <strong>plain</strong> sovereign code (<code>ZAR</code>, not <code>D-ZAR</code>) — it is legal-tender currency, and the <code>asset_type: domestic</code> field carries the distinction.</div></div>
+
+      <h3>Gateway Heartbeat</h3>
+      <div class="dp-rule">The Corridor Ops gateway indicator polls <code>GET /api/v2/rtgs/status</code> and reports <strong>● RTGS Reserve: CONNECTED / IDLE / UNKNOWN</strong> with the time of the last settlement received.</div>
     </div>
 
   </div><!-- /dp-main -->
