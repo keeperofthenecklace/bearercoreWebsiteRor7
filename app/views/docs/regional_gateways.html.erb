@@ -42,6 +42,7 @@
     <a href="#errors">Error Codes</a>
     <a href="#logs">Rail Bridge Logs</a>
     <a href="#access">Access &amp; Guardrails</a>
+    <a href="#flow">End-to-End Flow</a>
     <a href="#pipeline">RTGS Pipeline</a>
   </nav>
 
@@ -201,10 +202,29 @@
       <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>Endpoint URL changes require <strong>dual-authorisation confirmation</strong> before they are written to config — a single operator cannot silently re-point a settlement rail.</div></div>
     </div>
 
-    <!-- §8 Integration with the RTGS Issuance Pipeline -->
-    <div class="dp-section" id="pipeline">
+    <!-- §8 End-to-End Flow -->
+    <div class="dp-section" id="flow">
       <div class="dp-section-header">
         <div class="dp-section-num">§8</div>
+        <h2>End-to-End Flow</h2>
+      </div>
+      <p>Bringing a settlement rail online and into live operation — illustrated with the RTGS reserve interface (the PAPSS rail follows the same shape with its own fields).</p>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div><strong>An unconfigured rail is UNKNOWN, not failed.</strong> A grey heartbeat LED is the correct cold-start; the rail only turns red once an endpoint is set but a handshake or required field is missing.</div></div>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>1 · Configure endpoint &amp; identity</h4><p>Set the RTGS Endpoint, Routing Code (BIC), and Reserve Account ID, and point SSL Client Cert Path at the mTLS client certificate. A change to the endpoint URL triggers the dual-authorisation confirmation before it is written to config.</p></div>
+        <div class="dp-step"><h4>2 · Handshake</h4><p>Click <strong>Verify RTGS Reserve</strong> (or <strong>Ping All Gateways</strong>). bearerCORE performs the mTLS handshake against the endpoint; on success the read-only Cert Fingerprint (SHA-256) auto-populates and the result is appended to Rail Bridge Logs.</p></div>
+        <div class="dp-step"><h4>3 · Heartbeat goes live</h4><p>On a good handshake the Gateway Heartbeat LED flips from UNKNOWN to <strong>🟢 ONLINE</strong> with a fresh Last Handshake timestamp. A failure flips it 🔴 and emits a diagnostic code (e.g. <code>[BE05]</code> when the routing BIC is unset).</p></div>
+        <div class="dp-step"><h4>4 · Diagnose &amp; remediate</h4><p>If the LED is red, match the code in the Diagnostic Hub (§5) — <code>RJ01</code> reserves, <code>BE05</code> address/BIC, <code>AG01</code> compliance, <code>TM01</code> latency — fix the offending field and re-verify until ONLINE.</p></div>
+        <div class="dp-step"><h4>5 · Settlements flow</h4><p>With the rail ONLINE, the reserve interface verifies a commercial bank's balance before each CBDC mint, and inbound <code>pacs.009</code> settlements are accepted by the issuance pipeline (§9). Reserve verifications and acknowledgements stream into Rail Bridge Logs.</p></div>
+        <div class="dp-step"><h4>6 · Monitor &amp; pause</h4><p>Ongoing: the 60-second heartbeat and the handshake audit trail give continuous visibility. Toggling <strong>Maintenance Mode</strong> pauses automatic settlement on the rail and alerts Issuance and Corridor Ops for manual reconciliation.</p></div>
+      </div>
+      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>End state: the rail reports 🟢 ONLINE with a current handshake, the Cert Fingerprint pins the remote mTLS identity, and every negotiation is recorded in the external handshake audit trail — the rail is cleared for live settlement.</div></div>
+    </div>
+
+    <!-- §9 Integration with the RTGS Issuance Pipeline -->
+    <div class="dp-section" id="pipeline">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§9</div>
         <h2>Integration with the RTGS Issuance Pipeline</h2>
       </div>
       <p>
