@@ -94,17 +94,18 @@
         <div class="dp-section-num">§2</div>
         <h2>Gateway Heartbeat — Live Connectivity</h2>
       </div>
-      <p>A connectivity strip that auto-refreshes every <strong>60 seconds</strong> and on demand via <strong>Ping All Gateways</strong>. Each row reports the rail, its protocol, a status LED, and the timestamp of the last successful handshake.</p>
+      <p>A connectivity strip that auto-refreshes every <strong>60 seconds</strong> and on demand via <strong>Ping All Gateways</strong>. Each row reports the rail, its protocol, a status LED, and the timestamp of the last handshake. The RTGS row can also be driven by a <strong>live probe</strong> — see <a href="#rtgs">§4 · Verify RTGS Reserve</a>.</p>
       <div class="dp-table-wrap"><table class="dp-table">
         <thead><tr><th>Status LED</th><th>Meaning</th></tr></thead>
         <tbody>
-          <tr><td>🟢 <strong>ONLINE</strong></td><td>Rail reachable; last handshake succeeded within the window.</td></tr>
-          <tr><td>⚪ <strong>UNKNOWN</strong></td><td>No handshake yet this session, or the endpoint is unconfigured — neutral, not an error.</td></tr>
-          <tr><td>🔴 <strong>CONFIG ERROR / OFFLINE</strong></td><td>Endpoint configured but the handshake failed; the matching error code is written to Rail Bridge Logs.</td></tr>
+          <tr><td>🟢 <strong>ONLINE / CONNECTED</strong></td><td>Rail reachable. <em>ONLINE</em> from Ping All Gateways; <em>CONNECTED</em> is the live result of Verify RTGS Reserve (a real <code>GET /api/v2/rtgs/status</code>), reported with the last settlement time and today's count.</td></tr>
+          <tr><td>🟠 <strong>IDLE</strong></td><td>RTGS reserve interface reachable, but no settlement received recently (a quiet ledger) — healthy, not an error.</td></tr>
+          <tr><td>⚪ <strong>UNKNOWN / NOT CONFIGURED</strong></td><td>No probe yet this session, or the endpoint is unconfigured — neutral.</td></tr>
+          <tr><td>🔴 <strong>CONFIG ERROR / OFFLINE</strong></td><td>Endpoint configured but the check failed; the matching error code is written to Rail Bridge Logs.</td></tr>
         </tbody>
       </table></div>
       <div class="dp-rule">A red LED is always paired with a diagnostic code in the Rail Bridge Logs — match it against the <a href="#errors">Diagnostic Hub</a> to decide whether the failure is technical or compliance.</div>
-      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>An unconfigured rail reads <strong>UNKNOWN</strong> (grey), not red. The status only turns red once an endpoint is set but the handshake or a required field (e.g. a routing BIC) is missing or rejected.</div></div>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div><strong>Ping All Gateways</strong> reports each rail's configuration state; <strong>Verify RTGS Reserve</strong> performs a genuine HTTP liveness probe of the RTGS rail's <code>/api/v2/rtgs/status</code> endpoint. An unconfigured rail reads UNKNOWN (grey), not red — the status only turns red once an endpoint is set but a check or required field (e.g. a routing BIC) fails.</div></div>
     </div>
 
     <!-- §3 PAPSS -->
@@ -154,9 +155,10 @@
         </tbody>
       </table></div>
       <h3>Actions</h3>
-      <div class="dp-rule"><strong>Verify RTGS Reserve</strong> — runs a reserve check against the endpoint; surfaces field-level errors when the endpoint is set but a required value (e.g. the routing BIC) is missing.</div>
-      <div class="dp-rule"><strong>Save RTGS Config</strong> — persists the card. Disabled for Forensic Auditors.</div>
+      <div class="dp-rule"><strong>Verify RTGS Reserve</strong> — performs a live <code>GET {host}/api/v2/rtgs/status</code> probe, where the host is derived from the configured RTGS Endpoint. The heartbeat RTGS row goes <strong>CHECKING…</strong> → <strong>🟢 CONNECTED</strong> (reachable, with last settlement time + today's count), <strong>🟠 IDLE</strong> (reachable but no recent settlement), or <strong>🔴 OFFLINE</strong> (network error). Last Reserve Verify and every outcome are written to Rail Bridge Logs.</div>
+      <div class="dp-rule"><strong>Save RTGS Config</strong> — persists the card to <code>scconfig.xml</code>, and validates that a non-empty endpoint begins with <code>http://</code> or <code>https://</code> (otherwise rejected and not saved). Disabled for Forensic Auditors.</div>
       <div class="dp-rule"><strong>View RTGS Logs</strong> — filters the Rail Bridge Logs to RTGS entries.</div>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div><strong>Endpoints are config-driven, never compiled in.</strong> Values are read from / written to the local secure config (<code>scconfig.xml</code>), so the same build runs across dev, sandbox, and production by configuration alone. The <strong>Gateway Type</strong> selector only suggests a placeholder hint — it never overwrites a configured or typed endpoint.</div></div>
       <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>A populated <strong>RTGS Endpoint</strong> with an empty <strong>Routing Code (BIC)</strong> raises <code>[BE05] Gateway Address Error</code> and flips the heartbeat LED red until the BIC is supplied.</div></div>
     </div>
 
@@ -212,13 +214,13 @@
       <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div><strong>An unconfigured rail is UNKNOWN, not failed.</strong> A grey heartbeat LED is the correct cold-start; the rail only turns red once an endpoint is set but a handshake or required field is missing.</div></div>
       <div class="dp-flow">
         <div class="dp-step"><h4>1 · Configure endpoint &amp; identity</h4><p>Set the RTGS Endpoint, Routing Code (BIC), and Reserve Account ID, and point SSL Client Cert Path at the mTLS client certificate. A change to the endpoint URL triggers the dual-authorisation confirmation before it is written to config.</p></div>
-        <div class="dp-step"><h4>2 · Handshake</h4><p>Click <strong>Verify RTGS Reserve</strong> (or <strong>Ping All Gateways</strong>). bearerCORE performs the mTLS handshake against the endpoint; on success the read-only Cert Fingerprint (SHA-256) auto-populates and the result is appended to Rail Bridge Logs.</p></div>
-        <div class="dp-step"><h4>3 · Heartbeat goes live</h4><p>On a good handshake the Gateway Heartbeat LED flips from UNKNOWN to <strong>🟢 ONLINE</strong> with a fresh Last Handshake timestamp. A failure flips it 🔴 and emits a diagnostic code (e.g. <code>[BE05]</code> when the routing BIC is unset).</p></div>
-        <div class="dp-step"><h4>4 · Diagnose &amp; remediate</h4><p>If the LED is red, match the code in the Diagnostic Hub (§5) — <code>RJ01</code> reserves, <code>BE05</code> address/BIC, <code>AG01</code> compliance, <code>TM01</code> latency — fix the offending field and re-verify until ONLINE.</p></div>
-        <div class="dp-step"><h4>5 · Settlements flow</h4><p>With the rail ONLINE, the reserve interface verifies a commercial bank's balance before each CBDC mint, and inbound <code>pacs.009</code> settlements are accepted by the issuance pipeline (§9). Reserve verifications and acknowledgements stream into Rail Bridge Logs.</p></div>
+        <div class="dp-step"><h4>2 · Probe liveness</h4><p>Click <strong>Verify RTGS Reserve</strong>. bearerCORE issues a real <code>GET /api/v2/rtgs/status</code> against the host derived from the configured endpoint; the RTGS heartbeat row shows <strong>CHECKING…</strong> while the request is in flight, and the result is appended to Rail Bridge Logs. (<strong>Ping All Gateways</strong> separately reports each rail's configuration state.)</p></div>
+        <div class="dp-step"><h4>3 · Heartbeat resolves</h4><p>The row resolves from the actual reply: <strong>🟢 CONNECTED</strong> (reachable, with last settlement time + today's count), <strong>🟠 IDLE</strong> (reachable but no recent settlement — a quiet ledger), or <strong>🔴 OFFLINE</strong> (network error). Last Reserve Verify is stamped on every successful reply.</p></div>
+        <div class="dp-step"><h4>4 · Diagnose &amp; remediate</h4><p>If the row is red, match the code in the Diagnostic Hub (§5) — <code>RJ01</code> reserves, <code>BE05</code> address/BIC, <code>AG01</code> compliance, <code>TM01</code> latency — fix the offending field and re-verify until it reports CONNECTED (or IDLE on a quiet ledger).</p></div>
+        <div class="dp-step"><h4>5 · Settlements flow</h4><p>With the rail live, the reserve interface verifies a commercial bank's balance before each CBDC mint, and inbound <code>pacs.009</code> settlements are accepted by the issuance pipeline (§9). Reserve verifications and acknowledgements stream into Rail Bridge Logs.</p></div>
         <div class="dp-step"><h4>6 · Monitor &amp; pause</h4><p>Ongoing: the 60-second heartbeat and the handshake audit trail give continuous visibility. Toggling <strong>Maintenance Mode</strong> pauses automatic settlement on the rail and alerts Issuance and Corridor Ops for manual reconciliation.</p></div>
       </div>
-      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>End state: the rail reports 🟢 ONLINE with a current handshake, the Cert Fingerprint pins the remote mTLS identity, and every negotiation is recorded in the external handshake audit trail — the rail is cleared for live settlement.</div></div>
+      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>End state: the rail reports 🟢 CONNECTED (or 🟠 IDLE on a quiet ledger) from a live <code>/api/v2/rtgs/status</code> probe, Last Reserve Verify is current, and every negotiation is recorded in the external handshake audit trail — the rail is cleared for live settlement.</div></div>
     </div>
 
     <!-- §9 Integration with the RTGS Issuance Pipeline -->
