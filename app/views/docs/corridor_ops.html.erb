@@ -23,7 +23,7 @@
       <div class="dp-cover-meta">
         <div>Version <b>1.0</b></div>
         <div>Scope <b>54 AU Member Corridors</b></div>
-        <div>Updated <b>April 2026</b></div>
+        <div>Updated <b>July 2026</b></div>
         <div>Status <b>Production Reference</b></div>
       </div>
     </div>
@@ -38,6 +38,7 @@
     <a href="#buttons">Buttons</a>
     <a href="#rules">Rules</a>
     <a href="#flow">End-to-End Flow</a>
+    <a href="#demo">Live Demo</a>
   </nav>
 
   <div class="dp-main">
@@ -53,6 +54,19 @@
         that back cross-border digital cash issuance, monitor real-time liquidity positions, enforce
         risk limits, reconcile ledger state, and escalate anomalies to governance.
       </p>
+
+      <figure style="margin: 1.25rem 0 1.75rem; text-align: center;">
+        <img src="/docs/corridor-ops-tab.png"
+             alt="bearerCORE Corridor Ops tab — Manage bilateral CBDC liquidity: left corridor identity pane, middle Liquidity/FX/Pool operations with the active locks and audit feed, right Corridor Ops Properties controls and governance escalation"
+             style="width: 100%; max-width: 1180px; height: auto; border: 1px solid #d7dce3; border-radius: 8px; box-shadow: 0 2px 10px rgba(16,24,40,.08);"
+             loading="lazy">
+        <figcaption style="margin-top: .5rem; font-size: 12px; color: #6c757d;">
+          The Corridor Ops tab in the bearerCORE desktop client — the <strong>Left</strong> (corridor
+          identity, FX &amp; liquidity snapshots), <strong>Middle</strong> (Liquidity / FX Rate / Pool Mgmt
+          operations, active locks &amp; audit feed), and <strong>Right</strong> (Corridor Ops Properties,
+          limits, position &amp; governance escalation) panes referenced throughout this section.
+        </figcaption>
+      </figure>
 
       <div class="dp-pane-grid">
         <div class="dp-pane dp-pane-left">
@@ -403,9 +417,49 @@
       <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>End state: 2 active locks on BCEAO-XOF-RESERVE-01, 1 linked CBDC batch, net position positive, all limits within bounds, full audit trail recorded.</div></div>
     </div>
 
+    <!-- §9 Live Demo / UI State Validation -->
+    <div class="dp-section" id="demo">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§9</div>
+        <h2>Live Demo — UI State Validation</h2>
+      </div>
+      <p>
+        A presenter's reference for driving a live walkthrough. Each stage of the
+        End-to-End Flow (§8) is paired with the exact UI state to expect on screen, so the
+        demo script and the running client stay in lock-step. The states below are drawn
+        from a live <code>AGO → GMB</code> corridor (asset <code>L-GMD</code>) carrying a
+        deliberate liquidity <em>deficit</em> — an ideal starting posture for demonstrating
+        breach detection and governance escalation.
+      </p>
+
+      <h3>Pre-Demo Safeguards</h3>
+      <p>Three conditions to verify before the walkthrough begins.</p>
+
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div><strong>Position inertia (§5).</strong> With no corridor selected, the Liquidity Position pane is unpopulated and the left pane's Corridor Identity fields are blank. Selecting a corridor triggers a full reload that fills every read-only field. In the reference state, selecting <code>AGO → GMB</code> surfaces <strong>Net Position −1,500.00 GMD</strong> and <strong>Position Status ⚠ Deficit</strong> — the cold-start is honest about the shortfall, it does not zero it out.</div></div>
+
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div><strong>Gateway health is live (§3).</strong> The corridor selector badge reflects real connectivity. The reference corridor reads <em>Gateway: Degraded — partial connectivity</em> with <strong>⚠ BREACH ALERT: WARNING</strong> in the header strip and <em>Corridor health: warning</em>. Brief the room that Execute Liquidity Action and <em>Settle via PAPSS</em> depend on gateway state — demonstrate the degraded path <em>before</em> claiming a clean settlement.</div></div>
+
+      <div class="dp-callout dp-danger"><span class="dp-ci">⛔</span><div><strong>Danger Zone is one click from irreversible (§6).</strong> The right pane's Emergency actions (Manual recon, System override, Request support) and the red <strong>Deactivate Corridor</strong> control act on production ledger state. Keep Mode on the intended environment and do not exercise <em>Deactivate Corridor</em> or <em>System override</em> during a walkthrough — use Escalate to Governance to show the safe change path instead.</div></div>
+
+      <h3>Step-by-Step UI State Map</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Step</th><th>Document Rule (§8)</th><th>Expected UI State</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1 · Select Corridor</strong></td><td>Type a code in the corridor selector; the bilateral corridor activates and a full reload fires across all three panes.</td><td><strong>Cascade Loads.</strong> Corridor Identity fills — <code>Code: AGO → GMB</code>, <code>Asset Code: L-GMD</code>, <code>Status: AUTHORIZED</code>, Source/Target. FX snapshot (<code>1 AOA = 0.0792 GMD</code>) and Liquidity snapshot populate; header shows <strong>Node: AUTHORIZED</strong> / <strong>Connected: Mainnet</strong>.</td></tr>
+          <tr><td><strong>2 · Lock Liquidity</strong></td><td>Middle pane: pick Reserve Pool, set Intent = Lock Liquidity, enter amount + duration, Execute. Guardrails reject amounts over the daily/per-tx cap.</td><td><strong>Guarded Action.</strong> Reserve Pool = <code>CBGM-GMB-RESERVE-01</code>, quick-amount chips (10M / 50M / 100M / MAX) and 24h duration active. An over-cap amount trips the guardrail; a valid lock appears in <em>Active corridors — activity feed</em> and <strong>Active locks</strong> increments.</td></tr>
+          <tr><td><strong>3 · Issuance Linked</strong></td><td>A CBDC batch issued from the Issuance tab links to the active lock and draws down available liquidity.</td><td><strong>Position Shifts.</strong> Liquidity Position updates — <code>Linked Outstanding</code> rises (reference: 1,500.00), <code>Net Position</code> turns negative (−1,500.00), and <strong>Position Status ⚠ Deficit</strong> surfaces in red.</td></tr>
+          <tr><td><strong>4 · Limit Reached</strong></td><td>A further lock attempt exceeds the corridor cap; the guardrail blocks execution and the safety strip flags the breach.</td><td><strong>Breach Flagged.</strong> Corridor Limits &amp; Risk Limits enforce caps (Per-tx 5,000,000 · Daily 2.5M · Velocity 4M GMD/24h); Execute is disabled with a cap message, <strong>⚠ BREACH ALERT: WARNING</strong> shows, and Coverage Ratio reflects the shortfall.</td></tr>
+          <tr><td><strong>5 · Escalate to Governance</strong></td><td>Right pane: select a Reason, submit — a governance proposal is created for supervisor approval.</td><td><strong>Escalation Opens.</strong> The amber <em>Escalate to Governance</em> panel is armed; picking a Reason enables the <strong>⚠ Escalate to Governance</strong> button and a <code>GOV-XXXXXXXX</code> Proposal ID is assigned.</td></tr>
+          <tr><td><strong>6 · Reconcile</strong></td><td>Run reconciliation; the registry re-syncs and confirms no discrepancies.</td><td><strong>Sync Confirmed.</strong> Registry Sync &amp; Reconciliation controls (Force Sync, Reconciliation Report) run; <strong>Sync Status: In Sync ✓</strong> and <em>Last sync</em> advances in the header.</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>When the three pre-demo safeguards hold and the six UI states match the map above, the running client mirrors the specification exactly — corridor identity, reserve locking, position accounting, limit guardrails, and governance escalation are demo-ready. Status bar confirms the live session: <em>Operator: Albert McKeever LGS · Role: Governor</em>, Central Bank of Azania.</div></div>
+    </div>
+
   </div><!-- /dp-main -->
 
   <div class="dp-footer">
-    bearerCORE™ &middot; Corridor Ops Specification &middot; TowerPoint Group &middot; April 2026
+    bearerCORE™ &middot; Corridor Ops Specification &middot; TowerPoint Group &middot; July 2026
   </div>
 </div>
