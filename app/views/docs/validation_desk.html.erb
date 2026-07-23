@@ -38,6 +38,7 @@
     <a href="#buttons">Button Spec</a>
     <a href="#edge-cases">Edge Cases</a>
     <a href="#flow">E2E Flow</a>
+    <a href="#demo">Live Demo</a>
   </nav>
 
   <div class="dp-main">
@@ -51,6 +52,19 @@
 
       <p>The Validation Desk is the primary compliance and verification interface for central bank operators reviewing CBDC (Central Bank Issuance Bill) digital banknotes submitted by commercial banks. It is a Qt6 desktop application backed by a Rails 7.1 API.</p>
       <p>Every CBDC note entering the system must pass through the Validation Desk before it becomes live money. The desk enforces cryptographic authenticity, double-spend prevention, registry integrity, and compliance traceability.</p>
+
+      <figure style="margin: 1.25rem 0 1.75rem; text-align: center;">
+        <img src="/docs/validation-desk-tab.png"
+             alt="bearerCORE Validation Desk tab — CVIB Verification &amp; Registry Check: left filter/input-mode rail, middle validation queue with CVIB preview and provenance timeline, right Validation Properties with Live Verification, the automated verification pipeline, and decision controls"
+             style="width: 100%; max-width: 1180px; height: auto; border: 1px solid #d7dce3; border-radius: 8px; box-shadow: 0 2px 10px rgba(16,24,40,.08);"
+             loading="lazy">
+        <figcaption style="margin-top: .5rem; font-size: 12px; color: #6c757d;">
+          The Validation Desk tab in the bearerCORE desktop client — the <strong>Left</strong> (filters,
+          input mode &amp; import), <strong>Middle</strong> (validation queue, CVIB preview &amp; provenance
+          timeline), and <strong>Right</strong> (Validation Properties — Live Verification, the four-stage
+          automated pipeline &amp; decision controls) panes referenced throughout this section.
+        </figcaption>
+      </figure>
 
       <div class="dp-pane-grid">
         <div class="dp-pane dp-pane-left">
@@ -615,6 +629,48 @@
           <p>Every step creates an immutable ValidationEvent. event_types: ingested | sig_verified | registry_checked | approved | rejected | flagged | frozen | exported. Accessible via btnValViewAuditTrail animated drawer, txtValEventLog timeline, or btnValExportLog export. No UPDATE or DELETE ever permitted on ValidationEvent records.</p>
         </div>
       </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ §10 LIVE DEMO -->
+    <div class="dp-section" id="demo">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§10</div>
+        <h2>Live Demo — UI State Validation</h2>
+      </div>
+      <p>
+        A presenter's reference for driving a live walkthrough. Each stage of the
+        End-to-End Flow (§9) is paired with the exact UI state to expect on screen, so the
+        demo script and the running client stay in lock-step. The states below are drawn
+        from a live queue of two <code>L-GMD</code> notes issued by the
+        <strong>Central Bank of The Gambia</strong> (<code>L-GMD-A00000004</code>,
+        <code>L-GMD-A00000005</code>), each freshly imported and pending validation.
+      </p>
+
+      <h3>Pre-Demo Safeguards</h3>
+      <p>Three conditions to verify before the walkthrough begins.</p>
+
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div><strong>Queue inertia (§3).</strong> With nothing dropped on the import zone, the Validation Queue is empty and the right pane reads <em>No note selected</em> with unpopulated Live Verification. Importing a PNG/ZIP populates the queue (<strong>Total Pending</strong> and <strong>In Queue</strong> increment); selecting a row is what cascades the Security Evidence, Validation Properties, and CVIB Preview — the cold-start does not pre-fill them.</div></div>
+
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div><strong>The Approve gate is conditional (§5, §7).</strong> <strong>Gate: Approve &amp; Sign</strong> only reads <em>UNLOCKED</em> once all four pipeline stages (Metadata · Barcode · Signature · Registry) are green <em>and</em> the note is signature-valid + registry-unique. Run <em>Verify Ed25519 Signature</em> and <em>Registry Lookup</em> on-screen <strong>before</strong> demonstrating approval — do not present a pre-unlocked gate as if it were automatic.</div></div>
+
+      <div class="dp-callout dp-danger"><span class="dp-ci">⛔</span><div><strong>Decision controls are consequential (§6, §7).</strong> <em>Freeze Note</em> locks the asset system-wide and requires a governor to unfreeze; <em>Reject</em> needs a reason code (e.g. <code>Metadata Mismatch</code>); <em>Validate_Redeem to RTGS</em> is a settlement action. Do not exercise Freeze, Reject, or Redeem during a walkthrough unless you are explicitly demonstrating that path.</div></div>
+
+      <h3>Step-by-Step UI State Map</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Step</th><th>Document Rule (§9)</th><th>Expected UI State</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1 · Import</strong></td><td>Drop PNG(s) or a .zip bundle; each note is magic-byte-checked, parsed, risk-scored, and a ValidationSession is created.</td><td><strong>Queue Populates.</strong> Rows appear (<code>L-GMD-A00000004</code> · 200 L-GMD, <code>L-GMD-A00000005</code> · 100 L-GMD) with Central Bank of The Gambia, Age <code>0h</code>, Status <em>Pending</em>. <strong>Total Pending: 2</strong> / <strong>In Queue: 2</strong>; Recent Import Batches logs <em>Jul 23 17:51 — 2 notes</em>.</td></tr>
+          <tr><td><strong>2 · Signature Verification</strong></td><td>Select a row → evidence/properties/preview populate. Verify Ed25519 → issuer key match → RbNaCl verify → badges refresh.</td><td><strong>Signature Valid.</strong> Live Verification shows <strong>✓ Signature: Valid</strong>; Payload Hash <em>From Session</em> equals <em>Computed/Expected</em> (<code>61e7a386…719cb503</code>), Key ID <code>CBG-PRIMARY-2026</code>, Signed Data <code>Ed25519 ✓</code>, Hash Check <strong>✓ Match</strong>. <strong>Stage 3: Signature</strong> turns green.</td></tr>
+          <tr><td><strong>3 · Registry Lookup</strong></td><td>Registry Lookup → CbdcNote queried → duplication status set → liquidity/trade context populated → approve gate re-evaluated.</td><td><strong>Registry Match.</strong> Hash Check adds <strong>✓ Registry match</strong> and <strong>Stage 4: Registry</strong> turns green; the serial resolves <em>unique</em> (no double-spend).</td></tr>
+          <tr><td><strong>4 · Risk Review</strong></td><td>Risk applied automatically at ingest; operator reviews the colour-coded score, level, and flag breakdown in the Properties tab.</td><td><strong>Risk Surfaced.</strong> The Sig column shows <code>✓</code> for verified rows; Flagged count stays <strong>0</strong>. Risk Profile page in Validation Properties carries the flag breakdown for the selected serial.</td></tr>
+          <tr><td><strong>5 · Operator Review</strong></td><td>Three layers: Security Evidence, Validation Properties (Technical Manifest / Compliance / Risk), and the CVIB Preview.</td><td><strong>Full Context.</strong> CVIB Preview locks to <code>L-GMD-A00000004</code> · 200 L-GMD · issued 23-Jul-2026 17:38 UTC; Identity shows Serial + Asset Code <code>L-GMD</code>; Provenance Timeline lists <em>Present for Validation — 2026-07-23 17:53 UTC</em>.</td></tr>
+          <tr><td><strong>6 · Decision</strong></td><td>Approve (sig valid + unique; risk≥75 needs override), Reject (reason required), Flag, or Freeze.</td><td><strong>Gate Unlocks.</strong> With all four stages green, <strong>Gate: Approve &amp; Sign UNLOCKED</strong> and <strong>✓ Approve_Sign</strong> is enabled. Reject stays gated behind a reason code (<code>Metadata Mismatch</code>); Flag and Freeze remain available.</td></tr>
+          <tr><td><strong>7 · Ledger Update</strong></td><td>On approval the note goes active and, at threshold, settlement fires; redemption routes to RTGS.</td><td><strong>Status Advances.</strong> The row's Status flips <em>Pending → Approved</em>; <strong>⚡ Validate_Redeem to RTGS</strong> is the redemption path for a settled note.</td></tr>
+          <tr><td><strong>8 · Audit Trail</strong></td><td>Every step writes an immutable ValidationEvent (ingested | sig_verified | registry_checked | approved | …).</td><td><strong>Trail Grows.</strong> The Provenance Timeline appends each lifecycle event (currently <em>1 lifecycle event — serial L-GMD-A00000004</em>); no event is ever updated or deleted.</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>When the three pre-demo safeguards hold and the eight UI states match the map above, the running client mirrors the specification exactly — import, cryptographic verification, registry integrity, risk scoring, the four-stage pipeline, and the decision gate are demo-ready. Status bar confirms the live session: <em>Operator: Albert McKeever LGS · Role: Governor</em>, Central Bank of Azania.</div></div>
     </div>
 
   </div><!-- /dp-main -->
