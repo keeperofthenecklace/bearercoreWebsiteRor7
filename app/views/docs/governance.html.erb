@@ -148,7 +148,7 @@
       </p>
       <div class="dp-cover-meta">
         <div>Version <b>2.0</b></div>
-        <div>Updated <b>April 2026</b></div>
+        <div>Updated <b>August 2026</b></div>
         <div>Status <b>Current</b></div>
         <div>Principal Role <b>CBDC Infrastructure Engineer</b></div>
       </div>
@@ -163,6 +163,7 @@
     <a href="#user-flow">§5 User Flow</a>
     <a href="#validation">§6 Validation</a>
     <a href="#api">§7 API Reference</a>
+    <a href="#demo">§8 Live Demo</a>
   </nav>
 
   <div class="dp-main">
@@ -198,6 +199,20 @@
         administrator anchors the policy hash to the DLT via the <strong>Immutable Seal</strong>,
         producing a tamper-evident <strong>DLTAnchor</strong> record.
       </p>
+
+      <figure style="margin: 1.25rem 0 1.75rem; text-align: center;">
+        <img src="/docs/governance-tab.png"
+             alt="bearerCORE Governance tab — Policy &amp; Oversight: left Governance Queue / proposal filters / policy controls / Corridor Caps impact preview, centre Active Policy Briefs, Policy Brief and Consensus Quorum multi-sig board seats, right Governance Controls (quorum, voting status, members) and DLT Policy Anchoring Immutable Seal"
+             style="width: 100%; max-width: 1180px; height: auto; border: 1px solid #d7dce3; border-radius: 8px; box-shadow: 0 2px 10px rgba(16,24,40,.08);"
+             loading="lazy">
+        <figcaption style="margin-top: .5rem; font-size: 12px; color: #6c757d;">
+          The Governance tab in the bearerCORE desktop client — the <strong>Left</strong> (queue stats,
+          filters, read-only policy controls &amp; Corridor Caps impact preview), <strong>Centre</strong>
+          (Active Policy Briefs, Policy Brief &amp; Consensus Quorum multi-sig board seats), and
+          <strong>Right</strong> (Governance Controls — quorum / voting status / members — &amp; the DLT
+          Immutable Seal) panes referenced throughout this section.
+        </figcaption>
+      </figure>
 
       <div class="dp-pane-grid">
         <div class="dp-pane dp-pane-left">
@@ -842,6 +857,77 @@
       </p>
     </div>
 
+    <%# ── §8 Live Demo / UI State Validation ─────────────────────────────── %>
+    <div class="dp-section" id="demo">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§8</div>
+        <h2>Live Demo — UI State Validation</h2>
+      </div>
+      <p>
+        A presenter's reference for driving a live walkthrough. Each stage of the
+        End-to-End Flow (§5) is paired with the exact UI state to expect on screen, so the
+        demo script and the running client stay in lock-step. The states below are drawn
+        from a live <code>NGA</code> jurisdiction workstation with a cold governance queue —
+        an ideal starting posture for demonstrating proposal drafting through multi-sig
+        quorum and DLT anchoring.
+      </p>
+
+      <h3>Pre-Demo Safeguards</h3>
+      <p>Three conditions to verify before the walkthrough begins.</p>
+
+      <div class="dp-callout dp-danger"><span class="dp-ci">⛔</span><div><strong>Four-Eyes is server-enforced (§1).</strong> No single operator executes a monetary action — a multi-sig quorum of <strong>≥ 67%</strong> is required, and self-approval returns <code>HTTP 403</code> at the API boundary. Never present single-operator execution; the quorum bar (<em>0% — need ≥67%</em>) and the multi-sig board seats are the gate.</div></div>
+
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div><strong>Framework status gates actions (§6).</strong> The reference workstation shows <strong>FRAMEWORK STATUS ⛔ SUSPENDED</strong> with <em>Next Review 01-Sep-2026</em>. Under suspension, certain policy actions are blocked. Demonstrate the suspension block <em>before</em> anchoring so the audience sees the guard, then narrate the path to an Active framework.</div></div>
+
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div><strong>Cold-start inertia (§3).</strong> On load the Governance Queue reads <em>0 Pending / 0 Overdue / 0 High-Risk / 0 Total</em>, Active Policy Briefs is empty, Policy Controls show <code>0.0</code>, and Corridor Caps list every corridor at <code>0.00</code> with Impact <code>—</code>. Selecting a proposal is what triggers the left-pane Impact Preview delta-check — the cold-start does not pre-compute it.</div></div>
+
+      <h3>Creating a New Governance Proposal</h3>
+      <p>
+        Clicking <strong>+ New Proposal</strong> opens the drafting modal. The
+        <strong>Type</strong> selector determines which monetary lever the proposal pulls;
+        the remaining fields (Corridor, Proposal ID, Allotment, Rationale) scope and justify it.
+      </p>
+
+      <figure style="margin: 1rem 0 1.5rem; text-align: center;">
+        <img src="/docs/governance-new-proposal.png"
+             alt="New Governance Proposal dialog — Type dropdown expanded showing bulk_allotment, issuance_cap_change, reserve_ratio_change, corridor_cap_change, burn_authorization, policy_update; plus Corridor, Proposal ID, Allotment and Rationale fields"
+             style="width: 100%; max-width: 560px; height: auto; border: 1px solid #d7dce3; border-radius: 8px; box-shadow: 0 2px 10px rgba(16,24,40,.08);"
+             loading="lazy">
+        <figcaption style="margin-top: .5rem; font-size: 12px; color: #6c757d;">
+          The New Governance Proposal modal with the Type selector expanded.
+        </figcaption>
+      </figure>
+
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Proposal Type</th><th>Monetary Lever</th></tr></thead>
+        <tbody>
+          <tr><td><code>bulk_allotment</code></td><td>Allocate a block of issuance headroom to a corridor (uses the Allotment field).</td></tr>
+          <tr><td><code>issuance_cap_change</code></td><td>Raise or lower the maximum issuable supply for the jurisdiction.</td></tr>
+          <tr><td><code>reserve_ratio_change</code></td><td>Adjust the backing reserve ratio applied to new issuance.</td></tr>
+          <tr><td><code>corridor_cap_change</code></td><td>Change a bilateral corridor's daily / velocity cap (drives the Corridor Caps impact preview).</td></tr>
+          <tr><td><code>burn_authorization</code></td><td>Authorize destruction of a supply tranche (contracts the money supply).</td></tr>
+          <tr><td><code>policy_update</code></td><td>General monetary-policy parameter change (rate, framework text, conditions).</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Step-by-Step UI State Map</h3>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Step</th><th>Document Rule (§5)</th><th>Expected UI State</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1 · Open New Proposal</strong></td><td>Authorized operator clicks <strong>+ New Proposal</strong>; the drafting modal opens.</td><td><strong>Modal Opens.</strong> <em>New Governance Proposal</em> dialog appears with the <strong>Type</strong> dropdown (<code>bulk_allotment</code>, <code>issuance_cap_change</code>, <code>reserve_ratio_change</code>, <code>corridor_cap_change</code>, <code>burn_authorization</code>, <code>policy_update</code>) plus Corridor, Proposal ID, Allotment and Rationale fields.</td></tr>
+          <tr><td><strong>2 · Draft &amp; Submit</strong></td><td>Fill Type / Corridor / Allotment / Rationale and confirm; <code>POST /api/v2/governance/proposals</code> creates the record <code>status: pending</code>.</td><td><strong>Accepts.</strong> On OK the modal closes; the effective date defaults to today + 14 days server-side. No self-execution — the record is created pending, not applied.</td></tr>
+          <tr><td><strong>3 · Appears in Queue</strong></td><td>A new row lands in Active Policy Briefs with a human-readable ref and 0/quorum.</td><td><strong>Queue Fills.</strong> Row shows e.g. <code>GOV-2026-AF0C3B</code>, status <em>Pending</em>, 0/3 quorum; Governance Queue stats increment; Corridor Caps Impact stays <code>—</code> until the row is selected.</td></tr>
+          <tr><td><strong>4 · Board Review &amp; Impact</strong></td><td>A member selects the proposal; the left sidebar runs the Delta-Check.</td><td><strong>Impact Surfaces.</strong> Affected Corridor Caps rows pulse amber with predicted ↑ / ↓ %; the Policy Brief panel fills with the Economic Impact Statement + Legal Reference; raw Policy JSON is viewable in the dark code pane.</td></tr>
+          <tr><td><strong>5 · Voting — Multi-Sig</strong></td><td>Members verify their signature (right-click seat) then click <strong>🔒 Approve</strong>; high-risk needs PIN + typed APPROVE.</td><td><strong>Quorum Advances.</strong> The voting member's board-seat chip turns green; the Consensus Quorum bar climbs from <em>0% — need ≥67%</em>; each vote is logged with voter role + key id.</td></tr>
+          <tr><td><strong>6 · Quorum Met</strong></td><td>When <code>yes_votes / quorum_required ≥ 0.67</code>, the proposal becomes executable.</td><td><strong>Turns Green.</strong> Quorum bar goes green, Voting Status reads <em>"Quorum Reached — Executable"</em>, and the API returns <code>quorum_met: true</code> / <code>execution_ready: true</code>.</td></tr>
+          <tr><td><strong>7 · DLT Anchoring</strong></td><td>Lead admin clicks <strong>Accrue Policy</strong>; the policy hash is anchored via the Immutable Seal.</td><td><strong>Seal Locks.</strong> <code>policy_json</code> is SHA-256 hashed and posted to the anchor endpoint; the <strong>Immutable Seal</strong> badge shows green / <em>Synced</em> and Framework Status flips <em>SUSPENDED → Active</em> globally.</td></tr>
+          <tr><td><strong>8 · Audit &amp; Registry</strong></td><td>The full lifecycle is recorded; the proposal leaves the active queue.</td><td><strong>Trail Sealed.</strong> proposed_by, each vote, anchor_tx and anchored_at are permanently logged; status → <code>executed</code>, the row leaves Active Policy Briefs, and Audit &amp; Reports reflects the change.</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>When the three pre-demo safeguards hold and the eight UI states match the map above, the running client mirrors the specification exactly — proposal drafting, the impact preview, multi-sig quorum enforcement, DLT anchoring and the audit trail are demo-ready. Status bar confirms the live session: <em>Operator: Albert McKeever LGS · Role: Governor</em>, Central Bank of Azania.</div></div>
+    </div>
+
   </div>
-  <div class="dp-footer">bearerCORE™ &middot; Governance — Policy, Approvals &amp; Oversight &middot; System Design &amp; UI Behavior Specification v2.0 &middot; TowerPoint Group &middot; April 2026</div>
+  <div class="dp-footer">bearerCORE™ &middot; Governance — Policy, Approvals &amp; Oversight &middot; System Design &amp; UI Behavior Specification v2.0 &middot; TowerPoint Group &middot; August 2026</div>
 </div>
