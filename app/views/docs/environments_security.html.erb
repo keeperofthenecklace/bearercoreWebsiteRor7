@@ -150,6 +150,19 @@
         app or YubiKey-TOTP). The server verifies the 6-digit code against the
         operator's enrolled secret; an un-enrolled operator cannot sign in to
         Production. Pilot and Sandbox remain MFA-optional.</p>
+
+      <figure style="margin: 1.25rem 0 1.75rem; text-align: center;">
+        <img src="/docs/operator-login-mfa.png"
+             alt="bearerCORE Secure Operator Authentication screen — Operator ID and passphrase fields, a green 'SECURITY TOKEN / OTP — REQUIRED' field, and an Environment selector open on Production / Pilot · Staging / Training · Sandbox"
+             style="width: 100%; max-width: 640px; height: auto; border: 1px solid #d7dce3; border-radius: 8px; box-shadow: 0 2px 10px rgba(16,24,40,.08);"
+             loading="lazy">
+        <figcaption style="margin-top: .5rem; font-size: 12px; color: #6c757d;">
+          The Secure Operator Authentication screen. With <strong>Production</strong> selected the
+          OTP header turns green <strong>REQUIRED</strong> and the field is enforced pre-flight; the
+          <strong>Environment</strong> selector binds the session to Production, Pilot / Staging, or
+          Training / Sandbox.
+        </figcaption>
+      </figure>
       <ul class="dp-list">
         <li>TOTP secrets are <b>encrypted at rest</b> via ActiveRecord Encryption.</li>
         <li>Enrolment is admin-controlled: <code>rake "otp:provision[username]"</code> issues an <code>otpauth://</code> URI to scan; <code>otp:status</code> and <code>otp:revoke[username]</code> manage it.</li>
