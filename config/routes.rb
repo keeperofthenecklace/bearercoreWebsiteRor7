@@ -94,6 +94,7 @@ Rails.application.routes.draw do
   get  "download-client/file", to: "downloads#serve_file",        as: :serve_client_download
 
   get "docs",                       to: "docs#index"
+  get "docs/environments-security", to: "docs#environments_security"
   get "docs/corridor-ops",          to: "docs#corridor_ops"
   get "docs/issuance",              to: "docs#issuance"
   get "docs/validation-desk",       to: "docs#validation_desk"

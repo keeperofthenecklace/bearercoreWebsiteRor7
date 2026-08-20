@@ -5,6 +5,9 @@ class DocsController < ApplicationController
   def index
   end
 
+  def environments_security
+  end
+
   def corridor_ops
   end
 

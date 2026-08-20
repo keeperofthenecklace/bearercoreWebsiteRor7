@@ -1,0 +1,215 @@
+<%# app/views/docs/environments_security.html.erb
+    Environments & Security — RBAC, MFA, and settlement isolation %>
+
+<%= render 'docs/doc_styles' %>
+
+<div class="dp-wrap">
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">Environments &amp; Security</span>
+    <span class="dp-topbar-tag" style="color:#1b5e20;border-color:rgba(27,94,32,0.35);">Live</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:720px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · Security Specification</div>
+      <h1>Environments &amp; Security</h1>
+      <p class="dp-cover-desc">
+        bearerCORE enforces a strict operational separation between
+        Training/Sandbox, Pilot/Staging, and Production to isolate non-settlement
+        testing from real-world financial effects — backed by role-based access
+        control (RBAC), multi-factor authentication (TOTP), and RTGS settlement
+        isolation. The server is the sole authority; the desktop client mirrors
+        the posture for defence-in-depth.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>1.0</b></div>
+        <div>Updated <b>August 2026</b></div>
+        <div>Status <b>Live</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-secnav">
+    <a href="#overview">Overview</a>
+    <a href="#environments">Environment Model</a>
+    <a href="#rbac">RBAC &amp; Scopes</a>
+    <a href="#mfa">MFA / TOTP</a>
+    <a href="#rtgs">Settlement Isolation</a>
+    <a href="#enforcement">Enforcement &amp; UI</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <!-- §1 Overview -->
+    <div class="dp-section" id="overview">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§1</div>
+        <h2>Operational Separation</h2>
+      </div>
+      <p>Every operator session is bound to an <b>environment</b> chosen at login and
+        confirmed by the server. The environment determines the signing-key profile,
+        whether multi-factor authentication is required, how strictly limits and
+        scopes are enforced, and — critically — whether real Real-Time Gross
+        Settlement (RTGS) and mainnet currency movements are executed or simulated.</p>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
+        The client never dictates its own permissions. On login the server returns a
+        signed session with the operator's granted <b>scopes</b> and the environment
+        <b>policy</b>; the desktop app consumes them but can never widen them.
+      </div></div>
+    </div>
+
+    <!-- §2 Environment Model -->
+    <div class="dp-section" id="environments">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§2</div>
+        <h2>Environment Model — Sandbox vs Production</h2>
+      </div>
+      <table class="dp-table">
+        <thead>
+          <tr><th>Feature / Domain</th><th>Sandbox (Training) / Pilot</th><th>Production</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>RTGS &amp; Mainnet Hooks</b></td>
+            <td><b>Simulated.</b> Calls are suppressed on both client and server. Notes burn, but RTGS credits are dropped.</td>
+            <td><b>Live.</b> Executes real RTGS hooks and mainnet currency movements.</td>
+          </tr>
+          <tr>
+            <td><b>Authentication &amp; MFA</b></td>
+            <td><b>Optional OTP.</b> TOTP is not enforced during sign-in.</td>
+            <td><b>Mandatory TOTP.</b> Cryptographically verifies a 6-digit TOTP / YubiKey code on login.</td>
+          </tr>
+          <tr>
+            <td><b>Key Profile &amp; Scopes</b></td>
+            <td>Sandbox/staging key profiles with server-granted scopes for safe functional testing.</td>
+            <td>Production key profile with server-enforced RBAC scope grants.</td>
+          </tr>
+          <tr>
+            <td><b>Data &amp; State Impact</b></td>
+            <td>Isolated test state; safe for demo burns and training runs.</td>
+            <td>Direct monetary, compliance, and ledger impact across live accounts.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>The three environments and their policy (single source of truth in
+        <code>RbacPolicy::ENV_POLICY</code>, mirrored by the client
+        <code>SessionManager::EnvironmentPolicy</code>):</p>
+      <table class="dp-table">
+        <thead>
+          <tr><th>Environment</th><th>key_profile</th><th>mfa_required</th><th>strict</th><th>rtgs_live</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Training / Sandbox</td><td>simulated</td><td>no</td><td>no</td><td>no</td></tr>
+          <tr><td>Pilot / Staging</td><td>staging</td><td>no</td><td>yes</td><td>no</td></tr>
+          <tr><td>Production</td><td>production</td><td><b>yes</b></td><td>yes</td><td><b>yes</b></td></tr>
+        </tbody>
+      </table>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
+        An unknown or missing environment resolves to <b>Sandbox</b> (least privilege).
+      </div></div>
+    </div>
+
+    <!-- §3 RBAC -->
+    <div class="dp-section" id="rbac">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§3</div>
+        <h2>Role-Based Access Control &amp; Scopes</h2>
+      </div>
+      <p>On login the server returns the operator's <b>scopes</b> for the active
+        environment. The desktop client hides tabs and disables action buttons the
+        operator's scopes do not cover — <code>governor</code> receives every scope,
+        <code>system_admin</code> the <code>*</code> wildcard.</p>
+      <table class="dp-table">
+        <thead>
+          <tr><th>Role</th><th>Granted scopes (summary)</th><th>Visible tabs</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Minting Officer</td><td>issuance.authorize, issuance.mint, issuance.burn, audit.read</td><td>Issuance, Deposit &amp; Burn, Audit</td></tr>
+          <tr><td>Forensic Auditor</td><td>audit.read, system_events.read, fraud.review</td><td>Audit, System Events, Fraud</td></tr>
+          <tr><td>Compliance Officer</td><td>validation.*, corridor.execute, quarantine.manage, fraud.review, audit.read</td><td>Validation, Corridor Ops, Quarantine, Fraud, Audit</td></tr>
+          <tr><td>Corridor Operator</td><td>corridor.execute, gateway.manage, audit.read</td><td>Corridor Ops, Regional Gateways, Audit</td></tr>
+          <tr><td>Governor</td><td>all scopes (incl. governance.clearance)</td><td>all</td></tr>
+          <tr><td>System Admin</td><td><code>*</code> (unrestricted)</td><td>all</td></tr>
+        </tbody>
+      </table>
+      <p>Key action buttons — Authorize, Mint, Burn, Governance Clearance — are
+        gated by the corresponding scope (<code>issuance.authorize</code>,
+        <code>issuance.mint</code>, <code>issuance.burn</code>,
+        <code>governance.clearance</code>).</p>
+    </div>
+
+    <!-- §4 MFA -->
+    <div class="dp-section" id="mfa">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4</div>
+        <h2>Multi-Factor Authentication (TOTP)</h2>
+      </div>
+      <p>Production logins require a valid <b>RFC 6238 TOTP</b> code (authenticator
+        app or YubiKey-TOTP). The server verifies the 6-digit code against the
+        operator's enrolled secret; an un-enrolled operator cannot sign in to
+        Production. Pilot and Sandbox remain MFA-optional.</p>
+      <ul class="dp-list">
+        <li>TOTP secrets are <b>encrypted at rest</b> via ActiveRecord Encryption.</li>
+        <li>Enrolment is admin-controlled: <code>rake "otp:provision[username]"</code> issues an <code>otpauth://</code> URI to scan; <code>otp:status</code> and <code>otp:revoke[username]</code> manage it.</li>
+        <li>The login screen's OTP header turns <span style="color:#1b5e20;font-weight:700;">green "REQUIRED"</span> when Production is selected and stays muted/optional otherwise.</li>
+      </ul>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>
+        Every operator who signs in to Production must be enrolled before MFA is
+        enforced — an un-enrolled account is locked out of Production.
+      </div></div>
+    </div>
+
+    <!-- §5 RTGS -->
+    <div class="dp-section" id="rtgs">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§5</div>
+        <h2>RTGS &amp; Settlement Isolation</h2>
+      </div>
+      <p>Only Production fires live settlement. In Sandbox/Pilot the note still burns,
+        but the RTGS credit is <b>suppressed</b> — enforced twice:</p>
+      <ul class="dp-list">
+        <li><b>Client:</b> the burn confirmation states
+          <code>⚠ Training/Sandbox — settlement SIMULATED, no live RTGS credit</code>,
+          and the request payload carries <code>environment</code> and
+          <code>rtgs_live: false</code>.</li>
+        <li><b>Server:</b> the burn endpoint honours <code>rtgs_live</code> — when
+          false it records the burn without crediting RTGS (drops the account).</li>
+      </ul>
+      <div class="dp-callout dp-danger"><span class="dp-ci">●</span><div>
+        In Production, burns credit RTGS and produce direct monetary, compliance,
+        and ledger impact. A red <b>PRODUCTION — LIVE</b> banner is shown across the
+        top of the app to signal this at all times.
+      </div></div>
+    </div>
+
+    <!-- §6 Enforcement -->
+    <div class="dp-section" id="enforcement">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6</div>
+        <h2>Enforcement &amp; UI Signals</h2>
+      </div>
+      <p>Defence-in-depth: the server is authoritative, and the client enforces the
+        same posture locally so violations never reach the wire.</p>
+      <table class="dp-table">
+        <thead>
+          <tr><th>Signal / Control</th><th>Behaviour</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Environment banner</td><td>Amber "TRAINING / SANDBOX" or "PILOT / STAGING" for isolated modes; red "PRODUCTION — LIVE" for real settlement. Always visible.</td></tr>
+          <tr><td>OTP field header</td><td>Muted "optional" for Pilot/Sandbox; green "REQUIRED" for Production, with a pre-flight check.</td></tr>
+          <tr><td>Tab &amp; button gating</td><td>Tabs hidden and action buttons disabled by <code>hasScope()</code> against server-granted scopes.</td></tr>
+          <tr><td>Burn safeguard</td><td>Simulated-settlement warning + <code>rtgs_live</code> stamp in Sandbox/Pilot.</td></tr>
+        </tbody>
+      </table>
+      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>
+        Server API: <code>POST /api/v2/auth/login</code> returns
+        <code>{ role, token, environment, key_profile, policy, scopes }</code>.
+        The client's <code>SessionManager</code> captures these and applies the
+        environment policy + scope gating on session start.
+      </div></div>
+    </div>
+
+  </div>
+</div>
