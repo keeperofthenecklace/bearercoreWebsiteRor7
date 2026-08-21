@@ -266,6 +266,36 @@
           </div>
         </a>
 
+        <!-- Server-Side SFTP Delivery -->
+        <a href="/docs/sftp-delivery-pipeline" style="text-decoration:none;" class="dp-mod-card">
+          <div class="dp-card-inner"
+               onmouseover="this.style.borderColor='#0a1628';this.style.boxShadow='0 4px 16px rgba(10,22,40,0.1)'"
+               onmouseout="this.style.borderColor='#dde1ef';this.style.boxShadow='none'">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div class="dp-card-icon" style="background:#0b5c66;">📦</div>
+              <span class="dp-badge-progress" style="color:#1b5e20;border-color:rgba(27,94,32,0.35);">BACKEND LIVE</span>
+            </div>
+            <div>
+              <div class="dp-card-title">Server-Side SFTP Delivery</div>
+              <div class="dp-card-desc">
+                CVIB bundle delivery moved off the desktop client onto the server, using AES-256-GCM encrypted counterparty credentials. Upload API, background delivery job, status ledger, and the per-bank cutover from client-side sshpass.
+              </div>
+            </div>
+            <div class="dp-card-tags">
+              <span class="dp-tag">upload_bundle</span>
+              <span class="dp-tag">AES-256-GCM</span>
+              <span class="dp-tag">Delivery Ledger</span>
+              <span class="dp-tag">sshpass Retirement</span>
+            </div>
+            <div style="margin-top:8px;padding-top:12px;border-top:1px solid #f0f2f8;">
+              <div style="font-size:11px;color:#7a7f9a;line-height:1.7;">
+                <b style="color:#0a1628;">Flow:</b> Qt upload → SHA-256 verify → per-bank gate → CvibSftpDeliveryJob → notify
+              </div>
+            </div>
+            <div class="dp-card-cta">View documentation →</div>
+          </div>
+        </a>
+
       </div><!-- /web grid -->
 
       <div class="dp-callout dp-info" style="margin-top:40px;">

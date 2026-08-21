@@ -8,6 +8,9 @@ class DocsController < ApplicationController
   def environments_security
   end
 
+  def sftp_delivery_pipeline
+  end
+
   def corridor_ops
   end
 

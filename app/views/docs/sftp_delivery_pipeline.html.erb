@@ -1,0 +1,317 @@
+<%# app/views/docs/sftp_delivery_pipeline.html.erb
+    Server-Side SFTP Delivery Pipeline — backend spec + Qt client scope.
+    Canonical source: docs/architecture/sftp-delivery-pipeline.md %>
+
+<%= render 'docs/doc_styles' %>
+
+<div class="dp-wrap">
+  <nav class="dp-topbar">
+    <a href="/docs" class="dp-topbar-back">← Back to Docs</a>
+    <span class="dp-topbar-title">Server-Side SFTP Delivery</span>
+    <span class="dp-topbar-tag" style="color:#1b5e20;border-color:rgba(27,94,32,0.35);">Backend Live</span>
+  </nav>
+
+  <div class="dp-cover">
+    <div style="position:relative;z-index:1;max-width:760px;">
+      <div class="dp-cover-eyebrow">bearerCORE™ · Backend Specification</div>
+      <h1>Server-Side SFTP Delivery</h1>
+      <p class="dp-cover-desc">
+        Moving CVIB bundle delivery off the Qt client's <code>sshpass</code> path and
+        onto the server, where each recipient bank's SFTP credentials live
+        AES-256-GCM encrypted and are decrypted only at the moment of transfer.
+        The client hands the packaged bundle to Rails; the server pushes it, records
+        an auditable delivery ledger, and sends the notification.
+      </p>
+      <div class="dp-cover-meta">
+        <div>Version <b>1.1</b></div>
+        <div>Updated <b>August 2026</b></div>
+        <div>Status <b>Backend shipped · Qt in progress</b></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dp-secnav">
+    <a href="#background">Background</a>
+    <a href="#flow">Pipeline Flow</a>
+    <a href="#data">Data Model</a>
+    <a href="#api">API Contract</a>
+    <a href="#ledger">Delivery Ledger</a>
+    <a href="#security">Security</a>
+    <a href="#client">Client Scope</a>
+    <a href="#cutover">Cutover</a>
+  </nav>
+
+  <div class="dp-main">
+
+    <!-- §1 Background -->
+    <div class="dp-section" id="background">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§1</div>
+        <h2>Background &amp; Objectives</h2>
+      </div>
+      <p>Today the Qt client packages the bundle <b>and</b> performs the SFTP transfer
+        itself, driving an <code>sshpass</code> batch file from a QtConcurrent thread.
+        Connection details — including the bank's SFTP password — are hand-entered at
+        delivery time and never leave the operator's workstation. Rails only sends a
+        post-transfer notification email.</p>
+      <p>That places a live counterparty credential on every operator machine and
+        makes delivery unauditable server-side. The new pipeline centralizes the
+        credential (encrypted at rest, on the server) and makes the server the single,
+        logged actor that connects out to the bank.</p>
+      <table class="dp-table">
+        <thead>
+          <tr><th>Domain</th><th>Before — client-driven</th><th>After — server-driven</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Transfer</b></td><td>Qt packages ZIP <b>and</b> runs <code>sshpass</code> to push it</td><td>Qt uploads the ZIP to Rails; the <b>server</b> pushes via SFTP</td></tr>
+          <tr><td><b>Credentials</b></td><td>Hand-entered per delivery, on the workstation</td><td>Stored <b>AES-256-GCM encrypted</b>, decrypted in-process only</td></tr>
+          <tr><td><b>Notification</b></td><td>Rails sends a notification email only</td><td>Delivery + notification are one auditable server flow</td></tr>
+          <tr><td><b>Audit</b></td><td>No server-side delivery record or retry</td><td><code>CvibDelivery</code> ledger with retry &amp; alerting</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- §2 Pipeline Flow -->
+    <div class="dp-section" id="flow">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§2</div>
+        <h2>End-to-End Pipeline Flow</h2>
+      </div>
+      <p>Hand-off happens after <code>confirm_manifest</code>, once the batch is
+        <code>active</code>. Identity is persisted on the batch, so every step after
+        upload resolves from the batch record — no per-request trust.</p>
+      <table class="dp-table">
+        <thead>
+          <tr><th>#</th><th>Actor</th><th>Step</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Qt client</td><td>Package &amp; upload — POST the ZIP to <code>upload_bundle</code> with its SHA-256 and recipient identity (SWIFT, email, bank name).</td></tr>
+          <tr><td>2</td><td>Rails · controller</td><td>Persist identity onto the batch, spool the file, and reject unless the computed SHA-256 matches the declared hash.</td></tr>
+          <tr><td>3</td><td>Rails · per-bank gate</td><td><code>Sftp.for_delivery(swift)</code> must return an active, test-passed connection. If none: hard-fail — <code>pending_no_connection</code>, admin alert, HTTP 409.</td></tr>
+          <tr><td>4</td><td>Rails · <code>CvibSftpDeliveryJob</code></td><td>Resolve host/dir/user + the decrypted password (the <b>only</b> decryption point at delivery), push via <code>ScSftp</code>, write a ledger row.</td></tr>
+          <tr><td>5</td><td>Rails · on success</td><td>Mark <code>delivered</code> (host, remote path, bytes), fire the attachment-less notification email, purge the spooled ZIP.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- §3 Data Model -->
+    <div class="dp-section" id="data">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§3</div>
+        <h2>Data Model &amp; Migrations</h2>
+      </div>
+      <p>Two additive, backward-compatible migrations (<code>20260821130000</code>,
+        <code>20260821130100</code>), plus the counterparty-credential migration on
+        <code>sftps</code>.</p>
+
+      <p><b><code>sftps</code> — outbound connection + encrypted credential.</b> The
+        <code>password</code> is a live credential (needed in plaintext during the SSH
+        handshake), so it is reversibly encrypted at rest via
+        <code>encrypts :password</code> (AES-256-GCM) — never hashed.</p>
+      <table class="dp-table">
+        <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>hostIPAddress</code></td><td>string</td><td>Remote SFTP host</td></tr>
+          <tr><td><code>port</code></td><td>integer (22)</td><td>Remote port</td></tr>
+          <tr><td><code>remoteDirectory</code></td><td>string</td><td>Destination directory</td></tr>
+          <tr><td><code>username</code></td><td>string</td><td>SFTP login</td></tr>
+          <tr><td><code>password</code></td><td>text</td><td><b>AES-256-GCM ciphertext</b> (AR Encryption)</td></tr>
+          <tr><td><code>active</code></td><td>boolean</td><td>Enabled for delivery — gated on a passing test</td></tr>
+          <tr><td><code>credential_updated_at</code></td><td>datetime</td><td>Drives the “•••• last updated” display</td></tr>
+          <tr><td><code>last_tested_at</code> / <code>last_test_ok</code></td><td>datetime / boolean</td><td>Test Connection result</td></tr>
+        </tbody>
+      </table>
+
+      <p><b><code>cvib_batches</code> — recipient identity (A1).</b> Persisting identity
+        on the batch lets the delivery job resolve destination + notification context
+        without trusting per-request client params.</p>
+      <table class="dp-table">
+        <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>recipient_swift_code</code></td><td>string · idx</td><td>Destination bank; key into <code>Sftp.for_delivery</code></td></tr>
+          <tr><td><code>central_bank_swift</code></td><td>string</td><td>Issuing CB, for the notification</td></tr>
+          <tr><td><code>recipient_email</code></td><td>string</td><td>Notification recipient</td></tr>
+          <tr><td><code>bank_name</code></td><td>string</td><td>Clean display name (trailing “ - SWIFT” stripped)</td></tr>
+          <tr><td><code>bundle_filename</code></td><td>string</td><td>Name to write on the remote host</td></tr>
+          <tr><td><code>bundle_sha256</code></td><td>string</td><td>Integrity hash of the delivered ZIP</td></tr>
+        </tbody>
+      </table>
+
+      <p><b><code>cvib_deliveries</code> — status ledger.</b> The existing
+        delivery-audit table becomes a state ledger. Existing rows default to
+        <code>delivered</code>; <code>delivered_at</code> is now nullable so
+        pending/failed rows can exist before a completed transfer.</p>
+      <table class="dp-table">
+        <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>status</code></td><td>string · idx</td><td>Ledger state (see §5); default <code>delivered</code></td></tr>
+          <tr><td><code>host</code></td><td>string</td><td>Remote host actually contacted</td></tr>
+          <tr><td><code>remote_path</code></td><td>string</td><td>Full remote destination path</td></tr>
+          <tr><td><code>bytes</code></td><td>bigint</td><td>Transferred size</td></tr>
+          <tr><td><code>error</code></td><td>text</td><td>Failure detail for unresolved rows</td></tr>
+          <tr><td><code>delivered_at</code></td><td>datetime · now null</td><td>Set only on success</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- §4 API Contract -->
+    <div class="dp-section" id="api">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§4</div>
+        <h2>API Contract</h2>
+      </div>
+      <p><code>POST /api/v2/cvib_batches/:id/upload_bundle</code> ·
+        <code>multipart/form-data</code> · Doorkeeper OAuth2. The batch must be
+        <code>active</code>.</p>
+      <table class="dp-table">
+        <thead><tr><th>Field</th><th>Req.</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>bundle</code></td><td>yes</td><td>The packaged ZIP (file part)</td></tr>
+          <tr><td><code>bundle_sha256</code></td><td>yes</td><td>Hex SHA-256; server recomputes and must match</td></tr>
+          <tr><td><code>recipient_swift_code</code></td><td>yes</td><td>Accepts legacy alias <code>swift_code</code></td></tr>
+          <tr><td><code>recipient_email</code></td><td>rec.</td><td>Needed for the success notification</td></tr>
+          <tr><td><code>central_bank_swift</code></td><td>opt.</td><td>Persisted on the batch</td></tr>
+          <tr><td><code>bank_name</code></td><td>opt.</td><td>Trailing “ - SWIFT” stripped for display</td></tr>
+        </tbody>
+      </table>
+      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>
+        <b>200 — queued for delivery:</b>
+        <code>{ "error": null, "data": { "batch_id": "…", "delivery_status": "queued", "bundle_sha256": "…" } }</code>
+      </div></div>
+      <table class="dp-table">
+        <thead><tr><th>HTTP</th><th>code</th><th>When</th></tr></thead>
+        <tbody>
+          <tr><td>422</td><td><code>batch_not_active</code></td><td>Batch not yet <code>active</code></td></tr>
+          <tr><td>422</td><td><code>missing_bundle</code> / <code>missing_swift</code> / <code>missing_bundle_sha256</code></td><td>Required field absent</td></tr>
+          <tr><td>422</td><td><code>integrity_mismatch</code></td><td>Computed SHA-256 ≠ declared; spool discarded</td></tr>
+          <tr><td><b>409</b></td><td><code>no_sftp_connection</code></td><td>No active/verified connection — ledger + alert, no fallback</td></tr>
+          <tr><td>404</td><td><code>not_found</code></td><td>Unknown batch id</td></tr>
+        </tbody>
+      </table>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
+        The <b>409</b> is the per-bank cutover signal — the client reads it as “this
+        counterparty is not provisioned server-side yet” and falls back to the legacy
+        <code>sshpass</code> path (see §7, §8).
+      </div></div>
+    </div>
+
+    <!-- §5 Ledger -->
+    <div class="dp-section" id="ledger">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§5</div>
+        <h2>Delivery Ledger &amp; State Machine</h2>
+      </div>
+      <p>Every attempt writes a <code>CvibDelivery</code> row
+        (<code>method: "sftp"</code>). The job is <b>idempotent</b> — a batch with a
+        <code>delivered</code> row is a no-op, so Sidekiq retries never double-send or
+        double-notify.</p>
+      <table class="dp-table">
+        <thead><tr><th>State</th><th>Meaning</th><th>Retries?</th><th>Alerts?</th></tr></thead>
+        <tbody>
+          <tr><td><code>queued</code></td><td>Uploaded &amp; enqueued, awaiting the job</td><td>—</td><td>no</td></tr>
+          <tr><td><code>delivered</code></td><td>Pushed successfully; notification sent</td><td>no (terminal)</td><td>no</td></tr>
+          <tr><td><code>failed</code></td><td>Transfer error or missing spool</td><td>yes — Sidekiq backoff</td><td>on exhaustion</td></tr>
+          <tr><td><code>pending_no_connection</code></td><td>No active, verified <code>Sftp</code> for the bank</td><td>no — hard-fail</td><td><b>CRITICAL</b> SystemEvent</td></tr>
+        </tbody>
+      </table>
+      <div class="dp-callout dp-danger"><span class="dp-ci">●</span><div>
+        <b>No silent downgrade.</b> A missing or inactive connection never falls back
+        to emailing the bundle as an attachment — it records
+        <code>pending_no_connection</code> and raises a <code>CRITICAL</code>
+        <code>SystemEvent</code> (source <code>SFTP</code>) for the admin console.
+      </div></div>
+    </div>
+
+    <!-- §6 Security -->
+    <div class="dp-section" id="security">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§6</div>
+        <h2>Security Controls</h2>
+      </div>
+      <p>The counterparty password is a <b>live credential</b> — bearerCORE must
+        present it in plaintext during the SSH handshake — so it is reversibly
+        encrypted, never hashed.</p>
+      <table class="dp-table">
+        <thead><tr><th>Control</th><th>Mechanism</th></tr></thead>
+        <tbody>
+          <tr><td>Encryption at rest</td><td><code>encrypts :password</code> — AES-256-GCM (AR Encryption), same scheme as <code>otp_secret</code></td></tr>
+          <tr><td>Write-only</td><td><code>Sftp#as_json</code> strips it; the admin form shows <code>•••• (last updated …)</code> and never redisplays it</td></tr>
+          <tr><td>Decrypt scope</td><td>In-process only — <code>CvibSftpDeliveryJob</code> and the Test Connection handshake; never returned to any client</td></tr>
+          <tr><td>Management surface</td><td><code>/admin/counterparties</code> — session-authenticated (least privilege), not the shared-token JS console</td></tr>
+          <tr><td>Activation gate</td><td>A connection is <code>active</code> only after a real <code>Net::SFTP</code> handshake passes; any edit resets it</td></tr>
+          <tr><td>Transfer integrity</td><td>SHA-256 verified on upload; the ZIP is forwarded as-is (never extracted server-side)</td></tr>
+          <tr><td>Audit trail</td><td>Every attempt is a <code>CvibDelivery</code> ledger row; unresolved rows raise <code>SystemEvent</code>s</td></tr>
+        </tbody>
+      </table>
+      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>
+        Verified against the live database (rolled back): decrypt round-trip matches,
+        the raw column holds ciphertext not plaintext, serialization strips the field,
+        and the unreachable-host handshake returns <code>ok:false</code> with a clear
+        error.
+      </div></div>
+    </div>
+
+    <!-- §7 Client Scope -->
+    <div class="dp-section" id="client">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§7</div>
+        <h2>Desktop Client Scope — smartcheq_sahara</h2>
+      </div>
+      <p>The change is localized to the issuance export path
+        (<code>sendCvibBundleToBank()</code>) plus a new upload primitive on
+        <code>ApiClient</code>. The deposit/withdrawal SFTP path
+        (<code>withdrawalcbdc.cpp</code>) is <b>out of scope here</b> — tracked as a
+        separate future pass.</p>
+      <table class="dp-table">
+        <thead><tr><th>#</th><th>Work item</th><th>Detail</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><code>ApiClient::uploadBundle</code></td><td>Multipart primitive — <code>QHttpMultiPart</code> with a streamed <code>bundle</code> part. Bypasses the JSON <code>buildRequest</code> so the boundary Content-Type survives; parses the v2 envelope even on HTTP 4xx so a 409 arrives as <code>error.code</code>; 120 s timeout.</td><td style="color:#1b5e20;font-weight:700;">done</td></tr>
+          <tr><td>2</td><td><code>bundle_sha256</code></td><td><code>ApiClient::sha256HexOfFile</code> — streamed <code>QCryptographicHash</code>, safe for large ZIPs. Rails recomputes and rejects on mismatch.</td><td style="color:#1b5e20;font-weight:700;">done</td></tr>
+          <tr><td>3</td><td>Replace the SFTP block</td><td>Swap the QtConcurrent sshpass upload for <code>uploadBundle</code>. On <code>200 queued</code>: archive locally + <code>confirm_archive</code>, then stop — the server notifies and writes the ledger.</td><td style="color:#1b5e20;font-weight:700;">done</td></tr>
+          <tr><td>4</td><td>409 fallback = per-bank gate</td><td>On <code>409 no_sftp_connection</code>, fall back to <code>sendCvibBundleViaSshpass()</code>. Provisioned banks deliver server-side; others keep the old path — no flag-day.</td><td style="color:#1b5e20;font-weight:700;">done</td></tr>
+          <tr><td>5</td><td>Retire credentials &amp; sshpass</td><td>Hide the hand-entered host / dir / user / password fields; remove them and delete <code>sftpUploadZip</code> + the bundled <code>sshpass</code> binary once all banks are migrated.</td><td style="color:#8a6d1a;font-weight:700;">to build</td></tr>
+        </tbody>
+      </table>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>
+        <b>Server infra prerequisite.</b> <code>upload_bundle</code> sends the full ZIP
+        over HTTP. The API host's nginx <code>client_max_body_size</code> (default
+        1&nbsp;MB) must be raised to the maximum bundle size before Qt cutover, or
+        uploads fail with <code>413</code>.
+      </div></div>
+    </div>
+
+    <!-- §8 Cutover -->
+    <div class="dp-section" id="cutover">
+      <div class="dp-section-header">
+        <div class="dp-section-num">§8</div>
+        <h2>Counterparty Cutover Protocol</h2>
+      </div>
+      <p>Locked decisions driving the rollout:</p>
+      <ul class="dp-list">
+        <li><b>Identity — A1.</b> Persisted on <code>cvib_batches</code>; the job
+          resolves destination + notification context from the batch record.</li>
+        <li><b>Cutover unit — per-bank.</b> Routing is gated dynamically on
+          <code>Sftp.for_delivery(swift).present?</code>. A bank flips to server
+          delivery only once it has an active, verified connection.</li>
+        <li><b>No connection — hard-fail.</b> <code>pending_no_connection</code> +
+          admin alert; never an email-attachment fallback.</li>
+      </ul>
+      <table class="dp-table">
+        <thead><tr><th>Step</th><th>Action</th><th>Owner</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Provision + Test-Connection each bank in <code>/admin/counterparties</code></td><td>Ops</td></tr>
+          <tr><td>2</td><td>Ship Qt upload path behind the per-bank gate</td><td>Qt</td></tr>
+          <tr><td>3</td><td>Run one bank end-to-end; confirm <code>delivered</code> + notification</td><td>Both</td></tr>
+          <tr><td>4</td><td>Onboard remaining banks as connections are verified</td><td>Ops</td></tr>
+          <tr><td>5</td><td>Remove the <code>sshpass</code> path once all banks are migrated</td><td>Qt</td></tr>
+        </tbody>
+      </table>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>
+        <b>Not yet verifiable end-to-end.</b> The test database currently holds no
+        batches or issuance authorizations, so the full push path hasn't been
+        exercised on live data. First real run is step 3 above.
+      </div></div>
+    </div>
+
+  </div>
+</div>
