@@ -553,17 +553,21 @@
                     <span id="tcTraderHolderCountryBadge" style="font-size:11px;color:#059669;font-weight:600;margin-left:6px;display:none;"></span>
                     <span style="font-size:11px;color:#9ca3af;font-weight:400;margin-left:4px;">(buyer wallet)</span>
                   </label>
-                  <div id="traderHolderWidget">
+                  <div id="traderHolderWidget" style="position:relative;">
                     <div id="traderHolderInputRow" style="display:flex;align-items:stretch;border:1px solid #d1d5db;border-radius:8px;overflow:hidden;background:white;">
-                      <input type="text" id="traderHolderInput" placeholder="Enter or paste unique wallet ID..."
+                      <input type="text" id="traderHolderInput" placeholder="Search by name, business, or Holder ID…"
+                        autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false"
                         oninput="onHolderInput('trader', this.value)"
                         style="flex:1;padding:10px 12px;border:none;outline:none;font-family:'Courier New',monospace;font-size:12.5px;background:transparent;color:#374151;min-width:0;" />
                       <button type="button" id="traderHolderResetBtn" onclick="resetHolderWidget('trader')"
                         style="display:none;padding:0 14px;border:none;border-left:1px solid #e5e7eb;background:#f3f4f6;cursor:pointer;font-size:18px;color:#9ca3af;line-height:1;align-items:center;justify-content:center;">×</button>
                     </div>
+                    <div id="traderHolderDropdown" role="listbox"
+                      style="display:none;position:absolute;left:0;right:0;top:calc(100% + 3px);z-index:60;background:white;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,0.14);max-height:300px;overflow-y:auto;"></div>
                     <div id="traderHolderStatus" style="margin-top:4px;font-size:11px;color:#6b7280;display:flex;align-items:flex-start;gap:4px;line-height:1.4;">
-                      <span>💡</span><span>Enter the buyer's unique national registry identifier.</span>
+                      <span>💡</span><span>Search the buyer by name, business, or Holder ID.</span>
                     </div>
+                    <div id="traderHolderVerified" style="display:none;margin-top:6px;"></div>
                   </div>
                   <input type="hidden" id="tc_trader_holder_id" name="trader_holder_id" />
                 </div>
@@ -594,17 +598,21 @@
                     <span id="tcRetailerHolderCountryBadge" style="font-size:11px;color:#2563eb;font-weight:600;margin-left:6px;display:none;"></span>
                     <span style="font-size:11px;color:#9ca3af;font-weight:400;margin-left:4px;">(seller wallet)</span>
                   </label>
-                  <div id="retailerHolderWidget">
+                  <div id="retailerHolderWidget" style="position:relative;">
                     <div id="retailerHolderInputRow" style="display:flex;align-items:stretch;border:1px solid #d1d5db;border-radius:8px;overflow:hidden;background:white;">
-                      <input type="text" id="retailerHolderInput" placeholder="Enter or paste unique wallet ID..."
+                      <input type="text" id="retailerHolderInput" placeholder="Search by name, business, or Holder ID…"
+                        autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false"
                         oninput="onHolderInput('retailer', this.value)"
                         style="flex:1;padding:10px 12px;border:none;outline:none;font-family:'Courier New',monospace;font-size:12.5px;background:transparent;color:#374151;min-width:0;" />
                       <button type="button" id="retailerHolderResetBtn" onclick="resetHolderWidget('retailer')"
                         style="display:none;padding:0 14px;border:none;border-left:1px solid #e5e7eb;background:#f3f4f6;cursor:pointer;font-size:18px;color:#9ca3af;line-height:1;align-items:center;justify-content:center;">×</button>
                     </div>
+                    <div id="retailerHolderDropdown" role="listbox"
+                      style="display:none;position:absolute;left:0;right:0;top:calc(100% + 3px);z-index:60;background:white;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,0.14);max-height:300px;overflow-y:auto;"></div>
                     <div id="retailerHolderStatus" style="margin-top:4px;font-size:11px;color:#6b7280;display:flex;align-items:flex-start;gap:4px;line-height:1.4;">
-                      <span>💡</span><span>Enter the merchant's unique national registry identifier.</span>
+                      <span>💡</span><span>Search the merchant by name, business, or Holder ID.</span>
                     </div>
+                    <div id="retailerHolderVerified" style="display:none;margin-top:6px;"></div>
                   </div>
                   <input type="hidden" id="tc_destination_retailer_holder_id" name="destination_retailer_holder_id" />
                 </div>
@@ -2735,41 +2743,120 @@ function m00RequireAuth() {
 let _activeTraderCountry   = '';
 let _activeRetailerCountry = '';
 const _holderResolveTimers = {};
+const _holderResults = { trader: [], retailer: [] };
+// The registry search API is served by the SmartCheq backend (same host the
+// modal already uses for trade_claims). Falls back to the public host.
+const _holderApiBase = (window.SC_API_BASE || 'https://smartcheq.com');
 
+function _tcEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+    { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+function _hiddenIdFor(side) {
+  return side === 'trader' ? 'tc_trader_holder_id' : 'tc_destination_retailer_holder_id';
+}
+
+// Debounced typeahead — search by name, business, or Holder ID as the operator
+// types. Typing clears any prior selection so a stale holder_id is never kept.
 function onHolderInput(side, val) {
   clearTimeout(_holderResolveTimers[side]);
-  const hiddenId = side === 'trader' ? 'tc_trader_holder_id' : 'tc_destination_retailer_holder_id';
-  document.getElementById(hiddenId).value = '';
-  if (val.trim().length >= 8) {
-    _holderResolveTimers[side] = setTimeout(() => _resolveHolder(side), 700);
-  } else {
+  document.getElementById(_hiddenIdFor(side)).value = '';
+  _hideHolderVerified(side);
+  const q = (val || '').trim();
+  if (q.length < 2) {
+    _hideHolderDropdown(side);
     _setHolderState(side, 'neutral');
+    return;
+  }
+  _setHolderState(side, 'searching');
+  _holderResolveTimers[side] = setTimeout(() => _searchHolders(side, q), 300);
+}
+
+async function _searchHolders(side, q) {
+  try {
+    const res  = await fetch(`${_holderApiBase}/api/v2/holder_keys/search?q=${encodeURIComponent(q)}`,
+                             { headers: { 'Accept': 'application/json' } });
+    const data = await res.json();
+    _renderHolderDropdown(side, (data && data.results) || [], q);
+    _setHolderState(side, 'neutral');
+  } catch (e) {
+    _hideHolderDropdown(side);
+    _setHolderState(side, 'error', 'Registry search unavailable. Check your network connection.');
   }
 }
 
-async function _resolveHolder(side) {
-  const inputEl = document.getElementById(`${side}HolderInput`);
-  const val = inputEl ? inputEl.value.trim() : '';
-  if (!val || val.length < 8) return;
-  _setHolderState(side, 'resolving');
-  try {
-    const res = await fetch(`https://smartcheq.com/api/v2/holder_keys/resolve?holder_id_input=${encodeURIComponent(val)}`, {
-      headers: { 'Accept': 'application/json' }
-    });
-    const data = await res.json();
-    const hiddenId = side === 'trader' ? 'tc_trader_holder_id' : 'tc_destination_retailer_holder_id';
-    if (data.status === 'VERIFIED') {
-      _setHolderState(side, 'verified', data.account_name);
-      document.getElementById(hiddenId).value = data.holder_id || val;
-    } else {
-      const country = side === 'trader' ? (_activeTraderCountry || 'National') : (_activeRetailerCountry || 'National');
-      _setHolderState(side, 'error', `No active merchant record matching this ID exists in the ${country} Registry. Please verify the cryptographic string and check connection status.`);
-      document.getElementById(hiddenId).value = '';
-    }
-  } catch (e) {
-    _setHolderState(side, 'error', 'Resolution service unavailable. Check network connection.');
+function _renderHolderDropdown(side, results, q) {
+  const dd = document.getElementById(`${side}HolderDropdown`);
+  if (!dd) return;
+  _holderResults[side] = results;
+
+  if (!results.length) {
+    dd.innerHTML = `<div style="padding:11px 12px;font-size:12px;color:#9ca3af;">`
+      + `No registry records match “${_tcEsc(q)}”.</div>`;
+  } else {
+    dd.innerHTML = results.map((r, i) => {
+      const primary = _tcEsc(r.name || (String(r.holder_id).slice(0, 16) + '…'));
+      const entity  = _tcEsc((r.entity_type || 'individual').replace(/_/g, ' '));
+      const status  = r.verified
+        ? '<span style="color:#059669;font-weight:600;">● Registry Verified</span>'
+        : '<span style="color:#9ca3af;">○ Unverified</span>';
+      return `<div class="tc-holder-opt" role="option" onclick="_selectHolder('${side}', ${i})"
+          onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='#ffffff'"
+          style="padding:9px 12px;cursor:pointer;border-bottom:1px solid #f3f4f6;background:#ffffff;">
+          <div style="font-size:13px;font-weight:600;color:#111827;">${primary}</div>
+          <div style="font-size:11px;color:#6b7280;text-transform:capitalize;margin-top:1px;">${entity} · ${status}</div>
+          <div style="font-size:11px;color:#6b7280;font-family:'Courier New',monospace;margin-top:1px;">${_tcEsc(r.holder_id_short || '')}</div>
+        </div>`;
+    }).join('');
   }
-  tcCheckStep2Ready();
+  dd.style.display = 'block';
+  const inputEl = document.getElementById(`${side}HolderInput`);
+  if (inputEl) inputEl.setAttribute('aria-expanded', 'true');
+}
+
+// Selection: populate the clean display name, bind the immutable holder_id into
+// the hidden field, show the Registry Verified badge, and pre-fill beneficiary.
+function _selectHolder(side, idx) {
+  const r = (_holderResults[side] || [])[idx];
+  if (!r) return;
+  const inputEl = document.getElementById(`${side}HolderInput`);
+  if (inputEl) inputEl.value = r.name || r.holder_id;
+  document.getElementById(_hiddenIdFor(side)).value = r.holder_id;
+  _hideHolderDropdown(side);
+  _showHolderVerified(side, r);
+  _setHolderState(side, 'verified');
+  if (side === 'retailer') {
+    const bn = document.getElementById('tc_beneficiary_name');
+    if (bn && !bn.value.trim() && r.name) bn.value = r.name;
+  }
+  if (typeof tcCheckStep2Ready === 'function') tcCheckStep2Ready();
+}
+
+function _showHolderVerified(side, r) {
+  const v = document.getElementById(`${side}HolderVerified`);
+  if (!v) return;
+  v.innerHTML =
+    `<div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#059669;font-weight:600;">`
+    + `<span>✓</span><span>Registry Verified</span>`
+    + (r.verified ? '' : ` <span style="color:#9ca3af;font-weight:500;">(unverified holder)</span>`)
+    + `</div>`
+    + `<code style="display:block;margin-top:4px;font-size:11px;color:#374151;background:#f3f4f6;`
+    + `border:1px solid #e5e7eb;border-radius:6px;padding:5px 8px;word-break:break-all;">`
+    + `${_tcEsc(r.holder_id)}</code>`;
+  v.style.display = 'block';
+}
+
+function _hideHolderVerified(side) {
+  const v = document.getElementById(`${side}HolderVerified`);
+  if (v) { v.style.display = 'none'; v.innerHTML = ''; }
+}
+
+function _hideHolderDropdown(side) {
+  const dd = document.getElementById(`${side}HolderDropdown`);
+  if (dd) dd.style.display = 'none';
+  const inputEl = document.getElementById(`${side}HolderInput`);
+  if (inputEl) inputEl.setAttribute('aria-expanded', 'false');
 }
 
 function _setHolderState(side, state, message) {
@@ -2778,47 +2865,59 @@ function _setHolderState(side, state, message) {
   const statusEl = document.getElementById(`${side}HolderStatus`);
   const resetBtn = document.getElementById(`${side}HolderResetBtn`);
   if (!inputEl || !inputRow || !statusEl) return;
-  inputEl.disabled = false;
   inputEl.readOnly = false;
   inputEl.style.background = 'transparent';
   inputEl.style.color = '#374151';
   if (resetBtn) resetBtn.style.display = 'none';
+  const hint = side === 'trader'
+    ? 'Search the buyer by name, business, or Holder ID.'
+    : 'Search the merchant by name, business, or Holder ID.';
   switch (state) {
     case 'neutral':
       inputRow.style.border = '1px solid #d1d5db';
       statusEl.style.color = '#6b7280';
-      statusEl.innerHTML = '<span>💡</span><span>Enter the merchant\'s unique national registry identifier.</span>';
+      statusEl.style.display = 'flex';
+      statusEl.innerHTML = `<span>💡</span><span>${hint}</span>`;
       break;
-    case 'resolving':
-      inputEl.disabled = true;
+    case 'searching':
       inputRow.style.border = '1px solid #d1d5db';
       statusEl.style.color = '#6b7280';
-      statusEl.innerHTML = '<span>🔄</span><span>Resolving identity with National Registry...</span>';
+      statusEl.style.display = 'flex';
+      statusEl.innerHTML = '<span>🔎</span><span>Searching registry…</span>';
       break;
     case 'verified':
-      inputEl.readOnly = true;
-      inputEl.style.background = '#f3f4f6';
       inputRow.style.border = '1px solid #10b981';
-      if (resetBtn) { resetBtn.style.display = 'flex'; }
-      statusEl.style.color = '#059669';
-      statusEl.innerHTML = `<span>🟢</span><span>Account Verified: ${message || ''}</span>`;
+      if (resetBtn) resetBtn.style.display = 'flex';
+      statusEl.style.display = 'none';   // the Registry Verified badge carries the message
       break;
     case 'error':
       inputRow.style.border = '1px solid #ef4444';
       statusEl.style.color = '#dc2626';
-      statusEl.innerHTML = `<span>🔴</span><span><strong>IDENTITY RESOLUTION FAILED:</strong><br>${message || 'No matching account found.'}</span>`;
+      statusEl.style.display = 'flex';
+      statusEl.innerHTML = `<span>🔴</span><span><strong>IDENTITY RESOLUTION FAILED:</strong><br>${_tcEsc(message || 'No matching account found.')}</span>`;
       break;
   }
 }
 
 function resetHolderWidget(side) {
   const inputEl = document.getElementById(`${side}HolderInput`);
-  if (inputEl) inputEl.value = '';
-  const hiddenId = side === 'trader' ? 'tc_trader_holder_id' : 'tc_destination_retailer_holder_id';
-  const hidden = document.getElementById(hiddenId);
+  if (inputEl) { inputEl.value = ''; inputEl.readOnly = false; inputEl.focus(); }
+  const hidden = document.getElementById(_hiddenIdFor(side));
   if (hidden) hidden.value = '';
+  _holderResults[side] = [];
+  _hideHolderDropdown(side);
+  _hideHolderVerified(side);
   _setHolderState(side, 'neutral');
+  if (typeof tcCheckStep2Ready === 'function') tcCheckStep2Ready();
 }
+
+// Close any open holder dropdown when clicking outside its widget.
+document.addEventListener('click', function (e) {
+  ['trader', 'retailer'].forEach(function (side) {
+    const w = document.getElementById(`${side}HolderWidget`);
+    if (w && !w.contains(e.target)) _hideHolderDropdown(side);
+  });
+});
 
 // Country code → display name map for label updates
 const TC_COUNTRY_NAMES = {
