@@ -60,7 +60,7 @@
         from a denomination template, signed server-side with the issuing bank's Ed25519
         key, vault-encrypted (AES-256-GCM), packaged with a SHA-256 manifest, and
         distributed to the claiming commercial bank over email or SFTP. The workflow is
-        gated by a supervisor clearance step and a 4-digit operator PIN before any note
+        gated by a supervisor clearance step (OAuth-authorized) before any note
         is minted.
       </p>
 
@@ -231,15 +231,15 @@
       <h3>Issuance Execution Pipeline</h3>
       <p>Three sequential phases, surfaced as a tabbed strip. Each phase unlocks only when its predecessor reports success.</p>
       <div class="dp-flow">
-        <div class="dp-step"><h4>Phase 1 — Package Authorization</h4><p>Operator enters the 4-digit PIN. POST /issuance_authorizations/:auth_code/cvib_batches → returns batch_id + per-note payloads.</p></div>
+        <div class="dp-step"><h4>Phase 1 — Package Authorization</h4><p>Operator clicks Authorize Package. POST /issuance_authorizations/:auth_code/cvib_batches (authorized by the OAuth session) → returns batch_id + per-note payloads.</p></div>
         <div class="dp-step"><h4>Phase 2 — Vault Generation</h4><p>Per note: render denomination template, generate serial, embed zlib-compressed iTXt metadata, QR + Code-128 barcode, Ed25519 sign, AES-256-GCM vault-encrypt, write true PNG.</p></div>
         <div class="dp-step"><h4>Phase 3 — Node Distribution</h4><p>ZIP notes + manifest.json, POST /cvib_batches/:batch_id/confirm_manifest, deliver to claiming bank via email or SFTP.</p></div>
       </div>
 
-      <h3>Operator PIN Gate</h3>
-      <div class="dp-rule">PIN field accepts exactly 4 digits — the "Enter 4-Digit Operator PIN" button stays locked until 4 digits are present.</div>
-      <div class="dp-rule">A cleared trade claim must be selected — empty source shows "Select a cleared trade claim from SELECT SOURCE above to begin."</div>
-      <div class="dp-rule">PIN is validated server-side against the operator session; never stored client-side.</div>
+      <h3>Authorization Gate</h3>
+      <div class="dp-rule">Authorization is carried by the operator's OAuth session — the former 4-digit operator PIN second factor has been removed.</div>
+      <div class="dp-rule">A cleared trade claim must be selected — empty source shows "Select a cleared trade claim from SELECT SOURCE above to begin." Once sovereign clearance arrives, the Authorize Package button unlocks directly.</div>
+      <div class="dp-rule">Server-side, the request is validated by Doorkeeper OAuth (<code>before_action :doorkeeper_authorize!</code>); no PIN is checked. A future second factor is intended to be per-operator TOTP, not a shared PIN.</div>
 
       <h3>Issuance Registry — Activity Feed</h3>
       <p>Live feed of minting activity for the session. Empty state reads <strong>No Active Issuance Claims</strong> / "Select a trade authorization above to begin the minting workflow."</p>
@@ -321,7 +321,7 @@
       <div class="dp-flow">
         <div class="dp-step"><h4>Draft</h4><p>Trade claim selected, config + denomination set. Nothing committed. Right-pane properties editable.</p></div>
         <div class="dp-step"><h4>Preview</h4><p>Operator reviews snapshot, claiming institution, and packaging options. Specimen preview rendered for non-production modes.</p></div>
-        <div class="dp-step"><h4>Authorization</h4><p>Operator PIN entered → Package Authorization returns batch_id + payloads. Requires cleared Sovereign Clearance Status.</p></div>
+        <div class="dp-step"><h4>Authorization</h4><p>Authorize Package (OAuth session) → returns batch_id + payloads. Requires cleared Sovereign Clearance Status.</p></div>
         <div class="dp-step"><h4>Generation</h4><p>Notes minted, signed, vault-encrypted; manifest sealed with SHA-256.</p></div>
         <div class="dp-step"><h4>Minted</h4><p>Batch confirmed and distributed to the claiming bank. Registry feed updated; notes enter the validation lifecycle.</p></div>
       </div>
@@ -335,9 +335,9 @@
       </div>
 
       <div class="dp-btn">
-        <div class="dp-btn-head"><span class="dp-btn-name">Enter 4-Digit Operator PIN</span><span class="dp-btn-pane m">Middle Pane</span></div>
+        <div class="dp-btn-head"><span class="dp-btn-name">Authorize Package</span><span class="dp-btn-pane m">Middle Pane</span></div>
         <div class="dp-btn-body">
-          <div class="dp-btn-row"><div class="dp-btn-lbl">Inputs</div><div>Selected trade claim, 4-digit operator PIN</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Inputs</div><div>Selected (cleared) trade claim — authorized by the OAuth session</div></div>
           <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /issuance_authorizations/:auth_code/cvib_batches {pin}</div></div>
           <div class="dp-btn-row"><div class="dp-btn-lbl">Success</div><div>Returns batch_id + per-note payloads. Pipeline advances to Phase 2 — Vault Generation.</div></div>
           <div class="dp-btn-row"><div class="dp-btn-lbl">Failure</div><div>HTTP 409 if clearance pending; HTTP 401 on bad PIN. Branded alert dialog shown.</div></div>
@@ -420,7 +420,7 @@
       <div class="dp-flow">
         <div class="dp-step"><h4>1 · Select claim</h4><p>Operator picks a <em>pre-cleared</em> trade claim from SELECT SOURCE. The configuration cascade instantly populates read-only issuer identity, currency metadata, and corridor identities, and surfaces the already-approved Sovereign Clearance Status (Clearance Gate: Cleared, Approved By: [Supervisor ID]).</p></div>
         <div class="dp-step"><h4>2 · Configure batch</h4><p>Operator verifies the auto-populated data, selects Backing Lock and Issuer Key, picks the public key, and confirms packaging (Watermark=Production, Marking=None for live tender). Sets denomination + count.</p></div>
-        <div class="dp-step"><h4>3 · Authorize</h4><p>Operator enters the 4-digit PIN. Because the claim was cleared prior to selection, the server accepts the PIN payload, validates the session, and returns batch_id + per-note payloads (HTTP 200) — no 409 conflict on the standard path.</p></div>
+        <div class="dp-step"><h4>3 · Authorize</h4><p>Operator clicks Authorize Package. Because the claim was cleared prior to selection, the server validates the OAuth session and returns batch_id + per-note payloads (HTTP 200) — no 409 conflict on the standard path.</p></div>
         <div class="dp-step"><h4>4 · Generate &amp; distribute</h4><p>Phase 2 mints, signs (Ed25519), and vault-encrypts each note; manifest sealed with SHA-256. Phase 3 confirms the manifest and ships the ZIP to WEMA BANK PLC (AACLZAJJ) via SFTP. Registry feed shows the batch and note count.</p></div>
       </div>
       <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div><strong>Demonstrating Four-Eyes live.</strong> To show server-side enforcement to an audience, exercise the failure mode <em>before</em> Step 1: force an uncleared authorization ID via the terminal or debug console and submit a PIN to surface the <code>HTTP 409 clearance_pending</code> block, proving the server protects the network. The standard operational walkthrough, by contrast, is a smooth continuous progression starting from an already-cleared claim.</div></div>
@@ -455,7 +455,7 @@
         <tbody>
           <tr><td><strong>1 · Select Claim</strong></td><td>Pick a <em>pre-cleared</em> claim from SELECT SOURCE; issuer, asset, and corridor identity auto-populate and the cleared Clearance Status surfaces.</td><td><strong>Cascade Loads.</strong> SELECT SOURCE flips from <em>— No active trade claims —</em> to the chosen claim; the empty left pane fills (§3) and Clearance Gate reads <em>Cleared</em> with Approved By populated.</td></tr>
           <tr><td><strong>2 · Configure Batch</strong></td><td>Right pane: verify auto-populated data, select Backing Lock, Issuer Key, public key; set packaging + denomination + count.</td><td><strong>Partially Configured.</strong> Claiming Institution mapped to WEMA BANK PLC (AACLZAJJ), Public Key populated (<code>a03e7f5158ba2ffc…</code>). Switch Watermark to Production for live tender.</td></tr>
-          <tr><td><strong>3 · Authorize</strong></td><td>Enter 4-digit PIN → because the claim is already cleared, the server accepts immediately and returns batch_id + payloads (HTTP 200).</td><td><strong>Unlocks.</strong> Operator PIN fields visible; button reads <em>Enter 4-Digit Operator PIN</em>. Entering 4 digits submits cleanly — no 409 on the standard path.</td></tr>
+          <tr><td><strong>3 · Authorize</strong></td><td>Click Authorize Package → because the claim is already cleared, the server accepts on the OAuth session and returns batch_id + payloads (HTTP 200).</td><td><strong>Unlocks.</strong> Once clearance arrives the button reads <em>✓ Authorize Package</em> and submits cleanly — no PIN, no 409 on the standard path.</td></tr>
           <tr><td><strong>4 · Generate &amp; Distribute</strong></td><td>Phase 2 mints, signs (Ed25519), vault-encrypts; manifest sealed with SHA-256. Phase 3 confirms manifest and ships the ZIP via SFTP.</td><td><strong>Target Validated.</strong> Vault Generation takes focus in the Issuance Execution Pipeline strip; destination node locked in; status bar confirms a live session — <em>Operator: Albert McKeever LGS (Governor)</em>, Central Bank of Azania.</td></tr>
         </tbody>
       </table></div>
