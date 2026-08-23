@@ -6,6 +6,14 @@ require "rails/all"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+# dotenv-rails does not reliably auto-load .env under Passenger in production, so
+# ENV vars from shared/.env (Capistrano-linked) come back nil in the running app.
+# Load it explicitly at boot so SMARTCHEQ_API_BASE / SMARTCHEQ_BROWSER_API_BASE /
+# SMARTCHEQ_DB_* etc. are populated. Dotenv.load is non-destructive (never
+# overwrites an already-set ENV var) and silently no-ops if the file is absent.
+require "dotenv"
+Dotenv.load(File.expand_path("../.env", __dir__))
+
 module Bearercore
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.

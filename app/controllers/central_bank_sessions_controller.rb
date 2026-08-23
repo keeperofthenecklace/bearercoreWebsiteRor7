@@ -56,7 +56,8 @@ class CentralBankSessionsController < ApplicationController
   # SMARTCHEQ_API_BASE (e.g. https://api.smartcheq.com); dev default assumes the
   # API runs on port 3001 alongside bearerCORE on 3000.
   def smartcheq_api_base
-    ENV["SMARTCHEQ_API_BASE"].presence || "http://127.0.0.1:3001"
+    ENV["SMARTCHEQ_API_BASE"].presence ||
+      (Rails.env.production? ? "https://api.smartcheq.com" : "http://127.0.0.1:3001")
   end
 
   def authenticate_via_smartcheq(username, password, swift)

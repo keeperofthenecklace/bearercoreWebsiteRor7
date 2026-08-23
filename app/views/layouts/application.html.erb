@@ -23,7 +23,8 @@
     <% if session[:institution_swift].present? %>
       <script>
         window.SC_API_BASE = <%= (ENV["SMARTCHEQ_BROWSER_API_BASE"].presence ||
-                                  ENV["SMARTCHEQ_API_BASE"].presence || "").to_json.html_safe %>;
+                                  ENV["SMARTCHEQ_API_BASE"].presence ||
+                                  (Rails.env.production? ? "https://api.smartcheq.com" : "http://127.0.0.1:3001")).to_json.html_safe %>;
         window.SC_PORTAL = {
           institution_swift: <%= session[:institution_swift].to_json.html_safe %>,
           country_code:      <%= session[:country_code].to_json.html_safe %>,
