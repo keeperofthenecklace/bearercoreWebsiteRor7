@@ -9,6 +9,28 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+
+    <%# ── Institutional portal (hybrid) — bind the SmartcheqWebsiteRor7 identity ──
+        The Doorkeeper token + institution profile were placed in the session by
+        the central-bank-access auth bridge. Surface them for the Trade Claim modal:
+        api-token drives getAccessToken(); SC_API_BASE routes claim submission to
+        SmartcheqWebsiteRor7 (where the ABAC guard runs); SC_PORTAL locks the origin.
+        SMARTCHEQ_BROWSER_API_BASE must point at the SmartcheqWebsiteRor7 API origin
+        and that API's CORS must allow this origin, or the guard is not applied. %>
+    <% if session[:access_token].present? %>
+      <meta name="api-token" content="<%= session[:access_token] %>">
+    <% end %>
+    <% if session[:institution_swift].present? %>
+      <script>
+        window.SC_API_BASE = <%= (ENV["SMARTCHEQ_BROWSER_API_BASE"].presence ||
+                                  ENV["SMARTCHEQ_API_BASE"].presence || "").to_json.html_safe %>;
+        window.SC_PORTAL = {
+          institution_swift: <%= session[:institution_swift].to_json.html_safe %>,
+          country_code:      <%= session[:country_code].to_json.html_safe %>,
+          institution_name:  <%= (session[:institution_name] || session[:institution_swift]).to_json.html_safe %>
+        };
+      </script>
+    <% end %>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">

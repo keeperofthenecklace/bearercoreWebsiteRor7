@@ -5510,6 +5510,9 @@ async function confirmAndSubmitTradeClaim() {
     trade_claim: {
       institution_id:      selectedInstitution ? selectedInstitution.id : document.getElementById('tc_institution_id').value,
       institution_name:    selectedInstitution ? selectedInstitution.name : '',
+      // Institutional portal: declare the locked origin so SmartcheqWebsiteRor7's
+      // ABAC guard can check it against the token-bound operator (403 wrong_tenant).
+      origin_institution_swift: (window.SC_PORTAL && window.SC_PORTAL.institution_swift) || undefined,
       corridor_id:         document.getElementById('tc_corridor_id').value,
       trade_direction:     document.getElementById('tc_trade_direction').value,
       currency_code:       document.getElementById('tc_currency_code').value,
@@ -5542,8 +5545,9 @@ async function confirmAndSubmitTradeClaim() {
   submitBtn.disabled    = true;
 
   try {
-    // Step 1: Create the trade claim
-    const response = await fetch('/api/v2/trade_claims', {
+    // Step 1: Create the trade claim — routed to SmartcheqWebsiteRor7 (SC_API_BASE)
+    // so its ABAC origin guard runs against the token-bound operator.
+    const response = await fetch(`${window.SC_API_BASE || ''}/api/v2/trade_claims`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${getAccessToken()}`,
@@ -5840,4 +5844,62 @@ document.getElementById('draftSavedModal')?.addEventListener('click', function(e
     closeDraftModal();
   }
 });
+</script>
+
+<%# ── Institutional Portal origin lock (hybrid) ───────────────────────────────
+    window.SC_PORTAL is set from the bound session by the application layout. When
+    present, the claim origin is fixed to the operator's institution + home country:
+    a read-only badge replaces the country picker and the corridor list is limited
+    to home-country-origin corridors. The SmartcheqWebsiteRor7 ABAC guard is the
+    authority; this is the matching UX. Inert when no portal session is bound. %>
+<script>
+(function () {
+  if (!window.SC_PORTAL) return;
+  var P = window.SC_PORTAL;
+
+  function homeCountry() {
+    return { name: P.institution_name, code: P.country_code, alpha3: P.country_code,
+             iso3: P.country_code, country_code: P.country_code };
+  }
+
+  function lockOrigin() {
+    var step1 = document.getElementById('tcStep1');
+    if (step1 && !document.getElementById('sc_origin_badge')) {
+      var b = document.createElement('div');
+      b.id = 'sc_origin_badge';
+      b.style.cssText = 'margin:0 0 16px;padding:12px 16px;border:1px solid #bfdbfe;' +
+        'background:#eff6ff;border-radius:8px;';
+      b.innerHTML =
+        '<div style="font-size:11px;font-weight:700;letter-spacing:.4px;color:#1e40af;' +
+        'text-transform:uppercase;">Originating Institution &middot; locked</div>' +
+        '<div style="margin-top:4px;font-size:14px;font-weight:600;color:#111827;">' +
+        (P.institution_name || '') + ' <span style="font-family:ui-monospace,Menlo,monospace;' +
+        'color:#2563eb;">(' + (P.institution_swift || '') + ')</span></div>' +
+        '<div style="margin-top:2px;font-size:12px;color:#6b7280;">Home country ' +
+        (P.country_code || '—') + ' — you can only originate claims for your own institution.</div>';
+      step1.insertBefore(b, step1.firstChild);
+    }
+    var cd = document.getElementById('countryDropdown');
+    if (cd) { var g = cd.closest('div'); (g || cd).style.display = 'none'; }
+    var cc = document.getElementById('tc_country_id'); if (cc) cc.value = P.country_code || '';
+    var sw = document.getElementById('tc_swift_code');  if (sw) sw.value = P.institution_swift || '';
+    var cst = document.getElementById('countrySelectedText');
+    if (cst) cst.textContent = (P.country_code || '') + ' (locked)';
+    try { window.selectedCountry = homeCountry(); } catch (e) {}
+    if (typeof filterCorridorsForCountry === 'function') {
+      try { filterCorridorsForCountry(homeCountry()); } catch (e) {}
+    }
+  }
+
+  window.selectCountry = function () { /* locked — institutional portal */ };
+  window.toggleCountryDropdown = function () { /* locked — institutional portal */ };
+
+  var _show = window.showTradeClaimModal;
+  window.showTradeClaimModal = function () {
+    if (typeof _show === 'function') _show.apply(this, arguments);
+    setTimeout(lockOrigin, 60);
+    setTimeout(lockOrigin, 700);
+  };
+  document.addEventListener('DOMContentLoaded', function () { setTimeout(lockOrigin, 200); });
+})();
 </script>

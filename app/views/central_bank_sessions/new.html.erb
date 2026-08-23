@@ -397,18 +397,39 @@
 
           <%= form_with url: central_bank_session_path, method: :post, local: true do |f| %>
 
-            <div style="margin-bottom: 20px;">
-              <label class="field-label" for="access_code">Institutional Access Code</label>
-              <%= f.password_field :access_code,
-                    id: "access_code",
-                    placeholder: "Enter your secure access code",
+            <div style="margin-bottom: 16px;">
+              <label class="field-label" for="username">Operator Username</label>
+              <%= text_field_tag :username, params[:username],
+                    id: "username",
+                    placeholder: "e.g. operator@ecobank.gh",
+                    required: true,
+                    autocomplete: "username",
+                    class: "field-input" %>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+              <label class="field-label" for="password">Password</label>
+              <%= password_field_tag :password, nil,
+                    id: "password",
+                    placeholder: "Your operator password",
                     required: true,
                     autocomplete: "current-password",
                     class: "field-input" %>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+              <label class="field-label" for="institution_swift">Institutional SWIFT / BIC</label>
+              <%= text_field_tag :institution_swift, params[:institution_swift],
+                    id: "institution_swift",
+                    placeholder: "e.g. ECOGHACC",
+                    required: true,
+                    maxlength: 11,
+                    autocomplete: "off",
+                    style: "text-transform:uppercase;letter-spacing:1px;",
+                    class: "field-input" %>
               <p class="field-hint">
-                Codes are issued by the bearerCORE protocol team. Access restricted to
-                <code style="background:#f3f4f6;padding:1px 5px;border-radius:3px;font-size:10px;">.gov</code>
-                and official institutional domains.
+                Must match the SWIFT assigned to your operator account. Identity is
+                verified against the SmartCHEQ registry.
               </p>
             </div>
 
