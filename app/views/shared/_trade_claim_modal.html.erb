@@ -5545,6 +5545,17 @@ async function confirmAndSubmitTradeClaim() {
   submitBtn.disabled    = true;
 
   try {
+    // ── Fail-closed (portal mode) ─────────────────────────────────────────────
+    // If a portal session is bound but SMARTCHEQ_BROWSER_API_BASE is missing/empty,
+    // window.SC_API_BASE is blank and the claim would silently POST to bearerCORE's
+    // OWN /api/v2/trade_claims — bypassing the SmartcheqWebsiteRor7 ABAC guard.
+    // Block the submission entirely rather than fall back.
+    if (window.SC_PORTAL && !(window.SC_API_BASE && String(window.SC_API_BASE).trim())) {
+      throw new Error('Claim submission is blocked: the SmartCHEQ API endpoint is not ' +
+        'configured (SMARTCHEQ_BROWSER_API_BASE). Claims must be routed to the identity ' +
+        'authority for origin validation. Contact your administrator.');
+    }
+
     // Step 1: Create the trade claim — routed to SmartcheqWebsiteRor7 (SC_API_BASE)
     // so its ABAC origin guard runs against the token-bound operator.
     const response = await fetch(`${window.SC_API_BASE || ''}/api/v2/trade_claims`, {
