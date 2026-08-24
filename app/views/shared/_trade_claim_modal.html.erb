@@ -5563,10 +5563,13 @@ document.getElementById('draftSavedModal')?.addEventListener('click', function(e
 (function () {
   if (!window.SC_PORTAL) return;
   var P = window.SC_PORTAL;
+  var _origSelectCountry = window.selectCountry;   // preserve BEFORE we override it below
+  var _originApplied = false;
 
   function homeCountry() {
-    return { name: P.institution_name, code: P.country_code, alpha3: P.country_code,
-             iso3: P.country_code, country_code: P.country_code };
+    // id is what selectCountry() writes into tc_country_id (validated on Step 1).
+    return { id: P.country_code, name: P.country_code, code: P.country_code,
+             alpha3: P.country_code, iso3: P.country_code, country_code: P.country_code };
   }
 
   function lockOrigin() {
@@ -5598,20 +5601,23 @@ document.getElementById('draftSavedModal')?.addEventListener('click', function(e
     }
     var cd = document.getElementById('countryDropdown');
     if (cd) { var g = cd.closest('div'); (g || cd).style.display = 'none'; }
-    var cc = document.getElementById('tc_country_id'); if (cc) cc.value = P.country_code || '';
-    var sw = document.getElementById('tc_swift_code');  if (sw) sw.value = P.institution_swift || '';
-    var cst = document.getElementById('countrySelectedText');
-    if (cst) cst.textContent = (P.country_code || '') + ' (locked)';
-    try { window.selectedCountry = homeCountry(); } catch (e) {}
-    if (typeof filterCorridorsForCountry === 'function') {
+    var sw = document.getElementById('tc_swift_code'); if (sw) sw.value = P.institution_swift || '';
+
+    // Drive the modal's REAL country cascade. selectCountry() sets the MODULE-scoped
+    // `selectedCountry` (which loadCorridors/filterCorridorsForCountry read), writes
+    // tc_country_id, loads the Central Bank name + SWIFT, and filters corridors.
+    // Setting window.selectedCountry did NOT reach that module variable — which is
+    // why corridors never populated. Run once; on later passes just re-filter in case
+    // the corridor fetch finished after the first call.
+    if (!_originApplied && typeof _origSelectCountry === 'function') {
+      _originApplied = true;
+      try { _origSelectCountry(homeCountry()); }
+      catch (e) { console.warn('[Portal] selectCountry(home) failed', e); }
+    } else if (typeof filterCorridorsForCountry === 'function') {
       try { filterCorridorsForCountry(homeCountry()); } catch (e) {}
     }
-    // Auto-populate Central Bank Name + CB SWIFT Code for the locked home country
-    // (e.g. GHA → "Bank of Ghana" / BOGGHACC). selectCountry is disabled in portal
-    // mode, so we drive the CB resolver directly.
-    if (typeof loadCentralBankForCountry === 'function') {
-      try { loadCentralBankForCountry(homeCountry()); } catch (e) {}
-    }
+    var cst = document.getElementById('countrySelectedText');
+    if (cst) cst.textContent = (P.country_code || '') + ' (locked)';
   }
 
   window.selectCountry = function () { /* locked — institutional portal */ };
