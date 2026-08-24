@@ -16,8 +16,9 @@
       <div class="flex items-center gap-2 pl-4 border-l border-gray-100">
         <span class="flex items-center gap-1.5 text-xs font-medium" style="color: #6B7280;">
           <span class="w-1.5 h-1.5 rounded-full" style="background: #16a34a;"></span>
-          <% if session[:operator_username].present? %>
-            Secure Session:&nbsp;<span style="font-weight:600;color:#0C1B38;"><%= session[:operator_display_name].presence || session[:operator_username] %></span><% if session[:institution_swift].present? %>&nbsp;<span style="font-family:ui-monospace,Menlo,monospace;color:#2563eb;">(<%= session[:institution_swift] %>)</span><% end %>
+          <% _op_name = session[:operator_display_name].presence || session[:operator_username].presence %>
+          <% if _op_name.present? %>
+            Secure Session:&nbsp;<span style="font-weight:600;color:#0C1B38;"><%= _op_name %></span><% if session[:institution_swift].present? %>&nbsp;<span style="font-family:ui-monospace,Menlo,monospace;color:#2563eb;">(<%= session[:institution_swift] %>)</span><% end %>
           <% elsif session[:user_email].present? %>
             Secure Session:&nbsp;<%= session[:user_email] %>
           <% else %>
