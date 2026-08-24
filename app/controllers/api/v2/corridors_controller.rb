@@ -1,7 +1,12 @@
 module Api
   module V2
     class CorridorsController < ApplicationController
+      include SovereignOriginGuard
+
       skip_before_action :verify_authenticity_token
+
+      # Governors may only halt/resume corridors originating in their home country.
+      before_action :guard_corridor_origin!, only: %i[halt unhalt]
 
       # In-process mutable state — persists for the lifetime of the dev server process.
       # @allocation_ledger: flat array of individual allocation records so each can be
@@ -577,6 +582,12 @@ module Api
       end
 
       private
+
+      # Sovereign jurisdiction lock — the corridor id arrives in the POST body
+      # (corridor_id) with the :id url segment as a fallback.
+      def guard_corridor_origin!
+        enforce_sovereign_origin!(params[:corridor_id].presence || params[:id].presence)
+      end
 
       def build_halt_message(corridor, recalled, total)
         base = "#{corridor[:corridor_display]} HALTED. Settlement suspended."

@@ -2,6 +2,8 @@ module Api
   module V2
     module Governance
       class ProposalsController < ApplicationController
+        include SovereignOriginGuard
+
         skip_before_action :verify_authenticity_token
 
         STUB_PENDING = [
@@ -113,6 +115,15 @@ module Api
           body = request.body.read
           data = JSON.parse(body) rescue {}
           prop = data["proposal"] || data
+
+          # Sovereign jurisdiction lock: cap/halt/inject proposals may only target
+          # corridors originating in the Governor's home country.
+          ptype = (prop["type"] || prop["category"] || prop["proposal_type"]).to_s
+          if %w[cap_change halt bulk_allotment rate_adjustment].include?(ptype)
+            ident = prop["corridor_id"].presence || prop["corridor"].to_s
+            return unless enforce_sovereign_origin!(ident)
+          end
+
           next_id    = 1000 + self.class.created_proposals.length
           proposal_id = prop["title"] || "#{(prop["type"] || "PROP").upcase}-#{Time.now.strftime('%Y%m%d%H%M%S')}"
           amount = prop["new_cap"].to_i
