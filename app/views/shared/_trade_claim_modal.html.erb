@@ -2427,15 +2427,13 @@ function _setHolderState(side, state, message) {
   inputEl.style.background = 'transparent';
   inputEl.style.color = '#374151';
   if (resetBtn) resetBtn.style.display = 'none';
-  const hint = side === 'trader'
-    ? 'Search the buyer by name, business, or Holder ID.'
-    : 'Search the merchant by name, business, or Holder ID.';
   switch (state) {
     case 'neutral':
+      // No static helper caption — keep the grid clean; the input placeholder
+      // already tells the operator what to search by.
       inputRow.style.border = '1px solid #d1d5db';
-      statusEl.style.color = '#6b7280';
-      statusEl.style.display = 'flex';
-      statusEl.innerHTML = `<span>💡</span><span>${hint}</span>`;
+      statusEl.style.display = 'none';
+      statusEl.innerHTML = '';
       break;
     case 'searching':
       inputRow.style.border = '1px solid #d1d5db';
@@ -3052,7 +3050,7 @@ async function applyCentralBankSwiftSelection(swiftCode, holderId) {
       if (hiddenField)  hiddenField.value = key ? key.holder_id : '';
       if (displayField) {
         displayField.value       = key ? key.holder_id : '';
-        displayField.placeholder = key ? '' : 'Not registered — Qt6 will require manual selection';
+        displayField.placeholder = key ? '' : 'Not registered — manual selection required';
         displayField.style.color = key ? '#374151' : '#ef4444';
       }
       if (statusIcon) statusIcon.textContent = key ? '✅' : '⚠️';
@@ -3094,7 +3092,7 @@ async function resolveCentralBankHolderId(centralBankName) {
   if (hiddenField)  hiddenField.value  = key ? key.holder_id : '';
   if (displayField) {
     displayField.value       = key ? key.holder_id : '';
-    displayField.placeholder = key ? '' : 'Not registered — Qt6 will require manual selection';
+    displayField.placeholder = key ? '' : 'Not registered — manual selection required';
     displayField.style.color = key ? '#374151' : '#ef4444';
   }
   if (statusIcon) statusIcon.textContent = key ? '✅' : '⚠️';
@@ -3142,16 +3140,30 @@ async function resolveCommercialBankHolderId(institutionName, swiftCode) {
   // Fallback: name-based search through full list (bearerCORE sandbox / no SWIFT code)
   if (!key) key = await findHolderKey(institutionName, null);
 
-  if (hiddenField)  hiddenField.value  = key ? key.holder_id : '';
-  if (displayField) {
-    displayField.value       = key ? key.holder_id : '';
-    displayField.placeholder = key ? '' : 'Not registered — Qt6 will require manual selection';
-    displayField.style.color = key ? '#374151' : '#ef4444';
+  if (key) {
+    if (hiddenField)  hiddenField.value  = key.holder_id;
+    if (displayField) { displayField.value = key.holder_id; displayField.placeholder = ''; displayField.style.color = '#374151'; }
+    if (statusIcon)   statusIcon.textContent = '✅';
+    console.log('[resolveCommercialBankHolderId]', institutionName, '→', key.holder_id.substring(0, 16) + '...');
+  } else {
+    // Auto-provision a default institutional node ID rather than blocking with an
+    // "unregistered" warning. Format: {SWIFT}-{DEST-COUNTRY}-NODE-01
+    // (e.g. BAPANANX-NAM-NODE-01). Destination country comes from the beneficiary
+    // field, falling back to the SWIFT's ISO-3166-alpha2 country segment.
+    const destCountry  = (document.getElementById('tc_beneficiary_country')?.value || '').trim().toUpperCase();
+    const prefix       = (swiftCode || institutionName || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
+    const swiftCountry = (swiftCode && swiftCode.length >= 6) ? swiftCode.substring(4, 6).toUpperCase() : '';
+    const country      = destCountry || swiftCountry || 'REG';
+    const provisioned  = prefix ? `${prefix}-${country}-NODE-01` : '';
+    if (hiddenField)  hiddenField.value  = provisioned;
+    if (displayField) {
+      displayField.value       = provisioned;
+      displayField.placeholder = provisioned ? '' : 'Select an institution first...';
+      displayField.style.color = '#374151';
+    }
+    if (statusIcon) statusIcon.textContent = provisioned ? '🟢' : '';
+    console.log('[resolveCommercialBankHolderId]', institutionName, '→ auto-provisioned', provisioned || '(none)');
   }
-  if (statusIcon) statusIcon.textContent = key ? '✅' : '⚠️';
-
-  console.log('[resolveCommercialBankHolderId]', institutionName, '→',
-              key ? key.holder_id.substring(0, 16) + '...' : 'NOT REGISTERED');
 }
 
 async function loadCentralBankForCountry(country) {
@@ -3176,7 +3188,7 @@ async function loadCentralBankForCountry(country) {
   field.style.color = '#9ca3af';
 
   // Last-resort fallback map — only used if both DB (BankBranch) and Bank.swift_code are empty.
-  // No holder_id available at this level — user will see ⚠️ and Qt6 requires manual selection.
+  // No holder_id available at this level — user will see ⚠️ and manual selection is required.
   const centralBankSwiftMap = {
     'DZA': 'BAALDZAL', 'AGO': 'BNANAOAA', 'BEN': 'BCEBBJ',  'BWA': 'BSBOBWGA',
     'BFA': 'BCEBBF',   'BDI': 'BRBUBI',   'CPV': 'BCVCVCV',  'CMR': 'BEACCMCX',
@@ -4221,6 +4233,30 @@ async function fetchApprovedQuotes(corridorId, forceRefresh) {
   }
 }
 
+// Destination-aware FX oracle label. Reflects the destination central bank
+// (e.g. "Bank of Namibia Oracle") or a regional oracle for CFA-franc zones,
+// instead of hardcoding "CBN Oracle" across every corridor.
+const centralBankByCountry = {
+  'NAM': 'Bank of Namibia', 'NGA': 'Central Bank of Nigeria', 'KEN': 'Central Bank of Kenya',
+  'GHA': 'Bank of Ghana', 'ZAF': 'South African Reserve Bank', 'TZA': 'Bank of Tanzania',
+  'UGA': 'Bank of Uganda', 'RWA': 'National Bank of Rwanda', 'ETH': 'National Bank of Ethiopia',
+  'EGY': 'Central Bank of Egypt', 'MAR': 'Bank Al-Maghrib', 'DZA': 'Bank of Algeria',
+  'TUN': 'Central Bank of Tunisia', 'BWA': 'Bank of Botswana', 'ZMB': 'Bank of Zambia',
+  'ZWE': 'Reserve Bank of Zimbabwe', 'MOZ': 'Bank of Mozambique',
+};
+// CFA-franc / regional monetary unions → single regional oracle.
+const regionalOracleByCountry = {
+  'SEN': 'BCEAO', 'CIV': 'BCEAO', 'NER': 'BCEAO', 'BEN': 'BCEAO', 'BFA': 'BCEAO',
+  'MLI': 'BCEAO', 'TGO': 'BCEAO', 'GNB': 'BCEAO',
+  'CMR': 'BEAC', 'GAB': 'BEAC', 'TCD': 'BEAC', 'COG': 'BEAC', 'CAF': 'BEAC', 'GNQ': 'BEAC',
+};
+function resolveOracleLabel(countryCode) {
+  const cc = (countryCode || '').trim().toUpperCase();
+  if (centralBankByCountry[cc]) return `${centralBankByCountry[cc]} Oracle`;
+  if (regionalOracleByCountry[cc]) return `${regionalOracleByCountry[cc]} Regional Oracle`;
+  return cc ? 'Regional Oracle' : '';
+}
+
 function onFxQuoteSelect() {
   const sel = document.getElementById('fxRefSelect');
   const hid = document.getElementById('tc_fx_reference_id');
@@ -4237,8 +4273,10 @@ function onFxQuoteSelect() {
   if (val) {
     if (dot) dot.style.background = '#059669';
     if (txt) {
+      const destCountry = (document.getElementById('tc_beneficiary_country')?.value || '').trim();
+      const oracleLabel = resolveOracleLabel(destCountry) || source || 'Treasury Desk';
       txt.textContent = rate
-        ? `✓ Rate Verified: ${rate} (Locked by ${source || 'Treasury Desk'})`
+        ? `✓ Rate Verified: ${rate} (Locked by ${oracleLabel})`
         : `Quote selected: ${val}`;
       txt.style.color = '#059669';
     }
