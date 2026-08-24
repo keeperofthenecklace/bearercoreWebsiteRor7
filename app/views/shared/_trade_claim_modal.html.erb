@@ -300,6 +300,22 @@
                 <select id="tc_corridor_id" name="corridor_id" required style="display:none;position:absolute;opacity:0;pointer-events:none;">
                   <option value="">Select Corridor...</option>
                 </select>
+                <!-- Compliance limit chip — corridor limit + available headroom (populated by fetchComplianceLimits) -->
+                <div style="margin-top:8px;min-height:16px;">
+                  <div id="compliancePlaceholder" style="font-size:11px;color:#9ca3af;">Select a corridor to load limits.</div>
+                  <div id="complianceLimitsSection" style="display:none;">
+                    <div style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:5px 10px;font-size:11px;color:#374151;">
+                      <span>Limit: <b id="corridorLimitRemaining" style="color:#111827;">—</b></span>
+                      <span style="color:#d1d5db;">|</span>
+                      <span>Available: <b id="dailyLimitRemaining" style="color:#111827;">—</b></span>
+                      <span style="color:#d1d5db;">|</span>
+                      <span id="complianceStatusBadge" style="display:inline-flex;align-items:center;gap:4px;font-weight:700;color:#10b981;">
+                        <span id="complianceStatusText">—</span>
+                        <svg id="complianceStatusIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="9 12 12 15 16 10"></polyline></svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div>
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
@@ -402,6 +418,13 @@
                 <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">Amount <span style="color:#ef4444;">*</span></label>
                 <input type="text" id="tc_amount" name="amount" required placeholder="1,000,000" oninput="formatAmountInput(this); tcCheckStep2Ready();" style="width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;transition:border-color 0.2s;" />
                 <div id="denomMismatchInline" style="display:none;margin-top:6px;padding:8px 10px;background:#fffbeb;border:1px solid #f59e0b;border-radius:6px;font-size:11px;color:#92400e;line-height:1.5;"></div>
+                <!-- Denomination variance acknowledgement — directly under Amount; gates Step 3 -->
+                <div id="varianceAckBox" style="display:none;margin-top:8px;padding:10px 12px;background:#fffbeb;border:1px solid #f59e0b;border-radius:8px;">
+                  <label style="display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:12px;color:#78350f;line-height:1.5;">
+                    <input type="checkbox" id="varianceAckCheck" onchange="tcCheckStep2Ready()" style="margin-top:2px;flex-shrink:0;accent-color:#d97706;width:14px;height:14px;" />
+                    <span id="varianceAckText">I acknowledge that the residual amount of this trade claim cannot be serialized into visual banknotes and will be dropped from this issuance batch.</span>
+                  </label>
+                </div>
               </div>
               <div>
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
@@ -429,14 +452,6 @@
               </div>
             </div>
 
-            <!-- Variance acknowledgement (full width; shown by JS when needed) -->
-            <div id="varianceAckBox" style="display:none;padding:10px 12px;background:#fffbeb;border:1px solid #f59e0b;border-radius:8px;">
-              <label style="display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:12px;color:#78350f;line-height:1.5;">
-                <input type="checkbox" id="varianceAckCheck" onchange="tcCheckStep2Ready()" style="margin-top:2px;flex-shrink:0;accent-color:#d97706;width:14px;height:14px;" />
-                <span id="varianceAckText">I acknowledge that the residual amount of this trade claim cannot be serialized into visual banknotes and will be dropped from this issuance batch.</span>
-              </label>
-            </div>
-
             <!-- Description (full width) -->
             <div>
               <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">Description</label>
@@ -447,12 +462,6 @@
 
           <!-- Hidden audit rail — retained for JS bindings (compliance / denom mix / manifest keys); not shown on Step 2 -->
           <div id="tcStep2AuditRail" style="display:none;" aria-hidden="true">
-            <div id="complianceLimitsSection">
-              <span id="corridorLimitRemaining"></span>
-              <span id="dailyLimitRemaining"></span>
-              <span id="complianceStatusBadge"><span id="complianceStatusText"></span><svg id="complianceStatusIcon" width="1" height="1"></svg></span>
-            </div>
-            <div id="compliancePlaceholder"></div>
             <span id="denomMixTotalNotes"></span>
             <div id="denomMixPanel">
               <div id="denomMixPlaceholder"></div>
@@ -3630,6 +3639,10 @@ async function loadCorridors() {
       select.disabled = true;
       select.style.background = '#f3f4f6';
       select.style.cursor = 'not-allowed';
+      // Reset the custom trigger so it doesn't stick on "Loading corridors..."
+      // (corridors are loaded; they just await a country selection).
+      const _trigDone = document.getElementById('corridorTriggerText');
+      if (_trigDone) { _trigDone.textContent = 'Select Country first...'; _trigDone.style.color = '#9ca3af'; }
     }
 
   } catch (error) {
