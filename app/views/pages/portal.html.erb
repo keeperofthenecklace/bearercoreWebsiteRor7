@@ -14,6 +14,12 @@
       <a href="/sandbox" class="text-sm font-medium transition-colors hover:opacity-70" style="color: #0C1B38;">Sandbox</a>
       <a href="/technical-overview" class="text-sm font-medium transition-colors hover:opacity-70" style="color: #0C1B38;">Technical Review</a>
       <div class="flex items-center gap-2 pl-4 border-l border-gray-100">
+        <% if session[:operator_username].present? %>
+          <span class="flex flex-col items-end leading-tight mr-1">
+            <span class="text-xs font-semibold" style="color: #0C1B38;"><%= session[:operator_display_name].presence || session[:operator_username] %></span>
+            <span class="text-[10px]" style="color: #6B7280;"><%= session[:operator_username] %> · <%= session[:institution_swift] %></span>
+          </span>
+        <% end %>
         <span class="flex items-center gap-1.5 text-xs font-medium" style="color: #6B7280;">
           <span class="w-1.5 h-1.5 rounded-full" style="background: #16a34a;"></span>
           Secure Session

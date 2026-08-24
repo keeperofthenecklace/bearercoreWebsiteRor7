@@ -69,6 +69,19 @@
       <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px;">
         Submit verified trade to request cross-border liquidity.
       </p>
+      <% if session[:operator_username].present? %>
+        <div style="margin-top:10px; display:inline-flex; align-items:center; gap:8px;
+                    background:rgba(255,255,255,0.16); border:1px solid rgba(255,255,255,0.25);
+                    border-radius:999px; padding:4px 12px;">
+          <span style="width:7px;height:7px;border-radius:50%;background:#4ade80;"></span>
+          <span style="color:#fff; font-size:12px; font-weight:600;">
+            <%= session[:operator_display_name].presence || session[:operator_username] %>
+          </span>
+          <span style="color:rgba(255,255,255,0.75); font-size:11px;">
+            <%= session[:operator_username] %> · <%= session[:institution_swift] %>
+          </span>
+        </div>
+      <% end %>
     </div>
 
     <!-- Modal Body (Scrollable) -->
@@ -79,154 +92,6 @@
     ">
       <form id="tradeClaimForm" onsubmit="submitTradeClaim(event)">
         
-        <!-- Module 00: Local Terminal & Crypto Session -->
-        <div id="cryptoSessionModule" style="
-          background: #0d1117;
-          border: 1px solid rgba(255,255,255,0.14);
-          border-radius: 10px;
-          font-family: 'Courier New', Courier, monospace;
-          font-size: 12px;
-          color: #c9d1d9;
-          margin-bottom: 20px;
-          overflow: hidden;
-        ">
-          <!-- Terminal title bar -->
-          <div style="padding: 9px 14px; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 11px; color: #8b949e; letter-spacing: 0.04em;">
-            MODULE 00 — Local Terminal &amp; Crypto Session
-          </div>
-          <div style="border-top: 1px dashed rgba(255,255,255,0.08); margin: 0 14px;"></div>
-
-          <!-- Status row -->
-          <div style="padding: 10px 14px 0; line-height: 1.7;">
-            <span style="color: #8b949e;">| Status:</span>
-            <span id="m00StatusDot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin:0 5px 0 7px;vertical-align:middle;"></span>
-            <span id="m00StatusText" style="font-weight:700;color:#ef4444;">UNINITIALIZED</span>
-          </div>
-
-          <!-- Locked state: node selection + PIN entry -->
-          <div id="m00Uninit" style="padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 4px;">
-
-            <!-- Workstation Hardware ID -->
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding-top:2px;">
-              <span style="color:#8b949e; white-space:nowrap; min-width:190px;">| Workstation Hardware ID:</span>
-              <span id="m00WorkstationId" style="color:#4b5563; font-size:11px; font-family:'Courier New',monospace;">Detecting...</span>
-            </div>
-
-            <!-- Blank separator -->
-            <div style="color:#374151; padding-top:2px;">|</div>
-
-            <!-- Select Signing Node dropdown -->
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span style="color:#8b949e; white-space:nowrap; min-width:190px;">| Select Signing Node:</span>
-              <select id="m00NodeSelect" onchange="m00OnNodeSelect()" style="
-                flex:1; min-width:180px;
-                background:#161b22; border:1px solid rgba(255,255,255,0.18);
-                border-radius:5px; color:#e6edf3;
-                font-family:'Courier New',monospace; font-size:11px;
-                padding:5px 8px; outline:none; cursor:pointer;
-              ">
-                <option value="">[ Loading nodes... ]</option>
-              </select>
-            </div>
-
-            <!-- New node alias input — shown when registering for first time -->
-            <div id="m00NewNodeRow" style="display:none; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span style="color:#f59e0b; white-space:nowrap; min-width:190px;">| New Node Alias:</span>
-              <input type="text" id="m00NewNodeAlias" placeholder="e.g. GCB – Accra Treasury Desk"
-                style="
-                  flex:1; min-width:180px; padding:5px 8px;
-                  background:#161b22; border:1px solid rgba(245,158,11,0.45);
-                  border-radius:5px; color:#e6edf3;
-                  font-family:'Courier New',monospace; font-size:11px;
-                  outline:none; box-sizing:border-box;
-                " />
-            </div>
-
-            <!-- Resolved Holder ID (shown when known node is pre-selected) -->
-            <div id="m00ResolvedRow" style="display:none; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span style="color:#8b949e; white-space:nowrap; min-width:190px;">| Resolved Holder ID:</span>
-              <span id="m00ResolvedDisplay" style="
-                color:#6b7280; font-size:10.5px; font-family:'Courier New',monospace;
-                overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;
-              "></span>
-            </div>
-
-            <!-- Blank separator -->
-            <div style="color:#374151; padding-top:2px;">|</div>
-
-            <!-- PIN + action button row -->
-            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-              <span style="color:#8b949e; white-space:nowrap;">| Enter Sovereign PIN:</span>
-              <input type="password" id="m00PinInput" maxlength="12" placeholder="••••"
-                onkeydown="if(event.key==='Enter'){event.preventDefault();initWorkstationNode();}"
-                style="
-                  width: 88px; padding: 5px 10px;
-                  background: #161b22; border: 1px solid rgba(255,255,255,0.18);
-                  border-radius: 5px; color: #e6edf3;
-                  font-family: 'Courier New', monospace; font-size: 13px;
-                  letter-spacing: 5px; outline: none; box-sizing: border-box;
-                " />
-              <button type="button" id="m00InitBtn" onclick="initWorkstationNode()" style="
-                padding: 5px 13px; margin-left: auto;
-                background: transparent; border: 1px solid rgba(255,255,255,0.22);
-                border-radius: 5px; color: #c9d1d9;
-                font-family: 'Courier New', monospace; font-size: 11px;
-                font-weight: 700; cursor: pointer; white-space: nowrap;
-                transition: background 0.15s, border-color 0.15s;
-              " onmouseover="this.style.background='rgba(255,255,255,0.07)';this.style.borderColor='rgba(255,255,255,0.4)'"
-                 onmouseout="this.style.background='transparent';this.style.borderColor='rgba(255,255,255,0.22)'">
-                [ 🔒 Unlock Workspace ]
-              </button>
-              <span id="m00InitSpinner" style="display:none; color:#fbbf24; font-size:11px;">[ ○ Deriving key... ]</span>
-            </div>
-          </div>
-
-          <!-- Active state: identity confirmed + close session -->
-          <div id="m00Auth" style="display:none; flex-direction:column; padding: 6px 14px 14px; gap: 4px;">
-
-            <!-- Verified identity display -->
-            <div>
-              <div style="font-size:9.5px; color:#166534; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:4px; padding-left:2px;">
-                🔒 Institutional Node Identity (Verified)
-              </div>
-              <div style="
-                background:#0a0f16; border:1px solid rgba(74,222,128,0.2);
-                border-radius:5px; padding:7px 12px;
-                display:flex; align-items:center; gap:8px;
-                cursor:not-allowed;
-              ">
-                <span style="color:#4ade80; font-size:10px; flex-shrink:0;">●</span>
-                <span id="m00HolderIdDisplay" style="
-                  color:#6b7280; font-size:11.5px; font-family:'Courier New',monospace;
-                  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;
-                "></span>
-                <span id="m00NodeAliasDisplay" style="
-                  color:#4ade80; font-size:10px; flex-shrink:0; margin-left:6px;
-                  font-family:'Courier New',monospace; white-space:nowrap;
-                "></span>
-              </div>
-            </div>
-
-            <!-- Blank separator -->
-            <div style="color:#374151; padding-top:2px;">|</div>
-
-            <!-- Close session row -->
-            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding-top:2px;">
-              <button type="button" onclick="closeM00Session()" id="m00CloseBtn" style="
-                padding:5px 14px; background:transparent;
-                border:1px solid rgba(239,68,68,0.45); border-radius:5px;
-                color:#f87171; font-family:'Courier New',monospace; font-size:11px;
-                font-weight:700; cursor:pointer; white-space:nowrap;
-                transition:background 0.15s, border-color 0.15s;
-              " onmouseover="this.style.background='rgba(239,68,68,0.1)';this.style.borderColor='rgba(239,68,68,0.7)'"
-                 onmouseout="this.style.background='transparent';this.style.borderColor='rgba(239,68,68,0.45)'">
-                [ 🔒 Close Session &amp; Unload Keys ]
-              </button>
-              <span id="m00LockCountdown" style="display:none; font-size:10.5px; color:#fbbf24; font-family:'Courier New',monospace;"></span>
-            </div>
-          </div>
-        </div>
-
         <!-- Hidden fields for form submission -->
         <input type="hidden" id="tc_source_vault_node_display" />
 
@@ -2322,7 +2187,7 @@ function showTradeClaimModal() {
   document.body.style.overflow = 'hidden';
 
   tcGoToStep(1);
-  loadCryptoSession();
+  m00UnlockForm();   // MODULE 00 crypto-session gate removed — form opens unlocked
   loadCountries();
   loadCorridors();
   setupCorridorListener();
@@ -2340,12 +2205,9 @@ let _m00Identities = [];
 let _m00WorkstationId = '';
 
 function m00LockForm() {
-  const body    = document.getElementById('tcFormBody');
-  const overlay = document.getElementById('tcFormLockOverlay');
-  if (body)    { body.style.opacity = '0.5'; body.style.userSelect = 'none'; }
-  if (overlay) overlay.style.display = 'block';
-  const btn = document.getElementById('submitClaimBtn');
-  if (btn) { btn.disabled = true; btn.style.opacity = '0.45'; btn.style.cursor = 'not-allowed'; }
+  // MODULE 00 crypto-session gate retired — the form is never locked in the
+  // institutional portal. Kept as a no-op so any legacy caller is harmless.
+  m00UnlockForm();
 }
 
 function m00UnlockForm() {
@@ -2707,7 +2569,7 @@ function m00StartAutoLock(seconds) {
 
 function m00RequireAuth() {
   const module = document.getElementById('cryptoSessionModule');
-  if (!module) return false;
+  if (!module) return true;   // MODULE 00 crypto-session gate retired — no gate to satisfy
   if (localStorage.getItem(M00_STORAGE_KEY + '_unlocked') === '1') return true;
 
   // Shake module and flash message
@@ -5880,12 +5742,22 @@ document.getElementById('draftSavedModal')?.addEventListener('click', function(e
       b.id = 'sc_origin_badge';
       b.style.cssText = 'margin:0 0 16px;padding:12px 16px;border:1px solid #bfdbfe;' +
         'background:#eff6ff;border-radius:8px;';
+      // Dynamic — reads the bound session (SC_PORTAL.institution_swift), so it shows
+      // SBICGHAC for Stanbic, BOGGHACC for Bank of Ghana, etc. If the name resolved
+      // to something other than the SWIFT, show "Name (SWIFT)"; otherwise show the
+      // SWIFT alone (avoids "BOGGHACC (BOGGHACC)").
+      var instSwift = (P.institution_swift || '').toString();
+      var instName  = (P.institution_name  || '').toString();
+      var swiftSpan = '<span style="font-family:ui-monospace,Menlo,monospace;color:#2563eb;">' +
+                      instSwift + '</span>';
+      var titleHtml = (instName && instSwift && instName.toUpperCase() !== instSwift.toUpperCase())
+        ? instName + ' (' + swiftSpan + ')'
+        : swiftSpan;
       b.innerHTML =
         '<div style="font-size:11px;font-weight:700;letter-spacing:.4px;color:#1e40af;' +
         'text-transform:uppercase;">Originating Institution &middot; locked</div>' +
         '<div style="margin-top:4px;font-size:14px;font-weight:600;color:#111827;">' +
-        (P.institution_name || '') + ' <span style="font-family:ui-monospace,Menlo,monospace;' +
-        'color:#2563eb;">(' + (P.institution_swift || '') + ')</span></div>' +
+        titleHtml + '</div>' +
         '<div style="margin-top:2px;font-size:12px;color:#6b7280;">Home country ' +
         (P.country_code || '—') + ' — you can only originate claims for your own institution.</div>';
       step1.insertBefore(b, step1.firstChild);
@@ -5899,6 +5771,12 @@ document.getElementById('draftSavedModal')?.addEventListener('click', function(e
     try { window.selectedCountry = homeCountry(); } catch (e) {}
     if (typeof filterCorridorsForCountry === 'function') {
       try { filterCorridorsForCountry(homeCountry()); } catch (e) {}
+    }
+    // Auto-populate Central Bank Name + CB SWIFT Code for the locked home country
+    // (e.g. GHA → "Bank of Ghana" / BOGGHACC). selectCountry is disabled in portal
+    // mode, so we drive the CB resolver directly.
+    if (typeof loadCentralBankForCountry === 'function') {
+      try { loadCentralBankForCountry(homeCountry()); } catch (e) {}
     }
   }
 

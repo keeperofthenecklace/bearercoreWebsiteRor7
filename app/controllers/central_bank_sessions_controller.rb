@@ -30,11 +30,13 @@ class CentralBankSessionsController < ApplicationController
     if result.is_a?(Hash) && result["success"]
       data = result["data"] || {}
       session[:central_bank_authenticated] = true
-      session[:operator_id]       = data["operator_id"]
-      session[:institution_swift] = data["institution_swift"]
-      session[:country_code]      = data["country_code"]
-      session[:institution_name]  = data["institution_name"]
-      session[:access_token]      = data["access_token"]
+      session[:operator_id]            = data["operator_id"]
+      session[:operator_username]      = data["operator_username"]
+      session[:operator_display_name]  = data["operator_name"]
+      session[:institution_swift]      = data["institution_swift"]
+      session[:country_code]           = data["country_code"]
+      session[:institution_name]       = data["institution_name"]
+      session[:access_token]           = data["access_token"]
 
       return_to = session.delete(:central_bank_return_to) || portal_path
       redirect_to return_to, notice: "Secure session established for #{data["institution_swift"]}."
