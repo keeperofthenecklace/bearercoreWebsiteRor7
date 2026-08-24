@@ -669,42 +669,31 @@
               font-size: 20px;">🔑</div>
             <div>
               <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1d1d1f;">Dual-Key Authorization</h3>
-              <span style="font-size: 12px; color: #6b7280;">Cryptographic proxy signature &amp; institutional token validation</span>
+              <span style="font-size: 12px; color: #6b7280;">Cryptographic proxy signature identity</span>
             </div>
           </div>
 
-          <!-- Public Key: auto-filled from Module 00 -->
+          <!-- Public Key: auto-resolved proxy signature identity from the session -->
           <div style="margin-bottom: 16px;">
             <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-              Public Key <span style="font-size: 11px; color: #6b7280; font-weight: 400;">(Proxy Master Input — auto-resolved)</span>
+              Public Key <span style="font-size: 11px; color: #6b7280; font-weight: 400;">(Proxy signature identity — auto-resolved)</span>
             </label>
             <input type="text" id="tc_proxy_public_key" name="proxy_public_key" readonly
-              placeholder="Resolved from Module 00 session..."
+              placeholder="Resolved from the authenticated session..."
               style="
                 width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb;
                 border-radius: 8px; font-size: 12px; font-family: 'Courier New', monospace;
                 background: #f9fafb; color: #374151; box-sizing: border-box;
                 letter-spacing: 0.3px; cursor: not-allowed;
               " />
-            <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">Auto-populated from the authenticated Module 00 institutional node identity.</p>
+            <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">Auto-populated from the authenticated institutional session identity.</p>
           </div>
 
-          <!-- Token Secret: operator authorization -->
-          <div>
-            <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
-              Token Secret Input <span style="color: #ef4444;">*</span>
-            </label>
-            <input type="password" id="tc_token_secret" name="token_secret" required
-              placeholder="Enter institutional authorization token..."
-              style="
-                width: 100%; padding: 12px 16px; border: 1px solid #d1d5db;
-                border-radius: 8px; font-size: 14px; box-sizing: border-box;
-              " />
-            <p style="font-size: 11px; color: #6b7280; margin: 5px 0 0;">
-              Enter your institutional spend PIN to cryptographically authorize this trade claim submission.
-            </p>
-            <p id="tcTokenSecretError" style="font-size: 12px; color: #dc2626; margin: 5px 0 0; display: none;"></p>
-          </div>
+          <!-- Token Secret retired: signing authority is the authenticated session/OAuth
+               token, not a hand-entered PIN. Kept as a hidden field so the payload still
+               carries the parameter if the API expects it — the operator never enters it. -->
+          <input type="hidden" id="tc_token_secret" name="token_secret" value="session-authorized" />
+          <p id="tcTokenSecretError" style="display: none;"></p>
         </div>
 
         </div><!-- /tcStep3 -->
@@ -5085,15 +5074,8 @@ async function submitTradeClaim(event) {
     return;
   }
 
-  // Validate token secret (Step 3 auth field)
-  const tokenSecret = document.getElementById('tc_token_secret')?.value?.trim();
-  const errEl       = document.getElementById('tcTokenSecretError');
-  if (!tokenSecret) {
-    if (errEl) { errEl.textContent = 'Authorization token is required to sign this claim.'; errEl.style.display = ''; }
-    showError('Please enter your Token Secret in the Dual-Key Authorization section.');
-    return;
-  }
-  if (errEl) errEl.style.display = 'none';
+  // Token Secret retired — no hand-entered PIN gate. Signing authority is the
+  // authenticated session/OAuth token; declarations above are the only user gate.
 
   // Show confirmation modal with a summary before proceeding
   showTradeClaimConfirmModal();
