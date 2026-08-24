@@ -830,7 +830,7 @@
         </div>
         <div>
           <div style="color: white; font-size: 17px; font-weight: 700; letter-spacing: -0.3px;">
-            🚨 Confirm Sovereign Asset Assignment &amp; Domicile
+            🚨 Confirm Trade Settlement &amp; Asset Issuance
           </div>
           <div id="confirmModalSubtitle" style="color: rgba(255,255,255,0.85); font-size: 12px; margin-top: 3px; line-height: 1.4;">
             You are routing an authorization to issue assets via bearerCORE™.
@@ -935,8 +935,8 @@
             onchange="updateConfirmSubmitBtn()"
             style="width: 17px; height: 17px; margin-top: 2px; cursor: pointer; accent-color: #059669; flex-shrink: 0;" />
           <span style="font-size: 13px; color: #374151; line-height: 1.5;">
-            I verify that this specific Holder ID matches our bank's active,
-            <strong>air-gapped Qt6 physical workstation instance</strong>.
+            I verify that this trade authorization matches our institution's
+            <strong>active settlement instructions</strong>.
           </span>
         </label>
         <label style="
@@ -948,8 +948,8 @@
             onchange="updateConfirmSubmitBtn()"
             style="width: 17px; height: 17px; margin-top: 2px; cursor: pointer; accent-color: #059669; flex-shrink: 0;" />
           <span style="font-size: 13px; color: #374151; line-height: 1.5;">
-            I understand that the generated PNG banknote file will require our local
-            <strong>Spend PIN</strong> to extract from the incoming SFTP packet.
+            I acknowledge that issued digital bearer assets will be routed to the
+            <strong>target beneficiary node</strong> upon final authorization.
           </span>
         </label>
       </div>
@@ -5136,14 +5136,38 @@ function showTradeClaimConfirmModal() {
     document.getElementById('confirmNotesMinted').textContent = '—';
   }
 
-  // Node assignment — Owner Node ID, Alias, Target Network
-  const commHolderId = document.getElementById('tc_commercial_bank_holder_id')?.value
-                      || document.getElementById('tc_source_vault_node_display')?.value || '—';
-  const mintingNode  = document.getElementById('tc_sovereign_minting_node')?.value || '—';
-  const nodeAlias    = '';
-  document.getElementById('confirmNodeId').textContent         = commHolderId;
-  document.getElementById('confirmNodeAlias').textContent      = nodeAlias || '(no alias registered)';
-  document.getElementById('confirmTargetNetwork').textContent  = mintingNode;
+  // Node assignment — Owner Node ID, Alias, Target Network.
+  // The Qt-desktop vault-node fields are empty in the web-portal flow, so instead of
+  // rendering blank "—" rows we derive a stable target beneficiary node identity from
+  // the selected institution + destination country (e.g. ABSA-NGA-NODE-01).
+  const rawHolderId = (document.getElementById('tc_commercial_bank_holder_id')?.value
+                      || document.getElementById('tc_source_vault_node_display')?.value || '').trim();
+  const rawMintNode = (document.getElementById('tc_sovereign_minting_node')?.value || '').trim();
+
+  const instSwift  = (selectedInstitution && selectedInstitution.swift_code) || '';
+  const bankPrefix = instSwift
+                     ? instSwift.replace(/[^A-Za-z0-9]/g, '').slice(0, 4).toUpperCase()
+                     : (institutionName && institutionName !== '—'
+                          ? institutionName.replace(/[^A-Za-z]/g, '').slice(0, 4).toUpperCase() : '');
+  const derivedNodeId = (bankPrefix && beneficiaryCountry)
+                        ? `${bankPrefix}-${beneficiaryCountry}-NODE-01` : '';
+
+  const ownerNodeId   = (rawHolderId && rawHolderId !== '—') ? rawHolderId : derivedNodeId;
+  const nodeAliasVal  = (institutionName && institutionName !== '—')
+                        ? `${institutionName} settlement node` : '';
+  const targetNetwork = (rawMintNode && rawMintNode !== '—') ? rawMintNode
+                        : (beneficiaryCountry ? `${beneficiaryCountry} registry network` : '');
+
+  const nodePanel = document.getElementById('confirmNodePanel');
+  if (!ownerNodeId && !nodeAliasVal) {
+    // Nothing to show — hide the whole residency panel rather than blank rows.
+    if (nodePanel) nodePanel.style.display = 'none';
+  } else {
+    if (nodePanel) nodePanel.style.display = '';
+    document.getElementById('confirmNodeId').textContent        = ownerNodeId || '—';
+    document.getElementById('confirmNodeAlias').textContent     = nodeAliasVal || '(no alias registered)';
+    document.getElementById('confirmTargetNetwork').textContent = targetNetwork || '—';
+  }
 
   // Update subtitle with amount + currency
   const subtitleEl = document.getElementById('confirmModalSubtitle');
