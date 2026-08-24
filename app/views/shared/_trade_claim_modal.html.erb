@@ -3738,7 +3738,7 @@ function filterCorridorsForCountry(country) {
   console.log('[Corridors] Filtering for:', country.name, '| ids:', [...ids]);
 
   // ── Match corridors ───────────────────────────────────────────────────
-  const filteredCorridors = corridorsData.filter(corridor => {
+  let filteredCorridors = corridorsData.filter(corridor => {
     // Every possible source field on a corridor object
     const srcRaw = [
       corridor.source_country, corridor.from_country,
@@ -3780,13 +3780,28 @@ function filterCorridorsForCountry(country) {
     console.warn('[Corridors] First corridor:', JSON.stringify(corridorsData[0]));
   }
 
-  // Populate the select with filtered corridor options
+  // Populate the select with filtered corridor options.
+  // If no Corridor records match the home country, synthesize a domestic
+  // (home→home) corridor so a portal operator is never hard-blocked — the backend
+  // resolve_corridor! provisions the record on submit. Cross-border corridors
+  // still require the corresponding Corridor record to exist server-side.
   if (filteredCorridors.length === 0) {
-    select.innerHTML = '<option value="">No corridors available for this country</option>';
-    select.disabled = true;
-    select.style.background = '#f3f4f6';
-    select.style.cursor = 'not-allowed';
-    return;
+    const _homeCode = (country.alpha3 || country.iso3 || country.iso_alpha3 ||
+                       country.code || country.country_code || '')
+                      .toString().trim().toUpperCase();
+    if (!_homeCode) {
+      select.innerHTML = '<option value="">No corridors available for this country</option>';
+      select.disabled = true;
+      select.style.background = '#f3f4f6';
+      select.style.cursor = 'not-allowed';
+      return;
+    }
+    console.warn('[Corridors] No records matched', _homeCode, '— synthesizing domestic corridor');
+    filteredCorridors = [{
+      id: '__domestic__',
+      source_country: _homeCode, target_country: _homeCode,
+      from_country:   _homeCode, to_country:     _homeCode
+    }];
   }
 
   // Helper: resolve flag emoji for a raw country code or name string
