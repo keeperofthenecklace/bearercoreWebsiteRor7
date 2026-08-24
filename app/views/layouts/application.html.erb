@@ -20,6 +20,11 @@
     <% if session[:access_token].present? %>
       <meta name="api-token" content="<%= session[:access_token] %>">
     <% end %>
+    <%# Always-present fallback for the SmartcheqWebsiteRor7 API origin. Rendered
+        unconditionally so the client can resolve the identity-authority base even
+        when ENV isn't loaded under Passenger and no portal session is bound. %>
+    <meta name="smartcheq-browser-api-base"
+          content="<%= ENV.fetch('SMARTCHEQ_BROWSER_API_BASE', 'https://api.smartcheq.com') %>">
     <% if session[:institution_swift].present? %>
       <script>
         window.SC_API_BASE = <%= (ENV["SMARTCHEQ_BROWSER_API_BASE"].presence ||

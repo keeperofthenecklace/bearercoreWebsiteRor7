@@ -5103,6 +5103,18 @@ function updateConfirmSubmitBtn() {
   }
 }
 
+// Resolve the SmartcheqWebsiteRor7 (identity-authority) API base for claim POSTs.
+// Order: injected window global → <meta smartcheq-browser-api-base> → prod default.
+// Guarantees a routable origin even when ENV isn't loaded under Passenger.
+function scResolveApiBase() {
+  const w = window.SC_API_BASE && String(window.SC_API_BASE).trim();
+  if (w) return w;
+  const meta = document.querySelector('meta[name="smartcheq-browser-api-base"]');
+  const m = meta && meta.getAttribute('content') && meta.getAttribute('content').trim();
+  if (m) return m;
+  return 'https://api.smartcheq.com';
+}
+
 function showTradeClaimConfirmModal() {
   // Populate summary fields
   const corridorSelect  = document.getElementById('tc_corridor_id');
@@ -5247,20 +5259,19 @@ async function confirmAndSubmitTradeClaim() {
   submitBtn.disabled    = true;
 
   try {
-    // ── Fail-closed (portal mode) ─────────────────────────────────────────────
-    // If a portal session is bound but SMARTCHEQ_BROWSER_API_BASE is missing/empty,
-    // window.SC_API_BASE is blank and the claim would silently POST to bearerCORE's
-    // OWN /api/v2/trade_claims — bypassing the SmartcheqWebsiteRor7 ABAC guard.
-    // Block the submission entirely rather than fall back.
-    if (window.SC_PORTAL && !(window.SC_API_BASE && String(window.SC_API_BASE).trim())) {
-      throw new Error('Claim submission is blocked: the SmartCHEQ API endpoint is not ' +
-        'configured (SMARTCHEQ_BROWSER_API_BASE). Claims must be routed to the identity ' +
-        'authority for origin validation. Contact your administrator.');
+    // ── Resolve the identity-authority origin (fail-open with a routable default) ─
+    // Order: window.SC_API_BASE → <meta smartcheq-browser-api-base> → prod default.
+    // The claim always POSTs to SmartcheqWebsiteRor7 (never bearerCORE's own path),
+    // so its ABAC origin guard runs against the token-bound operator.
+    const scApiBase = scResolveApiBase();
+    if (!scApiBase) {
+      throw new Error('Claim submission is blocked: the SmartCHEQ API endpoint could not ' +
+        'be resolved. Claims must be routed to the identity authority for origin ' +
+        'validation. Contact your administrator.');
     }
 
-    // Step 1: Create the trade claim — routed to SmartcheqWebsiteRor7 (SC_API_BASE)
-    // so its ABAC origin guard runs against the token-bound operator.
-    const response = await fetch(`${window.SC_API_BASE || ''}/api/v2/trade_claims`, {
+    // Step 1: Create the trade claim — routed to SmartcheqWebsiteRor7 (scApiBase).
+    const response = await fetch(`${scApiBase}/api/v2/trade_claims`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${getAccessToken()}`,
