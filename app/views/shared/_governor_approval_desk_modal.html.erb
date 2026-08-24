@@ -150,26 +150,9 @@
       <!-- ── Sovereign Dashboard ───────────────────────────────────────── -->
       <div style="
         background: #0A192F; border-radius: 16px;
-        margin-bottom: 18px; padding: 20px;
+        margin-bottom: 14px; padding: 14px;
         border: 1px solid rgba(255,255,255,0.06);
       ">
-        <!-- Title row -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <div>
-            <div style="font-size:10px; color:#475569; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:3px;">
-              Sovereign Dashboard
-            </div>
-            <div style="font-size:16px; font-weight:700; color:#f1f5f9;">
-              Corridor Reservoir Control
-            </div>
-          </div>
-          <button onclick="loadGovCorridorLiquidity(); loadGovRecentEvents();" style="
-            background:rgba(255,255,255,0.07); color:#94a3b8;
-            border:1px solid rgba(255,255,255,0.12); border-radius:8px;
-            padding:6px 14px; font-size:12px; cursor:pointer;
-          ">↻ Refresh</button>
-        </div>
-
         <!-- Top row: Corridor Selector (left) + Sovereign Status (right) -->
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
 
@@ -182,24 +165,24 @@
             <div style="font-size:10px; color:#475569; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:10px;">
               Select Corridor
             </div>
-            <input id="govCorridorSearch" type="text" placeholder="Search corridors…"
-                   oninput="govFilterCorridors()"
-                   style="
-                     width:100%; box-sizing:border-box; margin-bottom:8px;
-                     background:rgba(255,255,255,0.06); color:#e2e8f0;
-                     border:1px solid rgba(255,255,255,0.12); border-radius:8px;
-                     padding:6px 10px; font-size:12px; outline:none;
-                   ">
-            <select id="govCorridorSelect" size="5"
-                    onchange="govSelectCorridor(this.value, this.options[this.selectedIndex]?.text)"
-                    style="
-                      width:100%;
-                      background:#0f2744; color:#e2e8f0;
-                      border:1px solid rgba(255,255,255,0.12); border-radius:8px;
-                      padding:5px 8px; font-size:12px; cursor:pointer; outline:none;
-                    ">
-              <option value="" style="background:#0f2744;">⏳ Loading corridors…</option>
-            </select>
+            <div style="position:relative;">
+              <input id="govCorridorSearch" type="text" placeholder="Search &amp; select a corridor…" autocomplete="off"
+                     oninput="govFilterCorridors(); govOpenCorridorDropdown();"
+                     onfocus="govOpenCorridorDropdown()"
+                     style="
+                       width:100%; box-sizing:border-box;
+                       background:rgba(255,255,255,0.06); color:#e2e8f0;
+                       border:1px solid rgba(255,255,255,0.12); border-radius:8px;
+                       padding:8px 10px; font-size:12px; outline:none;
+                     ">
+              <!-- Floating dropdown overlay: high z-index so it is never clipped by the panel -->
+              <div id="govCorridorDropdown" style="
+                display:none; position:absolute; top:calc(100% + 4px); left:0; right:0;
+                z-index:10060; background:#0f2744; border:1px solid rgba(45,212,191,0.35);
+                border-radius:8px; max-height:240px; overflow-y:auto; padding:4px;
+                box-shadow:0 12px 30px rgba(0,0,0,0.55);
+              "></div>
+            </div>
           </div>
 
           <!-- Top Right: Sovereign Status -->
@@ -281,25 +264,20 @@
               font-size:11px; color:#64748b; margin-bottom:12px; min-height:16px;
             ">Select a corridor to enable actions</div>
 
+            <!-- Primary (liquidity): dark-slate fills, teal border/text — vibrant teal
+                 is reserved for badges + health indicators, not routine actions. -->
             <div style="display:flex; gap:6px; margin-bottom:8px;">
               <button onclick="govCreateBulkAllotment(50000000)" style="
-                flex:1; background:linear-gradient(135deg,#0d6e6e,#0d9488);
-                color:white; border:none; border-radius:8px;
+                flex:1; background:#1E293B; color:#5eead4;
+                border:1px solid #0d9488; border-radius:8px;
                 padding:11px 0; font-size:12px; font-weight:700; cursor:pointer;
-              ">Inject 50M</button>
+              " onmouseover="this.style.background='#243449'" onmouseout="this.style.background='#1E293B'">Inject 50M</button>
               <button onclick="govCreateBulkAllotment(100000000)" style="
-                flex:1; background:linear-gradient(135deg,#0d6e6e,#0d9488);
-                color:white; border:none; border-radius:8px;
+                flex:1; background:#1E293B; color:#5eead4;
+                border:1px solid #0d9488; border-radius:8px;
                 padding:11px 0; font-size:12px; font-weight:700; cursor:pointer;
-              ">Inject 100M</button>
+              " onmouseover="this.style.background='#243449'" onmouseout="this.style.background='#1E293B'">Inject 100M</button>
             </div>
-
-            <button id="govHaltResumeBtn" onclick="govHaltResumeAction()" style="
-              width:100%; background:linear-gradient(135deg,#7f1d1d,#b91c1c);
-              color:white; border:none; border-radius:8px;
-              padding:11px 0; font-size:12px; font-weight:700; cursor:pointer;
-              letter-spacing:0.3px; margin-bottom:8px;
-            ">⚡ Halt Corridor</button>
 
             <button onclick="govAdjustDailyCap()" style="
               width:100%; background:rgba(255,255,255,0.07);
@@ -307,6 +285,17 @@
               border-radius:8px; padding:10px; font-size:12px;
               font-weight:600; cursor:pointer; text-align:center;
             ">📊 Adjust Daily Cap</button>
+
+            <!-- Destructive action, separated below routine controls -->
+            <div style="border-top:1px solid rgba(255,255,255,0.10); margin:12px 0 10px; padding-top:10px;">
+              <div style="font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Emergency</div>
+              <button id="govHaltResumeBtn" onclick="govHaltResumeAction()" style="
+                width:100%; background:linear-gradient(135deg,#7f1d1d,#b91c1c);
+                color:white; border:none; border-radius:8px;
+                padding:11px 0; font-size:12px; font-weight:700; cursor:pointer;
+                letter-spacing:0.3px;
+              ">⚡ Halt Corridor</button>
+            </div>
           </div>
 
         </div>
@@ -741,64 +730,69 @@ function updateInterventionPanel(corridors) {
 // SOVEREIGN DASHBOARD — Reservoir Model
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Renders the corridor picker into the floating overlay (#govCorridorDropdown),
+// grouped by bloc. Jurisdiction-scoped: home-origin only unless superuser/audit.
 function govBuildCorridorSelect(corridors) {
-  const sel = document.getElementById('govCorridorSelect');
-  if (!sel) return;
+  const box = document.getElementById('govCorridorDropdown');
+  if (!box) return;
 
-  // Sovereign jurisdiction: the drawer selector only offers corridors the Governor
-  // can control (home-origin), unless superuser / no home / audit mode.
-  let base = corridors;
+  let base = corridors || [];
   if (govJurisdictionLocked() && !govAuditMode) {
     const home = govHomeCountry();
-    base = corridors.filter(c => (c.source_country||'').toUpperCase() === home);
+    base = base.filter(c => (c.source_country||'').toUpperCase() === home);
   }
 
   const term     = (document.getElementById('govCorridorSearch')?.value || '').toLowerCase();
   const filtered = term
-    ? base.filter(c => {
-        const d = (c.corridor_display || c.code || `${c.source_country}→${c.target_country}`).toLowerCase();
-        return d.includes(term);
-      })
+    ? base.filter(c => (c.corridor_display || c.code || `${c.source_country}→${c.target_country}`).toLowerCase().includes(term))
     : base;
 
-  const groups = {};
-  filtered.forEach(c => {
-    const bloc = govGetBloc(c);
-    if (!groups[bloc]) groups[bloc] = [];
-    groups[bloc].push(c);
-  });
-
-  sel.innerHTML = '';
-
   if (filtered.length === 0) {
-    const opt = document.createElement('option');
-    opt.value = ''; opt.textContent = '— No corridors found —';
-    opt.style.background = '#0f2744';
-    sel.appendChild(opt);
+    box.innerHTML = '<div style="padding:12px;color:#64748b;font-size:12px;text-align:center;">No corridors found</div>';
     return;
   }
 
+  const groups = {};
+  filtered.forEach(c => { const b = govGetBloc(c); (groups[b] = groups[b] || []).push(c); });
   const orderedBlocs = [...Object.keys(GOV_BLOCS), 'Other'].filter(b => groups[b]?.length > 0);
-  orderedBlocs.forEach(bloc => {
-    const meta  = GOV_BLOC_META[bloc] || { label: bloc };
-    const group = document.createElement('optgroup');
-    group.label = `— ${bloc}: ${meta.label} —`;
-    group.style.cssText = 'background:#0a1628; color:#64748b;';
-    groups[bloc].forEach(c => {
+
+  box.innerHTML = orderedBlocs.map(bloc => {
+    const meta = GOV_BLOC_META[bloc] || { label: bloc };
+    const items = groups[bloc].map(c => {
       const display = c.corridor_display || c.code || `${c.source_country} → ${c.target_country}`;
       const id      = c.id || c.code;
-      const status  = (c.status || '').toLowerCase();
-      const opt     = document.createElement('option');
-      opt.value = id;
-      opt.textContent = status === 'halted' ? `⚡ ${display}` : display;
-      opt.style.cssText = `background:#0f2744; color:${status === 'halted' ? '#fca5a5' : '#e2e8f0'};`;
-      group.appendChild(opt);
-    });
-    sel.appendChild(group);
-  });
-
-  if (govSelectedCorridorId) sel.value = govSelectedCorridorId;
+      const halted  = (c.status || '').toLowerCase() === 'halted';
+      const safe    = display.replace(/'/g,"\\'");
+      const sel     = String(id) === String(govSelectedCorridorId);
+      return `<div onclick="govPickCorridor('${id}','${safe}')" style="
+        padding:7px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-family:monospace;
+        color:${halted?'#fca5a5':'#e2e8f0'};background:${sel?'rgba(45,212,191,0.12)':'transparent'};
+      " onmouseover="this.style.background='#172033'" onmouseout="this.style.background='${sel?'rgba(45,212,191,0.12)':'transparent'}'">
+        ${halted?'⚡ ':''}${display}
+      </div>`;
+    }).join('');
+    return `<div style="padding:2px 0;">
+      <div style="padding:5px 10px 3px;font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.8px;">${bloc} · ${meta.label}</div>
+      ${items}
+    </div>`;
+  }).join('');
 }
+
+function govOpenCorridorDropdown()  { const b = document.getElementById('govCorridorDropdown'); if (b) b.style.display = 'block'; }
+function govCloseCorridorDropdown() { const b = document.getElementById('govCorridorDropdown'); if (b) b.style.display = 'none'; }
+function govPickCorridor(id, label) {
+  govSelectCorridor(id, label);
+  const s = document.getElementById('govCorridorSearch');
+  if (s) s.value = label;
+  govCloseCorridorDropdown();
+}
+// Close the floating dropdown on outside click.
+document.addEventListener('click', function(e) {
+  const box = document.getElementById('govCorridorDropdown');
+  const search = document.getElementById('govCorridorSearch');
+  if (!box || box.style.display !== 'block') return;
+  if (!box.contains(e.target) && e.target !== search) govCloseCorridorDropdown();
+});
 
 function govFilterCorridors() {
   govBuildCorridorSelect(govCorridorLiquidityData);
@@ -953,8 +947,8 @@ async function loadGovCorridorLiquidity() {
     if (tsEl) tsEl.textContent = new Date().toLocaleTimeString();
   } catch (err) {
     console.error('[MacroConsole] corridor load error:', err);
-    const sel = document.getElementById('govCorridorSelect');
-    if (sel) sel.innerHTML = '<option value="" style="background:#0f2744;">⚠ Could not load corridors</option>';
+    const box = document.getElementById('govCorridorDropdown');
+    if (box) box.innerHTML = '<div style="padding:12px;color:#fca5a5;font-size:12px;text-align:center;">⚠ Could not load corridors</div>';
   }
 }
 
@@ -1107,11 +1101,12 @@ function govHealth(c) {
   const halted= status === 'halted' || status === 'suspended';
   const pct   = cap > 0 ? Math.min(100, Math.round(((cap - drawn) / cap) * 100)) : null;
   const currency = lp.asset_code || lp.currency || c.asset_code || '';
-  let color = '#2dd4bf', label = 'Normal';
+  // Labels match the hero fuel gauge (HEALTHY / LOW RESERVE / REPLENISH).
+  let color = '#2dd4bf', label = 'Healthy';
   if (halted)            { color = '#ef4444'; label = 'Halted'; }
-  else if (pct === null) { color = '#64748b'; label = 'No data'; }
-  else if (pct < 10)     { color = '#ef4444'; label = 'Depleted'; }
-  else if (pct < 30)     { color = '#f59e0b'; label = 'Warning'; }
+  else if (pct === null) { color = '#64748b'; label = 'No Data'; }
+  else if (pct < 10)     { color = '#ef4444'; label = 'Replenish'; }
+  else if (pct < 30)     { color = '#f59e0b'; label = 'Low Reserve'; }
   return { cap, drawn, free, pct, currency, halted, color, label };
 }
 
@@ -1134,6 +1129,10 @@ function govRenderCorridorTable() {
   const home   = govHomeCountry();
   const search = govTableSearch.trim().toLowerCase();
   const fmtNum = n => n ? n.toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—';
+  // ISO code in muted slate, digits bright — faster numeric scanning.
+  const govMoney = (cur, n, digitColor) => (n && n > 0)
+    ? `<span style="color:#64748b;">${cur}</span> <span style="color:${digitColor};">${fmtNum(n)}</span>`
+    : '<span style="color:#475569;">—</span>';
   const tabCount = tab => tab === 'ALL' ? scoped.length : scoped.filter(c => govGetBloc(c) === tab).length;
 
   let rows = scoped;
@@ -1204,8 +1203,8 @@ function govRenderCorridorTable() {
           ${can?'':'<span style="margin-left:6px;font-size:9px;color:#64748b;text-transform:uppercase;">audit</span>'}
         </td>
         <td style="padding:10px 12px;font-size:11px;color:#94a3b8;">${region}</td>
-        <td style="padding:10px 12px;font-size:12px;color:#cbd5e1;font-family:monospace;text-align:right;white-space:nowrap;">${h.cap>0?h.currency+' '+fmtNum(h.cap):'—'}</td>
-        <td style="padding:10px 12px;font-size:12px;color:#5eead4;font-family:monospace;text-align:right;white-space:nowrap;">${h.cap>0?h.currency+' '+fmtNum(h.free):'—'}</td>
+        <td style="padding:10px 12px;font-size:12px;font-family:monospace;text-align:right;white-space:nowrap;">${govMoney(h.currency, h.cap, '#e2e8f0')}</td>
+        <td style="padding:10px 12px;font-size:12px;font-family:monospace;text-align:right;white-space:nowrap;">${govMoney(h.currency, h.free, '#5eead4')}</td>
         <td style="padding:10px 12px;min-width:120px;">
           <div style="display:flex;align-items:center;gap:8px;">
             <div style="flex:1;height:6px;background:#0f172a;border-radius:3px;overflow:hidden;">
