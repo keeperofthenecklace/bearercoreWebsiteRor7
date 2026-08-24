@@ -1064,103 +1064,37 @@
     
     <!-- Success Body -->
     <div style="padding: 24px;">
-      <!-- Trade Claim ID Card -->
-      <div style="
-        background: #f8fafb;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
-      ">
-        <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
-          <div style="
-            width: 36px;
-            height: 36px;
-            background: #d1fae5;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-          ">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-          </div>
-          <div>
-            <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Trade Claim ID:</div>
-            <div id="successClaimId" style="font-size: 18px; font-weight: 700; color: #059669; font-family: monospace;">
-              TC-20260215-000000
-            </div>
-          </div>
+      <!-- Trade Summary — Claim ID merged into the card header -->
+      <div style="border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; background: #f0fdf4; border-bottom: 1px solid #d1fae5;">
+          <span style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.6px;">Trade Claim ID</span>
+          <span id="successClaimId" style="font-size: 15px; font-weight: 700; color: #059669; font-family: monospace;">TC-20260215-000000</span>
         </div>
-        
-        <p style="font-size: 13px; color: #4b5563; margin: 0 0 16px; line-height: 1.5;">
-          An initial pre-clearance review shows your trade appears compliant.<br>
-          It will now be routed for final approval.
-        </p>
-        
-        <!-- Status points -->
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span style="font-size: 13px; color: #374151;">Pre-cleared trade is pending review by <span id="successRegulator2">regulators</span> for approval.</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span style="font-size: 13px; color: #374151;">Beneficiary funds will be held while the trade is being finalized.</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span style="font-size: 13px; color: #374151;">Track status any time via the <strong>Issuance → Desk</strong> section.</span>
-          </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+          <span style="font-size: 13px; color: #6b7280;">Trade Amount</span>
+          <span id="successAmount" style="font-size: 13px; font-weight: 600; color: #1d1d1f;">KES 1,000,000</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+          <span style="font-size: 13px; color: #6b7280;">Trade Direction</span>
+          <span id="successDirection" style="font-size: 13px; font-weight: 500; color: #1d1d1f;">Import into Nigeria</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+          <span style="font-size: 13px; color: #6b7280;">Beneficiary</span>
+          <span id="successBeneficiary" style="font-size: 13px; font-weight: 500; color: #1d1d1f;">Kenya Exports Ltd</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 16px;">
+          <span style="font-size: 13px; color: #6b7280;">⚖️ Notes Minted</span>
+          <span id="successNotesMinted" style="font-size: 13px; font-weight: 700; color: #059669;">—</span>
         </div>
       </div>
-      
-      <!-- Trade Summary -->
-      <div style="margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-          <span style="font-size: 16px;">📊</span>
-          <span style="font-size: 14px; font-weight: 600; color: #1d1d1f;">Trade Summary:</span>
-        </div>
-        
-        <div style="
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          overflow: hidden;
-        ">
-          <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
-            <span style="font-size: 13px; color: #6b7280;">Trade Amount</span>
-            <span id="successAmount" style="font-size: 13px; font-weight: 600; color: #1d1d1f;">KES 1,000,000</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
-            <span style="font-size: 13px; color: #6b7280;">Trade Direction</span>
-            <span id="successDirection" style="font-size: 13px; font-weight: 500; color: #1d1d1f;">Import into Nigeria</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
-            <span style="font-size: 13px; color: #6b7280;">Beneficiary</span>
-            <span id="successBeneficiary" style="font-size: 13px; font-weight: 500; color: #1d1d1f;">Kenya Exports Ltd</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; padding: 12px 16px;">
-            <span style="font-size: 13px; color: #6b7280;">⚖️ Notes Minted</span>
-            <span id="successNotesMinted" style="font-size: 13px; font-weight: 700; color: #059669;">—</span>
-          </div>
-        </div>
 
-        <!-- Denomination breakdown accordion -->
-        <details id="successDenomBreakdown" style="margin-top:12px; border:1px solid #d1fae5; border-radius:8px; overflow:hidden; display:none;">
-          <summary style="padding:10px 14px; cursor:pointer; font-size:12px; font-weight:700; color:#065f46; background:#f0fdf4; list-style:none; display:flex; align-items:center; gap:6px;">
-            <span>📋</span> See denomination breakdown
-          </summary>
-          <div id="successDenomTable" style="padding:10px 14px; background:#fff; font-size:12px; color:#374151;"></div>
-        </details>
-      </div>
+      <!-- Denomination breakdown accordion -->
+      <details id="successDenomBreakdown" style="margin-bottom:16px; border:1px solid #d1fae5; border-radius:8px; overflow:hidden; display:none;">
+        <summary style="padding:10px 14px; cursor:pointer; font-size:12px; font-weight:700; color:#065f46; background:#f0fdf4; list-style:none; display:flex; align-items:center; gap:6px;">
+          <span>📋</span> See denomination breakdown
+        </summary>
+        <div id="successDenomTable" style="padding:10px 14px; background:#fff; font-size:12px; color:#374151;"></div>
+      </details>
 
       <!-- Action Buttons -->
       <button onclick="closeSuccessAndGoToDesk()" style="
@@ -1188,70 +1122,28 @@
         View Issuance Desk
       </button>
       
-      <div style="display: flex; gap: 12px;">
+      <!-- Secondary actions — outline button + text-style link -->
+      <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 12px;">
         <button onclick="closeSuccessAndSubmitAnother()" style="
-          flex: 1;
-          padding: 12px 16px;
+          padding: 10px 20px;
           background: white;
-          border: 1px solid #e5e7eb;
+          border: 1px solid #d1d5db;
           border-radius: 8px;
           font-size: 13px;
           font-weight: 500;
           color: #374151;
           cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
           transition: background 0.2s;
-        " onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="12" y1="18" x2="12" y2="12"></line>
-            <line x1="9" y1="15" x2="15" y2="15"></line>
-          </svg>
-          Send Another
-        </button>
-        
+        " onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">Send Another</button>
         <button onclick="closeSuccessModal()" style="
-          flex: 1;
-          padding: 12px 16px;
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
+          padding: 10px 12px;
+          background: none;
+          border: none;
           font-size: 13px;
           font-weight: 500;
-          color: #374151;
+          color: #6b7280;
           cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: background 0.2s;
-        " onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-          Close
-        </button>
-      </div>
-      
-      <!-- Footer Links -->
-      <div style="
-        margin-top: 20px;
-        padding-top: 16px;
-        border-top: 1px solid #e5e7eb;
-        text-align: center;
-      ">
-        <span style="font-size: 12px; color: #9ca3af;">
-          <a href="#" style="color: #6b7280; text-decoration: none;">Help & Docs</a>
-          <span style="margin: 0 8px;">·</span>
-          <a href="#" style="color: #6b7280; text-decoration: none;">Contact Support</a>
-          <span style="margin: 0 8px;">·</span>
-          <a href="#" style="color: #6b7280; text-decoration: none;">Dashboard</a>
-        </span>
+        ">Close</button>
       </div>
     </div>
   </div>
@@ -5386,6 +5278,16 @@ const countryCodeToName = {
   'SEN': 'Senegalese', 'CIV': 'Ivorian', 'CMR': 'Cameroonian', 'COD': 'Congolese',
 };
 
+// Noun (place-name) forms — used for "Import into <Country>" / "Export from <Country>",
+// where countryCodeToName's demonyms ("Nigerian") would be grammatically wrong.
+const countryCodeToCountry = {
+  'KEN': 'Kenya', 'NGA': 'Nigeria', 'GHA': 'Ghana', 'ZAF': 'South Africa',
+  'TZA': 'Tanzania', 'UGA': 'Uganda', 'RWA': 'Rwanda', 'ETH': 'Ethiopia',
+  'EGY': 'Egypt', 'MAR': 'Morocco', 'DZA': 'Algeria', 'TUN': 'Tunisia',
+  'BWA': 'Botswana', 'ZMB': 'Zambia', 'ZWE': 'Zimbabwe', 'MOZ': 'Mozambique',
+  'SEN': 'Senegal', 'CIV': "Côte d'Ivoire", 'CMR': 'Cameroon', 'COD': 'DR Congo',
+};
+
 function showSuccessModal(data) {
   const modal = document.getElementById('tradeClaimSuccessModal');
   
@@ -5418,13 +5320,12 @@ function showSuccessModal(data) {
   // Update modal content
   document.getElementById('successClaimId').textContent = reference || `TC-${Date.now()}`;
   document.getElementById('successRegulator').textContent = `${regulatorName} regulators`;
-  document.getElementById('successRegulator2').textContent = `${regulatorName} regulators`;
   document.getElementById('successAmount').textContent = `${currencyCode} ${amount}`;
-  
-  // Format direction
-  const directionText = direction === 'import' 
-    ? `Import into ${countryCodeToName[beneficiaryCountry] || beneficiaryCountry}` 
-    : `Export from ${countryCodeToName[selectedCountry?.code] || 'origin'}`;
+
+  // Format direction — use the noun (place) form, not the demonym.
+  const directionText = direction === 'import'
+    ? `Import into ${countryCodeToCountry[beneficiaryCountry] || beneficiaryCountry}`
+    : `Export from ${countryCodeToCountry[selectedCountry?.code] || 'origin'}`;
   document.getElementById('successDirection').textContent = directionText;
   
   // Format beneficiary with institution
@@ -5533,7 +5434,7 @@ function showDraftSavedModal(data) {
   
   // Format direction
   const directionText = direction === 'import' 
-    ? `Import into ${countryCodeToName[beneficiaryCountry] || beneficiaryCountry || '-'}` 
+    ? `Import into ${countryCodeToCountry[beneficiaryCountry] || beneficiaryCountry || '-'}`
     : direction === 'export' 
       ? `Export from ${selectedCountry?.name || '-'}`
       : '-';
