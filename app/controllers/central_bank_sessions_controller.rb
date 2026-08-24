@@ -33,6 +33,7 @@ class CentralBankSessionsController < ApplicationController
       session[:operator_id]            = data["operator_id"]
       session[:operator_username]      = data["operator_username"]
       session[:operator_display_name]  = data["operator_name"]
+      session[:role]                   = data["role"]
       session[:institution_swift]      = data["institution_swift"]
       session[:country_code]           = data["country_code"]
       session[:institution_name]       = data["institution_name"]

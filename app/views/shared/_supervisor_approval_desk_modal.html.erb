@@ -308,10 +308,10 @@
                           style="width:100%;border:1px solid #d1d5db;border-radius:8px;padding:8px 12px;font-size:13px;resize:none;outline:none;font-family:inherit;box-sizing:border-box;"></textarea>
               </div>
               <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;padding-top:18px;">
-                <button id="btnApprove" onclick="supervisorApproveClaim()" style="background:#059669;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;">✓ Approve</button>
+                <button id="btnApprove" onclick="supervisorApproveClaim()" style="background:#059669;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;">✓ Approve Authorization</button>
                 <div style="display:flex;gap:6px;">
                   <button onclick="supervisorRequestClarification()" style="flex:1;background:white;color:#374151;border:1px solid #d1d5db;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;">💬 Clarify</button>
-                  <button id="btnReject" onclick="supervisorRejectClaim()" style="background:#fee2e2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;">✕ Reject</button>
+                  <button id="btnReject" onclick="supervisorRejectClaim()" style="background:#fee2e2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;">✕ Reject Claim</button>
                   <button id="btnCancel" onclick="supervisorCancelClaim()" style="background:#f3f4f6;color:#6b7280;border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:500;cursor:pointer;">🚫 Cancel</button>
                 </div>
               </div>
@@ -401,7 +401,7 @@ const complianceStatusConfig = {
   'submitted': { bg: '#fef3c7', color: '#d97706', border: '#f59e0b', icon: '⏳', label: 'Pending' },
   'pre_cleared': { bg: '#d1fae5', color: '#059669', border: '#10b981', icon: '✓', label: 'Pre-Cleared' },
   'manual_review': { bg: '#fed7aa', color: '#c2410c', border: '#f97316', icon: '📋', label: 'Manual Review' },
-  'approved': { bg: '#d1fae5', color: '#059669', border: '#059669', icon: '✅', label: 'Approved' },
+  'approved': { bg: '#d1fae5', color: '#059669', border: '#059669', icon: '✅', label: 'Cleared' },
   'compliance_cleared': { bg: '#dbeafe', color: '#1d4ed8', border: '#3b82f6', icon: '⚙', label: 'Compliance Cleared' },
   'ready_to_mint': { bg: '#d1fae5', color: '#065f46', border: '#10b981', icon: '🏦', label: 'Ready to Mint' },
   'insufficient_corridor_liquidity': { bg: '#fef3c7', color: '#92400e', border: '#f59e0b', icon: '⚠', label: 'Liquidity Insufficient' },
@@ -644,6 +644,18 @@ function getSupervisorToken() {
   return envToken || localStorage.getItem('access_token') || localStorage.getItem('accessToken') || 'wOJLHO7nXlO7IOqUI8mX9nfYMQi_S8EmqKMwUOh-FO8';
 }
 
+// The Supervisor Desk approves the real portal-submitted claims, which live in the
+// SmartcheqWebsiteRor7 (identity-authority) store — not bearerCORE's local table.
+// Resolve that origin: injected window global → <meta> fallback → prod default.
+function supervisorApiBase() {
+  const w = window.SC_API_BASE && String(window.SC_API_BASE).trim();
+  if (w) return w;
+  const meta = document.querySelector('meta[name="smartcheq-browser-api-base"]');
+  const m = meta && meta.getAttribute('content') && meta.getAttribute('content').trim();
+  if (m) return m;
+  return 'https://api.smartcheq.com';
+}
+
 function getSupervisorAuthHeaders() {
   const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
   const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -659,7 +671,7 @@ async function loadSupervisorClaims() {
   rows.innerHTML = '';
   
   try {
-    const response = await fetch('/api/v2/trade_claims', {
+    const response = await fetch(`${supervisorApiBase()}/api/v2/trade_claims`, {
       headers: {
         'Authorization': `Bearer ${getSupervisorToken()}`,
         'Content-Type': 'application/json'
@@ -1615,7 +1627,7 @@ async function supervisorApproveClaim() {
   btn.innerHTML = '⏳ Approving...';
 
   try {
-    const res = await fetch(`/api/v2/trade_claims/${selectedSupervisorClaimData.id}/approve`, {
+    const res = await fetch(`${supervisorApiBase()}/api/v2/trade_claims/${selectedSupervisorClaimData.id}/approve`, {
       method: 'POST',
       headers: getSupervisorAuthHeaders(),
       body: JSON.stringify({ notes })
@@ -1714,7 +1726,7 @@ async function supervisorReEvaluateClaim() {
   if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Evaluating...'; }
 
   try {
-    const res = await fetch(`/api/v2/trade_claims/${selectedSupervisorClaimData.id}/re_evaluate`, {
+    const res = await fetch(`${supervisorApiBase()}/api/v2/trade_claims/${selectedSupervisorClaimData.id}/re_evaluate`, {
       method:  'POST',
       headers: getSupervisorAuthHeaders(),
       body:    JSON.stringify({})
@@ -1801,7 +1813,7 @@ async function supervisorRejectClaim() {
   if (!confirm('Reject this trade claim?')) return;
   
   try {
-    const res = await fetch(`/api/v2/trade_claims/${selectedSupervisorClaimData.id}/reject`, {
+    const res = await fetch(`${supervisorApiBase()}/api/v2/trade_claims/${selectedSupervisorClaimData.id}/reject`, {
       method: 'POST',
       headers: getSupervisorAuthHeaders(),
       body: JSON.stringify({ notes, reason: notes })
@@ -1824,7 +1836,7 @@ async function supervisorRequestClarification() {
   if (!confirm('Request clarification for this claim?')) return;
   
   try {
-    const res = await fetch(`/api/v2/trade_claims/${selectedSupervisorClaimData.id}/request_clarification`, {
+    const res = await fetch(`${supervisorApiBase()}/api/v2/trade_claims/${selectedSupervisorClaimData.id}/request_clarification`, {
       method: 'POST',
       headers: getSupervisorAuthHeaders(),
       body: JSON.stringify({ notes, reason: notes })
@@ -1846,7 +1858,7 @@ async function supervisorCancelClaim() {
   if (!confirm('Cancel this trade claim? This action cannot be undone.')) return;
   
   try {
-    const res = await fetch(`/api/v2/trade_claims/${selectedSupervisorClaimData.id}/cancel`, {
+    const res = await fetch(`${supervisorApiBase()}/api/v2/trade_claims/${selectedSupervisorClaimData.id}/cancel`, {
       method: 'POST',
       headers: getSupervisorAuthHeaders(),
       body: JSON.stringify({ notes, reason: notes })

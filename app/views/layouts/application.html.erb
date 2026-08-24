@@ -35,7 +35,8 @@
           country_code:          <%= session[:country_code].to_json.html_safe %>,
           institution_name:      <%= (session[:institution_name] || session[:institution_swift]).to_json.html_safe %>,
           operator_username:     <%= session[:operator_username].to_json.html_safe %>,
-          operator_display_name: <%= (session[:operator_display_name] || session[:operator_username]).to_json.html_safe %>
+          operator_display_name: <%= (session[:operator_display_name] || session[:operator_username]).to_json.html_safe %>,
+          role:                  <%= session[:role].to_json.html_safe %>
         };
       </script>
     <% end %>
