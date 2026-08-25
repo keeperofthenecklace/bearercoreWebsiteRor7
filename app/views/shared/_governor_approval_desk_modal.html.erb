@@ -40,11 +40,11 @@
   padding: 20px;
 ">
   <div style="
-    background: #0F172A;
+    background: #090D16;
     border-radius: 20px;
     width: 100%;
     max-width: 1180px;
-    max-height: 92vh;
+    max-height: 90vh;
     overflow: hidden;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     display: flex;
@@ -115,32 +115,32 @@
     </div>
 
     <!-- ── Content Area ───────────────────────────────────────────────── -->
-    <div style="flex: 1; overflow-y: auto; padding: 22px; background: #0F172A;">
+    <div style="flex: 1; overflow-y: auto; padding: 22px; background: #090D16;">
 
       <!-- ── Network Status Bar ────────────────────────────────────────── -->
       <div id="govNetworkStatusBar" style="
         display: grid; grid-template-columns: repeat(4, 1fr);
         gap: 12px; margin-bottom: 18px;
       ">
-        <div style="background:#0A192F;border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,0.06);">
-          <div style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;">Total Daily Volume</div>
+        <div style="background:#161F2E;border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:9px;color:#94A3B8;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;">Total Daily Volume</div>
           <div id="govNetVolume" style="font-size:20px;font-weight:800;color:#f1f5f9;">—</div>
-          <div style="font-size:10px;color:#475569;margin-top:2px;">across all corridors</div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:2px;">across all corridors</div>
         </div>
-        <div style="background:#0A192F;border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,0.06);">
-          <div style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;">Active Corridors</div>
+        <div style="background:#161F2E;border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:9px;color:#94A3B8;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;">Active Corridors</div>
           <div id="govNetActiveCorridors" style="font-size:20px;font-weight:800;color:#2dd4bf;">—</div>
-          <div style="font-size:10px;color:#475569;margin-top:2px;">of <span id="govNetTotalCorridors">—</span> total</div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:2px;">of <span id="govNetTotalCorridors">—</span> total</div>
         </div>
-        <div style="background:#0A192F;border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,0.06);">
-          <div style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;">Corridor Health</div>
+        <div style="background:#161F2E;border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:9px;color:#94A3B8;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;">Corridor Health</div>
           <div id="govNetHealth" style="font-size:20px;font-weight:800;color:#2dd4bf;">—</div>
-          <div style="font-size:10px;color:#475569;margin-top:2px;">avg headroom</div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:2px;">avg headroom</div>
         </div>
-        <div style="background:#0A192F;border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,0.06);">
-          <div style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;">Last Updated</div>
+        <div style="background:#161F2E;border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:9px;color:#94A3B8;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;">Last Updated</div>
           <div id="govNetLastUpdate" style="font-size:14px;font-weight:700;color:#94a3b8;font-family:monospace;">—</div>
-          <div style="font-size:10px;color:#475569;margin-top:2px;">console refresh</div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:2px;">console refresh</div>
         </div>
       </div>
 
@@ -149,9 +149,9 @@
 
       <!-- ── Sovereign Dashboard ───────────────────────────────────────── -->
       <div style="
-        background: #0A192F; border-radius: 16px;
+        background: #161F2E; border-radius: 16px;
         margin-bottom: 14px; padding: 14px;
-        border: 1px solid rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.08);
       ">
         <!-- Top row: Corridor Selector (left) + Sovereign Status (right) -->
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
@@ -162,7 +162,7 @@
             border:1px solid rgba(255,255,255,0.08);
             border-radius:12px; padding:14px;
           ">
-            <div style="font-size:10px; color:#475569; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:10px;">
+            <div style="font-size:10px; color:#94A3B8; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:10px;">
               Select Corridor
             </div>
             <div style="position:relative;">
@@ -192,7 +192,7 @@
             border-radius:12px; padding:14px;
             display:flex; flex-direction:column; justify-content:center; align-items:center;
           ">
-            <div style="font-size:10px; color:#475569; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:12px;">
+            <div style="font-size:10px; color:#94A3B8; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:12px;">
               Sovereign Status
             </div>
             <div id="govSovereignStatusBadge" style="
@@ -205,7 +205,7 @@
               margin-bottom:14px;
             ">● OPERATIONAL</div>
             <div style="text-align:center;">
-              <div style="font-size:9px; color:#475569; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:3px;">Last Audit</div>
+              <div style="font-size:9px; color:#94A3B8; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:3px;">Last Audit</div>
               <div id="govLastAuditTimestamp" style="font-size:11px; color:#94a3b8; font-family:monospace;">—</div>
             </div>
           </div>
@@ -217,11 +217,11 @@
           border:1px solid rgba(255,255,255,0.08);
           border-radius:12px; padding:16px; margin-bottom:14px;
         ">
-          <div style="font-size:10px; color:#475569; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:12px;">
+          <div style="font-size:10px; color:#94A3B8; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:12px;">
             Bulk Allotment Reservoir — Selected Corridor
           </div>
           <div id="govFuelGaugeContent">
-            <div style="color:#475569; font-size:13px; text-align:center; padding:20px 0;">
+            <div style="color:#94A3B8; font-size:13px; text-align:center; padding:20px 0;">
               Select a corridor above to view the reservoir gauge
             </div>
           </div>
@@ -237,15 +237,15 @@
             border-radius:12px; padding:14px;
           ">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-              <div style="font-size:10px; color:#475569; text-transform:uppercase; letter-spacing:1.2px;">
+              <div style="font-size:10px; color:#94A3B8; text-transform:uppercase; letter-spacing:1.2px;">
                 Recent Bulk Allotments
               </div>
               <button onclick="loadGovRecentEvents()" style="
-                background:none; color:#475569; border:none; font-size:13px; cursor:pointer; padding:2px 6px;
+                background:none; color:#94A3B8; border:none; font-size:13px; cursor:pointer; padding:2px 6px;
               ">↻</button>
             </div>
             <div id="govRecentEventsRows" style="display:flex; flex-direction:column; gap:6px; max-height:180px; overflow-y:auto;">
-              <div style="color:#475569; font-size:12px; text-align:center; padding:20px;">
+              <div style="color:#94A3B8; font-size:12px; text-align:center; padding:20px;">
                 ⏳ Loading…
               </div>
             </div>
@@ -257,7 +257,7 @@
             border:1px solid rgba(255,255,255,0.08);
             border-radius:12px; padding:14px;
           ">
-            <div style="font-size:10px; color:#475569; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:10px;">
+            <div style="font-size:10px; color:#94A3B8; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:10px;">
               Selected Corridor Control
             </div>
             <div id="govQuickActionsCorridorLabel" style="
@@ -303,7 +303,7 @@
 
       <!-- ── Regional Corridor Reservoir Grid ──────────────────────────── -->
       <div style="
-        background: #1E293B; border-radius: 16px;
+        background: #131A26; border-radius: 16px;
         margin-bottom: 18px; border: 1px solid #334155; overflow: hidden;
       ">
         <div style="
@@ -342,7 +342,7 @@
 
       <!-- ── Governance Signatures Required ────────────────────────────── -->
       <div style="
-        background: #1E293B; border-radius: 16px;
+        background: #131A26; border-radius: 16px;
         border: 1px solid #334155; overflow: hidden;
       ">
         <div style="
@@ -396,7 +396,7 @@
       padding: 12px 24px; background: #0B1220; border-top: 1px solid #1e293b;
       display: flex; justify-content: flex-end; align-items: center; flex-shrink: 0;
     ">
-      <div style="font-size:11px;color:#475569;font-family:monospace;">bearerCORE™ Protocol · Sovereign Settlement Engine</div>
+      <div style="font-size:11px;color:#94A3B8;font-family:monospace;">bearerCORE™ Protocol · Sovereign Settlement Engine</div>
     </div>
   </div>
 </div>
@@ -479,7 +479,8 @@
   animation: govAllocPulse 1.4s ease-in-out infinite;
 }
 
-.gov-proposal-row:hover { background: #172033 !important; }
+.gov-proposal-row { transition: background 0.15s ease; }
+.gov-proposal-row:hover { background: #243044 !important; }
 
 @media (max-width: 900px) {
   #governorDeskModalOverlay { padding: 10px !important; align-items: flex-start !important; }
@@ -772,7 +773,7 @@ function govBuildCorridorSelect(corridors) {
       </div>`;
     }).join('');
     return `<div style="padding:2px 0;">
-      <div style="padding:5px 10px 3px;font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.8px;">${bloc} · ${meta.label}</div>
+      <div style="padding:5px 10px 3px;font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">${bloc} · ${meta.label}</div>
       ${items}
     </div>`;
   }).join('');
@@ -853,7 +854,7 @@ function govHaltResumeAction() {
 async function loadCorridorGauge(corridorId) {
   const content = document.getElementById('govFuelGaugeContent');
   if (!content) return;
-  content.innerHTML = '<div style="color:#475569;font-size:13px;text-align:center;padding:20px;">⏳ Loading…</div>';
+  content.innerHTML = '<div style="color:#94A3B8;font-size:13px;text-align:center;padding:20px;">⏳ Loading…</div>';
 
   let pos = null;
   try {
@@ -900,7 +901,7 @@ function renderSingleCorridorGauge(pos, corridorLabel) {
       </div>
       <div style="text-align:right;">
         <div style="font-size:22px;font-weight:800;color:${barColor};">${headroomPct}%</div>
-        <div style="font-size:9px;color:#475569;text-transform:uppercase;">headroom</div>
+        <div style="font-size:9px;color:#94A3B8;text-transform:uppercase;">headroom</div>
       </div>
     </div>
     ${hasData ? `
@@ -910,19 +911,19 @@ function renderSingleCorridorGauge(pos, corridorLabel) {
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
       <div style="text-align:center;background:rgba(255,255,255,0.04);border-radius:8px;padding:10px 6px;">
-        <div style="font-size:9px;color:#475569;text-transform:uppercase;margin-bottom:4px;">Allotted</div>
+        <div style="font-size:9px;color:#94A3B8;text-transform:uppercase;margin-bottom:4px;">Allotted</div>
         <div style="font-size:13px;font-weight:700;color:#e2e8f0;">${currency} ${fmtNum(total)}</div>
       </div>
       <div style="text-align:center;background:rgba(255,255,255,0.04);border-radius:8px;padding:10px 6px;">
-        <div style="font-size:9px;color:#475569;text-transform:uppercase;margin-bottom:4px;">Drawn</div>
+        <div style="font-size:9px;color:#94A3B8;text-transform:uppercase;margin-bottom:4px;">Drawn</div>
         <div style="font-size:13px;font-weight:700;color:${barColor};">${currency} ${fmtNum(linked)}</div>
       </div>
       <div style="text-align:center;background:rgba(0,212,192,0.08);border-radius:8px;padding:10px 6px;border:1px solid rgba(13,148,136,0.2);">
-        <div style="font-size:9px;color:#475569;text-transform:uppercase;margin-bottom:4px;">Free</div>
+        <div style="font-size:9px;color:#94A3B8;text-transform:uppercase;margin-bottom:4px;">Free</div>
         <div style="font-size:13px;font-weight:700;color:#2dd4bf;">${currency} ${fmtNum(headroom)}</div>
       </div>
     </div>` : `
-    <div style="color:#475569;font-size:12px;text-align:center;padding:16px 0;background:rgba(255,255,255,0.03);border-radius:8px;">
+    <div style="color:#94A3B8;font-size:12px;text-align:center;padding:16px 0;background:rgba(255,255,255,0.03);border-radius:8px;">
       No liquidity data available for this corridor
     </div>`}`;
 }
@@ -955,7 +956,7 @@ async function loadGovCorridorLiquidity() {
 async function loadGovRecentEvents() {
   const rows = document.getElementById('govRecentEventsRows');
   if (!rows) return;
-  rows.innerHTML = '<div style="color:#475569;font-size:12px;text-align:center;padding:20px;">⏳ Loading…</div>';
+  rows.innerHTML = '<div style="color:#94A3B8;font-size:12px;text-align:center;padding:20px;">⏳ Loading…</div>';
 
   try {
     const res = await fetch('/api/v2/governance/proposals?category=bulk_allotment&per_page=5', {
@@ -981,7 +982,7 @@ function renderGovRecentEvents(proposals) {
   if (!rows) return;
 
   if (proposals.length === 0) {
-    rows.innerHTML = '<div style="color:#475569;font-size:12px;text-align:center;padding:20px;">No bulk allotments on record.</div>';
+    rows.innerHTML = '<div style="color:#94A3B8;font-size:12px;text-align:center;padding:20px;">No bulk allotments on record.</div>';
     return;
   }
 
@@ -1132,7 +1133,7 @@ function govRenderCorridorTable() {
   // ISO code in muted slate, digits bright — faster numeric scanning.
   const govMoney = (cur, n, digitColor) => (n && n > 0)
     ? `<span style="color:#64748b;">${cur}</span> <span style="color:${digitColor};">${fmtNum(n)}</span>`
-    : '<span style="color:#475569;">—</span>';
+    : '<span style="color:#94A3B8;">—</span>';
   const tabCount = tab => tab === 'ALL' ? scoped.length : scoped.filter(c => govGetBloc(c) === tab).length;
 
   let rows = scoped;
@@ -1193,13 +1194,13 @@ function govRenderCorridorTable() {
       ? `<button onclick="event.stopPropagation();govResumeCorridorFlow('${id}','${safe}')" title="Resume corridor" style="border:none;border-radius:7px;padding:5px 10px;font-size:13px;cursor:pointer;background:rgba(45,212,191,0.15);color:#2dd4bf;">↩</button>`
       : can
         ? `<button onclick="event.stopPropagation();govSelectedCorridorId='${id}';govSelectedCorridorLabel='${safe}';govHaltCorridor()" title="Emergency halt" style="border:none;border-radius:7px;padding:5px 10px;font-size:13px;cursor:pointer;background:rgba(239,68,68,0.15);color:#f87171;">⚡</button>`
-        : `<button disabled title="Outside jurisdiction — view only" style="border:none;border-radius:7px;padding:5px 10px;font-size:13px;cursor:not-allowed;background:rgba(100,116,139,0.15);color:#475569;">⚡</button>`;
+        : `<button disabled title="Outside jurisdiction — view only" style="border:none;border-radius:7px;padding:5px 10px;font-size:13px;cursor:not-allowed;background:rgba(100,116,139,0.15);color:#94A3B8;">⚡</button>`;
 
     return `
-      <tr onclick="govRowSelect('${id}','${safe}',${can})" style="border-bottom:1px solid #1e293b;cursor:pointer;${can?'':'opacity:0.55;'}"
-          onmouseover="this.style.background='#172033'" onmouseout="this.style.background='transparent'">
+      <tr onclick="govRowSelect('${id}','${safe}',${can})" style="border-bottom:1px solid #1e293b;cursor:pointer;transition:background 0.15s ease;${can?'':'opacity:0.55;'}"
+          onmouseover="this.style.background='#243044'" onmouseout="this.style.background='transparent'">
         <td style="padding:10px 12px;font-family:monospace;font-size:12.5px;color:#e2e8f0;white-space:nowrap;">
-          ${govFlag(src)} ${src} <span style="color:#475569;">→</span> ${govFlag(dst)} ${dst}
+          ${govFlag(src)} ${src} <span style="color:#94A3B8;">→</span> ${govFlag(dst)} ${dst}
           ${can?'':'<span style="margin-left:6px;font-size:9px;color:#64748b;text-transform:uppercase;">audit</span>'}
         </td>
         <td style="padding:10px 12px;font-size:11px;color:#94a3b8;">${region}</td>
@@ -1212,23 +1213,23 @@ function govRenderCorridorTable() {
             </div>
             <span style="font-size:10px;font-weight:700;color:${h.color};white-space:nowrap;">${h.pct===null?'—':h.pct+'%'}</span>
           </div>
-          <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;margin-top:2px;">${h.label}</div>
+          <div style="font-size:9px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.4px;margin-top:2px;">${h.label}</div>
         </td>
         <td style="padding:10px 12px;text-align:center;">${haltBtn}</td>
       </tr>`;
   }).join('');
 
   grid.innerHTML = filterBar + `
-    <div style="overflow-x:auto;border:1px solid #1e293b;border-radius:12px;">
+    <div style="max-height:52vh;overflow:auto;border:1px solid #1e293b;border-radius:12px;">
       <table style="width:100%;border-collapse:collapse;min-width:640px;">
-        <thead>
+        <thead style="position:sticky;top:0;z-index:10;">
           <tr style="background:#0f172a;border-bottom:1px solid #334155;">
-            <th style="text-align:left;padding:9px 12px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;">Corridor</th>
-            <th style="text-align:left;padding:9px 12px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;">Region</th>
-            <th style="text-align:right;padding:9px 12px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;">Daily Cap</th>
-            <th style="text-align:right;padding:9px 12px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;">Available</th>
-            <th style="text-align:left;padding:9px 12px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;">Health</th>
-            <th style="text-align:center;padding:9px 12px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;">⚡</th>
+            <th style="text-align:left;padding:9px 12px;font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Corridor</th>
+            <th style="text-align:left;padding:9px 12px;font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Region</th>
+            <th style="text-align:right;padding:9px 12px;font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Daily Cap</th>
+            <th style="text-align:right;padding:9px 12px;font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Available</th>
+            <th style="text-align:left;padding:9px 12px;font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Health</th>
+            <th style="text-align:center;padding:9px 12px;font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">⚡</th>
           </tr>
         </thead>
         <tbody>${bodyRows}</tbody>
@@ -1303,16 +1304,16 @@ function renderGovernanceSignatures(proposals) {
   };
 
   panel.innerHTML = `
-    <div style="overflow-x:auto;">
+    <div style="max-height:42vh;overflow:auto;">
       <table style="width:100%;border-collapse:collapse;font-size:13px;">
-        <thead>
+        <thead style="position:sticky;top:0;z-index:10;">
           <tr style="background:#0f172a;border-bottom:2px solid #334155;">
-            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Proposal</th>
-            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Corridor</th>
-            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Type</th>
-            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Multi-Sig</th>
-            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Submitted</th>
-            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;"></th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Proposal</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Corridor</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Type</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Multi-Sig</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Submitted</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;"></th>
           </tr>
         </thead>
         <tbody>
