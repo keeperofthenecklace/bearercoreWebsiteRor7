@@ -132,12 +132,31 @@
           <tr><td>Corridor Operator</td><td>corridor.execute, gateway.manage, audit.read</td><td>Corridor Ops, Regional Gateways, Audit</td></tr>
           <tr><td>Governor</td><td>all scopes (incl. governance.clearance)</td><td>all</td></tr>
           <tr><td>System Admin</td><td><code>*</code> (unrestricted)</td><td>all</td></tr>
+          <tr><td>Commercial Institution&nbsp;Operator</td><td><code>claim.create</code>, <code>claim.read</code> (only)</td><td>Trade Claim / Counterparty Portal only</td></tr>
         </tbody>
       </table>
       <p>Key action buttons — Authorize, Mint, Burn, Governance Clearance — are
         gated by the corresponding scope (<code>issuance.authorize</code>,
         <code>issuance.mint</code>, <code>issuance.burn</code>,
         <code>governance.clearance</code>).</p>
+      <p><b>Segregation of Duties.</b> The six roles above are central-bank node /
+        platform operators. <b>Commercial Institution Operator</b> is the only
+        dealer-bank (maker) role: it may <b>only</b> create trade claims and read the
+        lifecycle of its <b>own institution's</b> claims. With no sovereign scopes,
+        <code>can_mint?</code> and supervisor-capability both fail, hard-blocking
+        Issuance, Supervisor Desk, Deposit &amp; Burn, Corridor Ops, Validation Desk,
+        and Governance. Its trade-claim list is enclosed to
+        <code>submitted_by_institution_swift</code> — it can never see other
+        counterparties' or central-bank claims. Provision it in
+        <code>/admin/operator_accounts</code>.</p>
+      <p><b>Sovereign jurisdiction locks.</b> Two write-time boundaries reinforce the
+        model: the <b>Governor Console</b> only halts/injects/adjusts corridors whose
+        origin OR destination is the governor's home country (server-enforced by
+        <code>SovereignOriginGuard</code> → 403 <code>sovereign_jurisdiction_violation</code>);
+        and the <b>Minting Desk</b> SELECT SOURCE strictly scopes to authorizations
+        whose corridor <b>targets</b> the operator's home country, so only the
+        destination central bank can mint a destination liability (e.g. only CBN/NGA
+        may mint an L-NGN note from a GHA→NGA claim). <code>system_admin</code> bypasses.</p>
     </div>
 
     <!-- §4 MFA -->
