@@ -5158,6 +5158,14 @@ async function confirmAndSubmitTradeClaim() {
       // ABAC guard can check it against the token-bound operator (403 wrong_tenant).
       origin_institution_swift: (window.SC_PORTAL && window.SC_PORTAL.institution_swift) || undefined,
       corridor_id:         document.getElementById('tc_corridor_id').value,
+      // Capture origin + destination ISO explicitly so the server never collapses
+      // the corridor to X→X when corridor_id is a virtual/opaque id. Origin is the
+      // locked home country (portal) or the selected origin country; destination is
+      // the beneficiary country.
+      source_country:           ((window.SC_PORTAL && window.SC_PORTAL.country_code) || (typeof selectedCountry !== 'undefined' && selectedCountry && selectedCountry.code) || '').toString().toUpperCase(),
+      origin_country_code:      ((window.SC_PORTAL && window.SC_PORTAL.country_code) || (typeof selectedCountry !== 'undefined' && selectedCountry && selectedCountry.code) || '').toString().toUpperCase(),
+      target_country:           document.getElementById('tc_beneficiary_country').value.toUpperCase(),
+      destination_country_code: document.getElementById('tc_beneficiary_country').value.toUpperCase(),
       trade_direction:     document.getElementById('tc_trade_direction').value,
       currency_code:       document.getElementById('tc_currency_code').value,
       amount:              getNumericAmount(),

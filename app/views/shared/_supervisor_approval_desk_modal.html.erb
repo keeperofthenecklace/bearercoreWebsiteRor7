@@ -944,9 +944,10 @@ function populateApprovalDetails(claim) {
   document.getElementById('approvalInstitutionName').textContent = inst;
   document.getElementById('approvalInstitutionFlag').textContent = fromFlag;
   
-  // Trade direction with country name
-  const directionText = dir === 'import' 
-    ? `Import into ${fromCountry || 'Unknown'}`
+  // Trade direction with country name — "import into" the DESTINATION, "export from"
+  // the ORIGIN (matches how the claim is created: Import into <beneficiary/dest>).
+  const directionText = dir === 'import'
+    ? `Import into ${toCountry || 'Unknown'}`
     : `Export from ${fromCountry || 'Unknown'}`;
   document.getElementById('approvalDirection').textContent = directionText;
   
