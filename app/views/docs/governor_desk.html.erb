@@ -431,8 +431,24 @@
           <tr><td><strong>Session Continuity</strong></td><td>Central bank session required (require_central_bank_access filter on DocsController and all API routes)</td><td>before_action filter on all protected controllers</td></tr>
           <tr><td><strong>Post-Hoc Justification</strong></td><td>Emergency halt requires audit justification entry within 4 hours</td><td>Governance compliance monitoring service</td></tr>
           <tr><td><strong>No Governor Self-Halt</strong></td><td>A Governor who created a corridor cannot be the sole authority to permanently freeze it — requires Monetary Committee vote</td><td>Governance proposal controller</td></tr>
+          <tr><td><strong>Sovereign Jurisdiction Lock</strong></td><td>A governor may only halt / unhalt / inject liquidity / adjust the daily cap on corridors whose <strong>origin OR destination</strong> is their home country. Out-of-jurisdiction corridors render <strong>read-only</strong> (AUDIT MODE pill); a write is rejected with 403 <code>sovereign_jurisdiction_violation</code>. <code>system_admin</code> (or a blank home) bypasses.</td><td><code>SovereignOriginGuard</code> concern (UI + server) — corridors &amp; governance/proposals controllers</td></tr>
         </tbody>
       </table></div>
+
+      <div class="dp-callout dp-warn">
+        <span class="dp-ci">⚠</span>
+        <div>
+          <strong>Sovereign jurisdiction lock (defence in depth).</strong> The console mirrors the
+          boundary client-side — the SELECT CORRIDOR dropdown and grid scope to corridors touching the
+          governor's home country (matching <em>either</em> endpoint, so a GHA governor sees both
+          <code>GHA → *</code> and <code>* → GHA</code>), and out-of-scope rows show a READ-ONLY / AUDIT
+          MODE pill with controls disabled. This is a UI convenience only: the authority is
+          <code>SovereignOriginGuard</code>, which re-checks that the governor's home ISO is in
+          <code>[source, target]</code> on every write and returns 403
+          <code>sovereign_jurisdiction_violation</code> otherwise. Cap changes and permanent halts still
+          require the multi-signature governance vote (bilateral 1&nbsp;of&nbsp;2).
+        </div>
+      </div>
 
       <div class="dp-callout dp-danger">
         <span class="dp-ci">⛔</span>

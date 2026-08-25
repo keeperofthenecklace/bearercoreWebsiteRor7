@@ -186,6 +186,7 @@
       <h3>Select Source</h3>
       <p>Editable QComboBox listing cleared issuance authorizations, populated from <code>GET /api/v2/issuance_authorizations</code>. The refresh button re-queries the registry. Until a source is selected the entire mint workflow is inert and the dropdown reads <code>— No active trade claims —</code>.</p>
       <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>SELECT SOURCE lists authorizations from <strong>both clearing sources</strong> — supervisor-cleared trade claims (l-CBDC, <code>L-{CCY}</code>) and RTGS liquidity swaps (d-CBDC, native <code>{CCY}</code>). Each entry shows its corridor, asset, amount and a <strong>🟢 READY TO MINT</strong> badge. See <a href="#rtgs">§11 — RTGS Settlement Clearing</a>.</div></div>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div><strong>Strict destination-jurisdiction scoping (sovereign minting boundary).</strong> <code>GET /api/v2/issuance_authorizations</code> returns <strong>only</strong> authorizations whose backing corridor <em>targets</em> the operator's home country (<code>UPPER(target_country) = home OR UPPER(to_country) = home</code>, home resolved from the operator's institution SWIFT). Only the <strong>destination</strong> central bank may mint a destination liability — e.g. only CBN&nbsp;/&nbsp;NGA can mint an <code>L-NGN</code> note from a <code>GHA → NGA</code> claim; a Bank of Ghana operator never sees it. There is <strong>no source-country fallback</strong>, and an operator whose home country cannot be resolved sees an <strong>empty</strong> list (fail-closed), never the full registry.</div></div>
 
       <h4>On Selection — Configuration Cascade</h4>
       <div class="dp-flow">
@@ -231,15 +232,27 @@
       <h3>Issuance Execution Pipeline</h3>
       <p>Three sequential phases, surfaced as a tabbed strip. Each phase unlocks only when its predecessor reports success.</p>
       <div class="dp-flow">
-        <div class="dp-step"><h4>Phase 1 — Package Authorization</h4><p>Operator clicks Authorize Package. POST /issuance_authorizations/:auth_code/cvib_batches (authorized by the OAuth session) → returns batch_id + per-note payloads.</p></div>
+        <div class="dp-step"><h4>Phase 1 — Package Authorization</h4><p>Operator clicks Authorize Package. POST /issuance_authorizations/:auth_code/cvib_batches (authorized by the OAuth session) → returns batch_id + per-note payloads. For <strong>large batches (&gt; 1,000 notes)</strong> the server offloads ingestion and returns <strong>HTTP&nbsp;202</strong> with a <code>progress_url</code> instead of blocking (see §4.4).</p></div>
         <div class="dp-step"><h4>Phase 2 — Vault Generation</h4><p>Per note: render denomination template, generate serial, embed zlib-compressed iTXt metadata, QR + Code-128 barcode, Ed25519 sign, AES-256-GCM vault-encrypt, write true PNG.</p></div>
-        <div class="dp-step"><h4>Phase 3 — Node Distribution</h4><p>ZIP notes + manifest.json, POST /cvib_batches/:batch_id/confirm_manifest, deliver to claiming bank via email or SFTP.</p></div>
+        <div class="dp-step"><h4>Phase 3 — Node Distribution</h4><p>Transfer-destination metadata is <strong>auto-populated from the selected authorization</strong> (target node / claiming institution), an automated pre-flight verifies the stored delivery endpoint, then <strong>🚀 Dispatch CVIB Bundle to Target Node</strong> ZIPs notes + manifest.json, POSTs <code>/cvib_batches/:batch_id/confirm_manifest</code> + <code>upload_bundle</code>, and the server pushes over the stored SFTP endpoint.</p></div>
       </div>
+
+      <h3 id="async-mint">§4.4 — Large-Volume Async Minting</h3>
+      <p>To keep the desktop client responsive when issuing up to ~1,000,000 bearer notes, minting is split by size at <code>ASYNC_INGEST_THRESHOLD = 1000</code>:</p>
+      <div class="dp-table-wrap"><table class="dp-table">
+        <thead><tr><th>Batch size</th><th>Response</th><th>Ingestion path</th></tr></thead>
+        <tbody>
+          <tr><td><strong>≤ 1,000 notes</strong></td><td>HTTP&nbsp;201 (synchronous)</td><td>Allocated + bulk-inserted inline; identical chunked helper as the async path.</td></tr>
+          <tr><td><strong>&gt; 1,000 notes</strong></td><td>HTTP&nbsp;202 <code>{ batch_id, status:&nbsp;"queued", async:&nbsp;true, progress_url }</code></td><td>A batch shell is committed (<code>progress_phase:&nbsp;"queued"</code>) and <code>CvibBatchIngestJob</code> runs on Sidekiq — allocating serials and bulk-inserting notes in <strong>chunks of 5,000</strong>, updating <code>processed_notes</code> / <code>progress_phase</code> after each chunk.</td></tr>
+        </tbody>
+      </table></div>
+      <p>The client then polls <code>GET /api/v2/cvib_batches/:id/progress</code> (~1&nbsp;s cadence), which returns <code>{ total_notes, processed_notes, percent, progress_phase, status, done }</code>, and drives the Mint Progress dialog's aggregate progress bar + Active Engine Logs until <code>done: true</code> before proceeding to render/dispatch. The job is <strong>idempotent</strong> (skips a batch whose notes already exist) and retry-safe; on error it sets <code>progress_phase: "failed"</code>. A linked <code>BackingLock</code> must exist for the authorization (Gate&nbsp;4 liquidity) before ingestion begins.</p>
 
       <h3>Authorization Gate</h3>
       <div class="dp-rule">Authorization is carried by the operator's OAuth session — the former 4-digit operator PIN second factor has been removed.</div>
       <div class="dp-rule">A cleared trade claim must be selected — empty source shows "Select a cleared trade claim from SELECT SOURCE above to begin." Once sovereign clearance arrives, the Authorize Package button unlocks directly.</div>
       <div class="dp-rule">Server-side, the request is validated by Doorkeeper OAuth (<code>before_action :doorkeeper_authorize!</code>); no PIN is checked. A future second factor is intended to be per-operator TOTP, not a shared PIN.</div>
+      <div class="dp-rule">On top of OAuth, minting passes <code>authorize_mint!</code> — <strong>operator identity</strong> (valid <code>X-Operator-Session</code> → 401 <code>operator_unidentified</code>), <strong>RBAC</strong> (<code>can_mint?</code> = active &amp; <code>mint_operator</code> &amp; <code>issuance.mint</code> → 403 <code>mint_role_required</code>), <strong>ABAC tenancy</strong> (operator <code>institution_swift</code> vs target → 403 <code>wrong_tenant</code>), and <strong>four-eyes</strong> (minter ≠ claim submitter → 403 <code>four_eyes_violation</code>). The batch is stamped with <code>minted_by_operator_id</code>.</div>
 
       <h3>Issuance Registry — Activity Feed</h3>
       <p>Live feed of minting activity for the session. Empty state reads <strong>No Active Issuance Claims</strong> / "Select a trade authorization above to begin the minting workflow."</p>

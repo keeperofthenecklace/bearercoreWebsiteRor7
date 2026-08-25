@@ -106,6 +106,21 @@
           until all five gates pass.
         </div>
       </div>
+      <div class="dp-callout dp-info">
+        <span class="dp-ci">ℹ</span>
+        <div>
+          <strong>Who may create a claim — the dealer-bank maker.</strong> The
+          <code>commercial_institution_operator</code> role (Commercial Institution Operator / Authorized
+          Dealer — Claim Maker) is the only non-sovereign role. It holds exactly two scopes —
+          <code>claim.create</code> and <code>claim.read</code> — and is the intended claim originator.
+          It is <strong>enclosed to its own institution</strong>: the trade-claim list is filtered by
+          <code>submitted_by_institution_swift</code>, so a maker sees only claims their own institution
+          submitted — never other counterparties' or central-bank claims. It has <strong>zero sovereign
+          access</strong> (Issuance, Supervisor Desk, Deposit &amp; Burn, Corridor Ops, Validation,
+          Governance are all hard-blocked). Four-eyes still applies downstream: the minter must differ
+          from <code>submitted_by_operator_id</code>.
+        </div>
+      </div>
     </div>
 
     <!-- §2 Workflow States -->
@@ -351,6 +366,9 @@
         <tbody>
           <tr><td class="f">corridor_id</td><td>tc_corridor_id</td><td>Resolved to corridor snapshot server-side</td></tr>
           <tr><td class="f">institution_id</td><td>tc_institution_id</td><td>Resolved to institution snapshot server-side</td></tr>
+          <tr><td class="f">source_country</td><td>SC_PORTAL.country_code</td><td><strong>Explicit origin</strong> — the claiming institution's home ISO. Prevents corridor collapse (see callout).</td></tr>
+          <tr><td class="f">target_country</td><td>tc_beneficiary_country</td><td><strong>Explicit destination</strong> — the beneficiary ISO. Server prefers this explicit pair over inference.</td></tr>
+          <tr><td class="f">origin_country_code / destination_country_code</td><td>same pair (aliases)</td><td>Sent for downstream corridor routing / display.</td></tr>
           <tr><td class="f">amount</td><td>tc_amount</td><td>Numeric string</td></tr>
           <tr><td class="f">currency_code</td><td>tc_currency_code (hidden)</td><td>Derived from corridor</td></tr>
           <tr><td class="f">trade_direction</td><td>tc_trade_direction</td><td>import | export | remittance | interbank</td></tr>
@@ -364,6 +382,21 @@
 
       <h3>Success Response (HTTP 201)</h3>
       <div class="dp-rule">{"status":"submitted","data":{...claim record...},"message":"Trade claim TC-... submitted — entering supervisory review queue."}</div>
+
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>
+        <strong>Explicit corridor routing (no self-referential collapse).</strong> The client now sends
+        the origin/destination pair explicitly (<code>source_country</code> from
+        <code>SC_PORTAL.country_code</code>, <code>target_country</code> from the beneficiary), and the
+        server <code>resolve_corridor!</code> prefers that explicit pair. This fixes the earlier defect
+        where a claim with no source resolved to a same-country corridor (e.g. <code>NGA → NGA</code>) —
+        a GHA→NGA claim now routes correctly.
+      </div></div>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
+        <strong>Client conveniences.</strong> Step&nbsp;2 shows a <strong>dynamic FX oracle label</strong>
+        chosen by the destination central bank (national CB, else the regional oracle), and the destination
+        <strong>holder ID auto-provisions</strong> from the target node (e.g. <code>BAPANANX-NAM-NODE-01</code>).
+        These are display/routing aids; corridor rate, liquidity, and backing remain server-authoritative.
+      </div></div>
     </div>
 
     <!-- §7 Actions -->

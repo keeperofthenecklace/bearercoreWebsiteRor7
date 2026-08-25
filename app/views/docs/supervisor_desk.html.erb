@@ -73,6 +73,20 @@
         prevents Qt6 from attempting minting against a depleted corridor reserve.
       </p>
 
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
+        <strong>Web console (bearerCORE <code>/sandbox</code>) — role-gated &amp; SmartCHEQ-backed.</strong>
+        The desk card renders only when <code>DashboardRolesHelper#show_supervisor_card?</code> is true —
+        regulator roles always, role-less public demo visitors and CB-node commercial operators for
+        testing (flagged with a <strong>[ SANDBOX SIMULATION ]</strong> pill). A dealer-bank
+        <code>commercial_institution_operator</code> <strong>never</strong> sees it (Segregation of Duties).
+        All approve / reject / re-evaluate fetches target the <strong>SmartCHEQ</strong> API (the identity
+        authority), authorized by the Doorkeeper token bound to the session by the central-bank auth bridge;
+        the server re-gates every action with <code>authorize_supervisor_action!</code>. A cleared claim shows
+        the <strong>Cleared</strong> label, and an expired portal session (8&nbsp;h TTL) surfaces a
+        session-expired modal with a "Sign in again →" link rather than a raw
+        <code>operator_unidentified</code> error.
+      </div></div>
+
       <div class="dp-pane-grid">
         <div class="dp-pane dp-pane-left">
           <h3>Left Pane — Queue</h3>
