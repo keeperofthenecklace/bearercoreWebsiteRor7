@@ -137,10 +137,12 @@ module Api
             proposal_type:       prop["type"] || prop["category"] || "proposal",
             amount:              amount,
             new_cap:             amount,
-            required_signatures: 3,
-            current_signatures:  0,
+            # Bilateral 1/2 threshold: the originating central bank auto-signs on
+            # submission; the counterparty CB must co-sign before it takes effect.
+            required_signatures: 2,
+            current_signatures:  1,
             status:              "pending",
-            submitted_by:        "Governor",
+            submitted_by:        session[:institution_swift].presence || "Governor",
             created_at:          Time.now.iso8601,
           }
           self.class.created_proposals.unshift(record)

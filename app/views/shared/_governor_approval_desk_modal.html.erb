@@ -740,7 +740,8 @@ function govBuildCorridorSelect(corridors) {
   let base = corridors || [];
   if (govJurisdictionLocked() && !govAuditMode) {
     const home = govHomeCountry();
-    base = base.filter(c => (c.source_country||'').toUpperCase() === home);
+    base = base.filter(c =>
+      (c.source_country||'').toUpperCase() === home || (c.target_country||'').toUpperCase() === home);
   }
 
   const term     = (document.getElementById('govCorridorSearch')?.value || '').toLowerCase();
@@ -846,10 +847,12 @@ function govSelectedCorridorObj() {
   return (govAllCorridors || []).find(c => String(c.id || c.code) === idm)
       || (govCorridorLiquidityData || []).find(c => String(c.id || c.code) === idm);
 }
+const GOV_READONLY_MSG = 'Read-Only: Sovereign authority restricted to home jurisdiction corridors.';
+
 function govAssertControl() {
   const c = govSelectedCorridorObj();
   if (!c || govCanControl(c)) return true;
-  govShowToast(`⛔ ${govSelectedCorridorLabel || 'Corridor'} is outside your sovereign jurisdiction (${govHomeCountry()}) — action blocked.`, 'warn');
+  govShowToast(GOV_READONLY_MSG, 'warn');
   return false;
 }
 
@@ -1068,9 +1071,13 @@ function govHomeCountry(){ return (((window.SC_PORTAL||{}).country_code)||'').to
 function govIsSuperuser(){ return (((window.SC_PORTAL||{}).role)||'') === 'system_admin'; }
 function govJurisdictionLocked(){ return !govIsSuperuser() && govHomeCountry() !== ''; }
 // A Governor may only control corridors ORIGINATING in their home country.
+// A Governor's home jurisdiction covers every corridor LINKED to their country —
+// as origin (source) OR destination (target). Non-home corridors are read-only.
 function govCanControl(c){
   if (govIsSuperuser() || govHomeCountry() === '') return true;
-  return ((c.source_country||'').toUpperCase()) === govHomeCountry();
+  const home = govHomeCountry();
+  return ((c.source_country||'').toUpperCase() === home)
+      || ((c.target_country||'').toUpperCase() === home);
 }
 
 // Region tabs the user requested (subset of blocs, fixed order).
@@ -1103,7 +1110,8 @@ async function loadCorridorReservoirGrid() {
 function govScopedCorridors() {
   if (!govJurisdictionLocked() || govAuditMode) return govAllCorridors;
   const home = govHomeCountry();
-  return govAllCorridors.filter(c => (c.source_country||'').toUpperCase() === home);
+  return govAllCorridors.filter(c =>
+    (c.source_country||'').toUpperCase() === home || (c.target_country||'').toUpperCase() === home);
 }
 
 function govHealth(c) {
@@ -1128,7 +1136,8 @@ function govHealth(c) {
 function govRowSelect(id, label, can) {
   if (!can) {
     const lbl = document.getElementById('govQuickActionsCorridorLabel');
-    if (lbl) { lbl.textContent = `⛔ ${label} — outside your jurisdiction (${govHomeCountry()}), view only`; lbl.style.color = '#f87171'; }
+    if (lbl) { lbl.textContent = GOV_READONLY_MSG; lbl.style.color = '#fbbf24'; }
+    govShowToast(GOV_READONLY_MSG, 'warn');
     return;
   }
   govSelectCorridor(id, label);
@@ -1634,14 +1643,39 @@ function govAdjustDailyCap() {
     confirmLabel: 'Queue Proposal',
     confirmBg: 'linear-gradient(135deg,#0d9488,#0d6e6e)',
     hasInput: true,
-    onConfirm: (val) => {
+    onConfirm: async (val) => {
       const amt = parseFloat(val.replace(/,/g, ''));
       if (!val || isNaN(amt) || amt <= 0) {
         govShowToast('Invalid amount — enter a positive number.', 'error');
         return;
       }
       govHideDialog();
-      govShowToast(`Cap adjustment proposal queued: ${govSelectedCorridorLabel} → ${amt.toLocaleString()}`, 'success');
+      // Bilateral parameter change — must NOT take effect unilaterally. Submit a
+      // proposal to the Governance Signatures Required queue for counterparty sign-off.
+      const year = new Date().getFullYear();
+      const ref  = `CAP-${year}-${govSelectedCorridorLabel.replace(/\s*→\s*/g,'-').replace(/\s+/g,'')}-001`;
+      try {
+        const res = await fetch('/api/v2/governance/proposals', {
+          method: 'POST',
+          headers: getGovernorAuthHeaders(),
+          body: JSON.stringify({
+            proposal: {
+              type: 'cap_change', category: 'cap_change',
+              title: ref, corridor: govSelectedCorridorLabel,
+              corridor_id: govSelectedCorridorId, new_cap: amt.toString(),
+              justification: `Daily cap adjustment → ${amt.toLocaleString()} for ${govSelectedCorridorLabel}`,
+              rationale: 'Governor-initiated cap change from Macro-Corridor Console',
+            }
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`);
+        const propId = data?.data?.proposal_id || data?.data?.id || ref;
+        govShowToast(`✓ Proposal ${propId} queued — counterparty central bank signature required before the cap change takes effect.`, 'success');
+        loadGovernanceSignatures();
+      } catch (err) {
+        govShowToast(`Error: ${err.message}`, 'error');
+      }
     }
   });
 }
