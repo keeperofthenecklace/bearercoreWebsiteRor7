@@ -2,11 +2,14 @@
 # bound in session[:role] (plumbed from the SmartCHEQ auth bridge).
 #
 # Role map mirrors SmartCHEQ RbacPolicy::ROLE_SCOPES:
-#   commercial → minting_officer, corridor_operator
-#   regulator  → compliance_officer, forensic_auditor, governor, system_admin
+#   CB node/platform → minting_officer, corridor_operator (commercial-node) +
+#                      compliance_officer, forensic_auditor, governor, system_admin
+#   dealer-bank maker → commercial_institution_operator (Trade Claim ONLY)
 module DashboardRolesHelper
-  COMMERCIAL_ROLES = %w[minting_officer corridor_operator].freeze
-  REGULATOR_ROLES  = %w[compliance_officer forensic_auditor governor system_admin].freeze
+  COMMERCIAL_ROLES  = %w[minting_officer corridor_operator].freeze
+  REGULATOR_ROLES   = %w[compliance_officer forensic_auditor governor system_admin].freeze
+  # Dealer-bank claim maker — Trade Claim / Counterparty Portal only, zero sovereign.
+  CLAIM_MAKER_ROLES = %w[commercial_institution_operator].freeze
 
   def dashboard_role
     session[:role].to_s
@@ -24,16 +27,24 @@ module DashboardRolesHelper
     COMMERCIAL_ROLES.include?(dashboard_role)
   end
 
+  # Dealer-bank maker (Segregation of Duties enclosure): Trade Claim only.
+  def claim_maker?
+    CLAIM_MAKER_ROLES.include?(dashboard_role)
+  end
+
   # Supervisor Desk visibility. Regulators always see it. On the public /sandbox,
-  # role-less visitors and commercial operators may also open it for testing —
-  # flagged via supervisor_sandbox_sim? so the card carries a SANDBOX pill.
+  # role-less visitors and CB-node commercial operators may also open it for
+  # testing — flagged via supervisor_sandbox_sim? so the card carries a SANDBOX
+  # pill. A dealer-bank claim maker NEVER sees it (zero sovereign access).
   def show_supervisor_card?
+    return false if claim_maker?
     regulator_operator? || !role_bound? || commercial_operator?
   end
 
-  # Governor Desk stays regulator-only (no sandbox testing exception granted),
-  # but role-less public demo visitors still see it.
+  # Governor Desk stays regulator-only (role-less public demo visitors still see
+  # it); a dealer-bank claim maker is hard-excluded.
   def show_governor_card?
+    return false if claim_maker?
     regulator_operator? || !role_bound?
   end
 
