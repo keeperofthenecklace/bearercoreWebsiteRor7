@@ -803,15 +803,28 @@ function govSelectCorridor(id, label) {
   if (!id) return;
   govSelectedCorridorId    = id;
   govSelectedCorridorLabel = (label || id).trim();
-  const lbl = document.getElementById('govQuickActionsCorridorLabel');
-  if (lbl) lbl.textContent = `Corridor: ${govSelectedCorridorLabel}`;
 
-  // Flip the Halt/Resume button based on the selected corridor's live status
-  const corridor = govCorridorLiquidityData.find(c => String(c.id || c.code) === String(id));
+  // Drawer control label — reset color (a prior audit-row click may have reddened it).
+  const lbl = document.getElementById('govQuickActionsCorridorLabel');
+  if (lbl) { lbl.textContent = `Corridor: ${govSelectedCorridorLabel}`; lbl.style.color = '#cbd5e1'; }
+
+  // Resolve the corridor from cache (liquidity list or full corridor set).
+  const corridor = (govCorridorLiquidityData || []).find(c => String(c.id || c.code) === String(id))
+                || (govAllCorridors || []).find(c => String(c.id || c.code) === String(id));
   const isHalted = corridor && (corridor.status === 'halted' || corridor.status === 'suspended');
   govUpdateHaltResumeBtn(isHalted);
 
+  // Sync the Bulk Allotment Reservoir immediately from cached liquidity (no async
+  // "Loading…" flash), then refresh from the live endpoint.
+  if (corridor) {
+    const pos = corridor.liquidity_position || corridor.liquidity_snapshot || corridor;
+    renderSingleCorridorGauge(pos, govSelectedCorridorLabel);
+  }
   loadCorridorGauge(id);
+
+  // Reflect the selection in the search box (unless the operator is mid-type).
+  const s = document.getElementById('govCorridorSearch');
+  if (s && document.activeElement !== s) s.value = govSelectedCorridorLabel;
 }
 
 function govUpdateHaltResumeBtn(isHalted) {
@@ -1220,10 +1233,10 @@ function govRenderCorridorTable() {
   }).join('');
 
   grid.innerHTML = filterBar + `
-    <div style="max-height:52vh;overflow:auto;border:1px solid #1e293b;border-radius:12px;">
+    <div style="border:1px solid #1e293b;border-radius:12px;">
       <table style="width:100%;border-collapse:collapse;min-width:640px;">
-        <thead style="position:sticky;top:0;z-index:10;">
-          <tr style="background:#0f172a;border-bottom:1px solid #334155;">
+        <thead style="position:sticky;top:0;z-index:10;background:#131A26;">
+          <tr style="background:#131A26;border-bottom:1px solid #334155;">
             <th style="text-align:left;padding:9px 12px;font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Corridor</th>
             <th style="text-align:left;padding:9px 12px;font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Region</th>
             <th style="text-align:right;padding:9px 12px;font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Daily Cap</th>
@@ -1304,10 +1317,10 @@ function renderGovernanceSignatures(proposals) {
   };
 
   panel.innerHTML = `
-    <div style="max-height:42vh;overflow:auto;">
+    <div>
       <table style="width:100%;border-collapse:collapse;font-size:13px;">
-        <thead style="position:sticky;top:0;z-index:10;">
-          <tr style="background:#0f172a;border-bottom:2px solid #334155;">
+        <thead style="position:sticky;top:0;z-index:10;background:#131A26;">
+          <tr style="background:#131A26;border-bottom:2px solid #334155;">
             <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Proposal</th>
             <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Corridor</th>
             <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Type</th>
