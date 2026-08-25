@@ -96,6 +96,8 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px;">
+          <!-- Active authenticated Governor identity + jurisdiction badge -->
+          <div id="govIdentityBadge" style="display:none; align-items:center; gap:10px; padding:5px 12px 5px 8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.10); border-radius:999px;"></div>
           <button onclick="loadMacroConsole()" style="
             background: rgba(13,148,136,0.2); color: #2dd4bf;
             border: 1px solid rgba(13,148,136,0.35); border-radius: 8px;
@@ -261,40 +263,50 @@
               Selected Corridor Control
             </div>
             <div id="govQuickActionsCorridorLabel" style="
-              font-size:11px; color:#64748b; margin-bottom:12px; min-height:16px;
+              font-size:11px; color:#94A3B8; margin-bottom:8px; min-height:16px;
             ">Select a corridor to enable actions</div>
 
-            <!-- Primary (liquidity): dark-slate fills, teal border/text — vibrant teal
-                 is reserved for badges + health indicators, not routine actions. -->
-            <div style="display:flex; gap:6px; margin-bottom:8px;">
-              <button onclick="govCreateBulkAllotment(50000000)" style="
-                flex:1; background:#1E293B; color:#5eead4;
-                border:1px solid #0d9488; border-radius:8px;
-                padding:11px 0; font-size:12px; font-weight:700; cursor:pointer;
-              " onmouseover="this.style.background='#243449'" onmouseout="this.style.background='#1E293B'">Inject 50M</button>
-              <button onclick="govCreateBulkAllotment(100000000)" style="
-                flex:1; background:#1E293B; color:#5eead4;
-                border:1px solid #0d9488; border-radius:8px;
-                padding:11px 0; font-size:12px; font-weight:700; cursor:pointer;
-              " onmouseover="this.style.background='#243449'" onmouseout="this.style.background='#1E293B'">Inject 100M</button>
-            </div>
+            <!-- Read-only / audit-mode pill — shown for non-home (non-jurisdiction) corridors -->
+            <div id="govDrawerReadonlyPill" style="
+              display:none; align-items:center; gap:6px; margin-bottom:12px;
+              background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.4);
+              color:#fbbf24; border-radius:8px; padding:6px 10px;
+              font-size:10px; font-weight:700; letter-spacing:0.5px;
+            ">🔒 READ-ONLY / AUDIT MODE</div>
 
-            <button onclick="govAdjustDailyCap()" style="
-              width:100%; background:rgba(255,255,255,0.07);
-              color:#cbd5e1; border:1px solid rgba(255,255,255,0.12);
-              border-radius:8px; padding:10px; font-size:12px;
-              font-weight:600; cursor:pointer; text-align:center;
-            ">📊 Adjust Daily Cap</button>
+            <div id="govDrawerActions">
+              <!-- Primary (liquidity): dark-slate fills, teal border/text — vibrant teal
+                   is reserved for badges + health indicators, not routine actions. -->
+              <div style="display:flex; gap:6px; margin-bottom:8px;">
+                <button onclick="govCreateBulkAllotment(50000000)" style="
+                  flex:1; background:#1E293B; color:#5eead4;
+                  border:1px solid #0d9488; border-radius:8px;
+                  padding:11px 0; font-size:12px; font-weight:700; cursor:pointer;
+                " onmouseover="this.style.background='#243449'" onmouseout="this.style.background='#1E293B'">Inject 50M</button>
+                <button onclick="govCreateBulkAllotment(100000000)" style="
+                  flex:1; background:#1E293B; color:#5eead4;
+                  border:1px solid #0d9488; border-radius:8px;
+                  padding:11px 0; font-size:12px; font-weight:700; cursor:pointer;
+                " onmouseover="this.style.background='#243449'" onmouseout="this.style.background='#1E293B'">Inject 100M</button>
+              </div>
 
-            <!-- Destructive action, separated below routine controls -->
-            <div style="border-top:1px solid rgba(255,255,255,0.10); margin:12px 0 10px; padding-top:10px;">
-              <div style="font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Emergency</div>
-              <button id="govHaltResumeBtn" onclick="govHaltResumeAction()" style="
-                width:100%; background:linear-gradient(135deg,#7f1d1d,#b91c1c);
-                color:white; border:none; border-radius:8px;
-                padding:11px 0; font-size:12px; font-weight:700; cursor:pointer;
-                letter-spacing:0.3px;
-              ">⚡ Halt Corridor</button>
+              <button onclick="govAdjustDailyCap()" style="
+                width:100%; background:rgba(255,255,255,0.07);
+                color:#cbd5e1; border:1px solid rgba(255,255,255,0.12);
+                border-radius:8px; padding:10px; font-size:12px;
+                font-weight:600; cursor:pointer; text-align:center;
+              ">📊 Adjust Daily Cap</button>
+
+              <!-- Destructive action, separated below routine controls -->
+              <div style="border-top:1px solid rgba(255,255,255,0.10); margin:12px 0 10px; padding-top:10px;">
+                <div style="font-size:9px; color:#94A3B8; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Emergency</div>
+                <button id="govHaltResumeBtn" onclick="govHaltResumeAction()" style="
+                  width:100%; background:linear-gradient(135deg,#7f1d1d,#b91c1c);
+                  color:white; border:none; border-radius:8px;
+                  padding:11px 0; font-size:12px; font-weight:700; cursor:pointer;
+                  letter-spacing:0.3px;
+                ">⚡ Halt Corridor</button>
+              </div>
             </div>
           </div>
 
@@ -552,6 +564,7 @@ function hideGovernorDeskModal() {
 }
 
 function loadMacroConsole() {
+  govRenderIdentityBadge();
   loadNetworkStatus();
   loadGovCorridorLiquidity();
   loadGovRecentEvents();
@@ -815,6 +828,10 @@ function govSelectCorridor(id, label) {
   const isHalted = corridor && (corridor.status === 'halted' || corridor.status === 'suspended');
   govUpdateHaltResumeBtn(isHalted);
 
+  // Sovereign lock: home-linked corridors are fully actionable; non-home corridors
+  // render the drawer in READ-ONLY / AUDIT MODE with disabled controls.
+  govApplyDrawerControlState(corridor ? govCanControl(corridor) : true);
+
   // Sync the Bulk Allotment Reservoir immediately from cached liquidity (no async
   // "Loading…" flash), then refresh from the live endpoint.
   if (corridor) {
@@ -946,7 +963,9 @@ function renderSingleCorridorGauge(pos, corridorLabel) {
 
 async function loadGovCorridorLiquidity() {
   try {
-    const res  = await fetch('/api/v2/corridors?per_page=50', { headers: getGovernorAuthHeaders() });
+    // per_page=200 so the SELECT CORRIDOR dropdown is not truncated — outbound
+    // corridors (GHA → NGA/KEN/EGY) must be indexable alongside inbound (NGA → GHA).
+    const res  = await fetch('/api/v2/corridors?per_page=200', { headers: getGovernorAuthHeaders() });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
@@ -1066,6 +1085,38 @@ const GOV_FLAGS = {
 };
 function govFlag(iso){ return GOV_FLAGS[(iso||'').toUpperCase()] || '🏳️'; }
 
+// Friendly role + central-bank names for the active-governor identity badge.
+const GOV_ROLE_LABELS = {
+  governor: 'Central Bank Governor', system_admin: 'System Administrator',
+  compliance_officer: 'Compliance Officer', forensic_auditor: 'Forensic Auditor',
+  minting_officer: 'Minting Officer', corridor_operator: 'Corridor Operator',
+};
+const GOV_CB_NAMES = {
+  GHA:'Bank of Ghana', NGA:'Central Bank of Nigeria', KEN:'Central Bank of Kenya',
+  ZAF:'South African Reserve Bank', DZA:'Bank of Algeria', EGY:'Central Bank of Egypt',
+  CIV:'Côte d’Ivoire (BCEAO)', TZA:'Bank of Tanzania', RWA:'National Bank of Rwanda',
+  AGO:'Banco Nacional de Angola', MAR:'Bank Al-Maghrib',
+};
+
+// Render the authenticated Governor's identity + jurisdiction badge in the header.
+function govRenderIdentityBadge() {
+  const el = document.getElementById('govIdentityBadge');
+  if (!el) return;
+  const p    = window.SC_PORTAL || {};
+  const cc   = (p.country_code || '').toString().toUpperCase();
+  const role = (p.role || '').toString();
+  if (!cc && !role) { el.style.display = 'none'; return; }
+  const roleLabel = GOV_ROLE_LABELS[role] || (role ? role.replace(/_/g,' ') : 'Operator');
+  const instName  = GOV_CB_NAMES[cc] || p.institution_name || p.operator_display_name || 'Sovereign Node';
+  el.style.display = 'flex';
+  el.innerHTML = `
+    <div style="width:30px;height:30px;border-radius:50%;background:rgba(45,212,191,0.15);border:1px solid rgba(45,212,191,0.4);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">${cc?govFlag(cc):'🛡'}</div>
+    <div style="line-height:1.25;">
+      <div style="font-size:12px;font-weight:700;color:#e2e8f0;white-space:nowrap;">${instName}</div>
+      <div style="font-size:10px;color:#94a3b8;white-space:nowrap;">${cc?cc+' Sovereign Node · ':''}${roleLabel}</div>
+    </div>`;
+}
+
 // Home country + role are bound in the session and surfaced via SC_PORTAL.
 function govHomeCountry(){ return (((window.SC_PORTAL||{}).country_code)||'').toString().trim().toUpperCase(); }
 function govIsSuperuser(){ return (((window.SC_PORTAL||{}).role)||'') === 'system_admin'; }
@@ -1133,14 +1184,23 @@ function govHealth(c) {
 }
 
 // Row click → drive the control drawer; blocked (view-only) for non-origin rows.
-function govRowSelect(id, label, can) {
-  if (!can) {
-    const lbl = document.getElementById('govQuickActionsCorridorLabel');
-    if (lbl) { lbl.textContent = GOV_READONLY_MSG; lbl.style.color = '#fbbf24'; }
-    govShowToast(GOV_READONLY_MSG, 'warn');
-    return;
+// Toggle the drawer between full-control and READ-ONLY / AUDIT MODE.
+function govApplyDrawerControlState(canCtl) {
+  const pill = document.getElementById('govDrawerReadonlyPill');
+  const acts = document.getElementById('govDrawerActions');
+  if (pill) pill.style.display = canCtl ? 'none' : 'inline-flex';
+  if (acts) {
+    acts.style.opacity       = canCtl ? '1' : '0.4';
+    acts.style.pointerEvents = canCtl ? 'auto' : 'none';
+    acts.style.filter        = canCtl ? 'none' : 'grayscale(0.5)';
   }
+}
+
+// Any row is selectable for inspection; non-home corridors load read-only (drawer
+// shows the reservoir + a READ-ONLY / AUDIT MODE pill with disabled controls).
+function govRowSelect(id, label, can) {
   govSelectCorridor(id, label);
+  if (!can) govShowToast(GOV_READONLY_MSG, 'warn');
 }
 
 // Dense Sovereign Corridor Table + region tabs + search + jurisdiction badge.
