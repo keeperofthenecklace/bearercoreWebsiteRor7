@@ -757,9 +757,17 @@ function govBuildCorridorSelect(corridors) {
       (c.source_country||'').toUpperCase() === home || (c.target_country||'').toUpperCase() === home);
   }
 
-  const term     = (document.getElementById('govCorridorSearch')?.value || '').toLowerCase();
+  const term     = (document.getElementById('govCorridorSearch')?.value || '').toLowerCase().trim();
+  // Match on source OR target (plus display/code) so "GHA" returns BOTH outbound
+  // (GHA → NGA/KEN/ZAF) and inbound (NGA → GHA, DZA → GHA) corridors.
   const filtered = term
-    ? base.filter(c => (c.corridor_display || c.code || `${c.source_country}→${c.target_country}`).toLowerCase().includes(term))
+    ? base.filter(c => {
+        const src  = (c.source_country || '').toLowerCase();
+        const dst  = (c.target_country || '').toLowerCase();
+        const disp = (c.corridor_display || `${c.source_country}→${c.target_country}`).toLowerCase();
+        const code = (c.code || '').toLowerCase();
+        return src.includes(term) || dst.includes(term) || disp.includes(term) || code.includes(term);
+      })
     : base;
 
   if (filtered.length === 0) {
@@ -963,9 +971,10 @@ function renderSingleCorridorGauge(pos, corridorLabel) {
 
 async function loadGovCorridorLiquidity() {
   try {
-    // per_page=200 so the SELECT CORRIDOR dropdown is not truncated — outbound
-    // corridors (GHA → NGA/KEN/EGY) must be indexable alongside inbound (NGA → GHA).
-    const res  = await fetch('/api/v2/corridors?per_page=200', { headers: getGovernorAuthHeaders() });
+    // Fetch the full active corridor set (~1000) so the SELECT CORRIDOR dropdown is
+    // never truncated — outbound GHA→X corridors sit at positions 500-900+, well past
+    // any 200 cap, so inbound-only results were a truncation artefact, not a filter bug.
+    const res  = await fetch('/api/v2/corridors?per_page=1000', { headers: getGovernorAuthHeaders() });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
@@ -1140,7 +1149,7 @@ async function loadCorridorReservoirGrid() {
   grid.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">⏳ Loading sovereign corridor table…</div>';
 
   try {
-    const res = await fetch('/api/v2/corridors?per_page=200', { headers: getGovernorAuthHeaders() });
+    const res = await fetch('/api/v2/corridors?per_page=1000', { headers: getGovernorAuthHeaders() });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
