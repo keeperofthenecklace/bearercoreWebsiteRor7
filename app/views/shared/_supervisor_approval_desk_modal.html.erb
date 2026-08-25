@@ -1361,14 +1361,25 @@ function showApprovalResultModal({ mintingReady = false, liqInsufficient = false
   let headerBg, headerIcon, headerTitle, headerSub, bodyHtml, footerBtnLabel, footerBtnColor;
 
   if (error) {
+    // Auth failures (expired/absent operator session) get an actionable re-sign-in
+    // path instead of a raw code, since the fix is to re-authenticate.
+    const isAuth = /operator_unidentified|unauthorized|\b401\b|supervisor_privileges_required|expired/i.test(errorMessage || '');
     headerBg      = 'linear-gradient(135deg,#991b1b,#dc2626)';
-    headerIcon    = '⚠';
-    headerTitle   = 'Approval Failed';
-    headerSub     = 'An unexpected error occurred. The claim was not changed.';
-    bodyHtml      = `
-      <div style="padding:20px 24px;background:#fef2f2;border-bottom:1px solid #fecaca;">
-        <div style="font-size:13px;color:#991b1b;font-family:monospace;line-height:1.5;">${errorMessage}</div>
-      </div>`;
+    headerIcon    = isAuth ? '🔐' : '⚠';
+    headerTitle   = isAuth ? 'Session Expired' : 'Approval Failed';
+    headerSub     = isAuth
+      ? 'Your secure operator session has expired or is not signed in — the claim was not changed.'
+      : 'An unexpected error occurred. The claim was not changed.';
+    bodyHtml      = isAuth
+      ? `<div style="padding:20px 24px;background:#fef2f2;border-bottom:1px solid #fecaca;">
+           <div style="font-size:13px;color:#991b1b;line-height:1.6;">
+             Sign in again at <strong>Central Bank Access</strong> to refresh your authorization, then retry the approval.
+           </div>
+           <a href="/central-bank-access" style="display:inline-block;margin-top:12px;padding:8px 16px;background:#dc2626;color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">Sign in again →</a>
+         </div>`
+      : `<div style="padding:20px 24px;background:#fef2f2;border-bottom:1px solid #fecaca;">
+           <div style="font-size:13px;color:#991b1b;font-family:monospace;line-height:1.5;">${errorMessage}</div>
+         </div>`;
     footerBtnLabel = 'Close';
     footerBtnColor = '#dc2626';
 
