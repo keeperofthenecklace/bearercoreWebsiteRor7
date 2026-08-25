@@ -303,6 +303,18 @@
         </tbody>
       </table></div>
       <div class="dp-callout dp-danger"><span class="dp-ci">⛔</span><div>The Deactivate / Reactivate button must always live in the Emergency Actions group box (grpEmergencyActions), behind a visual "⚠ Danger Zone" divider. It must never appear in the Action bar or alongside routine operations.</div></div>
+
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>
+        <strong>Sovereign jurisdiction lock on corridor writes.</strong> The corridor halt / unhalt
+        endpoints (and the liquidity-injection &amp; daily-cap actions on the Governor Console) run
+        through the shared <code>SovereignOriginGuard</code> concern. A national governor may only act on
+        corridors whose <strong>origin OR destination</strong> is their home country
+        (<code>home ∈ [source, target]</code>, resolved from <code>SC_PORTAL.country_code</code>);
+        out-of-jurisdiction corridors are read-only (AUDIT MODE) and any write is rejected server-side
+        with 403 <code>sovereign_jurisdiction_violation</code>. <code>system_admin</code> (or a blank
+        home) bypasses. Permanent halts and cap changes still require the multi-signature governance
+        vote — see the <a href="/docs/governor-desk">Governor's Desk</a>.
+      </div></div>
     </div>
 
     <!-- §6 Buttons -->
