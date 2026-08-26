@@ -53,4 +53,13 @@ module DashboardRolesHelper
   def supervisor_sandbox_sim?
     !regulator_operator?
   end
+
+  # Track Submissions (read-only Trade Claim Status Monitor). Shown to commercial
+  # bank operators — the dealer-bank claim maker (its primary audience) and CB-node
+  # commercial operators — so they can monitor their own institution's claims. The
+  # backing endpoint is strictly own-institution scoped and requires an identified
+  # operator, so it is not offered to role-less public/demo visitors.
+  def show_track_submissions_card?
+    claim_maker? || commercial_operator?
+  end
 end

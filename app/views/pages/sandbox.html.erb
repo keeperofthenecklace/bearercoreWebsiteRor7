@@ -116,6 +116,27 @@
         </button>
       </div>
 
+      <!-- Track Submissions (read-only status monitor for commercial operators) -->
+      <% if show_track_submissions_card? %>
+      <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 16px; padding: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 48px; height: 48px; background: rgba(45,212,191,0.25); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5eead4" stroke-width="1.5">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 style="color: white; margin: 0; font-size: 16px; font-weight: 600;">Track Submissions</h3>
+            <p style="color: rgba(255,255,255,0.7); margin: 4px 0 0; font-size: 12px;">My Trade Claim Status</p>
+          </div>
+        </div>
+        <button onclick="showTrackSubmissionsModal()" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; border: none; font-size: 13px; font-weight: 600; padding: 10px 18px; border-radius: 8px; cursor: pointer;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          Monitor
+        </button>
+      </div>
+      <% end %>
+
       <!-- Supervisor Desk -->
       <% if show_supervisor_card? %>
       <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 16px; padding: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
@@ -504,6 +525,7 @@
 
 <%# ─── MODALS ─────────────────────────────────────────────────────────────── %>
 <%= render 'shared/trade_claim_modal' %>
+<% if show_track_submissions_card? %><%= render 'shared/track_submissions_modal' %><% end %>
 <%= render 'shared/supervisor_approval_desk_modal' %>
 <%= render 'shared/governor_approval_desk_modal' %>
 <%= render 'shared/admin_console_modal' %>
