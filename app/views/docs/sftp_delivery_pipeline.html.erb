@@ -168,8 +168,8 @@
         <tbody>
           <tr><td><code>bundle</code></td><td>yes</td><td>The packaged ZIP (file part)</td></tr>
           <tr><td><code>bundle_sha256</code></td><td>yes</td><td>Hex SHA-256; server recomputes and must match</td></tr>
-          <tr><td><code>recipient_swift_code</code></td><td>yes</td><td>Accepts legacy alias <code>swift_code</code></td></tr>
-          <tr><td><code>recipient_email</code></td><td>rec.</td><td>Needed for the success notification</td></tr>
+          <tr><td><code>recipient_swift_code</code></td><td>yes</td><td>Accepts legacy alias <code>swift_code</code>. <strong>Blank ⇒ 422 <code>missing_swift</code></strong>, which silently blocks SFTP + email — the Qt client caches the resolved SWIFT from the delivery profile and sends it as a fallback so a stale/empty label can't drop the handover.</td></tr>
+          <tr><td><code>recipient_email</code></td><td>rec.</td><td>Success notification address. <strong>Falls back</strong> to the institutional counterparty contact from the <code>emails</code> table (keyed by the recipient SWIFT) when absent — so a receipt is never dropped just because the picker was hidden in server-managed mode.</td></tr>
           <tr><td><code>central_bank_swift</code></td><td>opt.</td><td>Persisted on the batch</td></tr>
           <tr><td><code>bank_name</code></td><td>opt.</td><td>Trailing “ - SWIFT” stripped for display</td></tr>
         </tbody>
@@ -189,9 +189,20 @@
         </tbody>
       </table>
       <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
-        The <b>409</b> is the per-bank cutover signal — the client reads it as “this
-        counterparty is not provisioned server-side yet” and falls back to the legacy
-        <code>sshpass</code> path (see §7, §8).
+        The <b>409</b> is the per-bank cutover signal — “this counterparty is not
+        provisioned server-side yet.” The legacy client-side <code>sshpass</code>
+        fallback has been <strong>fully retired for issuance (WI5)</strong>: a 409 now
+        <strong>hard-blocks</strong> delivery and steers the operator to provision the
+        endpoint in <code>/admin/counterparties</code> — no hand-entered credentials.
+      </div></div>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
+        <b>Delivery execution &amp; email.</b> On enqueue, <code>CvibSftpDeliveryJob</code>
+        (Sidekiq <code>:default</code> queue, systemd-managed in prod) resolves the
+        active+verified connection via <code>Sftp.for_delivery(swift)</code>, pushes to
+        <code>conn.remoteDirectory</code> (e.g. <code>/Commercial_Bank_Sandbox</code>),
+        writes a <code>CvibDelivery</code> ledger row, then fires the attachment-less
+        receipt via <code>Cvib::SendBundleEmailService</code> to the resolved recipient
+        (with the counterparty-contact fallback above).
       </div></div>
     </div>
 

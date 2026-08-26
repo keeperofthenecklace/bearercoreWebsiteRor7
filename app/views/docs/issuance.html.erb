@@ -254,6 +254,35 @@
       <div class="dp-rule">Server-side, the request is validated by Doorkeeper OAuth (<code>before_action :doorkeeper_authorize!</code>); no PIN is checked. A future second factor is intended to be per-operator TOTP, not a shared PIN.</div>
       <div class="dp-rule">On top of OAuth, minting passes <code>authorize_mint!</code> — <strong>operator identity</strong> (valid <code>X-Operator-Session</code> → 401 <code>operator_unidentified</code>), <strong>RBAC</strong> (<code>can_mint?</code> = active &amp; <code>mint_operator</code> &amp; <code>issuance.mint</code> → 403 <code>mint_role_required</code>), <strong>ABAC tenancy</strong> (operator <code>institution_swift</code> vs target → 403 <code>wrong_tenant</code>), and <strong>four-eyes</strong> (minter ≠ claim submitter → 403 <code>four_eyes_violation</code>). The batch is stamped with <code>minted_by_operator_id</code>.</div>
 
+      <h3 id="wholesale-denom">§4.5 — Wholesale Denomination Auto-Optimization</h3>
+      <p>The denomination breakdown is computed <strong>server-side</strong> by
+        <code>Issuance::DenominationPlanService</code> (stored as
+        <code>denomination_plan_json</code>; the Qt registry only renders it). For
+        high-value interbank settlements, at/above <code>WHOLESALE_THRESHOLD</code>
+        (default 1,000,000; <code>WHOLESALE_DENOM_THRESHOLD</code> env) it <strong>skips
+        the retail tiered breakdown</strong> and packs the total into the largest
+        wholesale bills (5,000,000 / 1,000,000), forcing note count <strong>N ≤ 20</strong>
+        (coarsening to one computed denomination for astronomical totals). Prevents
+        15,000,000&nbsp;NGN exploding into 15,000+ retail notes and swamping file I/O +
+        rendering; the total is preserved exactly.</p>
+
+      <h3 id="direct-rtgs">§4.6 — Direct RTGS Book-Entry (Dual-Mode Settlement)</h3>
+      <p>A Phase-1 toggle <strong>“Direct RTGS Book-Entry (Skip CVIB Physical File
+        Packaging)”</strong> switches issuance to a ledger book-entry path for wholesale
+        interbank transfers:</p>
+      <div class="dp-flow">
+        <div class="dp-step"><h4>Phase 2 bypassed</h4><p>No PNG generation, SMB staging or file hashing — the toggle unlocks Phase 3 directly.</p></div>
+        <div class="dp-step"><h4>Phase 3 — RTGS settle</h4><p>Dispatch posts an <strong>ISO 20022 pacs.008</strong> to <code>POST /api/v1/rtgs/settle</code> instead of <code>upload_bundle</code>.</p></div>
+        <div class="dp-step"><h4>Atomic book-entry</h4><p>The server records a hash-chained <code>rtgs_debit</code>/<code>rtgs_credit</code> pair in one transaction and returns a settlement reference.</p></div>
+      </div>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
+        The UI renders <strong>“Settled via Central Bank RTGS Ledger”</strong> + the
+        settlement reference (no SFTP upload progress). Prod-gated like all RTGS:
+        <code>rtgs_live</code> ⇒ a real reserve movement (placeholder until a
+        reserve-balance model is wired); sandbox/pilot record the simulated book-entry
+        (the ledger rows) only. Requires an authenticated operator.
+      </div></div>
+
       <h3>Issuance Registry — Activity Feed</h3>
       <p>Live feed of minting activity for the session. Empty state reads <strong>No Active Issuance Claims</strong> / "Select a trade authorization above to begin the minting workflow."</p>
       <div class="dp-table-wrap"><table class="dp-table">

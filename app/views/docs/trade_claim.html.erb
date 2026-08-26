@@ -397,6 +397,31 @@
         <strong>holder ID auto-provisions</strong> from the target node (e.g. <code>BAPANANX-NAM-NODE-01</code>).
         These are display/routing aids; corridor rate, liquidity, and backing remain server-authoritative.
       </div></div>
+
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>
+        <strong>Origin binding &amp; unauthenticated guard.</strong> <code>create</code> stamps
+        <code>institution_id</code> from the <strong>authenticated operator's</strong> registered
+        <code>CommercialBank</code> (<code>portal_operator || current_operator</code> →
+        <code>institution_swift</code>), <strong>ignoring any client-sent id</strong> — which previously let a
+        stale/default dropdown value mis-stamp the origin (e.g. an Algerian bank on a GHA→NGA claim). Since
+        <code>create</code> is intentionally un-gated, a payload with <strong>no operator identity and no
+        CommercialBank-resolvable origin SWIFT is rejected 422</strong>
+        (<code>“Submitting operator identity or valid origin institution SWIFT is required.”</code>).
+      </div></div>
+
+      <h3 id="my-submissions">My Submissions — Status Monitor (read-only)</h3>
+      <p>Commercial bank operators track their own institution's claims from a
+        <strong>Track Submissions</strong> card on the bearerCORE portal dashboard
+        (gated by <code>show_track_submissions_card?</code>). It reads
+        <code>GET /api/v2/trade_claims/my_submissions</code> — <strong>strictly
+        own-institution scoped</strong> via <code>submitted_by_institution_swift</code>
+        (401 <code>operator_unidentified</code> without an identified operator; never
+        another counterparty's claims). Each row shows <strong>Reference, Amount,
+        Destination Corridor, Submission Date, Lifecycle State</strong> (color-banded
+        badge), and the supervisor's <strong>Decision Notes</strong>. A legacy fallback
+        surfaces pre-operator-tracking claims (NULL <code>submitted_by_operator_id</code>)
+        by resolving the origin institution from the CommercialBank registry, without
+        widening tenants.</p>
     </div>
 
     <!-- §7 Actions -->
