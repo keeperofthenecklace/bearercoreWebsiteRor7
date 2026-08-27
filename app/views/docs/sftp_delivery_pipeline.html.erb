@@ -202,7 +202,29 @@
         <code>conn.remoteDirectory</code> (e.g. <code>/Commercial_Bank_Sandbox</code>),
         writes a <code>CvibDelivery</code> ledger row, then fires the attachment-less
         receipt via <code>Cvib::SendBundleEmailService</code> to the resolved recipient
-        (with the counterparty-contact fallback above).
+        (with the counterparty-contact fallback above). On success it logs
+        <code>[ok] Delivery notification email dispatched to &lt;recipient&gt;</code>.
+      </div></div>
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
+        <b>Mail transport &amp; secrets.</b> <code>SendBundleEmailService</code> sends
+        via the Gmail API and resolves its OAuth credentials at call time from
+        <b>ENV</b> — <code>GMAIL_CLIENT_ID</code> / <code>GMAIL_CLIENT_SECRET</code> /
+        <code>GMAIL_REFRESH_TOKEN</code> (the Capistrano-linked <code>shared/.env</code>)
+        — with a <code>Rails.application.credentials.gmail_oauth</code> fallback. <b>No
+        OAuth secret is stored in source.</b> Rotating the client is a
+        <code>shared/.env</code> edit + <code>sidekiq:restart</code>, no code change.
+        The notification body surfaces the <b>Destination Folder</b> and <b>Bundle
+        Filename</b>, and the secure-delivery callout names the exact remote path
+        (<code>/Commercial_Bank_Sandbox/CVIB_&lt;batch_id&gt;.zip</code>), resolved from
+        the delivered <code>CvibDelivery.remote_path</code>.
+      </div></div>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>
+        <b>A dead mailer is never silent.</b> SFTP delivery and the email are decoupled
+        — the transfer can succeed while the mailer fails (e.g. a revoked/deleted Gmail
+        OAuth client returns <code>deleted_client</code>). Because the operator UI already
+        shows a successful handover, <code>#notify</code> raises a <b>CRITICAL</b>
+        <code>SystemEvent</code> admin alert on any mailer exception so the broken
+        transport surfaces operationally instead of only sitting in the log.
       </div></div>
     </div>
 

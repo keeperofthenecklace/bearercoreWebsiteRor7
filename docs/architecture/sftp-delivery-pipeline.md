@@ -54,6 +54,35 @@ no per-request trust.
    `ScSftp`, and writes a ledger row.
 5. **Rails · on success — record & notify.** Marks `delivered` (host, remote path,
    bytes), fires the attachment-less notification email, and purges the spooled ZIP.
+   On success logs `[ok] Delivery notification email dispatched to <recipient>`.
+
+### Mail transport & secrets
+
+`Cvib::SendBundleEmailService` sends via the Gmail API and resolves its OAuth
+credentials **at call time** from ENV — `GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET` /
+`GMAIL_REFRESH_TOKEN` (the Capistrano-linked `shared/.env`) — with a
+`Rails.application.credentials.gmail_oauth` fallback. **No OAuth secret lives in
+source.** Rotating the client is a `shared/.env` edit + `cap production
+sidekiq:restart`, no code change. (The previously hardcoded client was deleted in
+Google Cloud → `deleted_client`, which silently broke every delivery email while
+SFTP still succeeded — hence the extraction.)
+
+The notification body (HTML + plain text) surfaces the **Destination Folder** and
+**Bundle Filename**, and the secure-delivery callout names the exact remote path
+(`/Commercial_Bank_Sandbox/CVIB_<batch_id>.zip`), resolved from the delivered
+`CvibDelivery.remote_path` (fallback: the active connection's `remoteDirectory`).
+
+**A dead mailer is never silent.** SFTP delivery and the email are decoupled — the
+transfer can succeed while the mailer fails. Since the operator UI already shows a
+successful handover, `#notify` raises a **CRITICAL** `SystemEvent` admin alert on any
+mailer exception instead of only logging it.
+
+> **Prod diagnostics** (`lib/capistrano/tasks/diag.rake`, read-only):
+> `diag:dispatch_log['<batch_id>']` greps the Sidekiq/Rails logs for a batch's
+> delivery+email lines; `diag:gmail_check['<batch_id>']` verifies the OAuth token
+> mints and (given a batch) re-sends its notification. Both run server-side via
+> `bundle exec ruby -r./config/environment` — this app ships no working
+> `bin/rails runner`.
 
 ---
 
