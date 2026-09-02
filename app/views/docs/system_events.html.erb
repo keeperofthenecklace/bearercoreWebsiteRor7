@@ -234,7 +234,7 @@
         <tbody>
           <tr>
             <td><strong>Event Stream</strong></td>
-            <td>The ordered, time-stamped sequence of system events emitted by all services (Rails, Qt6, DLT, HSM, Nginx). Newest events appear at the top of the table. The stream is polled every 5 seconds in live-tail mode.</td>
+            <td>The ordered, time-stamped sequence of system events emitted by all services (Rails, bearerCORE, DLT, HSM, Nginx). Newest events appear at the top of the table. The stream is polled every 5 seconds in live-tail mode.</td>
           </tr>
           <tr>
             <td><strong>Severity Levels</strong></td>
@@ -248,7 +248,7 @@
           </tr>
           <tr>
             <td><strong>Service Sources</strong></td>
-            <td>Each event is tagged with its origin: <code>Rails</code>, <code>Qt6 Bridge</code>, <code>DLT Node</code>, <code>HSM Module</code>, <code>PostgreSQL</code>, <code>Nginx</code>, <code>SFTP</code>, <code>Sidekiq</code>.</td>
+            <td>Each event is tagged with its origin: <code>Rails</code>, <code>bearerCORE Bridge</code>, <code>DLT Node</code>, <code>HSM Module</code>, <code>PostgreSQL</code>, <code>Nginx</code>, <code>SFTP</code>, <code>Sidekiq</code>.</td>
           </tr>
           <tr>
             <td><strong>Event Metadata</strong></td>
@@ -380,7 +380,7 @@
           <tr><td class="f">event_id</td><td class="t">string</td><td>Human-readable reference, e.g. <code>EVT-20260417-A3F9</code></td></tr>
           <tr><td class="f">timestamp</td><td class="t">timestamp</td><td>UTC emission time. Displayed in local timezone in the UI. Stored as UTC in PostgreSQL.</td></tr>
           <tr><td class="f">severity</td><td class="t">enum</td><td><code>INFO</code> | <code>WARN</code> | <code>ERROR</code> | <code>CRITICAL</code> | <code>AUDIT</code></td></tr>
-          <tr><td class="f">service_source</td><td class="t">string</td><td>Originating service tag: <code>Rails</code> | <code>Qt6 Bridge</code> | <code>DLT Node</code> | <code>HSM Module</code> | <code>PostgreSQL</code> | <code>Nginx</code> | <code>SFTP</code> | <code>Sidekiq</code></td></tr>
+          <tr><td class="f">service_source</td><td class="t">string</td><td>Originating service tag: <code>Rails</code> | <code>bearerCORE Bridge</code> | <code>DLT Node</code> | <code>HSM Module</code> | <code>PostgreSQL</code> | <code>Nginx</code> | <code>SFTP</code> | <code>Sidekiq</code></td></tr>
           <tr><td class="f">message</td><td class="t">text</td><td>Full event message. For AUDIT severity, includes the authority prefix: <code>[ACTION: EXECUTE_MINT] | original message</code></td></tr>
           <tr><td class="f">node_id</td><td class="t">string</td><td>Identifier of the node that emitted the event (matches <code>nodeIdentifier</code> in <code>scconfig.xml</code>)</td></tr>
           <tr><td class="f">correlation_id</td><td class="t">string</td><td>UUID linking events from the same logical operation (e.g. all events from a single batch mint share one <code>correlation_id</code>)</td></tr>
@@ -420,7 +420,7 @@
       </table></div>
 
       <h3>NodeStatus</h3>
-      <p>One record per monitored infrastructure node. Refreshed every 30 seconds by the Qt6 health
+      <p>One record per monitored infrastructure node. Refreshed every 30 seconds by the bearerCORE health
         polling timer via <code>GET /api/v2/health</code>. Drives the left-pane node cards.</p>
       <div class="dp-table-wrap"><table class="dp-table">
         <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
@@ -433,13 +433,13 @@
           <tr><td class="f">uptime_seconds</td><td class="t">integer</td><td>Rails process uptime from <code>Process.clock_gettime(Process::CLOCK_MONOTONIC)</code>. Null for external nodes.</td></tr>
           <tr><td class="f">thread_count</td><td class="t">integer</td><td>Active Puma threads (Rails). Null for external nodes.</td></tr>
           <tr><td class="f">active_key_id</td><td class="t">string</td><td>Latest <code>IssuerKey.currently_valid</code> identifier. HSM module only. Null for all other nodes.</td></tr>
-          <tr><td class="f">tls_active</td><td class="t">boolean</td><td>Whether the last request to Rails arrived over TLS. Nginx/Qt6 Bridge only.</td></tr>
+          <tr><td class="f">tls_active</td><td class="t">boolean</td><td>Whether the last request to Rails arrived over TLS. Nginx/bearerCORE Bridge only.</td></tr>
         </tbody>
       </table></div>
 
       <h3>InfrastructureHealth</h3>
       <p>Aggregated health envelope returned by <code>GET /api/v2/health</code>. Wraps individual
-        NodeStatus records into a single response object consumed by the Qt6 polling timer.</p>
+        NodeStatus records into a single response object consumed by the bearerCORE polling timer.</p>
       <div class="dp-table-wrap"><table class="dp-table">
         <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
         <tbody>
@@ -457,7 +457,7 @@
         <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
         <tbody>
           <tr><td class="f">cpu_usage</td><td class="t">decimal</td><td>Percentage CPU utilization at event time. Sourced from <code>/proc/stat</code> on Linux or <code>host_cpu_usage_info()</code> via Mach API on macOS.</td></tr>
-          <tr><td class="f">memory_usage</td><td class="t">decimal</td><td>Percentage of physical RAM in use. Sourced from <code>GC.stat</code> on Ruby side; Mach memory API on Qt6 side.</td></tr>
+          <tr><td class="f">memory_usage</td><td class="t">decimal</td><td>Percentage of physical RAM in use. Sourced from <code>GC.stat</code> on Ruby side; Mach memory API on bearerCORE side.</td></tr>
           <tr><td class="f">network_latency</td><td class="t">integer</td><td>Round-trip latency in milliseconds to the Rails API endpoint, measured at the time of the most recent health poll.</td></tr>
         </tbody>
       </table></div>
@@ -560,7 +560,7 @@
             <td><code>ActiveRecord::Base.connection.execute("SELECT count(*) FROM pg_stat_activity").first["count"]</code></td>
           </tr>
           <tr>
-            <td><strong>Nginx / Qt6 Bridge</strong></td>
+            <td><strong>Nginx / bearerCORE Bridge</strong></td>
             <td>Active / Offline</td>
             <td>TLS active (Yes/No)</td>
             <td>If Rails is responding, Nginx is up (Nginx is the reverse proxy that routes all traffic to Rails). TLS status from <code>request.ssl? || request.env["HTTP_X_FORWARDED_PROTO"] == "https"</code>.</td>
@@ -578,7 +578,7 @@
 
       <h3>D. Node Details — Data Source &amp; Refresh</h3>
       <p>
-        The Qt6 client fires <code>refreshNodeHealth()</code> on tab show and then every 30 seconds
+        The bearerCORE client fires <code>refreshNodeHealth()</code> on tab show and then every 30 seconds
         via <code>m_healthTimer</code>. Each call issues a single
         <code>GET {F5URL}/api/v2/health</code> request with the Bearer token.
         The response JSON is parsed in <code>applyNodeHealthJson()</code> which
@@ -676,7 +676,7 @@
         <div class="se-terminal-body">
           <div class="se-log-row">
             <span class="se-log-ts">2026-04-17 09:14:22.441</span>
-            <span class="se-log-svc">Qt6 Bridge</span>
+            <span class="se-log-svc">bearerCORE Bridge</span>
             <span class="se-log-msg audit">[ACTION: EXECUTE_MINT] | Created CBDC batch #B-20260417-0042 — 200 notes — NGN ₦200</span>
           </div>
           <div class="se-log-row">
@@ -715,7 +715,7 @@
         changes. It iterates every row in the table:</p>
       <div class="dp-rule">
         For each row:<br>
-        &nbsp;&nbsp;severity = row[col_0].data(Qt::UserRole)  // stored as plain string<br>
+        &nbsp;&nbsp;severity = row[col_0].data(UserRole)  // stored as plain string<br>
         &nbsp;&nbsp;message  = row[col_4].text()<br>
         &nbsp;&nbsp;eid      = row[col_3].text()<br>
         <br>
@@ -760,7 +760,7 @@
         <br>
         → message = "[ACTION: {action}] | [Entity: {entity}] | [Detail: {detail}]"<br>
         → if refHash not empty: message += " | [Ref: {refHash}]"<br>
-        → service = detect from action prefix (EXECUTE_* → Qt6 Bridge, AUTHORITY_* → Rails)<br>
+        → service = detect from action prefix (EXECUTE_* → bearerCORE Bridge, AUTHORITY_* → Rails)<br>
         → appendSysEventRow("AUDIT", service, message)
       </div>
 
@@ -768,9 +768,9 @@
       <div class="dp-table-wrap"><table class="dp-table">
         <thead><tr><th>Action Code</th><th>Trigger Keywords</th><th>Service Tag</th></tr></thead>
         <tbody>
-          <tr><td class="f">EXECUTE_MINT</td><td><code>created cbdc</code>, <code>minted</code></td><td>Qt6 Bridge</td></tr>
-          <tr><td class="f">EXECUTE_ISSUE</td><td><code>printed</code>, <code>cbdc</code> + <code>issu</code></td><td>Qt6 Bridge</td></tr>
-          <tr><td class="f">EXECUTE_TRANSFER</td><td><code>transfer</code>, <code>deliver</code>, <code>sent</code>, <code>received</code></td><td>Qt6 Bridge</td></tr>
+          <tr><td class="f">EXECUTE_MINT</td><td><code>created cbdc</code>, <code>minted</code></td><td>bearerCORE Bridge</td></tr>
+          <tr><td class="f">EXECUTE_ISSUE</td><td><code>printed</code>, <code>cbdc</code> + <code>issu</code></td><td>bearerCORE Bridge</td></tr>
+          <tr><td class="f">EXECUTE_TRANSFER</td><td><code>transfer</code>, <code>deliver</code>, <code>sent</code>, <code>received</code></td><td>bearerCORE Bridge</td></tr>
           <tr><td class="f">EXECUTE_BURN</td><td><code>burn</code>, <code>redeemed</code>, <code>destroyed</code></td><td>Rails</td></tr>
           <tr><td class="f">AUTHORITY_APPROVE</td><td><code>approved</code></td><td>Rails</td></tr>
           <tr><td class="f">AUTHORITY_REJECT</td><td><code>rejected</code>, <code>denied</code></td><td>Rails</td></tr>
@@ -805,7 +805,7 @@
           <div class="se-meta-row"><span class="se-meta-lbl">Event ID</span><span class="se-meta-val">EVT-20260417-A3F9</span></div>
           <div class="se-meta-row"><span class="se-meta-lbl">Severity</span><span class="se-meta-val"><span class="se-sev audit">AUDIT</span></span></div>
           <div class="se-meta-row"><span class="se-meta-lbl">Timestamp</span><span class="se-meta-val">2026-04-17 09:14:22.441 UTC</span></div>
-          <div class="se-meta-row"><span class="se-meta-lbl">Service</span><span class="se-meta-val">Qt6 Bridge</span></div>
+          <div class="se-meta-row"><span class="se-meta-lbl">Service</span><span class="se-meta-val">bearerCORE Bridge</span></div>
           <div class="se-meta-row"><span class="se-meta-lbl">Node ID</span><span class="se-meta-val">N9F531B1F55</span></div>
           <div class="se-meta-row"><span class="se-meta-lbl">Correlation</span><span class="se-meta-val">corr-20260417-B-0042</span></div>
         </div>
@@ -984,13 +984,13 @@
           <div class="dp-btn-row"><span class="dp-btn-lbl">Backend</span><span>Two-phase operation: (1) Deletes the on-disk <code>logs.txt</code> flat file (path resolved via <code>QStandardPaths::AppDataLocation</code>). (2) Calls <code>QNetworkAccessManager::clearAccessCache()</code> and <code>clearConnectionCache()</code> to flush HTTP connection pool and cached responses.</span></div>
           <div class="dp-btn-row"><span class="dp-btn-lbl">What Is Cleared</span><span>
             • <code>logs.txt</code> — flat file event log (local only, not the PostgreSQL store)<br>
-            • Qt HTTP connection cache — forces fresh TCP connections to the Rails API<br>
+            • bearerCORE HTTP connection cache — forces fresh TCP connections to the Rails API<br>
             • No database records are deleted<br>
             • No in-memory table rows are removed (table remains populated from current session)
           </span></div>
           <div class="dp-btn-row"><span class="dp-btn-lbl">Confirmation</span><span><code>QMessageBox::warning</code>: "Delete the local logs.txt cache file and flush the HTTP connection pool? Database records are not affected." Yes/No required.</span></div>
           <div class="dp-btn-row"><span class="dp-btn-lbl">Success</span><span><code>QMessageBox::information</code>: "Cache cleared." An AUDIT event is emitted immediately: <code>[ACTION: AUTHORITY_ACTION] | Cache cleared by system_admin</code>. This event itself triggers the AUDIT severity path because "cache cleared" is in the AUDIT keyword list.</span></div>
-          <div class="dp-btn-row"><span class="dp-btn-lbl">Failure</span><span>File deletion fails (e.g. permission denied) → <code>QMessageBox::critical</code>: "Failed to delete logs.txt: {error}". HTTP cache clear always succeeds (Qt API).</span></div>
+          <div class="dp-btn-row"><span class="dp-btn-lbl">Failure</span><span>File deletion fails (e.g. permission denied) → <code>QMessageBox::critical</code>: "Failed to delete logs.txt: {error}". HTTP cache clear always succeeds (bearerCORE API).</span></div>
           <div class="dp-btn-row"><span class="dp-btn-lbl">RBAC</span><span>Enabled only when <code>wizard_operator_role = system_admin</code>.</span></div>
         </div>
       </div>
@@ -1103,8 +1103,8 @@
         <div class="dp-step">
           <h4>Event Stream Begins (Live Mode)</h4>
           <p>
-            The Qt6 console begins routing all <code>qInfo()</code> / <code>qWarning()</code> /
-            <code>qCritical()</code> messages through <code>setConsoleProcessing()</code>.
+            The bearerCORE console begins routing all <code>logInfo()</code> / <code>logWarning()</code> /
+            <code>logCritical()</code> messages through <code>setConsoleProcessing()</code>.
             Each message passes the noise filter, severity detector, action code detector
             (if AUDIT), and row inserter. Live-tail is on by default — the table scrolls to the
             top on each new row so the latest event is always visible.
@@ -1174,14 +1174,14 @@
 
       <h3>Event Ingestion Pipeline</h3>
       <p>
-        Events originate from two sources: (1) the Qt6 application via the Qt message handler
+        Events originate from two sources: (1) the bearerCORE application via the bearerCORE message handler
         callback registered with <code>qInstallMessageHandler</code>, which routes all
-        <code>qInfo/qWarning/qCritical/qDebug</code> calls through
+        <code>logInfo/logWarning/logCritical/logDebug</code> calls through
         <code>setConsoleProcessing()</code>; and (2) the Rails backend via
         <code>Rails.logger</code> and Sidekiq job lifecycle hooks.
       </p>
       <div class="dp-rule">
-        Qt6 message handler → setConsoleProcessing()<br>
+        bearerCORE message handler → setConsoleProcessing()<br>
         &nbsp;&nbsp;→ noise filter (discard UI telemetry)<br>
         &nbsp;&nbsp;→ sysEvt_detectSeverity()   (AUDIT checked first)<br>
         &nbsp;&nbsp;→ sysEvt_detectAuditAction() (if AUDIT)<br>
@@ -1216,21 +1216,21 @@
         <thead><tr><th>Store</th><th>Contents</th><th>Retention</th></tr></thead>
         <tbody>
           <tr><td>PostgreSQL (<code>system_events</code> table)</td><td>All <code>SystemEvent</code> records and their associated <code>EventMetadata</code>, <code>TraceStack</code>, <code>CryptographicReference</code></td><td>365 days default (configurable via <code>wizard_log_retention_days</code> in Security preferences)</td></tr>
-          <tr><td><code>logs.txt</code> (flat file)</td><td>Plain-text append log from the Qt6 client. Cleared by Clear Cache action. Human-readable without a database.</td><td>Until manually cleared or Clear Cache is invoked</td></tr>
+          <tr><td><code>logs.txt</code> (flat file)</td><td>Plain-text append log from the bearerCORE client. Cleared by Clear Cache action. Human-readable without a database.</td><td>Until manually cleared or Clear Cache is invoked</td></tr>
           <tr><td>PostgreSQL (<code>governance_votes</code>, <code>validation_events</code>)</td><td>Cross-tab audit records referenced by <code>correlation_id</code></td><td>Permanent (immutable)</td></tr>
         </tbody>
       </table></div>
 
       <h3>Streaming Mechanism</h3>
       <p>
-        Phase 1 (current): The Qt6 client uses a <strong>local message handler callback</strong>
+        Phase 1 (current): The bearerCORE client uses a <strong>local message handler callback</strong>
         for events originating from its own process, and a <strong>30-second polling timer</strong>
         for infrastructure health. There is no WebSocket connection in Phase 1.
       </p>
       <p>
         Phase 2 (planned): The Rails API will expose an ActionCable WebSocket channel
-        (<code>SystemEventsChannel</code>). The Qt6 client will subscribe via the
-        <code>QtWebSockets</code> module and receive pushed events in real time,
+        (<code>SystemEventsChannel</code>). The bearerCORE client will subscribe via the
+        <code>WebSocket</code> module and receive pushed events in real time,
         eliminating the polling gap for backend-originated events.
       </p>
 
@@ -1254,10 +1254,10 @@
       <div class="dp-table-wrap"><table class="dp-table">
         <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td>GET</td><td class="f">/api/v2/health</td><td>Infrastructure health envelope. Returns <code>{ rails: {}, dlt: {node_1: {}, node_2: {}}, hsm: {}, postgresql: {}, nginx: {} }</code>. Polled every 30 seconds by Qt6 client.</td></tr>
+          <tr><td>GET</td><td class="f">/api/v2/health</td><td>Infrastructure health envelope. Returns <code>{ rails: {}, dlt: {node_1: {}, node_2: {}}, hsm: {}, postgresql: {}, nginx: {} }</code>. Polled every 30 seconds by bearerCORE client.</td></tr>
           <tr><td>GET</td><td class="f">/api/v2/system_events</td><td>List events. Params: <code>severity</code>, <code>service_source</code>, <code>node_id</code>, <code>correlation_id</code>, <code>from_ts</code>, <code>to_ts</code>, <code>limit</code> (default 200). Returns array of <code>SystemEvent</code> objects newest-first.</td></tr>
           <tr><td>GET</td><td class="f">/api/v2/system_events/:event_id</td><td>Full event detail. Returns <code>SystemEvent</code> + nested <code>metadata</code>, <code>trace_stack</code> (if error), <code>cryptographic_reference</code> (if AUDIT). Used by right-pane panel population.</td></tr>
-          <tr><td>POST</td><td class="f">/api/v2/system_events</td><td>Write event from Qt6 client. Body: <code>{ severity, service_source, message, node_id, correlation_id, payload }</code>. Returns <code>{ event_id }</code>.</td></tr>
+          <tr><td>POST</td><td class="f">/api/v2/system_events</td><td>Write event from bearerCORE client. Body: <code>{ severity, service_source, message, node_id, correlation_id, payload }</code>. Returns <code>{ event_id }</code>.</td></tr>
           <tr><td>GET</td><td class="f">/api/v2/system_events/export</td><td>Download all events as a plain-text log file. Params: <code>from_ts</code>, <code>to_ts</code>, <code>severity</code>. Returns <code>Content-Type: text/plain</code> file attachment.</td></tr>
         </tbody>
       </table></div>
@@ -1274,7 +1274,7 @@
 &nbsp;&nbsp;<span class="jk">"data"</span>: {<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"event_id"</span>: <span class="jv">"EVT-20260417-A3F9"</span>,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"severity"</span>: <span class="jv">"AUDIT"</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"service_source"</span>: <span class="jv">"Qt6 Bridge"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"service_source"</span>: <span class="jv">"bearerCORE Bridge"</span>,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"message"</span>: <span class="jv">"[ACTION: EXECUTE_MINT] | Created CBDC batch…"</span>,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"node_id"</span>: <span class="jv">"N9F531B1F55"</span>,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"correlation_id"</span>: <span class="jv">"corr-20260417-B-0042"</span>,<br>

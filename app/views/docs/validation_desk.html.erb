@@ -17,13 +17,13 @@
       <p class="dp-cover-desc">
         Full functional specification for the CBDC verification and compliance enforcement system.
         Covers signature validation, registry lookup, duplicate detection, risk scoring,
-        approval workflows, and the complete Qt6 + Rails 7.1 implementation.
+        approval workflows, and the complete bearerCORE + Rails 7.1 implementation.
       </p>
       <div class="dp-cover-meta">
         <div>Version <b>1.0</b></div>
         <div>Updated <b><%= Date.today.strftime("%B %Y") %></b></div>
         <div>Status <b>Production Reference</b></div>
-        <div>Stack <b>Qt6 + Rails 7.1</b></div>
+        <div>Stack <b>bearerCORE + Rails 7.1</b></div>
       </div>
     </div>
   </div>
@@ -50,7 +50,7 @@
         <h2>System Overview</h2>
       </div>
 
-      <p>The Validation Desk is the primary compliance and verification interface for central bank operators reviewing CBDC (Central Bank Issuance Bill) digital banknotes submitted by commercial banks. It is a Qt6 desktop application backed by a Rails 7.1 API.</p>
+      <p>The Validation Desk is the primary compliance and verification interface for central bank operators reviewing CBDC (Central Bank Issuance Bill) digital banknotes submitted by commercial banks. It is a bearerCORE desktop application backed by a Rails 7.1 API.</p>
       <p>Every CBDC note entering the system must pass through the Validation Desk before it becomes live money. The desk enforces cryptographic authenticity, double-spend prevention, registry integrity, and compliance traceability.</p>
 
       <figure style="margin: 1.25rem 0 1.75rem; text-align: center;">
@@ -289,7 +289,7 @@
       <div class="dp-table-wrap"><table class="dp-table">
         <thead><tr><th>Index</th><th>Const</th><th>Column</th><th>Data Source</th><th>Formatting</th></tr></thead>
         <tbody>
-          <tr><td>0</td><td class="f">COL_CHECK</td><td>Checkbox</td><td>UI-only Qt::CheckState</td><td>Qt::CheckState</td></tr>
+          <tr><td>0</td><td class="f">COL_CHECK</td><td>Checkbox</td><td>UI-only CheckState</td><td>CheckState</td></tr>
           <tr><td>1</td><td class="f">COL_RISK</td><td>Risk Badge</td><td>risk_score</td><td>● green &lt;40 / amber 40–74 / red ≥75</td></tr>
           <tr><td>2</td><td class="f">COL_SERIAL</td><td>Serial</td><td>serial; full JSON in UserRole+1</td><td>Monospace, truncated 20 chars</td></tr>
           <tr><td>3</td><td class="f">COL_DENOM</td><td>Denomination</td><td>"{denomination} {asset_code}"</td><td>Right-aligned monospace</td></tr>
@@ -462,7 +462,7 @@
         <tbody>
           <tr><td class="f">lblValPropGazetteRef</td><td>gazette_ref</td><td>Official gazette publication reference</td></tr>
           <tr><td class="f">lblValPropSeigniorage</td><td>seigniorage_rate</td><td>"{rate:.2f} %" or "—" if -1</td></tr>
-          <tr><td class="f">lblValPropMintStation</td><td>node_id</td><td>Qt mint instance node ID</td></tr>
+          <tr><td class="f">lblValPropMintStation</td><td>node_id</td><td>bearerCORE mint instance node ID</td></tr>
           <tr><td class="f">lblValPropBackingType</td><td>liquidity_lock_id</td><td>"Reserve-Backed ({lock_id})" or "—"</td></tr>
           <tr><td class="f">lblValPropCorridorUtil</td><td>corridor_cap</td><td>Corridor allocation string or "—"</td></tr>
           <tr><td class="f">lblValPropTaxStatus</td><td>tax_status</td><td>Tax treatment status</td></tr>

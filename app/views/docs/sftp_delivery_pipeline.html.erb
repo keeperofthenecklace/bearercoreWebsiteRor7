@@ -1,5 +1,5 @@
 <%# app/views/docs/sftp_delivery_pipeline.html.erb
-    Server-Side SFTP Delivery Pipeline — backend spec + Qt client scope.
+    Server-Side SFTP Delivery Pipeline — backend spec + bearerCORE client scope.
     Canonical source: docs/architecture/sftp-delivery-pipeline.md %>
 
 <%= render 'docs/doc_styles' %>
@@ -16,7 +16,7 @@
       <div class="dp-cover-eyebrow">bearerCORE™ · Backend Specification</div>
       <h1>Server-Side SFTP Delivery</h1>
       <p class="dp-cover-desc">
-        Moving CVIB bundle delivery off the Qt client's <code>sshpass</code> path and
+        Moving CVIB bundle delivery off the bearerCORE client's <code>sshpass</code> path and
         onto the server, where each recipient bank's SFTP credentials live
         AES-256-GCM encrypted and are decrypted only at the moment of transfer.
         The client hands the packaged bundle to Rails; the server pushes it, records
@@ -25,7 +25,7 @@
       <div class="dp-cover-meta">
         <div>Version <b>1.1</b></div>
         <div>Updated <b>August 2026</b></div>
-        <div>Status <b>Backend shipped · Qt in progress</b></div>
+        <div>Status <b>Backend shipped · bearerCORE in progress</b></div>
       </div>
     </div>
   </div>
@@ -49,8 +49,8 @@
         <div class="dp-section-num">§1</div>
         <h2>Background &amp; Objectives</h2>
       </div>
-      <p>Today the Qt client packages the bundle <b>and</b> performs the SFTP transfer
-        itself, driving an <code>sshpass</code> batch file from a QtConcurrent thread.
+      <p>Today the bearerCORE client packages the bundle <b>and</b> performs the SFTP transfer
+        itself, driving an <code>sshpass</code> batch file from a background worker thread.
         Connection details — including the bank's SFTP password — are hand-entered at
         delivery time and never leave the operator's workstation. Rails only sends a
         post-transfer notification email.</p>
@@ -63,7 +63,7 @@
           <tr><th>Domain</th><th>Before — client-driven</th><th>After — server-driven</th></tr>
         </thead>
         <tbody>
-          <tr><td><b>Transfer</b></td><td>Qt packages ZIP <b>and</b> runs <code>sshpass</code> to push it</td><td>Qt uploads the ZIP to Rails; the <b>server</b> pushes via SFTP</td></tr>
+          <tr><td><b>Transfer</b></td><td>bearerCORE packages ZIP <b>and</b> runs <code>sshpass</code> to push it</td><td>bearerCORE uploads the ZIP to Rails; the <b>server</b> pushes via SFTP</td></tr>
           <tr><td><b>Credentials</b></td><td>Hand-entered per delivery, on the workstation</td><td>Stored <b>AES-256-GCM encrypted</b>, decrypted in-process only</td></tr>
           <tr><td><b>Notification</b></td><td>Rails sends a notification email only</td><td>Delivery + notification are one auditable server flow</td></tr>
           <tr><td><b>Audit</b></td><td>No server-side delivery record or retry</td><td><code>CvibDelivery</code> ledger with retry &amp; alerting</td></tr>
@@ -85,7 +85,7 @@
           <tr><th>#</th><th>Actor</th><th>Step</th></tr>
         </thead>
         <tbody>
-          <tr><td>1</td><td>Qt client</td><td>Package &amp; upload — POST the ZIP to <code>upload_bundle</code> with its SHA-256 and recipient identity (SWIFT, email, bank name).</td></tr>
+          <tr><td>1</td><td>bearerCORE client</td><td>Package &amp; upload — POST the ZIP to <code>upload_bundle</code> with its SHA-256 and recipient identity (SWIFT, email, bank name).</td></tr>
           <tr><td>2</td><td>Rails · controller</td><td>Persist identity onto the batch, spool the file, and reject unless the computed SHA-256 matches the declared hash.</td></tr>
           <tr><td>3</td><td>Rails · per-bank gate</td><td><code>Sftp.for_delivery(swift)</code> must return an active, test-passed connection. If none: hard-fail — <code>pending_no_connection</code>, admin alert, HTTP 409.</td></tr>
           <tr><td>4</td><td>Rails · <code>CvibSftpDeliveryJob</code></td><td>Resolve host/dir/user + the decrypted password (the <b>only</b> decryption point at delivery), push via <code>ScSftp</code>, write a ledger row.</td></tr>
@@ -168,7 +168,7 @@
         <tbody>
           <tr><td><code>bundle</code></td><td>yes</td><td>The packaged ZIP (file part)</td></tr>
           <tr><td><code>bundle_sha256</code></td><td>yes</td><td>Hex SHA-256; server recomputes and must match</td></tr>
-          <tr><td><code>recipient_swift_code</code></td><td>yes</td><td>Accepts legacy alias <code>swift_code</code>. <strong>Blank ⇒ 422 <code>missing_swift</code></strong>, which silently blocks SFTP + email — the Qt client caches the resolved SWIFT from the delivery profile and sends it as a fallback so a stale/empty label can't drop the handover.</td></tr>
+          <tr><td><code>recipient_swift_code</code></td><td>yes</td><td>Accepts legacy alias <code>swift_code</code>. <strong>Blank ⇒ 422 <code>missing_swift</code></strong>, which silently blocks SFTP + email — the bearerCORE client caches the resolved SWIFT from the delivery profile and sends it as a fallback so a stale/empty label can't drop the handover.</td></tr>
           <tr><td><code>recipient_email</code></td><td>rec.</td><td>Success notification address. <strong>Falls back</strong> to the institutional counterparty contact from the <code>emails</code> table (keyed by the recipient SWIFT) when absent — so a receipt is never dropped just because the picker was hidden in server-managed mode.</td></tr>
           <tr><td><code>central_bank_swift</code></td><td>opt.</td><td>Persisted on the batch</td></tr>
           <tr><td><code>bank_name</code></td><td>opt.</td><td>Trailing “ - SWIFT” stripped for display</td></tr>
@@ -300,7 +300,7 @@
         <tbody>
           <tr><td>1</td><td><code>ApiClient::uploadBundle</code></td><td>Multipart primitive — <code>QHttpMultiPart</code> with a streamed <code>bundle</code> part. Bypasses the JSON <code>buildRequest</code> so the boundary Content-Type survives; parses the v2 envelope even on HTTP 4xx so a 409 arrives as <code>error.code</code>; 120 s timeout.</td><td style="color:#1b5e20;font-weight:700;">done</td></tr>
           <tr><td>2</td><td><code>bundle_sha256</code></td><td><code>ApiClient::sha256HexOfFile</code> — streamed <code>QCryptographicHash</code>, safe for large ZIPs. Rails recomputes and rejects on mismatch.</td><td style="color:#1b5e20;font-weight:700;">done</td></tr>
-          <tr><td>3</td><td>Replace the SFTP block</td><td>Swap the QtConcurrent sshpass upload for <code>uploadBundle</code>. On <code>200 queued</code>: archive locally + <code>confirm_archive</code>, then stop — the server notifies and writes the ledger.</td><td style="color:#1b5e20;font-weight:700;">done</td></tr>
+          <tr><td>3</td><td>Replace the SFTP block</td><td>Swap the client-side sshpass upload for <code>uploadBundle</code>. On <code>200 queued</code>: archive locally + <code>confirm_archive</code>, then stop — the server notifies and writes the ledger.</td><td style="color:#1b5e20;font-weight:700;">done</td></tr>
           <tr><td>4</td><td>409 fallback = per-bank gate</td><td>On <code>409 no_sftp_connection</code>, fall back to <code>sendCvibBundleViaSshpass()</code>. Provisioned banks deliver server-side; others keep the old path — no flag-day.</td><td style="color:#1b5e20;font-weight:700;">done</td></tr>
           <tr><td>5</td><td>Retire credentials &amp; sshpass</td><td>Hide the hand-entered host / dir / user / password fields; remove them and delete <code>sftpUploadZip</code> + the bundled <code>sshpass</code> binary once all banks are migrated.</td><td style="color:#8a6d1a;font-weight:700;">to build</td></tr>
         </tbody>
@@ -308,7 +308,7 @@
       <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>
         <b>Server infra prerequisite.</b> <code>upload_bundle</code> sends the full ZIP
         over HTTP. The API host's nginx <code>client_max_body_size</code> (default
-        1&nbsp;MB) must be raised to the maximum bundle size before Qt cutover, or
+        1&nbsp;MB) must be raised to the maximum bundle size before bearerCORE cutover, or
         uploads fail with <code>413</code>.
       </div></div>
     </div>
@@ -333,10 +333,10 @@
         <thead><tr><th>Step</th><th>Action</th><th>Owner</th></tr></thead>
         <tbody>
           <tr><td>1</td><td>Provision + Test-Connection each bank in <code>/admin/counterparties</code></td><td>Ops</td></tr>
-          <tr><td>2</td><td>Ship Qt upload path behind the per-bank gate</td><td>Qt</td></tr>
+          <tr><td>2</td><td>Ship bearerCORE upload path behind the per-bank gate</td><td>bearerCORE</td></tr>
           <tr><td>3</td><td>Run one bank end-to-end; confirm <code>delivered</code> + notification</td><td>Both</td></tr>
           <tr><td>4</td><td>Onboard remaining banks as connections are verified</td><td>Ops</td></tr>
-          <tr><td>5</td><td>Remove the <code>sshpass</code> path once all banks are migrated</td><td>Qt</td></tr>
+          <tr><td>5</td><td>Remove the <code>sshpass</code> path once all banks are migrated</td><td>bearerCORE</td></tr>
         </tbody>
       </table>
       <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>

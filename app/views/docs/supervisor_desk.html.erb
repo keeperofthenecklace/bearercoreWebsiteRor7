@@ -70,7 +70,7 @@
         check. The final outcome is either <code>ready_to_mint</code> — corridor headroom
         confirmed and claim amount earmarked — or <code>insufficient_corridor_liquidity</code>
         — Governor liquidity injection required before minting can proceed. This two-step protocol
-        prevents Qt6 from attempting minting against a depleted corridor reserve.
+        prevents bearerCORE from attempting minting against a depleted corridor reserve.
       </p>
 
       <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
@@ -360,7 +360,7 @@
       </div>
       <p>
         The approval pipeline is a two-step state machine. Jumping straight to a settled/minted
-        state would allow Qt6 to attempt minting against a depleted corridor reserve — the
+        state would allow bearerCORE to attempt minting against a depleted corridor reserve — the
         two-step protocol prevents this.
       </p>
 
@@ -391,7 +391,7 @@
             The claim amount is atomically added to <code>CorridorVerificationService.earmarks[corridor_id]</code>
             so no subsequent claim can double-count this headroom. The response includes
             <code>earmarked_amount</code>, <code>corridor_headroom_at_verification</code>, and
-            <code>asset_code</code>. Qt6 issuance is now authorised against this claim.
+            <code>asset_code</code>. bearerCORE issuance is now authorised against this claim.
           </p>
         </div>
         <div class="dp-step" style="border-left-color:#f59e0b;">
@@ -423,7 +423,7 @@
         <tbody>
           <tr><td><code>pending_review</code></td><td>Grey</td><td>In queue, awaiting supervisor</td><td>No</td><td>Supervisor approves / rejects / clarifies / cancels</td></tr>
           <tr><td><code>compliance_cleared</code></td><td>Blue</td><td>Human layer signed off; corridor check in progress</td><td>No</td><td>Automatic (CorridorVerificationService runs immediately)</td></tr>
-          <tr><td><code>ready_to_mint</code></td><td>Green</td><td>Corridor confirmed; amount earmarked; minting authorised</td><td>Yes</td><td>Qt6 minting; or Cancel (releases earmark)</td></tr>
+          <tr><td><code>ready_to_mint</code></td><td>Green</td><td>Corridor confirmed; amount earmarked; minting authorised</td><td>Yes</td><td>bearerCORE minting; or Cancel (releases earmark)</td></tr>
           <tr><td><code>insufficient_corridor_liquidity</code></td><td>Amber</td><td>Headroom depleted; awaiting Governor injection</td><td>No</td><td>Governor injects liquidity → Re-Evaluate; or Cancel</td></tr>
           <tr><td><code>clarification_requested</code></td><td>Orange</td><td>Returned to originator for correction</td><td>No</td><td>Originator corrects and resubmits → pending_review</td></tr>
           <tr><td><code>rejected</code></td><td>Red</td><td>Declined by supervisor</td><td>Yes</td><td>Originator creates new claim</td></tr>
@@ -466,12 +466,12 @@
           <div class="dp-btn-row"><div class="dp-btn-lbl">API</div><div>POST /api/v2/trade_claims/:id/approve {notes: "..."}</div></div>
           <div class="dp-btn-row"><div class="dp-btn-lbl">Step 1</div><div>Server writes status: compliance_cleared + compliance_cleared_at. Human governance layer confirmed.</div></div>
           <div class="dp-btn-row"><div class="dp-btn-lbl">Step 2</div><div>CorridorVerificationService runs immediately and sets final status to ready_to_mint or insufficient_corridor_liquidity.</div></div>
-          <div class="dp-btn-row"><div class="dp-btn-lbl">Response — ready_to_mint</div><div>status: "ready_to_mint", eligibility: {issuance_eligible: true, all 5 gates passed: true}, message: "READY TO MINT. Qt6 issuance authorised."</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Response — ready_to_mint</div><div>status: "ready_to_mint", eligibility: {issuance_eligible: true, all 5 gates passed: true}, message: "READY TO MINT. bearerCORE issuance authorised."</div></div>
           <div class="dp-btn-row"><div class="dp-btn-lbl">Response — liquidity insufficient</div><div>status: "insufficient_corridor_liquidity", eligibility: {issuance_eligible: false, liquidity gate: failed}, message: "⚠ Corridor protocol check failed: [shortfall details]. Governor liquidity injection required."</div></div>
           <div class="dp-btn-row"><div class="dp-btn-lbl">UI — ready_to_mint</div><div>Green result modal. Status badge → Ready to Mint. Five-gate panel shows all gates passed with notes (headroom confirmed, amount earmarked). Action buttons disable. Queue refreshes.</div></div>
           <div class="dp-btn-row"><div class="dp-btn-lbl">UI — liquidity insufficient</div><div>Amber result modal with verification_note (shortfall details) and Governor injection instructions. Re-Evaluate button activates. Claim remains visible in queue.</div></div>
           <div class="dp-btn-row"><div class="dp-btn-lbl">Audit</div><div>TradeClaimComplianceCleared event at Step 1. CorridorProtocolVerified or CorridorLiquidityInsufficient event at Step 2. Full gate snapshot recorded.</div></div>
-          <div class="dp-btn-row"><div class="dp-btn-lbl">Downstream</div><div>Qt6 minting is authorised only when status is ready_to_mint. Compliance-cleared alone is not sufficient — the corridor protocol must also pass.</div></div>
+          <div class="dp-btn-row"><div class="dp-btn-lbl">Downstream</div><div>bearerCORE minting is authorised only when status is ready_to_mint. Compliance-cleared alone is not sufficient — the corridor protocol must also pass.</div></div>
         </div>
       </div>
 
@@ -591,7 +591,7 @@
         <tbody>
           <tr><td><strong>SupervisorReviewStarted</strong></td><td>Supervisor selects claim in desk</td><td>claim_id, supervisor_id, opened_at</td><td>Audit log, soft lock service</td></tr>
           <tr><td><strong>TradeClaimComplianceCleared</strong></td><td>Step 1 of /approve — compliance_cleared written</td><td>claim_id, supervisor_id, compliance_cleared_at, decision_notes</td><td>Audit log</td></tr>
-          <tr><td><strong>CorridorProtocolVerified</strong></td><td>Step 2 — CorridorVerificationService → ready_to_mint</td><td>claim_id, corridor_id, earmarked_amount, corridor_headroom_at_verification, asset_code, verification_checked_at</td><td>Qt6 issuance auth, settlement service, audit log</td></tr>
+          <tr><td><strong>CorridorProtocolVerified</strong></td><td>Step 2 — CorridorVerificationService → ready_to_mint</td><td>claim_id, corridor_id, earmarked_amount, corridor_headroom_at_verification, asset_code, verification_checked_at</td><td>bearerCORE issuance auth, settlement service, audit log</td></tr>
           <tr><td><strong>CorridorLiquidityInsufficient</strong></td><td>Step 2 — CorridorVerificationService → insufficient_corridor_liquidity</td><td>claim_id, corridor_id, required_amount, available_headroom, shortfall, verification_note</td><td>Governor's Desk alert, audit log</td></tr>
           <tr><td><strong>EligibilityReevaluated</strong></td><td>POST /re_evaluate</td><td>claim_id, new_status, gate_snapshot, verification_note, evaluated_at</td><td>Audit log, supervisor desk UI</td></tr>
           <tr><td><strong>EarmarkReleased</strong></td><td>Cancel or reject of a ready_to_mint claim</td><td>claim_id, corridor_id, released_amount, released_at</td><td>Corridor ops ledger, audit log</td></tr>
@@ -619,8 +619,8 @@
         <div class="dp-step"><h4>Add decision notes (optional)</h4><p>Supervisor types: "Standard import claim. Corridor NGA-GHA in good standing. Pre-cleared compliance." in decision notes field.</p></div>
         <div class="dp-step"><h4>Approve — Step 1</h4><p>Supervisor clicks Approve. Button disables. <code>POST /api/v2/trade_claims/1/approve {notes: "..."}</code>. Server sets status: compliance_cleared, writes compliance_cleared_at.</p></div>
         <div class="dp-step"><h4>Approve — Step 2 (automatic)</h4><p>CorridorVerificationService runs immediately. Reads NGA-GHA corridor: domestic_available 5,000,000 NGN, linked_outstanding 1,200,000 NGN, existing earmarks 0. free_headroom = 3,800,000 NGN. claim_amount 500,000 GHS equivalent within headroom. Earmark written: earmarks[corridor_id] += 500,000.</p></div>
-        <div class="dp-step" style="border-left-color:#10b981;"><h4>Outcome: ready_to_mint</h4><p>Server returns status: ready_to_mint, issuance_eligible: true, all 5 gates passed. Green result modal: "Trade claim TC-20260519142233 — READY TO MINT. Qt6 issuance authorised." Status badge → Ready to Mint (green). Action buttons disable. Queue refreshes.</p></div>
-        <div class="dp-step"><h4>Settlement trigger</h4><p>CorridorProtocolVerified event emitted. Settlement service notified. Qt6 minting authorised against corridor NGA-GHA. Full audit record finalised with corridor headroom snapshot and earmark confirmation.</p></div>
+        <div class="dp-step" style="border-left-color:#10b981;"><h4>Outcome: ready_to_mint</h4><p>Server returns status: ready_to_mint, issuance_eligible: true, all 5 gates passed. Green result modal: "Trade claim TC-20260519142233 — READY TO MINT. bearerCORE issuance authorised." Status badge → Ready to Mint (green). Action buttons disable. Queue refreshes.</p></div>
+        <div class="dp-step"><h4>Settlement trigger</h4><p>CorridorProtocolVerified event emitted. Settlement service notified. bearerCORE minting authorised against corridor NGA-GHA. Full audit record finalised with corridor headroom snapshot and earmark confirmation.</p></div>
       </div>
 
       <h3>Path B — Liquidity Blocked (insufficient_corridor_liquidity → Governor → re_evaluate)</h3>
@@ -629,12 +629,12 @@
         <div class="dp-step" style="border-left-color:#f59e0b;"><h4>Outcome: insufficient_corridor_liquidity</h4><p>Server returns status: insufficient_corridor_liquidity. Amber result modal: "⚠ Corridor NGA-GHA headroom insufficient. Required: 500,000 GHS. Available: 200,000 GHS. Governor liquidity injection required before settlement can proceed." Re-Evaluate button activates.</p></div>
         <div class="dp-step"><h4>Governor injects liquidity</h4><p>Governor's Desk operator injects 400,000 GHS into corridor NGA-GHA via allocation. After HANDSHAKE_WINDOW (7s), the allocation is treated as confirmed by CorridorVerificationService.live_liquidity().</p></div>
         <div class="dp-step"><h4>Re-Evaluate</h4><p>Supervisor clicks Re-Evaluate. <code>POST /api/v2/trade_claims/1/re_evaluate</code>. CorridorVerificationService re-runs: new free_headroom = 600,000 GHS equivalent. 500,000 claim amount now fits. Earmark written.</p></div>
-        <div class="dp-step" style="border-left-color:#10b981;"><h4>Outcome: ready_to_mint</h4><p>Status advances to ready_to_mint. UI updates. Qt6 issuance authorised. EligibilityReevaluated event emitted with updated gate snapshot.</p></div>
+        <div class="dp-step" style="border-left-color:#10b981;"><h4>Outcome: ready_to_mint</h4><p>Status advances to ready_to_mint. UI updates. bearerCORE issuance authorised. EligibilityReevaluated event emitted with updated gate snapshot.</p></div>
       </div>
 
       <div class="dp-callout dp-ok">
         <span class="dp-ci">✓</span>
-        <div>End state (both paths): Claim TC-20260519142233 in status <code>ready_to_mint</code>. All five gates passed. Supervisor identity, decision notes, compliance_cleared_at, verification_note, and gate snapshot immutably recorded. Corridor NGA-GHA headroom reduced by earmarked amount. Qt6 minting authorised.</div>
+        <div>End state (both paths): Claim TC-20260519142233 in status <code>ready_to_mint</code>. All five gates passed. Supervisor identity, decision notes, compliance_cleared_at, verification_note, and gate snapshot immutably recorded. Corridor NGA-GHA headroom reduced by earmarked amount. bearerCORE minting authorised.</div>
       </div>
     </div>
 

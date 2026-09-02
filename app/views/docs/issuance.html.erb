@@ -257,7 +257,7 @@
       <h3 id="wholesale-denom">§4.5 — Wholesale Denomination Auto-Optimization</h3>
       <p>The denomination breakdown is computed <strong>server-side</strong> by
         <code>Issuance::DenominationPlanService</code> (stored as
-        <code>denomination_plan_json</code>; the Qt registry only renders it). For
+        <code>denomination_plan_json</code>; the bearerCORE registry only renders it). For
         high-value interbank settlements, at/above <code>WHOLESALE_THRESHOLD</code>
         (default 1,000,000; <code>WHOLESALE_DENOM_THRESHOLD</code> env) it <strong>skips
         the retail tiered breakdown</strong> and packs the total into the largest
@@ -444,7 +444,7 @@
       </table></div>
 
       <h3>Denomination Formatting</h3>
-      <div class="dp-rule">Qt sends denomination with a currency symbol (e.g. ₦200, KSh1000).</div>
+      <div class="dp-rule">bearerCORE sends denomination with a currency symbol (e.g. ₦200, KSh1000).</div>
       <div class="dp-rule">Server strips to numeric before persistence: <code>gsub(/[^\d.]/, "")</code>.</div>
 
       <h3>File Format</h3>

@@ -376,13 +376,13 @@
       <div class="dp-callout dp-info" style="margin-top:12px;">
         <span class="dp-ci">ℹ</span>
         <div>
-          <strong>Dual-Ledger Routing:</strong> The Qt UI routes events to the correct table
+          <strong>Dual-Ledger Routing:</strong> The bearerCORE UI routes events to the correct table
           panel based on <code>event_type</code>. Macro-monetary types
           (<code>issuance</code>, <code>burn</code>, <code>liquidity_lock</code>, <code>destruction</code>)
           appear in the <strong>Audit Event Registry</strong> (top table, shows Amount).
           Operational types (<code>governance</code>, <code>validation</code>, <code>anchor</code>)
           appear in the <strong>Node Activity &amp; System Logs</strong> table (bottom, shows Status).
-          Both tables share the same API response — the Qt controller populates both simultaneously.
+          Both tables share the same API response — the bearerCORE controller populates both simultaneously.
         </div>
       </div>
 
@@ -421,7 +421,7 @@
           <tr><td class="f">jurisdiction</td><td class="t">string</td><td>Jurisdiction scope applied to the report</td></tr>
           <tr><td class="f">parameters</td><td class="t">jsonb</td><td>Filter parameters used: <code>{from, to, jurisdiction, status, operator_id}</code></td></tr>
           <tr><td class="f">file_path</td><td class="t">string</td><td>Server-side path to the generated document</td></tr>
-          <tr><td class="f">download_url</td><td class="t">string</td><td>Relative URL for the Qt client to download the PDF</td></tr>
+          <tr><td class="f">download_url</td><td class="t">string</td><td>Relative URL for the bearerCORE client to download the PDF</td></tr>
           <tr><td class="f">generated_at</td><td class="t">timestamp</td><td>Time the document was produced</td></tr>
         </tbody>
       </table></div>
@@ -452,7 +452,7 @@
           <tr><td><code>Audit::ExportService</code></td><td>app/services/audit/export_service.rb</td><td>Generates CSV up to 5,000 rows from the current filter scope</td></tr>
           <tr><td><code>Audit::SignatureVerificationService</code></td><td>app/services/audit/signature_verification_service.rb</td><td>Ed25519 verify via <code>RbNaCl</code> — reads only <code>IssuerKey#public_key_b64url</code></td></tr>
           <tr><td><code>Audit::ComplianceReportService</code></td><td>app/services/audit/compliance_report_service.rb</td><td>Creates <code>AuditReport</code> record; enqueues <code>AuditReportGeneratorJob</code> if Sidekiq present</td></tr>
-          <tr><td><code>Audit::ReportDownloadService</code></td><td>app/services/audit/report_download_service.rb</td><td>Resolves report by ID; returns <code>download_url</code> for Qt client</td></tr>
+          <tr><td><code>Audit::ReportDownloadService</code></td><td>app/services/audit/report_download_service.rb</td><td>Resolves report by ID; returns <code>download_url</code> for bearerCORE client</td></tr>
           <tr><td><code>Audit::SnapshotAnchorService</code></td><td>app/services/audit/snapshot_anchor_service.rb</td><td>Builds SHA-256 chain digest; creates <code>AuditSnapshot</code></td></tr>
           <tr><td><code>Audit::EventHashingService</code></td><td>app/services/audit/event_hashing_service.rb</td><td>Deterministic SHA-256 over canonical event fields — used at event creation time</td></tr>
         </tbody>
@@ -495,7 +495,7 @@
 
       <p><strong>Supply Integrity colour logic:</strong></p>
       <div class="dp-table-wrap"><table class="dp-table">
-        <thead><tr><th>Value</th><th>Colour</th><th>Qt widget style</th></tr></thead>
+        <thead><tr><th>Value</th><th>Colour</th><th>bearerCORE widget style</th></tr></thead>
         <tbody>
           <tr><td>≥ 99%</td><td>Green</td><td><code>color:#66bb6a</code></td></tr>
           <tr><td>95–98.9%</td><td>Amber</td><td><code>color:#ffb74d</code></td></tr>
@@ -540,7 +540,7 @@
               When checked, appends <code>velocity_anomaly=true</code> to the query.
               The Rails service filters for events where
               <code>amount / time_delta_seconds &gt; institution_velocity_threshold</code>.
-              The Qt table highlights matching rows with an amber left border and a
+              The bearerCORE table highlights matching rows with an amber left border and a
               <div class="dp-velocity-badge" style="display:inline-flex;margin-top:6px;">
                 <span class="vb-dot"></span> VELOCITY ANOMALY
               </div>
@@ -555,7 +555,7 @@
             <td><code>cmbAudAlertStatus</code></td>
             <td>
               Options: All · 🟢 Normal · 🟡 Warning · 🔴 Critical<br>
-              Qt strips the emoji prefix before sending lowercase value to API.<br>
+              bearerCORE strips the emoji prefix before sending lowercase value to API.<br>
               Maps to <code>alert_status=critical</code> etc.
             </td>
           </tr>
@@ -565,7 +565,7 @@
       <p>
         <strong>Apply Filter (<code>btnAudApplyFilter</code>):</strong> Builds the full query string
         from all active filter values and calls <code>GET /api/v2/audit/events?{filters}</code>.
-        The response populates both tables simultaneously — the Qt controller calls
+        The response populates both tables simultaneously — the bearerCORE controller calls
         <code>populateEventsTable(events)</code> which fills both top and bottom tables from the
         same <code>QJsonArray</code>.
       </p>
@@ -584,12 +584,12 @@
           <tr><td>Reference ID</td><td><code>reference_id</code></td><td>Source batch / transfer / proposal ID</td></tr>
           <tr><td>Operator</td><td><code>operator</code></td><td>Operator identifier</td></tr>
           <tr><td>Institution</td><td><code>institution</code></td><td>Bank or central bank name</td></tr>
-          <tr><td>Amount</td><td><code>amount</code></td><td>Integer minor units — Qt formats with currency symbol if available</td></tr>
+          <tr><td>Amount</td><td><code>amount</code></td><td>Integer minor units — bearerCORE formats with currency symbol if available</td></tr>
         </tbody>
       </table></div>
       <p>
         Row selection fires <code>onRowSelectedTop(row)</code> → reads the event ID stored
-        in <code>Qt::UserRole</code> on column 0 → calls <code>GET /api/v2/audit/events/{id}</code>
+        in <code>UserRole</code> on column 0 → calls <code>GET /api/v2/audit/events/{id}</code>
         → populates the right-pane evidence panel.
       </p>
 
@@ -766,7 +766,7 @@
 
       <h3>Health Ribbon Colour Transitions</h3>
       <p>
-        The three health labels use Qt <code>setStyleSheet()</code> applied on every API response.
+        The three health labels use bearerCORE <code>setStyleSheet()</code> applied on every API response.
         Pending Verifications: amber if &gt; 0, blue if 0. Active Alerts: green if 0, amber if 1–3,
         red if &gt; 3. Supply Integrity: green ≥ 99%, amber 95–99%, red &lt; 95%.
       </p>
@@ -778,9 +778,9 @@
       <ol>
         <li>Auditor selects a report type in <code>cmbAudReportType</code> and clicks
             <strong>Generate Compliance Report</strong>. Rails creates an <code>AuditReport</code>
-            record and returns the <code>report_id</code>. Qt stores this in <code>m_lastReportId</code>.</li>
+            record and returns the <code>report_id</code>. bearerCORE stores this in <code>m_lastReportId</code>.</li>
         <li>Auditor clicks <strong>Generate Certified Audit Statement</strong>
-            (<code>btnAudExportPdf</code>). Qt calls
+            (<code>btnAudExportPdf</code>). bearerCORE calls
             <code>GET /api/v2/audit/reports/{m_lastReportId}/download</code>
             and presents a save-file dialog. The <code>Last Export</code> label is stamped with
             the current timestamp.</li>
@@ -1035,7 +1035,7 @@
       </div>
 
       <h3>GET /api/v2/audit/reports/:id/download</h3>
-      <p>Returns <code>data.download_url</code> as a relative path. The Qt client displays this URL in a dialog for manual download (binary file streaming is Phase 2).</p>
+      <p>Returns <code>data.download_url</code> as a relative path. The bearerCORE client displays this URL in a dialog for manual download (binary file streaming is Phase 2).</p>
 
       <h3>POST /api/v2/audit/anchor_snapshot</h3>
       <div class="dp-json-block">
@@ -1073,8 +1073,8 @@
       <div class="dp-callout dp-info" style="margin-top:24px;">
         <span class="dp-ci">ℹ</span>
         <div>
-          <strong>Qt Parsing Guarantee:</strong> All responses follow the stable envelope.
-          The Qt controller always reads: <code>root["success"].toBool()</code> and
+          <strong>bearerCORE Parsing Guarantee:</strong> All responses follow the stable envelope.
+          The bearerCORE controller always reads: <code>root["success"].toBool()</code> and
           <code>root["data"].toObject()</code>. Fields within <code>data</code> — including
           <code>events</code>, <code>snapshot_hash</code>, <code>valid</code> — will never
           be renamed in v2. New fields are additive only.

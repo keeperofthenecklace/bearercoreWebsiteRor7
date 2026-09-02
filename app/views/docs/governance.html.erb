@@ -451,7 +451,7 @@
       <div class="dp-table-wrap"><table class="dp-table">
         <thead><tr><th>#</th><th>Column</th><th>Source</th><th>Notes</th></tr></thead>
         <tbody>
-          <tr><td>0</td><td>Proposal ID</td><td><code>proposal_id</code> or <code>GOV-{id[:8].upcase}</code></td><td>UUID stored in <code>Qt::UserRole</code> for detail lookup</td></tr>
+          <tr><td>0</td><td>Proposal ID</td><td><code>proposal_id</code> or <code>GOV-{id[:8].upcase}</code></td><td>UUID stored in <code>UserRole</code> for detail lookup</td></tr>
           <tr><td>1</td><td>Title</td><td><code>title</code> or falls back to <code>proposal_type</code></td><td></td></tr>
           <tr><td>2</td><td>Category</td><td><code>proposal_type</code></td><td></td></tr>
           <tr><td>3</td><td>Legal Origin</td><td>Derived client-side from <code>proposal_type</code></td><td>Never null — falls back to "Board Resolution"</td></tr>
@@ -735,7 +735,7 @@
           All vote signing is handled externally via an HSM or secure vault. The
           <code>GovernanceVote.signature_key_id</code> field records only the key identifier
           (e.g. <code>CBK-KEY-01</code>), never the private key material.
-          The Qt client calls the external HSM at vote-cast time; Rails only receives the
+          The bearerCORE client calls the external HSM at vote-cast time; Rails only receives the
           signed payload and key reference.
         </div>
       </div>
@@ -851,7 +851,7 @@
 }
       </div>
       <p>
-        The Qt client reads <code>envelope["data"]</code> in all API callbacks. Errors are
+        The bearerCORE client reads <code>envelope["data"]</code> in all API callbacks. Errors are
         surfaced via <code>envelope["error"]</code> as a string; non-null error causes a
         <code>QMessageBox::warning</code> and aborts state updates.
       </p>
