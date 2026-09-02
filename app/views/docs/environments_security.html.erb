@@ -108,6 +108,19 @@
       </table>
       <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
         An unknown or missing environment resolves to <b>Sandbox</b> (least privilege).
+        The desktop client's login environment selector <b>defaults to Sandbox</b>
+        when nothing valid is saved — it never defaults to Production, so an operator
+        can't enter a LIVE session just by accepting the first item.
+      </div></div>
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>
+        <b>"Sandbox" is a policy posture, not a separate database.</b> The client always
+        talks to the same backend/database; the environment does not switch data stores.
+        What isolates a sandbox session is <code>rtgs_live=false</code> (plus
+        <code>strict=false</code> and simulated signing keys) — it <b>suppresses the real
+        RTGS / mainnet settlement hooks</b>, so notes still move logically but no live
+        money movement occurs. Isolation is the <code>rtgs_live</code> flag, not a DB
+        boundary; a physically separate sandbox database would be a distinct
+        infrastructure change.
       </div></div>
     </div>
 

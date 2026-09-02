@@ -178,6 +178,31 @@
       <h3>Corridor Dropdown</h3>
       <p>Editable QComboBox with QCompleter (MatchContains, CaseInsensitive). Populated from <code>GET /api/v2/corridors</code>. Display format: <code>{flag} {SRC} → {flag} {DST}</code>. Fires on <code>activated</code> signal only — not on each keystroke.</p>
 
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
+        <b>Endpoint shape &amp; scoping.</b> <code>GET /api/v2/corridors</code> returns
+        <b>all active</b> corridors wrapped in a <code>data.corridors</code> envelope, and
+        applies a jurisdiction filter <b>only</b> when <code>?source_country=</code> is
+        passed (there is no per-scope gate on the list) — so any authenticated operator,
+        including a compliance officer, can populate the selector. The client reads the
+        nested <code>data.corridors</code> array, shows a
+        <em>"— Select Active Bilateral Corridor —"</em> placeholder (with a warning log)
+        when empty, and on corridor switch <b>auto-selects the highest-funded reserve pool</b>.
+      </div></div>
+
+      <div class="dp-callout dp-ok"><span class="dp-ci">✓</span><div>
+        <b>Sandbox seeding — corridors &amp; reserve liquidity.</b> Default bilateral
+        corridors (GHA-NGA, NGA-GHA, KEN-TZA, ZAF-ZWE) and reserve pools
+        (<code>CBN-NGN-RESERVE-01</code> = 500M NGN, <code>BoG-GHS-RESERVE-01</code> = 500M
+        GHS) are provisioned by <code>rake cvib:seed_corridors</code> and
+        <code>rake cvib:seed_reserves</code> — both re-run automatically by
+        <code>cvib:sandbox_reset</code>, so a reset never leaves Corridor Ops empty.
+        A reserve pool's <b>available balance is DERIVED, not a stored column</b>: pool-01
+        = <code>LiquidityLock.where(corridor, status:'active').sum(:amount)</code>, adjusted
+        by <code>ReservePoolEvent</code> rebalances. To fund a pool you add an active
+        <code>LiquidityLock</code> (the seed lock is claim-less) — never write a balance
+        field.
+      </div></div>
+
       <h4>On Change — Full Reload Cascade</h4>
       <div class="dp-flow">
         <div class="dp-step"><h4>Load corridor identity</h4><p>GET /corridors/:id → ID, Code, Asset Code, Status, Agreement ID, Source, Target</p></div>

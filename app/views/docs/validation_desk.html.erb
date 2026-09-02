@@ -434,6 +434,28 @@
       </table></div>
       <div class="dp-rule">Integrity: manifest_hash = SHA-256 of canonical manifest.json. payload_hash = SHA-256 of note payload fields. issuer_sig = Ed25519 over hex-encoded payload_hash. All three must match for cryptographic integrity.</div>
 
+      <div class="dp-callout dp-warn"><span class="dp-ci">⚠</span><div>
+        <b>payload_hash is server-authoritative and unique per mint.</b> The registry value
+        is <code>SHA-256([note_id, serial, asset_code, denom, corridor_code])</code>, and
+        <code>note_id</code> is a <b>fresh server UUID on every mint</b>. The desktop client
+        embeds the exact value returned by <code>GET /cvib_batches/:id/payloads</code>
+        (verbatim from <code>cvib_notes</code>) into the PNG — it never recomputes the hash.
+        Consequence: <b>re-minting a serial changes its payload_hash</b>, so an older exported
+        <code>.zip</code> of that serial is legitimately rejected at Stage-4 as
+        stale/cloned — this is the anti-clone guard, not a bug. After any sandbox reset +
+        re-mint, discard old bundles and validate only the freshly-dispatched one.
+      </div></div>
+
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
+        <b>Registry Lookup verdict &amp; denomination check.</b> Clicking Registry Lookup
+        (<code>GET /api/v2/cvib_notes/:serial/verify</code>) always returns a visible verdict:
+        a green-check confirmation on a verified record (status + payload-hash + denomination
+        + holder all ✓), flipping the queue row to <em>"✓ Verified · Ready for Redemption"</em>;
+        or a warning naming the failed check. Denominations are compared <b>numerically</b>
+        (normalized), so <code>5</code>, <code>5.0</code> and <code>"5 L-NGN"</code> are
+        equivalent — no false "denomination tamper" on a valid note.
+      </div></div>
+
       <h3>Page 2 — Compliance History</h3>
       <div class="dp-table-wrap"><table class="dp-table">
         <thead><tr><th>Widget</th><th>JSON Key</th><th>Derivation</th></tr></thead>
