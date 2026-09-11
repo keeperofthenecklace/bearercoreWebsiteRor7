@@ -504,7 +504,7 @@
             <td><strong>Registry Lookup</strong><br><code>btnValRegistryLookup</code></td>
             <td>GET /api/v2/validation/registry_lookup/{serial}</td>
             <td>Row selected with serial</td>
-            <td>CbdcNote queried → duplication_status set → Liquidity &amp; Trade fields populated</td>
+            <td>CbdcNote queried → duplication_status set → Liquidity &amp; Trade fields populated → resolves the note's mint issuer, mint timestamp, and full ownership-transfer chain (from <code>CvibTransfer</code>) into the Provenance Timeline</td>
             <td>Show error; duplication_status unchanged; approve remains blocked</td>
           </tr>
           <tr>
@@ -565,6 +565,21 @@
           </tr>
         </tbody>
       </table></div>
+
+      <div class="dp-callout dp-info"><span class="dp-ci">ℹ</span><div>
+        <b>Provenance Timeline now shows real mint + transfer data.</b> Registry Lookup's
+        response previously returned only <code>status</code>/<code>last_seen_*</code> — no
+        <code>issuer</code>, <code>issued_at</code>, or <code>transfers</code> — so the
+        Provenance Timeline's <em>"🏦 Minted by …"</em> line and its
+        <em>"➜ Transferred: X → Y"</em> chain never rendered for <b>any</b> note, regardless
+        of how many times it had actually changed hands. Both are now resolved from real
+        data: issuer via <code>IssuerKey</code>, mint timestamp from the note's own record,
+        and the transfer chain from <code>CvibTransfer</code>. <code>CvibTransfer</code> is
+        also now written by the consumer wallet's peer-to-peer send path (previously only
+        operator-initiated bulk transfers left a record there), so a note's full custody
+        history — institutional handoffs <i>and</i> wallet-to-wallet transfers — is visible
+        to the desk for the first time, not just its state as of its last desk-side action.
+      </div></div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════ §8 EDGE CASES -->
