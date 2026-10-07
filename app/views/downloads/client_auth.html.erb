@@ -36,79 +36,111 @@
 </div>
 
 <%# ─── PAGE ────────────────────────────────────────────────────────────────── %>
-<div style="min-height: 100vh; background: #0a1628; padding-top: 130px; padding-bottom: 80px; display: flex; align-items: center; justify-content: center;">
-  <div style="width: 100%; max-width: 520px; padding: 0 24px;">
+<style>
+  .dl-page { min-height: 100vh; background: #0a1628; padding: 170px 16px 96px; color: #fff; }
+  .dl-wrap { max-width: 760px; margin: 0 auto; text-align: center; }
+  .dl-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A84C; margin-bottom: 18px; }
+  .dl-title { font-size: clamp(40px, 7vw, 68px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; margin: 0 0 18px; }
+  .dl-sub { font-size: 18px; color: rgba(255,255,255,0.6); line-height: 1.5; margin: 0 auto 48px; max-width: 600px; }
+  .dl-os-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; max-width: 640px; margin: 0 auto 40px; }
+  .dl-os { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+           height: 150px; border-radius: 22px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+           color: #fff; font-size: 17px; font-weight: 500; cursor: pointer; transition: background .15s, border-color .15s; font-family: inherit; }
+  .dl-os:hover { background: rgba(255,255,255,0.08); }
+  .dl-os[aria-pressed="true"] { background: rgba(201,168,76,0.14); border-color: rgba(201,168,76,0.55); }
+  .dl-os svg { width: 40px; height: 40px; }
+  .dl-os .dl-soon { position: absolute; top: 12px; right: 12px; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+                    color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.07); padding: 3px 7px; border-radius: 999px; }
+  .dl-btn { display: inline-flex; align-items: center; gap: 14px; padding: 20px 44px; border-radius: 999px; border: none;
+            background: #C9A84C; color: #0C1B38; font-size: 19px; font-weight: 700; cursor: pointer; transition: opacity .15s; font-family: inherit; }
+  .dl-btn:hover { opacity: 0.88; }
+  .dl-btn:disabled { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); cursor: not-allowed; opacity: 1; }
+  .dl-meta { font-size: 13px; color: rgba(255,255,255,0.45); margin: 14px 0 0; }
+  .dl-eula { display: flex; align-items: flex-start; justify-content: center; gap: 10px; max-width: 520px; margin: 0 auto 28px; text-align: left; cursor: pointer; }
+  .dl-eula span { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.55; }
+  .dl-note { max-width: 560px; margin: 56px auto 0; padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .dl-note p { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.65; margin: 0 0 8px; }
+  .dl-flash { max-width: 520px; margin: 0 auto 28px; background: rgba(220,38,38,0.12); border: 1px solid rgba(220,38,38,0.3);
+              border-radius: 10px; padding: 12px 16px; color: #fca5a5; font-size: 13px; }
+  @media (max-width: 560px) {
+    .dl-os-grid { gap: 8px; }
+    .dl-os { height: 112px; font-size: 14px; border-radius: 16px; }
+    .dl-os svg { width: 30px; height: 30px; }
+    .dl-os .dl-soon { top: 8px; right: 50%; transform: translateX(50%); font-size: 8px; padding: 2px 6px; white-space: nowrap; }
+    .dl-btn { padding: 16px 28px; font-size: 16px; }
+  }
+</style>
+
+<div class="dl-page">
+  <div class="dl-wrap">
 
     <% if flash[:error] %>
-      <div style="background: rgba(220,38,38,0.12); border: 1px solid rgba(220,38,38,0.3); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; color: #fca5a5; font-size: 13px;">
-        <%= flash[:error] %>
-      </div>
+      <div class="dl-flash"><%= flash[:error] %></div>
     <% end %>
 
-    <%# Download card %>
-    <div style="background: linear-gradient(160deg, #111c35 0%, #0e1d38 100%); border: 1px solid rgba(201,168,76,0.25); border-radius: 20px; overflow: hidden;">
+    <div class="dl-eyebrow">bearerCORE™ Desktop Application</div>
+    <h1 class="dl-title">Download bearerCORE</h1>
+    <p class="dl-sub">The standalone workstation node for central bank operators: offline vault parsing, local key management, and signing workflows.</p>
 
-      <%# Header %>
-      <div style="background: linear-gradient(135deg, #0C1B38 0%, #152545 100%); padding: 28px 32px; text-align: center; border-bottom: 1px solid rgba(201,168,76,0.2);">
-        <div style="width: 64px; height: 64px; background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5">
-            <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-          </svg>
-        </div>
-        <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #C9A84C; margin-bottom: 6px;">bearerCORE™ Desktop Application</div>
-        <h1 style="font-size: 22px; font-weight: 700; color: #ffffff; margin: 0; letter-spacing: -0.3px;">Download Client Software</h1>
-      </div>
-
-      <%# Meta badges %>
-      <div style="display: flex; justify-content: center; gap: 12px; padding: 20px 32px 0; flex-wrap: wrap;">
-        <span style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.06); padding: 4px 12px; border-radius: 6px;">14 MB</span>
-        <span style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.06); padding: 4px 12px; border-radius: 6px;">Version 1.0.4 · Production</span>
-        <span style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.06); padding: 4px 12px; border-radius: 6px;">Apple Silicon / Intel</span>
-      </div>
-
-      <%# Description %>
-      <div style="padding: 16px 32px 0;">
-        <p style="font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.65; margin: 0; text-align: center;">
-          Standalone workstation node. Handles offline AES-256-GCM vault parsing and manages local Ed25519 cryptographic keys. Required for central bank operator signing workflows.
-        </p>
-      </div>
-
-      <%# EULA form %>
-      <div style="padding: 24px 32px 32px;">
-        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-          <p style="font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.6; margin: 0; text-align: center;">
-            macOS 12.0 or later required. For institutional research and operational use only.
-          </p>
-        </div>
-
-        <%= form_with url: process_client_download_path, method: :post, local: true do |f| %>
-          <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; margin-bottom: 20px;">
-            <%= f.check_box :eula_agreed, { style: "width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; accent-color: #C9A84C; cursor: pointer;" }, "1", "0" %>
-            <span style="font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.55;">
-              I have read and agree to the bearerCORE™
-              <a href="/terms" target="_blank" style="color: #C9A84C; text-decoration: underline;">End-User License Agreement</a>.
-              I understand this software is for institutional use only.
-            </span>
-          </label>
-
-          <%= f.submit "Download .dmg Installer",
-                style: "width: 100%; padding: 14px; background: #C9A84C; color: #0C1B38; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; letter-spacing: 0.02em; cursor: pointer; transition: opacity 0.15s;",
-                onmouseover: "this.style.opacity='0.88'",
-                onmouseout:  "this.style.opacity='1'" %>
-        <% end %>
-
-        <p style="text-align: center; font-size: 11px; color: rgba(255,255,255,0.2); margin: 14px 0 0; letter-spacing: 0.03em;">
-          SHA-256 integrity verified · Restricted to authenticated sessions
-        </p>
-      </div>
-
+    <%# OS selector — macOS available; Linux / Windows are placeholders until those builds ship %>
+    <div class="dl-os-grid" role="group" aria-label="Choose your operating system">
+      <button type="button" class="dl-os" data-os="macos" aria-pressed="true" onclick="bcSelectOs('macos')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.47.83-.72 0-1.82-.81-2.99-.79-1.54.02-2.96.9-3.75 2.27-1.6 2.78-.41 6.89 1.15 9.14.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.77-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.39-.92-2.41-3.66zM14.1 5.85c.63-.77 1.06-1.83.94-2.89-.91.04-2.02.61-2.67 1.37-.58.67-1.1 1.76-.96 2.8 1.02.08 2.06-.52 2.69-1.28z"/></svg>
+        macOS
+      </button>
+      <button type="button" class="dl-os" data-os="linux" aria-pressed="false" onclick="bcSelectOs('linux')">
+        <span class="dl-soon">Coming soon</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M12 2.5c-2 0-3.2 1.7-3.2 4 0 1.3.3 2-.5 3.4C7 11.6 5.6 13.6 5.6 16c0 .8.2 1.5.5 2.1L4.5 19.4c-.4.4-.1 1.1.5 1.1h3.4c.6.6 1.6 1 3.6 1s3-.4 3.6-1H19c.6 0 .9-.7.5-1.1l-1.6-1.3c.3-.6.5-1.3.5-2.1 0-2.4-1.4-4.4-2.7-6.1-.8-1.4-.5-2.1-.5-3.4 0-2.3-1.2-4-3.2-4z"/><circle cx="10.6" cy="6.6" r=".6" fill="currentColor"/><circle cx="13.4" cy="6.6" r=".6" fill="currentColor"/><path d="M10.8 8.4 12 9.3l1.2-.9"/><path d="M9.2 13.5c.6 2.6 1.4 4.5 2.8 4.5s2.2-1.9 2.8-4.5"/></svg>
+        Linux
+      </button>
+      <button type="button" class="dl-os" data-os="windows" aria-pressed="false" onclick="bcSelectOs('windows')">
+        <span class="dl-soon">Coming soon</span>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.1 10.4 4v7.1H3V5.1zm8.4-1.2L21 2.5v8.6h-9.6V3.9zM3 12.1h7.4v7.1L3 18.1v-6zm8.4 0H21v8.6l-9.6-1.4v-7.2z"/></svg>
+        Windows
+      </button>
     </div>
 
-    <div style="text-align: center; margin-top: 20px;">
-      <a href="/portal" style="font-size: 12px; color: rgba(255,255,255,0.3); text-decoration: none;" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
-        ← Back to Portal
-      </a>
+    <%= form_with url: process_client_download_path, method: :post, local: true do |f| %>
+      <label class="dl-eula">
+        <%= f.check_box :eula_agreed, { style: "width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; accent-color: #C9A84C; cursor: pointer;" }, "1", "0" %>
+        <span>
+          I have read and agree to the bearerCORE™
+          <a href="/terms" target="_blank" style="color: #C9A84C; text-decoration: underline;">End-User License Agreement</a>.
+          I understand this software is for institutional use only.
+        </span>
+      </label>
+
+      <button type="submit" class="dl-btn" id="bc-dl-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>
+        <span id="bc-dl-label">Download for macOS</span>
+      </button>
+      <p class="dl-meta" id="bc-dl-meta">Apple Silicon / Intel · 14 MB · Version 1.0.4</p>
+    <% end %>
+
+    <div class="dl-note">
+      <p>macOS 12.0 or later required. For institutional research and operational use only.</p>
+      <p style="color: rgba(255,255,255,0.3); font-size: 11px; letter-spacing: 0.03em;">SHA-256 integrity verified · Restricted to authenticated sessions</p>
+      <p style="margin-top: 18px;">
+        <a href="/portal" style="font-size: 12px; color: rgba(255,255,255,0.4); text-decoration: none;">← Back to Portal</a>
+      </p>
     </div>
 
   </div>
 </div>
+
+<script>
+  window.bcSelectOs = function (os) {
+    var builds = {
+      macos:   { label: "Download for macOS", meta: "Apple Silicon / Intel · 14 MB · Version 1.0.4", available: true },
+      linux:   { label: "Linux — Coming soon", meta: "The Linux build is in development.", available: false },
+      windows: { label: "Windows — Coming soon", meta: "The Windows build is in development.", available: false }
+    };
+    var b = builds[os];
+    document.querySelectorAll(".dl-os").forEach(function (el) {
+      el.setAttribute("aria-pressed", el.dataset.os === os ? "true" : "false");
+    });
+    document.getElementById("bc-dl-label").textContent = b.label;
+    document.getElementById("bc-dl-meta").textContent = b.meta;
+    document.getElementById("bc-dl-btn").disabled = !b.available;
+  };
+</script>
