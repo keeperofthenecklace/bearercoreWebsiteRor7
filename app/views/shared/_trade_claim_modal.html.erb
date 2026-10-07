@@ -5528,7 +5528,6 @@ document.getElementById('draftSavedModal')?.addEventListener('click', function(e
   if (!window.SC_PORTAL) return;
   var P = window.SC_PORTAL;
   var _origSelectCountry = window.selectCountry;   // preserve BEFORE we override it below
-  var _originApplied = false;
 
   function homeCountry() {
     // id is what selectCountry() writes into tc_country_id (validated on Step 1).
@@ -5536,7 +5535,16 @@ document.getElementById('draftSavedModal')?.addEventListener('click', function(e
              alpha3: P.country_code, iso3: P.country_code, country_code: P.country_code };
   }
 
+  function originNeedsApply() {
+    var cid = document.getElementById('tc_country_id');
+    var cb  = document.getElementById('tc_central_bank_name');
+    if (!cid || !cb) return false;
+    var v = (cb.value || '').trim();
+    return !cid.value || !v || v === '—';
+  }
+
   function lockOrigin() {
+    if (!document.getElementById('tradeClaimModalOverlay')) return;   // not on this page
     var step1 = document.getElementById('tcStep1');
     if (step1 && !document.getElementById('sc_origin_badge')) {
       var b = document.createElement('div');
@@ -5571,10 +5579,12 @@ document.getElementById('draftSavedModal')?.addEventListener('click', function(e
     // `selectedCountry` (which loadCorridors/filterCorridorsForCountry read), writes
     // tc_country_id, loads the Central Bank name + SWIFT, and filters corridors.
     // Setting window.selectedCountry did NOT reach that module variable — which is
-    // why corridors never populated. Run once; on later passes just re-filter in case
-    // the corridor fetch finished after the first call.
-    if (!_originApplied && typeof _origSelectCountry === 'function') {
-      _originApplied = true;
+    // why corridors never populated. Re-apply whenever the origin is NOT populated:
+    // hideTradeClaimModal() → resetDropdowns() wipes the country + Central Bank name,
+    // and a failed by_iso3166 lookup leaves '—', so a one-shot latch left the field
+    // blank on every later open until a full browser refresh. While a lookup is in
+    // flight ('Loading...') just re-filter corridors in case they finished later.
+    if (originNeedsApply() && typeof _origSelectCountry === 'function') {
       try { _origSelectCountry(homeCountry()); }
       catch (e) { console.warn('[Portal] selectCountry(home) failed', e); }
     } else if (typeof filterCorridorsForCountry === 'function') {
@@ -5593,6 +5603,12 @@ document.getElementById('draftSavedModal')?.addEventListener('click', function(e
     setTimeout(lockOrigin, 60);
     setTimeout(lockOrigin, 700);
   };
-  document.addEventListener('DOMContentLoaded', function () { setTimeout(lockOrigin, 200); });
+  // Pre-apply the origin as soon as the page is ready. After sign-in, Turbo Drive
+  // renders this page WITHOUT a DOMContentLoaded, so also hook turbo:load (fires on
+  // full loads and Turbo visits). `once` — this script re-runs on every Turbo visit,
+  // so listeners must not accumulate; lockOrigin() is idempotent if both fire.
+  function onPageReady() { setTimeout(lockOrigin, 200); }
+  document.addEventListener('DOMContentLoaded', onPageReady, { once: true });
+  document.addEventListener('turbo:load', onPageReady, { once: true });
 })();
 </script>
