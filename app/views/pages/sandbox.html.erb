@@ -1,3 +1,11 @@
+<%# Always full-page-load /sandbox — never a Turbo Drive swap. The modal partials
+    (trade claim, supervisor, governor) declare top-level let/const and rely on
+    DOMContentLoaded; a Turbo visit re-runs them in the same window, the 2nd run
+    throws "Identifier ... has already been declared", and the cards open empty
+    (no claims, no Central Bank) until a manual browser refresh. %>
+<% content_for :head do %>
+  <meta name="turbo-visit-control" content="reload">
+<% end %>
 <%# ─── NAV ─────────────────────────────────────────────────────────────────── %>
 <nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
      data-controller="nav">
