@@ -3,6 +3,21 @@ module Api
     class TradeClaimsController < ApplicationController
       skip_before_action :verify_authenticity_token
 
+      # RETIRED 2026-10-09. These endpoints (index, create, draft, approve,
+      # reject, re_evaluate, request_clarification, cancel, clearance) were
+      # unauthenticated, and approve could mark any claim ready_to_mint for the
+      # SmartCHEQ "BC-" clearance path, which is also retired. Trade claims live in
+      # SmartCHEQ (TC-), reviewed on the Supervisor Desk. Every action returns 410.
+      # The class-level resolvers below remain in use (IssuancePipeline).
+      before_action :retired
+
+      def retired
+        render json: { error: "gone",
+                       message: "bearerCORE's trade-claim API is retired. Trade claims are submitted " \
+                                "to and reviewed in SmartCHEQ." }, status: :gone
+      end
+      private :retired
+
       # ── Shared resolvers ────────────────────────────────────────────────────
       # Resolve a corridor_id (live id/code, __virtual__SRC__DST, or SRC-DST)
       # into the jsonb corridor record stored on a TradeClaim. Reused by the
