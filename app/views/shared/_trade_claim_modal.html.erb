@@ -722,16 +722,6 @@
             Cancel
           </button>
 
-          <!-- Save Draft (steps 1 & 2 only) -->
-          <button type="button" id="tcBtnSaveDraft" onclick="saveDraft()" style="
-            padding: 12px 24px; background: white; border: 1px solid #059669;
-            border-radius: 8px; font-size: 14px; font-weight: 500; color: #059669;
-            cursor: pointer; transition: all 0.2s;
-          " onmouseover="this.style.background='#f0fdf4'"
-             onmouseout="this.style.background='white'">
-            Save Draft
-          </button>
-
           <!-- Back (steps 2 & 3) -->
           <button type="button" id="tcBtnBack" onclick="tcStepBack()" style="
             display: none; padding: 12px 24px; background: white;
@@ -1149,263 +1139,6 @@
   </div>
 </div>
 
-<!-- Draft Saved Success Modal -->
-<div id="draftSavedModal" style="
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 10000;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-">
-  <div style="
-    background: #ffffff;
-    border-radius: 20px;
-    width: 100%;
-    max-width: 480px;
-    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-  ">
-    <!-- Draft Header (Blue gradient) -->
-    <div style="
-      background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
-      padding: 40px 24px;
-      text-align: center;
-      position: relative;
-    ">
-      <!-- Decorative circles -->
-      <div style="
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        width: 60px;
-        height: 60px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 50%;
-      "></div>
-      <div style="
-        position: absolute;
-        bottom: -20px;
-        right: 40px;
-        width: 80px;
-        height: 80px;
-        background: rgba(255,255,255,0.05);
-        border-radius: 50%;
-      "></div>
-      
-      <!-- Save icon -->
-      <div style="
-        width: 80px;
-        height: 80px;
-        background: rgba(255,255,255,0.2);
-        border: 3px solid rgba(255,255,255,0.8);
-        border-radius: 50%;
-        margin: 0 auto 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-          <polyline points="17 21 17 13 7 13 7 21"></polyline>
-          <polyline points="7 3 7 8 15 8"></polyline>
-        </svg>
-      </div>
-      
-      <h2 style="color: white; margin: 0 0 12px; font-size: 26px; font-weight: 700;">
-        Draft Saved!
-      </h2>
-      <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px; line-height: 1.5;">
-        Your trade claim has been saved as a draft.<br>
-        You can continue editing it anytime.
-      </p>
-    </div>
-    
-    <!-- Draft Body -->
-    <div style="padding: 24px;">
-      <!-- Draft ID Card -->
-      <div style="
-        background: #f0f9ff;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
-      ">
-        <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
-          <div style="
-            width: 36px;
-            height: 36px;
-            background: #dbeafe;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-          ">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-            </svg>
-          </div>
-          <div>
-            <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Draft Reference:</div>
-            <div id="draftClaimId" style="font-size: 18px; font-weight: 700; color: #2563eb; font-family: monospace;">
-              TC-00000000
-            </div>
-          </div>
-        </div>
-        
-        <p style="font-size: 13px; color: #4b5563; margin: 0 0 16px; line-height: 1.5;">
-          Your draft has been saved and can be accessed from your dashboard.<br>
-          Complete the submission when you're ready.
-        </p>
-        
-        <!-- Status points -->
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span style="font-size: 13px; color: #374151;">Draft saved securely to your account.</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span style="font-size: 13px; color: #374151;">Continue editing anytime from your dashboard.</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span style="font-size: 13px; color: #374151;">Submit when ready via <strong>Drafts</strong> section.</span>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Draft Summary -->
-      <div style="margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-          <span style="font-size: 16px;">📋</span>
-          <span style="font-size: 14px; font-weight: 600; color: #1d1d1f;">Draft Summary:</span>
-        </div>
-        
-        <div style="
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          overflow: hidden;
-        ">
-          <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
-            <span style="font-size: 13px; color: #6b7280;">Amount</span>
-            <span id="draftAmount" style="font-size: 13px; font-weight: 600; color: #1d1d1f;">KES 0</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
-            <span style="font-size: 13px; color: #6b7280;">Direction</span>
-            <span id="draftDirection" style="font-size: 13px; font-weight: 500; color: #1d1d1f;">-</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; padding: 12px 16px;">
-            <span style="font-size: 13px; color: #6b7280;">Status</span>
-            <span style="font-size: 13px; font-weight: 500; color: #f59e0b; background: #fef3c7; padding: 2px 8px; border-radius: 4px;">Draft</span>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Action Buttons -->
-      <button onclick="closeDraftModalAndGoToDrafts()" style="
-        width: 100%;
-        padding: 14px 24px;
-        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-        border: none;
-        border-radius: 10px;
-        font-size: 15px;
-        font-weight: 600;
-        color: white;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        margin-bottom: 12px;
-        transition: opacity 0.2s;
-      " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-        </svg>
-        View My Drafts
-      </button>
-      
-      <div style="display: flex; gap: 12px;">
-        <button onclick="closeDraftModalAndContinueEditing()" style="
-          flex: 1;
-          padding: 12px 16px;
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 500;
-          color: #374151;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: background 0.2s;
-        " onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-          </svg>
-          Continue Editing
-        </button>
-        
-        <button onclick="closeDraftModal()" style="
-          flex: 1;
-          padding: 12px 16px;
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 500;
-          color: #374151;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: background 0.2s;
-        " onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-          Close
-        </button>
-      </div>
-      
-      <!-- Footer Links -->
-      <div style="
-        margin-top: 20px;
-        padding-top: 16px;
-        border-top: 1px solid #e5e7eb;
-        text-align: center;
-      ">
-        <span style="font-size: 12px; color: #9ca3af;">
-          <a href="#" style="color: #6b7280; text-decoration: none;">Help & Docs</a>
-          <span style="margin: 0 8px;">·</span>
-          <a href="#" style="color: #6b7280; text-decoration: none;">Contact Support</a>
-          <span style="margin: 0 8px;">·</span>
-          <a href="#" style="color: #6b7280; text-decoration: none;">Dashboard</a>
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-
 <style>
 /* Custom dropdown option styles */
 .dropdown-option {
@@ -1777,14 +1510,12 @@ function tcUpdateNavButtons(step) {
   const btnBack      = document.getElementById('tcBtnBack');
   const btnNext      = document.getElementById('tcBtnNext');
   const btnSubmit    = document.getElementById('submitClaimBtn');
-  const btnSaveDraft = document.getElementById('tcBtnSaveDraft');
 
   if (btnBack)  btnBack.style.display  = step > 1 ? '' : 'none';
 
   if (step === 3) {
     if (btnNext)      btnNext.style.display      = 'none';
     if (btnSubmit)  { btnSubmit.style.display    = ''; btnSubmit.disabled = false; btnSubmit.style.opacity = ''; btnSubmit.style.cursor = 'pointer'; }
-    if (btnSaveDraft) btnSaveDraft.style.display = 'none';
   } else {
     if (btnNext) {
       btnNext.style.display  = '';
@@ -1801,7 +1532,6 @@ function tcUpdateNavButtons(step) {
       }
     }
     if (btnSubmit)    btnSubmit.style.display  = 'none';
-    if (btnSaveDraft) btnSaveDraft.style.display = '';
   }
 }
 
@@ -5258,60 +4988,6 @@ async function confirmAndSubmitTradeClaim() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// SAVE DRAFT
-// ═══════════════════════════════════════════════════════════════════════════
-
-async function saveDraft() {
-  hideError();
-  
-  const payload = {
-    trade_claim: {
-      institution_id: selectedInstitution ? selectedInstitution.id : document.getElementById('tc_institution_id').value,
-      corridor_id: document.getElementById('tc_corridor_id').value,
-      trade_direction: document.getElementById('tc_trade_direction').value,
-      currency_code: document.getElementById('tc_currency_code').value,
-      amount: getNumericAmount(),
-      invoice_ref: document.getElementById('tc_invoice_ref').value,
-      central_bank_holder_id:   document.getElementById('tc_central_bank_holder_id')?.value || '',
-      commercial_bank_holder_id: document.getElementById('tc_commercial_bank_holder_id')?.value || '',
-      trader_holder_id:           document.getElementById('tc_trader_holder_id')?.value || '',
-      fx_reference_id:            document.getElementById('tc_fx_reference_id')?.value || '',
-      sovereign_minting_node:     document.getElementById('tc_sovereign_minting_node')?.value || '',
-      destination_retailer_holder_id: document.getElementById('tc_destination_retailer_holder_id')?.value || '',
-      description: document.getElementById('tc_description').value,
-      beneficiary_name: document.getElementById('tc_beneficiary_name').value,
-      beneficiary_country: document.getElementById('tc_beneficiary_country').value.toUpperCase()
-    }
-  };
-
-  try {
-    const response = await fetch('/api/v2/trade_claims/draft', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${getAccessToken()}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || data.error || 'Failed to save draft');
-    }
-    
-    // Show draft saved modal instead of alert
-    showDraftSavedModal(data);
-    hideTradeClaimModal();
-    
-  } catch (error) {
-    console.error('Draft save error:', error);
-    showError(error.message);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
 // SUCCESS MODAL
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -5455,66 +5131,6 @@ document.getElementById('tradeClaimSuccessModal')?.addEventListener('click', fun
   }
 });
 
-// ═══════════════════════════════════════════════════════════════════════════
-// DRAFT SAVED MODAL
-// ═══════════════════════════════════════════════════════════════════════════
-
-function showDraftSavedModal(data) {
-  const modal = document.getElementById('draftSavedModal');
-  
-  // Get form values for display
-  const currencyCode = document.getElementById('tc_currency_code').value || '-';
-  const amount = document.getElementById('tc_amount').value || '0';
-  const direction = document.getElementById('tc_trade_direction').value;
-  const beneficiaryCountry = document.getElementById('tc_beneficiary_country').value;
-  
-  // Generate reference from ID or use provided reference
-  let reference = data.reference;
-  if (!reference && data.id) {
-    reference = `TC-${data.id.toString().replace(/-/g, '').slice(0, 8).toUpperCase()}`;
-  }
-  
-  // Update modal content
-  document.getElementById('draftClaimId').textContent = reference || `TC-${Date.now()}`;
-  document.getElementById('draftAmount').textContent = currencyCode !== '-' ? `${currencyCode} ${amount}` : '-';
-  
-  // Format direction
-  const directionText = direction === 'import' 
-    ? `Import into ${countryCodeToCountry[beneficiaryCountry] || beneficiaryCountry || '-'}`
-    : direction === 'export' 
-      ? `Export from ${selectedCountry?.name || '-'}`
-      : '-';
-  document.getElementById('draftDirection').textContent = directionText;
-  
-  // Show modal
-  modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-
-function closeDraftModal() {
-  const modal = document.getElementById('draftSavedModal');
-  modal.style.display = 'none';
-  document.body.style.overflow = '';
-}
-
-function closeDraftModalAndGoToDrafts() {
-  closeDraftModal();
-  // Navigate to drafts page - adjust URL as needed
-  window.location.href = '/trade_claims?status=draft';
-}
-
-function closeDraftModalAndContinueEditing() {
-  closeDraftModal();
-  // Re-open the trade claim modal to continue editing
-  showTradeClaimModal();
-}
-
-// Close draft modal when clicking outside
-document.getElementById('draftSavedModal')?.addEventListener('click', function(e) {
-  if (e.target === this) {
-    closeDraftModal();
-  }
-});
 </script>
 
 <%# ── Institutional Portal origin lock (hybrid) ───────────────────────────────
