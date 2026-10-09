@@ -1621,8 +1621,8 @@ function getAccessToken() {
   const stored = localStorage.getItem('access_token');
   if (stored) return stored;
   
-  // Fallback - replace with your token for development
-  return 'wOJLHO7nXlO7IOqUI8mX9nfYMQi_S8EmqKMwUOh-FO8';
+  // No embedded fallback: the signed-in session's api-token meta is required.
+  return '';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

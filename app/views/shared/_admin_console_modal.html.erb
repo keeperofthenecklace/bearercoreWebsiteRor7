@@ -1558,9 +1558,9 @@ async function refreshFxRatesFromAPI() {
 
 function getAdminToken() {
   // Token passed from Rails via environment variable, with fallback
-  const envToken = '<%= ENV["ADMIN_API_TOKEN"] || ENV["ACCESS_TOKEN"] || "" %>';
+  // No shared or embedded token is ever rendered into the page.
   // Fallback if ENV not loaded (remove in production)
-  return envToken || 'wOJLHO7nXlO7IOqUI8mX9nfYMQi_S8EmqKMwUOh-FO8';
+  return localStorage.getItem('access_token') || '';
 }
 
 function getAuthHeaders() {

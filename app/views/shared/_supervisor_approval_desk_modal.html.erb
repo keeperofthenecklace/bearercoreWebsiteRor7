@@ -640,8 +640,8 @@ function toggleSupervisorSection(sectionId) {
 
 function getSupervisorToken() {
   if (typeof getAccessToken === 'function') return getAccessToken();
-  const envToken = '<%= ENV["ADMIN_API_TOKEN"] || "" %>';
-  return envToken || localStorage.getItem('access_token') || localStorage.getItem('accessToken') || 'wOJLHO7nXlO7IOqUI8mX9nfYMQi_S8EmqKMwUOh-FO8';
+  // Never fall back to a shared or embedded token: an operator session is required.
+  return localStorage.getItem('access_token') || localStorage.getItem('accessToken') || '';
 }
 
 // The Supervisor Desk approves the real portal-submitted claims, which live in the
