@@ -433,6 +433,22 @@
               </p>
             </div>
 
+            <div style="margin-bottom: 20px;">
+              <label class="field-label" for="otp_code">Authenticator Code</label>
+              <%= text_field_tag :otp_code, nil,
+                    id: "otp_code",
+                    placeholder: "6-digit code",
+                    required: true,
+                    inputmode: "numeric",
+                    pattern: "[0-9]{6}",
+                    maxlength: 6,
+                    autocomplete: "one-time-code",
+                    class: "field-input" %>
+              <p class="field-hint">
+                The current code from the authenticator enrolled for your operator account.
+              </p>
+            </div>
+
             <button type="submit" class="gateway-submit">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none"
                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">

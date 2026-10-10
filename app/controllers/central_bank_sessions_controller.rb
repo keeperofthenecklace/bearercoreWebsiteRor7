@@ -4,7 +4,7 @@ require "json"
 
 # Institutional web-portal login (hybrid). bearerCORE serves the UI, but
 # OperatorAccount identity lives in SmartcheqWebsiteRor7. This controller bridges
-# the login: it POSTs username + password + institution_swift to the SmartcheqWebsiteRor7
+# the login: it POSTs username + password + institution_swift + TOTP code to the SmartcheqWebsiteRor7
 # auth endpoint and, on success, binds the returned institution profile + Doorkeeper
 # token into the bearerCORE web session. The token is replayed by the Trade Claim
 # modal so the SmartcheqWebsiteRor7 ABAC guard enforces origin scoping.
@@ -19,13 +19,14 @@ class CentralBankSessionsController < ApplicationController
     username = params[:username].to_s.downcase.strip
     swift    = params[:institution_swift].to_s.strip.upcase
     password = params[:password].to_s
+    otp_code = params[:otp_code].to_s.strip
 
-    if username.blank? || password.blank? || swift.blank?
-      flash.now[:alert] = "Username, password and institutional SWIFT are all required."
+    if username.blank? || password.blank? || swift.blank? || otp_code.blank?
+      flash.now[:alert] = "Username, password, institutional SWIFT and authenticator code are all required."
       return render :new, status: :unprocessable_entity
     end
 
-    result = authenticate_via_smartcheq(username, password, swift)
+    result = authenticate_via_smartcheq(username, password, swift, otp_code)
 
     if result.is_a?(Hash) && result["success"]
       data = result["data"] || {}
@@ -63,7 +64,7 @@ class CentralBankSessionsController < ApplicationController
       (Rails.env.production? ? "https://api.smartcheq.com" : "http://127.0.0.1:3001")
   end
 
-  def authenticate_via_smartcheq(username, password, swift)
+  def authenticate_via_smartcheq(username, password, swift, otp_code)
     uri  = URI.join(smartcheq_api_base.chomp("/") + "/",
                     "api/v2/central_bank_access/authenticate")
     http = Net::HTTP.new(uri.host, uri.port)
@@ -74,7 +75,8 @@ class CentralBankSessionsController < ApplicationController
     req = Net::HTTP::Post.new(uri)
     req["Content-Type"] = "application/json"
     req["Accept"]       = "application/json"
-    req.body = { username: username, password: password, institution_swift: swift }.to_json
+    req.body = { username: username, password: password, institution_swift: swift,
+                 otp_code: otp_code }.to_json
 
     res = http.request(req)
     JSON.parse(res.body)
